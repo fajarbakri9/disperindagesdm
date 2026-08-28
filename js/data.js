@@ -1400,6 +1400,23 @@ const DEFAULT_COMPLAINT_RECAP_2025 = {
   infographic: "assets/infografis/Rekapitulasi_Pengaduan_2025.jpg"
 };
 
+// 1.3 MAKLUMAT PELAYANAN RESMI (CANONICAL V3)
+const DEFAULT_MAKLUMAT = {
+  title: "Maklumat Pelayanan Publik",
+  decision_number: "Nomor: 800.1.1/01/DISPERINDAG-ESDM/I/2025",
+  signatory: "MUHAMMAD YUSUF NUR, S.STP",
+  signatory_title: "Kepala Dinas Perindag ESDM Kabupaten Pinrang",
+  nip: "19780512 199711 1 001",
+  date: "02 Januari 2025",
+  pledges: [
+    "Berjanji dan sanggup untuk melaksanakan pelayanan sesuai dengan Standar Pelayanan yang telah ditetapkan secara transparan, adil, dan profesional.",
+    "Memberikan pelayanan sesuai dengan kewajiban dan akan melakukan perbaikan secara terus menerus guna mewujudkan pelayanan prima bagi masyarakat Kabupaten Pinrang.",
+    "Siap menerima sanksi dan/atau memberikan kompensasi apabila pelayanan yang diberikan tidak sesuai standar yang telah dijanjikan."
+  ],
+  motto: "Melayani Anda dengan Transparan, Adil & Profesional (MANTAP)",
+  hashtag: "#BanggaMelayaniBangsa"
+};
+
 function initDataStoreMigration() {
   const currentVer = localStorage.getItem('disperindag_data_version');
   const targetVer = "2026_08_28_konten_lengkap_v1";

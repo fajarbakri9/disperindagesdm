@@ -837,10 +837,16 @@ img {
 }
 
 .ticker-content {
-  display: inline-flex;
-  white-space: nowrap;
-  animation: tickerSlide 38s linear infinite;
+  display: inline-flex !important;
+  width: max-content !important;
+  white-space: nowrap !important;
+  animation: tickerSlide 35s linear infinite !important;
   gap: 40px;
+  will-change: transform;
+}
+
+.ticker-scroll-area:hover .ticker-content {
+  animation-play-state: paused;
 }
 
 .ticker-item {
@@ -860,8 +866,12 @@ img {
 .trend-stable { color: #94A3B8; }
 
 @keyframes tickerSlide {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 /* ==========================================================================
