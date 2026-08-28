@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F2C59" />
+      <stop offset="100%" stop-color="#1A3E7A" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5A623" />
+      <stop offset="100%" stop-color="#D4AF37" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="240" rx="12" fill="url(#bgGrad)" />
+  <!-- Kepala / Head -->
+  <circle cx="100" cy="75" r="38" fill="#FDE047" opacity="0.9" />
+  <!-- Jas / Badan Pimpinan -->
+  <path d="M40,240 C40,165 65,130 100,130 C135,130 160,165 160,240 Z" fill="#FFFFFF" opacity="0.95" />
+  <!-- Kerah Jas & Dasi -->
+  <polygon points="100,140 85,190 100,240 115,190" fill="url(#goldGrad)" />
+  <polygon points="100,140 80,180 60,150" fill="#030D1B" />
+  <polygon points="100,140 120,180 140,150" fill="#030D1B" />
+  <!-- Pin Lencana Keemasan -->
+  <circle cx="75" cy="185" r="5" fill="url(#goldGrad)" />
+</svg>

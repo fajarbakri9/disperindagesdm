@@ -1,0 +1,293 @@
+/* ==========================================================================
+   CUSTOM MODAL & TOAST NOTIFICATION SYSTEM - DISPERINDAG ESDM PINRANG
+   (Menggantikan alert, prompt, dan confirm bawaan peramban/Windows)
+   ========================================================================== */
+
+/* 1. Backdrop Overlay */
+.custom-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 13, 27, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  padding: 16px;
+}
+
+.custom-modal-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 2. Modal Box */
+.custom-modal-card {
+  background: #FFFFFF;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border: 2px solid #E2E8F0;
+  overflow: hidden;
+  transform: scale(0.92) translateY(12px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-modal-backdrop.active .custom-modal-card {
+  transform: scale(1) translateY(0);
+}
+
+/* 3. Modal Header */
+.custom-modal-header {
+  background: linear-gradient(135deg, #0F2C59 0%, #1A3E7A 100%);
+  color: #FFFFFF;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 2px solid #D4AF37;
+}
+
+.custom-modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.custom-modal-title-group h3 {
+  font-size: 1.05rem;
+  font-weight: 900;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.custom-modal-title-group p {
+  font-size: 0.72rem;
+  color: #FDE047;
+  font-weight: 700;
+  margin: 2px 0 0 0;
+  text-transform: uppercase;
+}
+
+/* 4. Modal Body */
+.custom-modal-body {
+  padding: 22px 24px;
+  color: #1E293B;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.custom-modal-input-group {
+  margin-top: 14px;
+}
+
+.custom-modal-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid #CBD5E1;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  background: #F8FAFC;
+  transition: border-color 0.2s ease;
+}
+
+.custom-modal-input:focus {
+  border-color: #0F2C59;
+  background: #FFFFFF;
+}
+
+/* 5. Modal Footer Actions */
+.custom-modal-footer {
+  padding: 14px 24px 20px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+}
+
+.btn-modal-action {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-modal-primary {
+  background: #0F2C59;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(15, 44, 89, 0.25);
+}
+
+.btn-modal-primary:hover {
+  background: #D4AF37;
+  color: #030D1B;
+}
+
+.btn-modal-secondary {
+  background: #E2E8F0;
+  color: #475569;
+}
+
+.btn-modal-secondary:hover {
+  background: #CBD5E1;
+  color: #0F172A;
+}
+
+.btn-modal-danger {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.btn-modal-danger:hover {
+  background: #B91C1C;
+}
+
+/* 6. TOAST NOTIFICATION STACK */
+.custom-toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.custom-toast {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 420px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 14px 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  border-left: 5px solid #0F2C59;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateX(120%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-toast.show {
+  transform: translateX(0);
+}
+
+.custom-toast.success { border-left-color: #16A34A; }
+.custom-toast.danger { border-left-color: #DC2626; }
+.custom-toast.warning { border-left-color: #D97706; }
+.custom-toast.info { border-left-color: #0F2C59; }
+
+.toast-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+
+.toast-msg {
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.35;
+}
+
+/* 7. RESPONSIVE MODAL & TOAST FOR MOBILE (100dvh & Touch Targets) */
+@media (max-width: 480px) {
+  .custom-modal-backdrop {
+    padding: 10px;
+  }
+
+  .custom-modal-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 16px;
+    max-height: 94dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .custom-modal-header {
+    padding: 14px 18px;
+    gap: 12px;
+  }
+
+  .custom-modal-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+    border-radius: 10px;
+  }
+
+  .custom-modal-title-group h3 {
+    font-size: 0.98rem;
+  }
+
+  .custom-modal-body {
+    padding: 16px 18px;
+    font-size: 0.88rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .custom-modal-footer {
+    padding: 14px 18px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .btn-modal-action {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    padding: 11px 14px;
+    font-size: 0.9rem;
+  }
+
+  .custom-toast-container {
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    left: 12px;
+    right: 12px;
+  }
+
+  .custom-toast {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+}

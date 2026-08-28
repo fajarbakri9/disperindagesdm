@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- 1. Halaman Beranda Utama -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.00</priority>
+  </url>
+
+  <!-- 2. Profil Kedinasan, Pejabat & Tupoksi Organisasi -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/profil.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- 3. Standar Operasional Prosedur (SOP) & Layanan Publik -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/layanan.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- 4. Piagam Maklumat Pelayanan Publik (MANTAP) -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/maklumat-pelayanan.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- 5. Portal Keterbukaan Informasi Publik (PPID Pelaksana) -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/ppid.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- 6. Katalog Produk IKM Binaan & Sertifikasi TKDN / Halal -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/katalog-ikm.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- 7. Warta & Arsip Berita Kedinasan Terkini -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/arsip-berita.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- 8. Repositori Dokumen Hukum, Regulasi, Renstra & LKjIP -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/dokumen.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- 9. Informasi Kontak & Lokasi Kantor Kedinasan -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/kontak.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- 10. Mesin Pencarian Global Informasi Kedinasan -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/search.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <!-- 11. Command Center & TV Wallboard Monitoring -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/command-center.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- 12. Direktori Pasar & Sarana Perdagangan Kabupaten Pinrang -->
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar.html</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-sentral-pinrang</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-pekkabata</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-bungi</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-langnga</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-teppo-benteng</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-kariango</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-pajalele</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-paleteang</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-suppa</loc>
+    <lastmod>2026-08-29T00:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+</urlset>

@@ -1,0 +1,540 @@
+// ==============================================================================
+// APP CONTROLLER - DISPERINDAG ESDM KABUPATEN PINRANG (PRODUCTION READY)
+// ==============================================================================
+
+// Safe Storage Helper Fallback
+if (typeof window.getStorage !== 'function') {
+  window.getStorage = function(key, defaultVal) {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : defaultVal;
+    } catch (e) {
+      return defaultVal;
+    }
+  };
+}
+if (typeof window.setStorage !== 'function') {
+  window.setStorage = function(key, val) {
+    try {
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) {}
+  };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initMobileDrawer();
+  initGlobalSearch();
+  renderHeroCarousel();
+  renderRunningTicker();
+  renderQuickServices();
+  renderPriceDashboard();
+  renderFeaturedDocuments();
+  renderHomeNews();
+  renderHomeProductsIKM();
+  initComplaintForm();
+  initTabsSystem();
+});
+
+// 1. MOBILE DRAWER NAVIGATION CONTROLLER (WCAG 2.1 AA)
+function initMobileDrawer() {
+  const toggleBtn = document.getElementById('mobileMenuBtn');
+  const drawer = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('mobileDrawerOverlay');
+  const closeBtn = document.getElementById('drawerCloseBtn');
+
+  if (!toggleBtn || !drawer || !overlay) return;
+
+  function openDrawer() {
+    drawer.classList.add('open');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  toggleBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', closeDrawer);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) {
+      closeDrawer();
+    }
+  });
+
+  const drawerLinks = drawer.querySelectorAll('.drawer-link');
+  drawerLinks.forEach(link => {
+    link.addEventListener('click', closeDrawer);
+  });
+}
+
+// 2. GLOBAL SEARCH REDIRECTION
+function initGlobalSearch() {
+  const searchForm = document.getElementById('globalSearchForm');
+  const searchInput = document.getElementById('globalSearchInput');
+
+  if (searchForm && searchInput) {
+    searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = searchInput.value.trim();
+      if (q) {
+        window.location.href = `search.html?q=${encodeURIComponent(q)}`;
+      }
+    });
+  }
+}
+
+// 3. RUNNING PRICE TICKER
+function renderRunningTicker() {
+  const tickerContainer = document.getElementById('priceTickerContainer');
+  if (!tickerContainer) return;
+
+  const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
+  const items = prices.map(item => `
+    <div class="ticker-item">
+      <span>${item.commodity_name}:</span>
+      <span class="price">Rp ${item.price.toLocaleString('id-ID')}/${item.unit}</span>
+      <span class="trend-${item.trend}">
+        ${item.trend === 'up' ? '▲' : item.trend === 'down' ? '▼' : '—'}
+      </span>
+    </div>
+  `).join('');
+
+  // Gandakan untuk continuous infinite scroll
+  tickerContainer.innerHTML = items + items;
+}
+
+// 4. HERO CAROUSEL CONTROLLER
+let currentSlide = 0;
+let carouselTimer = null;
+let totalBannersCount = 0;
+
+function renderHeroCarousel() {
+  const container = document.getElementById('heroCarouselTrack');
+  if (!container) return;
+
+  const banners = getStorage('disperindag_banners', DEFAULT_BANNERS).filter(b => b.active);
+  if (banners.length === 0) return;
+
+  totalBannersCount = banners.length;
+
+  container.innerHTML = banners.map((b, idx) => `
+    <div class="carousel-slide ${idx === 0 ? 'active' : ''}">
+      <img src="${b.img}" alt="${b.title}" loading="lazy" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
+      <div class="carousel-overlay"></div>
+      <div class="carousel-caption">
+        <span class="carousel-badge">Bumi Lasinrang &bull; Dokumentasi Kedinasan</span>
+        <h2>${b.title}</h2>
+        <p>${b.caption}</p>
+      </div>
+    </div>
+  `).join('');
+
+  startCarouselAutoPlay(banners.length);
+}
+
+function startCarouselAutoPlay(total) {
+  if (carouselTimer) clearInterval(carouselTimer);
+  carouselTimer = setInterval(() => {
+    goToSlide((currentSlide + 1) % total);
+  }, 6000);
+}
+
+window.goToSlide = function(idx) {
+  const slides = document.querySelectorAll('.carousel-slide');
+  if (slides.length === 0) return;
+
+  slides.forEach(s => s.classList.remove('active'));
+  currentSlide = idx;
+  if (slides[idx]) slides[idx].classList.add('active');
+};
+
+window.nextSlide = function() {
+  if (totalBannersCount === 0) return;
+  goToSlide((currentSlide + 1) % totalBannersCount);
+  startCarouselAutoPlay(totalBannersCount);
+};
+
+window.prevSlide = function() {
+  if (totalBannersCount === 0) return;
+  goToSlide((currentSlide - 1 + totalBannersCount) % totalBannersCount);
+  startCarouselAutoPlay(totalBannersCount);
+};
+
+// 5. QUICK SERVICES CARDS (KELOMPOK LAYANAN PUBLIK KEDINASAN)
+function renderQuickServices() {
+  const container = document.getElementById('quickServicesGrid');
+  if (!container) return;
+
+  const services = typeof getStorage === 'function' ? getStorage('disperindag_services', DEFAULT_SERVICES) : DEFAULT_SERVICES;
+
+  const unitThemes = {
+    'srv_oss_industri': { icon: '🏭', topBar: 'linear-gradient(90deg, #0284C7, #0EA5E9)', bgIcon: '#E0F2FE', colorIcon: '#0284C7', badgeBg: '#E0F2FE', badgeColor: '#0369A1', badgeBorder: '#BAE6FD' },
+    'srv_oss_perdagangan': { icon: '📈', topBar: 'linear-gradient(90deg, #2563EB, #3B82F6)', bgIcon: '#EFF6FF', colorIcon: '#2563EB', badgeBg: '#EFF6FF', badgeColor: '#1D4ED8', badgeBorder: '#BFDBFE' },
+    'srv_pupuk_subsidi': { icon: '🌱', topBar: 'linear-gradient(90deg, #16A34A, #22C55E)', bgIcon: '#F0FDF4', colorIcon: '#16A34A', badgeBg: '#F0FDF4', badgeColor: '#15803D', badgeBorder: '#BBF7D0' },
+    'srv_tera': { icon: '⚖️', topBar: 'linear-gradient(90deg, #7C3AED, #9333EA)', bgIcon: '#F5F3FF', colorIcon: '#7C3AED', badgeBg: '#FAF5FF', badgeColor: '#6B21A8', badgeBorder: '#E9D5FF' },
+    'srv_ikm': { icon: '🏭', topBar: 'linear-gradient(90deg, #0891B2, #06B6D4)', bgIcon: '#ECFEFF', colorIcon: '#0891B2', badgeBg: '#ECFEFF', badgeColor: '#155E75', badgeBorder: '#A5F3FC' },
+    'srv_harga': { icon: '📊', topBar: 'linear-gradient(90deg, #059669, #10B981)', bgIcon: '#ECFDF5', colorIcon: '#059669', badgeBg: '#ECFDF5', badgeColor: '#047857', badgeBorder: '#A7F3D0' },
+    'srv_pasar': { icon: '🛒', topBar: 'linear-gradient(90deg, #D97706, #F59E0B)', bgIcon: '#FFFBEB', colorIcon: '#D97706', badgeBg: '#FFFBEB', badgeColor: '#92400E', badgeBorder: '#FDE68A' },
+    'srv_lpg': { icon: '⚡', topBar: 'linear-gradient(90deg, #EA580C, #F97316)', bgIcon: '#FFF7ED', colorIcon: '#EA580C', badgeBg: '#FFF7ED', badgeColor: '#9A3412', badgeBorder: '#FED7AA' },
+    'srv_ppid': { icon: '📂', topBar: 'linear-gradient(90deg, #1E40AF, #3B82F6)', bgIcon: '#EFF6FF', colorIcon: '#1E40AF', badgeBg: '#EFF6FF', badgeColor: '#1E40AF', badgeBorder: '#BFDBFE' }
+  };
+
+  container.innerHTML = services.map(s => {
+    const theme = unitThemes[s.id] || { icon: '🏢', topBar: 'linear-gradient(90deg, #1D4ED8, #3B82F6)', bgIcon: '#EFF6FF', colorIcon: '#1D4ED8', badgeBg: '#EFF6FF', badgeColor: '#1E40AF', badgeBorder: '#BFDBFE' };
+    const feeText = s.fee.includes('Gratis') || s.fee.includes('Rp 0') || s.fee.includes('Tidak dikenakan') ? 'Gratis (Rp 0)' : 'Sesuai Perda';
+    const feeColor = feeText.includes('Gratis') ? '#16A34A' : '#D97706';
+    const targetLink = `layanan.html#${s.id}`;
+
+    return `
+    <div class="service-card" id="card_${s.id}">
+      <div class="service-card-top-bar" style="background: ${theme.topBar};"></div>
+      
+      <div>
+        <div class="service-card-header">
+          <div class="service-icon-box" style="background: ${theme.bgIcon}; color: ${theme.colorIcon};">
+            ${theme.icon}
+          </div>
+          <span style="font-size: 0.72rem; font-weight: 800; color: #10B981; background: #ECFDF5; padding: 3px 8px; border-radius: 12px; border: 1px solid #A7F3D0;">
+            ✓ SOP Resmi
+          </span>
+        </div>
+
+        <span class="service-unit-badge" style="background: ${theme.badgeBg}; color: ${theme.badgeColor}; border: 1px solid ${theme.badgeBorder};">
+          ${s.group_name || s.responsible_unit}
+        </span>
+
+        <h3 class="service-card-title">
+          ${s.name}
+        </h3>
+
+        <div class="service-meta-pills">
+          <div class="service-pill-item">
+            <span>🏷️</span> Biaya: <strong style="color: ${feeColor};">${feeText}</strong>
+          </div>
+          <div class="service-pill-item">
+            <span>⏱️</span> Waktu: <strong>${s.duration}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <a href="${targetLink}" class="service-cta-btn" style="flex: 1; text-align: center;">
+          Detail Standar &rarr;
+        </a>
+        ${s.infographic ? `
+          <button onclick="openInfographicModal('${s.infographic}', '${s.name}')" class="btn-outline" style="padding: 6px 10px; font-size: 0.76rem; background: #FFFFFF; cursor: pointer; border-radius: 6px;" title="Lihat Infografis">
+            🖼️
+          </button>
+        ` : ''}
+      </div>
+    </div>
+    `;
+  }).join('');
+}
+
+// 6. DASHBOARD HARGA PASAR & KOMODITAS (BAPOKTING) DENGAN SISTEM EXPAND/COLLAPSE RINGKAS
+let showAllSembako = false;
+
+function renderPriceDashboard() {
+  const container = document.getElementById('sembakoGrid');
+  const searchInput = document.getElementById('searchSembako');
+  const categorySelect = document.getElementById('categoryFilter');
+  if (!container) return;
+
+  const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
+
+  function filterAndRender() {
+    const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const cat = categorySelect ? categorySelect.value : 'all';
+    const isSearching = q !== '' || cat !== 'all';
+
+    const filtered = prices.filter(item => {
+      const matchQ = item.commodity_name.toLowerCase().includes(q) || item.notes.toLowerCase().includes(q);
+      const matchCat = cat === 'all' || item.commodity_name.toLowerCase().includes(cat.toLowerCase());
+      return matchQ && matchCat;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 36px; background: #FFFFFF; border-radius: 16px; border: 1.5px dashed #CBD5E1;">
+          <p style="color: #64748B; font-weight: 600;">Data komoditas yang Anda cari belum ditemukan atau belum disurvei hari ini.</p>
+        </div>
+      `;
+      const oldToggle = document.getElementById('sembakoToggleContainer');
+      if (oldToggle) oldToggle.remove();
+      return;
+    }
+
+    // Jika sedang tidak mencari/filter, tampilkan 4 item secara default atau semua jika showAllSembako true
+    const displayItems = isSearching || showAllSembako ? filtered : filtered.slice(0, 4);
+
+    container.innerHTML = displayItems.map(item => `
+      <div class="sembako-card">
+        <div>
+          <div class="sembako-card-top">
+            <div class="sembako-icon-wrapper">
+              ${item.commodity_name.includes('Beras') ? '🌾' : item.commodity_name.includes('Minyak') ? '🛢️' : item.commodity_name.includes('Cabai') ? '🌶️' : item.commodity_name.includes('Bawang') ? '🧅' : item.commodity_name.includes('Daging') ? '🥩' : item.commodity_name.includes('Gula') ? '🍚' : '🥚'}
+            </div>
+            <div class="sembako-title-group">
+              <h4 class="sembako-title">${item.commodity_name}</h4>
+              <span class="sembako-unit-tag">Per 1 ${item.unit}</span>
+            </div>
+          </div>
+
+          <div class="sembako-price-box">
+            <span class="sembako-price-number">Rp ${item.price.toLocaleString('id-ID')}</span>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+              <span class="trend-pill ${item.trend}">
+                ${item.trend === 'up' ? '▲ Naik' : item.trend === 'down' ? '▼ Turun' : '— Stabil'}
+              </span>
+              <span class="sembako-diff-text">
+                ${item.diff > 0 ? `+Rp ${item.diff.toLocaleString('id-ID')}` : item.diff < 0 ? `-Rp ${Math.abs(item.diff).toLocaleString('id-ID')}` : 'Harga tetap'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sembako-footer">
+          <div class="sembako-meta-row">
+            <span>📍 ${item.market_name}</span>
+            <span class="verified-badge">✓ Terverifikasi</span>
+          </div>
+          <div style="font-size: 0.7rem; color: #94A3B8; display: flex; justify-content: space-between;">
+            <span>🕒 ${item.observed_date} &bull; ${item.observed_time}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Render atau update tombol Toggle di bawah grid jika tidak dalam mode pencarian
+    let toggleWrapper = document.getElementById('sembakoToggleContainer');
+    if (!toggleWrapper) {
+      toggleWrapper = document.createElement('div');
+      toggleWrapper.id = 'sembakoToggleContainer';
+      toggleWrapper.style.textAlign = 'center';
+      toggleWrapper.style.marginTop = '24px';
+      container.parentNode.appendChild(toggleWrapper);
+    }
+
+    if (!isSearching && filtered.length > 4) {
+      toggleWrapper.style.display = 'block';
+      toggleWrapper.innerHTML = `
+        <button id="btnToggleSembako" class="btn-outline" style="padding: 11px 24px; font-size: 0.88rem; background: #FFFFFF; font-weight: 800; border-radius: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          ${showAllSembako ? '▴ Ciutkan Tampilan (Tampilkan 4 Komoditas)' : `▾ Tampilkan Semua Komoditas Pangan (${filtered.length} Komoditas)`}
+        </button>
+      `;
+      const btn = document.getElementById('btnToggleSembako');
+      if (btn) {
+        btn.onclick = () => {
+          showAllSembako = !showAllSembako;
+          filterAndRender();
+          if (!showAllSembako) {
+            const section = document.getElementById('sembako');
+            if (section) section.scrollIntoView({ behavior: 'smooth' });
+          }
+        };
+      }
+    } else {
+      toggleWrapper.style.display = 'none';
+    }
+  }
+
+  if (searchInput) searchInput.addEventListener('input', filterAndRender);
+  if (categorySelect) categorySelect.addEventListener('change', filterAndRender);
+  filterAndRender();
+}
+
+// 7. DOKUMEN PENTING HOMEPAGE (3 DOKUMEN BERSTATUS BERLAKU DENGAN FILE PDF ASLI)
+function renderFeaturedDocuments() {
+  const container = document.getElementById('featuredDocsGrid');
+  if (!container) return;
+
+  const docs = getStorage('disperindag_documents', DEFAULT_DOCUMENTS)
+    .filter(d => d.is_featured_home)
+    .slice(0, 3);
+
+  container.innerHTML = docs.map(d => {
+    const isPerbup = d.document_type.toLowerCase().includes('peraturan bupati') || d.document_type.toLowerCase().includes('perbup');
+    const isPerda = d.document_type.toLowerCase().includes('peraturan daerah') || d.document_type.toLowerCase().includes('perda');
+    const docIcon = isPerbup ? '📜' : (isPerda ? '⚖️' : '📋');
+
+    return `
+    <div class="doc-card">
+      <div class="doc-card-body">
+        <div class="doc-card-top-row">
+          <span class="badge-legal-status ${d.legal_status.toLowerCase()}">✓ ${d.legal_status}</span>
+          <span class="doc-year-badge">Tahun ${d.year}</span>
+        </div>
+
+        <div class="doc-type-tag">
+          <span>${docIcon}</span> ${d.document_type}
+        </div>
+
+        <h4 class="doc-title" title="${d.title}">
+          ${d.title}
+        </h4>
+
+        <div class="doc-meta-box">
+          <div class="doc-meta-item">
+            <span class="doc-meta-label">Nomor:</span>
+            <span class="doc-meta-val">${d.number}</span>
+          </div>
+          <div class="doc-meta-item">
+            <span class="doc-meta-label">Unit:</span>
+            <span class="doc-meta-val">${d.responsible_unit}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-card-footer">
+        <div class="doc-filesize-info">
+          <span>📄</span> ${d.file_size}
+        </div>
+        <a href="${d.file_url}" target="_blank" rel="noopener noreferrer" class="btn-doc-card-action" title="Buka dan Unduh PDF Resmi: ${d.title}">
+          <span>📥</span> Buka Dokumen Resmi &rarr;
+        </a>
+      </div>
+    </div>
+    `;
+  }).join('');
+}
+
+// 8. BERITA TERBARU KEDINASAN HOMEPAGE (3 BERITA UTAMA UNGGULAN AGAR RINGKAS DI MOBILE)
+function renderHomeNews() {
+  const container = document.getElementById('homeNewsGrid') || document.getElementById('newsGrid');
+  if (!container) return;
+
+  const news = getStorage('disperindag_news', DEFAULT_NEWS).slice(0, 3);
+  container.innerHTML = news.map(item => `
+    <article class="news-card">
+      <div class="news-thumb">
+        <img src="${item.img}" alt="${item.title}" loading="lazy" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
+        <span class="news-cat-badge">${item.category}</span>
+      </div>
+      <div class="news-body">
+        <div class="news-meta">
+          <span>📅 ${item.date}</span>
+          <span>✍️ ${item.author}</span>
+        </div>
+        <h3 class="news-title">
+          <a href="berita.html?id=${item.id}" style="color: inherit; text-decoration: none;">
+            ${item.title}
+          </a>
+        </h3>
+        <p class="news-excerpt">${item.excerpt}</p>
+        <div style="margin-top: auto; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <a href="berita.html?id=${item.id}" class="news-read-more">
+            Baca Selengkapnya &rarr;
+          </a>
+          <span style="font-size: 0.74rem; color: #94A3B8;">${item.topic_tag || 'Dinas'}</span>
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+// 9. ETALASE PRODUK IKM BINAAN HOMEPAGE
+function renderHomeProductsIKM() {
+  const container = document.getElementById('homeProductsGrid');
+  if (!container) return;
+
+  const products = getStorage('disperindag_products_ikm', DEFAULT_PRODUCTS_IKM).slice(0, 3);
+  container.innerHTML = products.map(p => `
+    <div class="news-card">
+      <div class="news-thumb">
+        <img src="${p.img}" alt="${p.name}" loading="lazy">
+        <span class="news-cat-badge">${p.category_label}</span>
+      </div>
+      <div class="news-body">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+          ${p.certifications.map(c => `<span style="font-size: 0.72rem; background: #ECFDF5; color: #059669; font-weight: 800; padding: 2px 6px; border-radius: 4px;">✓ ${c.cert_type}</span>`).join('')}
+        </div>
+        <h4 class="news-title" style="font-size: 1.05rem; font-weight: 800;">${p.name}</h4>
+        <p class="news-excerpt" style="font-size: 0.84rem;">${p.description}</p>
+        <div style="margin-top: auto; padding-top: 14px;">
+          <a href="https://wa.me/${p.admin_contact_wa}?text=Halo%20Admin%20Katalog%20Disperindag%20Pinrang,%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(p.name)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width: 100%; justify-content: center; background: #059669; border: none; font-size: 0.85rem; padding: 9px;">
+            <span>📲</span> Hubungi Admin Katalog (WA)
+          </a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 10. FORMULIR PENGADUAN DENGAN NOMOR TIKET & CONSENT
+function initComplaintForm() {
+  const form = document.getElementById('publicComplaintForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const consent = document.getElementById('complaintConsent');
+    if (consent && !consent.checked) {
+      CustomModal.alert({
+        title: "Persetujuan Diperlukan",
+        message: "Mohon centang persetujuan penggunaan data pribadi untuk keperluan verifikasi dan tindak lanjut laporan Anda.",
+        icon: "⚠️",
+        type: "warning"
+      });
+      return;
+    }
+
+    const nama = document.getElementById('reportName').value.trim();
+    const kontak = document.getElementById('reportPhone').value.trim();
+    const kategori = document.getElementById('reportCategory').value;
+    const lokasi = document.getElementById('reportLocation').value.trim();
+    const pesan = document.getElementById('reportMsg').value.trim();
+
+    const randomTicketNum = Math.floor(100000 + Math.random() * 900000);
+    const ticketNumber = `DPE-2026-${randomTicketNum}`;
+
+    const newReport = {
+      id: "rep_" + Date.now(),
+      ticket_number: ticketNumber,
+      submitted_at: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ' • ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA',
+      nama,
+      kontak,
+      kategori,
+      lokasi,
+      pesan,
+      assigned_unit: kategori.includes('LPG') ? 'Bidang Perindustrian, ESDM' : kategori.includes('Tera') ? 'Bidang Kemetrologian' : 'Bidang Pengembangan Perdagangan',
+      status: "Diterima & Sedang Diverifikasi",
+      resolution: "Laporan masuk dalam antrean penugasan tim pengawas lapangan."
+    };
+
+    const reports = getStorage('disperindag_reports', DEFAULT_REPORTS);
+    reports.unshift(newReport);
+    setStorage('disperindag_reports', reports);
+
+    form.reset();
+
+    CustomModal.alert({
+      title: "Laporan Pengaduan Terkirim",
+      message: `Terima kasih <strong>${nama}</strong>. Laporan Anda berhasil kami terima dengan <strong>Nomor Tiket: ${ticketNumber}</strong>.<br><br>Petugas kami akan segera melakukan verifikasi lapangan dan menghubungi Anda via WhatsApp/Telepon.`,
+      icon: "📨",
+      type: "info"
+    });
+  });
+}
+
+// 11. TAB SYSTEM UNTUK PORTAL & APLIKASI
+function initTabsSystem() {
+  const tabBtns = document.querySelectorAll('.app-tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.tab;
+      document.querySelectorAll('.app-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.app-tab-panel').forEach(p => p.classList.remove('active'));
+
+      btn.classList.add('active');
+      const panel = document.getElementById(targetId);
+      if (panel) panel.classList.add('active');
+    });
+  });
+}

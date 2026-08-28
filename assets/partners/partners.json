@@ -1,0 +1,124 @@
+[
+  {
+    "category": "Kementerian & Lembaga Nasional",
+    "items": [
+      {
+        "name": "Pemerintah Kabupaten Pinrang",
+        "url": "https://pinrangkab.go.id",
+        "file": "assets/brand/logo_pinrang_opt.png",
+        "tag": "Pemkab Pinrang",
+        "desc": "Portal Resmi Daerah"
+      },
+      {
+        "name": "Kementerian Perindustrian RI",
+        "url": "https://kemenperin.go.id",
+        "file": "assets/partners/logo_kemenperin.png",
+        "tag": "Kemenperin RI",
+        "desc": "Kementerian Perindustrian"
+      },
+      {
+        "name": "Kementerian Perdagangan RI",
+        "url": "https://kemendag.go.id",
+        "file": "assets/partners/logo_kemendag.png",
+        "tag": "Kemendag RI",
+        "desc": "Kementerian Perdagangan"
+      },
+      {
+        "name": "Kementerian ESDM RI",
+        "url": "https://esdm.go.id",
+        "file": "assets/partners/logo_esdm.png",
+        "tag": "Kementerian ESDM",
+        "desc": "Energi & Sumber Daya Mineral"
+      },
+      {
+        "name": "SP4N LAPOR!",
+        "url": "https://lapor.go.id",
+        "file": "assets/partners/logo_lapor.png",
+        "tag": "SP4N LAPOR!",
+        "desc": "Layanan Aspirasi Nasional"
+      },
+      {
+        "name": "OSS Indonesia",
+        "url": "https://oss.go.id",
+        "file": "assets/partners/logo_oss.png",
+        "tag": "OSS Indonesia",
+        "desc": "Perizinan Berusaha Terpadu"
+      },
+      {
+        "name": "Badan Standardisasi Nasional (BSN)",
+        "url": "https://bsn.go.id",
+        "file": "assets/partners/logo_bsn.png",
+        "tag": "BSN — Standardisasi & SNI",
+        "desc": "Standardisasi & Mutu Produk"
+      },
+      {
+        "name": "Dekranasda Pinrang",
+        "url": "katalog-ikm.html",
+        "file": "assets/partners/logo_dekranas.png",
+        "tag": "Dekranasda Pinrang",
+        "desc": "Dewan Kerajinan Daerah"
+      }
+    ]
+  },
+  {
+    "category": "Portal Layanan Publik & Aplikasi Pegawai Pinrang",
+    "items": [
+      {
+        "name": "SIPPN KemenPAN-RB",
+        "url": "https://sippn.menpan.go.id/webcontrol/login",
+        "file": "assets/partners/logo_sippn.png",
+        "tag": "SIPPN KemenPAN-RB",
+        "desc": "Sistem Pelayanan Publik"
+      },
+      {
+        "name": "SIPD Kemendagri",
+        "url": "https://sipd.kemendagri.go.id/penatausahaan",
+        "file": "assets/partners/logo_sipd.png",
+        "tag": "SIPD Kemendagri",
+        "desc": "Penatausahaan & Keuangan"
+      },
+      {
+        "name": "e-SAKIP Pinrang",
+        "url": "https://sakip.pinrangkab.go.id/#/account/login",
+        "file": "assets/partners/logo_esakip.png",
+        "tag": "e-SAKIP Pinrang",
+        "desc": "Akuntabilitas Kinerja"
+      },
+      {
+        "name": "e-Absensi Pinrang",
+        "url": "https://e-absensi.pinrangkab.go.id/login.htm",
+        "file": "assets/partners/logo_eabsensi.png",
+        "tag": "e-Absensi Pinrang",
+        "desc": "Presensi Pegawai ASN"
+      },
+      {
+        "name": "SIKDA Pinrang",
+        "url": "https://sikda.pinrangkab.go.id/login?ind=dwwardhana2017",
+        "file": "assets/partners/logo_sikda.png",
+        "tag": "SIKDA Pinrang",
+        "desc": "Sistem Kearsipan Dinamis"
+      },
+      {
+        "name": "SAKTI Pinrang",
+        "url": "https://sakti.pinrangkab.go.id/login",
+        "file": "assets/partners/logo_sakti.png",
+        "tag": "SAKTI Pinrang",
+        "desc": "Akuntabilitas Kinerja"
+      },
+      {
+        "name": "e-Kinerja Pinrang",
+        "url": "https://kinerja.pinrangkab.go.id/",
+        "file": "assets/partners/logo_ekinerja.png",
+        "tag": "e-Kinerja Pinrang",
+        "desc": "Pengelolaan SKP ASN"
+      },
+      {
+        "name": "SKM Pinrang",
+        "url": "https://skm.pinrangkab.go.id/admin/dashboard",
+        "file": "assets/partners/logo_skm.png",
+        "tag": "SKM Pinrang",
+        "desc": "Survei Kepuasan Masyarakat"
+      }
+    ]
+  }
+]

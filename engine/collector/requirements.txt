@@ -1,0 +1,11 @@
+# Pinrang Issue Discovery Engine — Collector Dependencies
+firebase-admin==6.5.0
+google-cloud-firestore==2.16.0
+requests==2.32.3
+feedparser==6.0.11
+beautifulsoup4==4.12.3
+lxml==5.2.2
+python-dateutil==2.9.0
+google-generativeai==0.7.2
+Levenshtein==0.25.1
+python-dotenv==1.0.1

@@ -1,0 +1,71 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": ".",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      ".firebaserc",
+      "engine/**",
+      "**/.*",
+      "**/node_modules/**",
+      "*.zip",
+      "*.md",
+      "*.py",
+      "*.docx",
+      "*.txt",
+      "UPLOAD WEB/**",
+      "Flyer Opini Ombudsman.png",
+      "Kadis Perindag ESDM.png",
+      "Kadis perindesdm pinrang.png",
+      "Logo_Pinrang.png",
+      "Sekretaris Dinas.png"
+    ],
+    "rewrites": [
+      {
+        "source": "/intel/**",
+        "destination": "/intel/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "SAMEORIGIN"
+          },
+          {
+            "key": "X-XSS-Protection",
+            "value": "1; mode=block"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "camera=(), microphone=(), geolocation=(self)"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|webp|svg|css|js)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=7200"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07172F" />
+      <stop offset="50%" stop-color="#0F2C59" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#CA8A04" />
+      <stop offset="50%" stop-color="#EAB308" />
+      <stop offset="100%" stop-color="#FDE047" />
+    </linearGradient>
+
+    <!-- Badge Background Gradient -->
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.12)" />
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.04)" />
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="15" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <style>
+    .font-title { font-family: 'Plus Jakarta Sans', 'Montserrat', 'Inter', sans-serif; font-weight: 900; }
+    .font-sub { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; font-weight: 600; }
+    .font-mono { font-family: 'Fira Code', 'Courier New', monospace; font-weight: 700; }
+  </style>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)" />
+
+  <!-- Geometric Grid & Circuit Pattern -->
+  <g opacity="0.08" stroke="#FFFFFF" stroke-width="1.5" fill="none">
+    <circle cx="1100" cy="100" r="180" />
+    <circle cx="1100" cy="100" r="260" />
+    <circle cx="1100" cy="100" r="340" />
+    <line x1="850" y1="0" x2="1200" y2="350" />
+    <line x1="950" y1="0" x2="1200" y2="250" />
+    <polygon points="1000,50 1080,95 1080,185 1000,230 920,185 920,95" />
+    <polygon points="1120,200 1200,245 1200,335 1120,380 1040,335 1040,245" />
+  </g>
+
+  <!-- Left Accent Glow -->
+  <circle cx="80" cy="550" r="220" fill="#EAB308" opacity="0.12" filter="url(#glow)" />
+  <circle cx="1050" cy="150" r="280" fill="#3B82F6" opacity="0.15" filter="url(#glow)" />
+
+  <!-- Top Accent Bar -->
+  <rect x="0" y="0" width="1200" height="7" fill="url(#goldGrad)" />
+
+  <!-- Content Container -->
+  <g transform="translate(80, 75)">
+    
+    <!-- Header Tag / Instansi -->
+    <g>
+      <rect x="0" y="0" width="310" height="34" rx="17" fill="url(#badgeGrad)" stroke="rgba(234, 179, 8, 0.4)" stroke-width="1.5" />
+      <text x="18" y="22" fill="#FDE047" font-size="12" class="font-sub" letter-spacing="2">PEMERINTAH KABUPATEN PINRANG</text>
+    </g>
+
+    <!-- Main Title -->
+    <text x="0" y="95" fill="#FFFFFF" font-size="44" class="font-title" letter-spacing="-0.5">
+      DINAS PERINDUSTRIAN, PERDAGANGAN,
+    </text>
+    <text x="0" y="150" fill="url(#goldGrad)" font-size="44" class="font-title" letter-spacing="-0.5">
+      ENERGI &amp; SUMBER DAYA MINERAL
+    </text>
+
+    <!-- Subtitle / Mission -->
+    <text x="0" y="200" fill="#E2E8F0" font-size="20" class="font-sub" opacity="0.95">
+      Portal Resmi Pelayanan Publik Terpadu, Informasi Harga Pasar &amp; Pembinaan IKM Daerah
+    </text>
+
+    <!-- 4 Key Service Pills (Grid 2x2) -->
+    <g transform="translate(0, 245)">
+      
+      <!-- Pill 1: Tera UTTP -->
+      <g transform="translate(0, 0)">
+        <rect width="245" height="68" rx="12" fill="url(#badgeGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" filter="url(#cardShadow)" />
+        <rect x="0" y="0" width="5" height="68" rx="2" fill="#7C3AED" />
+        <text x="22" y="32" font-size="22">⚖️</text>
+        <text x="56" y="28" fill="#FFFFFF" font-size="13" class="font-title">KEMETROLOGIAN LEGAL</text>
+        <text x="56" y="48" fill="#94A3B8" font-size="11" class="font-sub">Pelayanan Tera &amp; Tera Ulang UTTP</text>
+      </g>
+
+      <!-- Pill 2: Harga Pasar -->
+      <g transform="translate(265, 0)">
+        <rect width="245" height="68" rx="12" fill="url(#badgeGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" filter="url(#cardShadow)" />
+        <rect x="0" y="0" width="5" height="68" rx="2" fill="#16A34A" />
+        <text x="22" y="32" font-size="22">📊</text>
+        <text x="56" y="28" fill="#FFFFFF" font-size="13" class="font-title">PANTAUAN HARGA PASAR</text>
+        <text x="56" y="48" fill="#94A3B8" font-size="11" class="font-sub">Update Harga Harian Bapokting</text>
+      </g>
+
+      <!-- Pill 3: IKM & TKDN -->
+      <g transform="translate(530, 0)">
+        <rect width="245" height="68" rx="12" fill="url(#badgeGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" filter="url(#cardShadow)" />
+        <rect x="0" y="0" width="5" height="68" rx="2" fill="#0891B2" />
+        <text x="22" y="32" font-size="22">🏭</text>
+        <text x="56" y="28" fill="#FFFFFF" font-size="13" class="font-title">PEMBINAAN IKM &amp; TKDN</text>
+        <text x="56" y="48" fill="#94A3B8" font-size="11" class="font-sub">Sertifikasi Halal, NIB &amp; SIINas</text>
+      </g>
+
+      <!-- Pill 4: Energi & LPG 3 Kg -->
+      <g transform="translate(795, 0)">
+        <rect width="245" height="68" rx="12" fill="url(#badgeGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" filter="url(#cardShadow)" />
+        <rect x="0" y="0" width="5" height="68" rx="2" fill="#EA580C" />
+        <text x="22" y="32" font-size="22">⚡</text>
+        <text x="56" y="28" fill="#FFFFFF" font-size="13" class="font-title">PENGAWASAN HET LPG 3 KG</text>
+        <text x="56" y="48" fill="#94A3B8" font-size="11" class="font-sub">Informasi Kuota &amp; Pengaduan ESDM</text>
+      </g>
+
+    </g>
+
+    <!-- Bottom Authority Bar -->
+    <g transform="translate(0, 365)">
+      <line x1="0" y1="0" x2="1040" y2="0" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" />
+      
+      <!-- Semboyan & Domain -->
+      <text x="0" y="35" fill="#FEF08A" font-size="14" class="font-sub">
+        🇮🇩 #BanggaMelayaniBangsa &bull; BerAKHLAK &bull; Motto MANTAP
+      </text>
+
+      <g transform="translate(760, 16)">
+        <rect width="280" height="30" rx="6" fill="#07172F" stroke="rgba(234, 179, 8, 0.4)" stroke-width="1" />
+        <text x="14" y="20" fill="#FFFFFF" font-size="12" class="font-mono">🌐 https://disperindagesdm-pinrang.web.app</text>
+      </g>
+    </g>
+
+  </g>
+
+  <!-- Bottom Border -->
+  <rect x="0" y="624" width="1200" height="6" fill="url(#goldGrad)" />
+</svg>

@@ -1,0 +1,96 @@
+{
+  "relevance": {
+    "description": "Komponen Relevance Score — Total max 100",
+    "components": {
+      "geo_match": {
+        "max": 30,
+        "weights": {
+          "kabupaten": 15,
+          "kecamatan": 20,
+          "desa_village": 28,
+          "strategic_location": 30
+        }
+      },
+      "topic_match": {
+        "max": 30,
+        "formula": "min(hits * 8 * cluster.riskMultiplier / 2.5, 30)"
+      },
+      "entity_match": {
+        "max": 15,
+        "formula": "min(entity_hits * 15, 15)"
+      },
+      "risk_keyword": {
+        "max": 15,
+        "formula": "min(risk_hits * 5, 15)"
+      },
+      "source_relevance": {
+        "max": 10,
+        "formula": "min(source.weight * 10, 10)"
+      }
+    },
+    "thresholds": {
+      "ignore":       { "min": 0,  "max": 29, "label": "Abaikan" },
+      "candidate":    { "min": 30, "max": 44, "label": "Kandidat" },
+      "monitor":      { "min": 45, "max": 59, "label": "Monitor" },
+      "relevant":     { "min": 60, "max": 74, "label": "Relevan" },
+      "high":         { "min": 75, "max": 100,"label": "High Relevance" }
+    },
+    "tierFilter": {
+      "A+_pinrangSpecific": "skip_filter",
+      "A+":                 "geo_required + 1_topic",
+      "A":                  "geo_kabupaten_required + 1_topic",
+      "B":                  "geo_kabupaten_required + (entity OR kecamatan+cluster)"
+    }
+  },
+  "critical": {
+    "description": "Komponen Critical Score — Total max 100",
+    "components": {
+      "severity":           { "weight": 0.25, "source": "cluster.severityBase" },
+      "mention_velocity":   { "weight": 0.20, "source": "mentions_last_24h * 15, max 100" },
+      "source_count":       { "weight": 0.15, "source": "unique_sources * 20, max 100" },
+      "negative_sentiment": { "weight": 0.10, "source": "negative_pct * 100" },
+      "citizen_complaints": { "weight": 0.10, "source": "complaint_mentions * 20, max 100" },
+      "geo_spread":         { "weight": 0.10, "source": "unique_districts * 25, max 100" },
+      "public_engagement":  { "weight": 0.10, "source": "sum(source.weight) * 15, max 100" }
+    },
+    "thresholds": {
+      "normal":   { "min": 0,  "max": 39, "label": "Normal",   "color": "green"  },
+      "monitor":  { "min": 40, "max": 59, "label": "Monitor",  "color": "blue"   },
+      "waspada":  { "min": 60, "max": 74, "label": "Waspada",  "color": "yellow" },
+      "tinggi":   { "min": 75, "max": 89, "label": "Tinggi",   "color": "orange" },
+      "kritis":   { "min": 90, "max": 100,"label": "Kritis",   "color": "red"    }
+    },
+    "escalationBoost": {
+      "regional_escalation": 1.15,
+      "national_escalation": 1.30,
+      "velocity_under_6h":   1.20
+    }
+  },
+  "deduplication": {
+    "description": "Rule deduplikasi artikel ke dalam satu Master Issue",
+    "rules": {
+      "same_topic_cluster": true,
+      "same_location_district": true,
+      "title_similarity_threshold": 0.65,
+      "time_window_hours": 72
+    },
+    "similarity_method": "jaccard_bigram"
+  },
+  "sourceWeight": {
+    "note": "Source weight HANYA memengaruhi source_relevance component (max 10 poin). Tidak mengubah sentiment atau kebenaran artikel.",
+    "tiers": {
+      "official_gov":   1.00,
+      "national_media": 0.95,
+      "A+_media":       0.85,
+      "A_media":        0.78,
+      "B_media":        0.70,
+      "unreviewed":     0.50,
+      "social_media":   0.35
+    }
+  },
+  "watchlist": {
+    "note": "priorityMultiplier HANYA memengaruhi urutan tampilan di wallboard. Tidak mengubah criticalScore aktual.",
+    "maxMultiplier": 2.0,
+    "appliesTo": "display_rank_only"
+  }
+}

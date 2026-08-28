@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CONTROLLER — MAJENE RUN 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    button, a, input {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #pinModal { touch-action: auto; }
+    #pinModal button { cursor: pointer; user-select: none; }
+    .btn-instan {
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen p-4 pb-20 max-w-lg mx-auto select-none">
+  <!-- PIN Modal -->
+  <div id="pinModal" class="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700/60 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+      <span class="text-4xl">🔒</span>
+      <h2 class="text-xl font-extrabold text-white">VERIFIKASI PIN OPERATOR</h2>
+      <p class="text-xs text-gray-400">Masukkan PIN Operator (Default: 1234)</p>
+      
+      <div id="pinDisplay" class="flex justify-center gap-3 py-3">
+        <div class="w-12 h-14 rounded-xl border border-gray-700 bg-gray-800 flex items-center justify-center text-2xl font-bold text-blue-400"></div>
+        <div class="w-12 h-14 rounded-xl border border-gray-700 bg-gray-800 flex items-center justify-center text-2xl font-bold text-blue-400"></div>
+        <div class="w-12 h-14 rounded-xl border border-gray-700 bg-gray-800 flex items-center justify-center text-2xl font-bold text-blue-400"></div>
+        <div class="w-12 h-14 rounded-xl border border-gray-700 bg-gray-800 flex items-center justify-center text-2xl font-bold text-blue-400"></div>
+      </div>
+      <p id="pinError" class="text-rose-400 text-xs font-bold min-h-[16px]"></p>
+
+      <div class="grid grid-cols-3 gap-3 pt-2">
+        <button type="button" onclick="appendPin('1')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">1</button>
+        <button type="button" onclick="appendPin('2')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">2</button>
+        <button type="button" onclick="appendPin('3')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">3</button>
+        <button type="button" onclick="appendPin('4')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">4</button>
+        <button type="button" onclick="appendPin('5')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">5</button>
+        <button type="button" onclick="appendPin('6')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">6</button>
+        <button type="button" onclick="appendPin('7')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">7</button>
+        <button type="button" onclick="appendPin('8')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">8</button>
+        <button type="button" onclick="appendPin('9')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">9</button>
+        <button type="button" onclick="clearPin()" class="btn-instan py-5 bg-gray-800/60 text-gray-400 font-bold rounded-2xl border border-gray-700 text-base">⌫</button>
+        <button type="button" onclick="appendPin('0')" class="btn-instan py-5 bg-gray-800 active:bg-gray-600 text-white text-2xl font-bold rounded-2xl border border-gray-700">0</button>
+        <button type="button" onclick="verifyPin()" class="btn-instan py-5 bg-blue-600 active:bg-blue-400 text-white font-extrabold rounded-2xl shadow-lg shadow-blue-900/50 text-base">MASUK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Navbar -->
+  <div class="flex items-center justify-between pt-2 pb-3 border-b border-gray-800 mb-4">
+    <div>
+      <h1 class="text-xl font-extrabold text-white">MAJENE RUN 2026</h1>
+      <p class="text-xs text-blue-400 font-bold">HP PANITIA CONTROLLER (PWA)</p>
+    </div>
+    <div id="connBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+      <span id="connDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span id="connText">CONNECTED</span>
+    </div>
+  </div>
+
+  <!-- Server LAN Connection Bar (bisa diisi IP Laptop Server jika dibuka via Online) -->
+  <div id="lanServerBar" class="hidden mb-4 p-3 bg-gray-900 border border-gray-800 rounded-2xl flex flex-col gap-2">
+    <div class="flex items-center justify-between text-xs">
+      <span class="text-amber-400 font-bold">📡 Sambungkan ke IP Server Laptop (LAN):</span>
+      <span id="socketStatusMsg" class="text-gray-400">Mode Standalone Active</span>
+    </div>
+    <div class="flex gap-2">
+      <input type="text" id="serverIpInput" placeholder="Contoh: 192.168.1.50:3000" class="flex-1 px-3 py-2 bg-gray-950 border border-gray-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500">
+      <button type="button" onclick="connectCustomServer()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl active:scale-95">HUBUNGKAN</button>
+    </div>
+  </div>
+
+  <!-- Toast Alert -->
+  <div id="toastAlert" class="hidden fixed top-4 left-4 right-4 z-50 p-4 rounded-2xl shadow-2xl text-center font-extrabold text-sm border bg-emerald-950 border-emerald-500 text-emerald-200"></div>
+
+  <!-- 5K Controller Card -->
+  <div class="card-glass p-5 space-y-4 mb-6">
+    <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+      <div class="flex items-center gap-3">
+        <span class="font-extrabold text-blue-400 text-lg bg-blue-950 px-3 py-1 rounded-xl border border-blue-800">5K</span>
+        <div>
+          <h2 class="text-lg font-extrabold text-white">KATEGORI 5K</h2>
+          <p class="text-xs text-gray-400">Gate Start / Finish Timer</p>
+        </div>
+      </div>
+      <span id="badge-5k" class="px-3 py-1 rounded-full border text-xs font-black bg-gray-800 border-gray-700 text-gray-300">IDLE</span>
+    </div>
+
+    <div class="bg-gray-950 rounded-2xl p-4 border border-gray-800 text-center shadow-inner">
+      <span id="timer-5k" class="text-4xl font-black tracking-widest text-white block font-mono" style="font-variant-numeric: tabular-nums;">00:00:00</span>
+    </div>
+
+    <div id="actions-5k" class="space-y-3">
+      <!-- Buttons dynamically injected -->
+    </div>
+  </div>
+
+  <!-- 10K Controller Card -->
+  <div class="card-glass p-5 space-y-4 mb-6">
+    <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+      <div class="flex items-center gap-3">
+        <span class="font-extrabold text-purple-400 text-lg bg-purple-950 px-3 py-1 rounded-xl border border-purple-800">10K</span>
+        <div>
+          <h2 class="text-lg font-extrabold text-white">KATEGORI 10K</h2>
+          <p class="text-xs text-gray-400">Gate Start / Finish Timer</p>
+        </div>
+      </div>
+      <span id="badge-10k" class="px-3 py-1 rounded-full border text-xs font-black bg-gray-800 border-gray-700 text-gray-300">IDLE</span>
+    </div>
+
+    <div class="bg-gray-950 rounded-2xl p-4 border border-gray-800 text-center shadow-inner">
+      <span id="timer-10k" class="text-4xl font-black tracking-widest text-white block font-mono" style="font-variant-numeric: tabular-nums;">00:00:00</span>
+    </div>
+
+    <div id="actions-10k" class="space-y-3">
+      <!-- Buttons dynamically injected -->
+    </div>
+  </div>
+
+  <div class="text-center pt-2">
+    <a href="/" class="text-xs text-gray-500 hover:text-gray-300 underline font-medium">← Kembali ke Beranda Navigasi</a>
+  </div>
+
+  <script>
+    // ================================================================
+    // FUNGSI PIN OPERATOR
+    // ================================================================
+    let pinInput = '';
+    const FALLBACK_OPERATOR_PIN = '1234';
+
+    function appendPin(num) {
+      if (navigator.vibrate) navigator.vibrate(20);
+      if (pinInput.length < 4) {
+        pinInput += num;
+        updatePinDisplay();
+      }
+    }
+
+    function clearPin() {
+      if (navigator.vibrate) navigator.vibrate(20);
+      pinInput = '';
+      updatePinDisplay();
+    }
+
+    function updatePinDisplay() {
+      const boxes = document.getElementById('pinDisplay').children;
+      for (let i = 0; i < 4; i++) {
+        boxes[i].innerText = pinInput[i] ? '\u2022' : '';
+      }
+    }
+
+    function verifyPin() {
+      if (navigator.vibrate) navigator.vibrate(30);
+      const valid = (window.serverState && window.serverState.system && window.serverState.system.operatorPin)
+        ? window.serverState.system.operatorPin
+        : FALLBACK_OPERATOR_PIN;
+      if (pinInput === valid) {
+        document.getElementById('pinModal').style.display = 'none';
+        document.getElementById('pinError').innerText = '';
+      } else {
+        document.getElementById('pinError').innerText = 'PIN Salah! Coba lagi (PIN Default: 1234).';
+        pinInput = '';
+        updatePinDisplay();
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      }
+    }
+
+    // ================================================================
+    // CLIENT-SIDE STANDALONE ENGINE (KAPASITAS OFFLINE / ONLINE DEMO)
+    // ================================================================
+    function createDefaultState() {
+      return {
+        races: {
+          '5k': { category: '5k', name: '5K', status: 'idle', startedAt: null, pausedAt: null, accumulatedPauseMs: 0, finishedAt: null, finishedElapsedMs: null, adjustmentMs: 0 },
+          '10k': { category: '10k', name: '10K', status: 'idle', startedAt: null, pausedAt: null, accumulatedPauseMs: 0, finishedAt: null, finishedElapsedMs: null, adjustmentMs: 0 }
+        },
+        system: { operatorPin: '1234', adminPin: '8888' }
+      };
+    }
+
+    window.serverState = createDefaultState();
+    let serverState = window.serverState;
+    let socket = null;
+    let isSocketConnected = false;
+    let lastRenderedStatus = { '5k': null, '10k': null };
+
+    // Inisialisasi Socket.IO
+    function initSocket(targetUrl) {
+      try {
+        if (typeof io === 'function') {
+          socket = targetUrl ? io(targetUrl) : io();
+
+          socket.on('connect', () => {
+            isSocketConnected = true;
+            updateConnectionStatus(true);
+            socket.emit('GET_STATE');
+          });
+
+          socket.on('disconnect', () => {
+            isSocketConnected = false;
+            updateConnectionStatus(false);
+          });
+
+          socket.on('STATE_UPDATE', (data) => {
+            if (data && data.races) {
+              serverState = data;
+              window.serverState = data;
+              renderCategory('5k');
+              renderCategory('10k');
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Socket connection error:', e);
+        updateConnectionStatus(false);
+      }
+    }
+
+    function updateConnectionStatus(connected) {
+      const badge = document.getElementById('connBadge');
+      const dot = document.getElementById('connDot');
+      const text = document.getElementById('connText');
+      const lanBar = document.getElementById('lanServerBar');
+
+      if (connected) {
+        badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold';
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+        text.innerText = 'SERVER ONLINE';
+        lanBar.classList.add('hidden');
+      } else {
+        badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold';
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400';
+        text.innerText = 'STANDALONE MODE';
+        lanBar.classList.remove('hidden');
+      }
+    }
+
+    function connectCustomServer() {
+      let ip = document.getElementById('serverIpInput').value.trim();
+      if (!ip) return;
+      if (!ip.startsWith('http://') && !ip.startsWith('https://')) {
+        ip = 'http://' + ip;
+      }
+      showToast('Menghubungkan ke ' + ip + '...', false);
+      initSocket(ip);
+    }
+
+    function formatHHMMSS(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    function calculateElapsed(race, nowMs) {
+      if (!race || race.status === 'idle' || race.status === 'armed' || !race.startedAt) return 0;
+      if (race.status === 'finished' && race.finishedElapsedMs !== null) return Math.max(0, race.finishedElapsedMs);
+      if (race.status === 'paused' && race.pausedAt) {
+        return Math.max(0, race.pausedAt - race.startedAt - race.accumulatedPauseMs + race.adjustmentMs);
+      }
+      if (race.status === 'finished' && race.finishedAt) {
+        return Math.max(0, race.finishedAt - race.startedAt - race.accumulatedPauseMs + race.adjustmentMs);
+      }
+      return Math.max(0, nowMs - race.startedAt - race.accumulatedPauseMs + race.adjustmentMs);
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toastAlert');
+      toast.innerText = msg;
+      toast.className = `fixed top-4 left-4 right-4 z-50 p-4 rounded-2xl shadow-2xl text-center font-extrabold text-sm border ${
+        isError ? 'bg-rose-950 border-rose-500 text-rose-200' : 'bg-emerald-950 border-emerald-500 text-emerald-200'
+      }`;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    // EKSEKUSI PERINTAH BALAPAN (MANDIRI BILA OFFLINE, SOCKET BILA ONLINE)
+    function sendRaceCmd(action, category) {
+      if (navigator.vibrate) navigator.vibrate(40);
+
+      if (socket && isSocketConnected) {
+        socket.emit('RACE_COMMAND', { action, payload: { category, role: 'operator' } }, (res) => {
+          if (res) showToast(res.message, !res.success);
+        });
+      } else {
+        // Eksekusi Standalone Local Engine
+        executeLocalCommand(action, category);
+      }
+    }
+
+    function executeLocalCommand(action, category) {
+      const race = serverState.races[category];
+      const nowMs = Date.now();
+
+      if (action === 'arm') {
+        race.status = 'armed';
+        showToast(`STATUS ${category.toUpperCase()} BERHASIL DI-ARM (SIAP START)`);
+      } else if (action === 'start') {
+        race.status = 'running';
+        race.startedAt = nowMs;
+        race.accumulatedPauseMs = 0;
+        race.adjustmentMs = 0;
+        showToast(`🚀 START ${category.toUpperCase()} BERJALAN!`);
+      } else if (action === 'pause') {
+        if (race.status === 'running') {
+          race.status = 'paused';
+          race.pausedAt = nowMs;
+          showToast(`⏸ TIMER ${category.toUpperCase()} DIPAUSE`);
+        }
+      } else if (action === 'resume') {
+        if (race.status === 'paused') {
+          race.status = 'running';
+          race.accumulatedPauseMs += (nowMs - race.pausedAt);
+          race.pausedAt = null;
+          showToast(`▶ TIMER ${category.toUpperCase()} DILANJUTKAN`);
+        }
+      } else if (action === 'hold') {
+        if (race.status === 'running' || race.status === 'paused') {
+          race.finishedElapsedMs = calculateElapsed(race, nowMs);
+          race.status = 'finished';
+          race.finishedAt = nowMs;
+          showToast(`⏹ TIMER ${category.toUpperCase()} WAKTU FINISH DITHOLD / FINISH`);
+        }
+      } else if (action === 'reset') {
+        race.status = 'idle';
+        race.startedAt = null;
+        race.pausedAt = null;
+        race.accumulatedPauseMs = 0;
+        race.finishedAt = null;
+        race.finishedElapsedMs = null;
+        race.adjustmentMs = 0;
+        showToast(`⚠️ TIMER ${category.toUpperCase()} DI-RESET KE IDLE`);
+      }
+
+      renderCategory(category);
+    }
+
+    function renderCategory(cat) {
+      if (!serverState) return;
+      const race = serverState.races[cat];
+      const timerEl = document.getElementById(`timer-${cat}`);
+      const badgeEl = document.getElementById(`badge-${cat}`);
+      const actionsEl = document.getElementById(`actions-${cat}`);
+
+      const elapsed = calculateElapsed(race, Date.now());
+      timerEl.innerText = formatHHMMSS(elapsed);
+
+      // Render tombol kontrol
+      if (lastRenderedStatus[cat] !== race.status) {
+        lastRenderedStatus[cat] = race.status;
+
+        badgeEl.className = 'px-3 py-1 rounded-full border text-xs font-black ';
+        if (race.status === 'armed') {
+          badgeEl.className += 'bg-amber-950 border-amber-500 text-amber-300 pulse-armed';
+          badgeEl.innerText = 'ARMED (READY)';
+        } else if (race.status === 'running') {
+          badgeEl.className += 'bg-emerald-950 border-emerald-500 text-emerald-300';
+          badgeEl.innerText = 'RUNNING';
+        } else if (race.status === 'paused') {
+          badgeEl.className += 'bg-orange-950 border-orange-500 text-orange-300';
+          badgeEl.innerText = 'PAUSED';
+        } else if (race.status === 'finished') {
+          badgeEl.className += 'bg-purple-950 border-purple-500 text-purple-300';
+          badgeEl.innerText = 'FINISHED / HOLD';
+        } else {
+          badgeEl.className += 'bg-gray-800 border-gray-700 text-gray-400';
+          badgeEl.innerText = 'IDLE';
+        }
+
+        let html = '';
+        if (race.status === 'idle' || race.status === 'finished') {
+          html += `<button type="button" onclick="sendRaceCmd('arm', '${cat}')" class="btn-instan w-full py-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-extrabold text-lg rounded-2xl shadow-lg active:scale-95 transition-transform">🛡️ ARM ${cat.toUpperCase()} (SIAP START)</button>`;
+        } else if (race.status === 'armed') {
+          html += `<button type="button" onclick="sendRaceCmd('start', '${cat}')" class="btn-instan w-full py-5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white font-black text-2xl rounded-2xl shadow-xl active:scale-95 transition-transform animate-bounce border-2 border-emerald-300">🚀 START ${cat.toUpperCase()} NOW!</button>`;
+        } else if (race.status === 'running') {
+          html += `<div class="grid grid-cols-2 gap-3">
+            <button type="button" onclick="sendRaceCmd('pause', '${cat}')" class="btn-instan py-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold rounded-2xl active:scale-95 transition-transform">⏸ PAUSE</button>
+            <button type="button" onclick="sendRaceCmd('hold', '${cat}')" class="btn-instan py-4 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-bold rounded-2xl active:scale-95 transition-transform">⏹ HOLD / FINISH</button>
+          </div>`;
+        } else if (race.status === 'paused') {
+          html += `<div class="grid grid-cols-2 gap-3">
+            <button type="button" onclick="sendRaceCmd('resume', '${cat}')" class="btn-instan py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-2xl active:scale-95 transition-transform">▶ RESUME</button>
+            <button type="button" onclick="sendRaceCmd('hold', '${cat}')" class="btn-instan py-4 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-bold rounded-2xl active:scale-95 transition-transform">⏹ HOLD / FINISH</button>
+          </div>`;
+        }
+
+        if (race.status !== 'idle') {
+          html += `<button type="button" onclick="if(confirm('RESET TIMER ${cat.toUpperCase()}?')){sendRaceCmd('reset', '${cat}')}" class="btn-instan w-full py-3 bg-red-950 border border-red-500/50 text-red-300 font-bold rounded-xl text-xs hover:bg-red-900 active:bg-red-900 active:scale-95 transition-transform mt-2">⚠️ RESET TIMER ${cat.toUpperCase()}</button>`;
+        }
+
+        actionsEl.innerHTML = html;
+      }
+    }
+
+    // Inisialisasi awal
+    initSocket();
+    renderCategory('5k');
+    renderCategory('10k');
+
+    setInterval(() => {
+      if (serverState) {
+        renderCategory('5k');
+        renderCategory('10k');
+      }
+    }, 250);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Website Resmi Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang. Layanan publik terpadu MANTAP, pantauan harga pasar bapokting harian, dan pembinaan IKM.">
+  <meta name="theme-color" content="#0F2C59">
+  <title>Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang</title>
+  <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/">
+
+  <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:title" content="Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang">
+  <meta property="og:description" content="Portal Resmi Disperindag ESDM Pinrang: Standar Pelayanan Publik MANTAP, Informasi Harga Pasar Bapokting Harian, Kemetrologian, dan Pembinaan IKM.">
+  <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/social/default-share.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:alt" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/">
+  <meta property="og:locale" content="id_ID">
+
+  <!-- TWITTER / X CARDS -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang">
+  <meta name="twitter:description" content="Portal Resmi Disperindag ESDM Pinrang: Standar Pelayanan Publik MANTAP, Informasi Harga Pasar Bapokting Harian, Kemetrologian, dan Pembinaan IKM.">
+  <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/social/default-share.jpg">
+  
+  <link rel="icon" type="image/x-icon" href="assets/brand/20250823175254_favicon.ico.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260828_v14_footer_motto">
+</head>
+<body>
+
+  <!-- 1. TOP UTILITY BAR (JAM WITA & CUACA LIVE) -->
+  <div class="top-bar">
+    <div class="container top-bar-container">
+      <div class="top-bar-left">
+        <span class="live-clock" id="liveClockWita">
+          📅 Memuat Waktu WITA...
+        </span>
+        <span class="top-bar-divider">•</span>
+        <span class="live-weather" id="liveWeatherPinrang">
+          🌤️  Memuat Cuaca...
+        </span>
+      </div>
+      <div class="top-bar-right">
+        <span style="color: var(--accent-gold); font-weight: 800; font-size: 0.76rem; letter-spacing: 0.02em;">#BanggaMelayaniBangsa</span>
+        <span class="top-bar-divider" style="color: rgba(255,255,255,0.25);">•</span>
+        <span style="color: #CBD5E1; font-size: 0.74rem;">Layanan Bebas Pungutan Liar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MAIN HEADER & NAVBAR -->
+  <header class="main-header">
+    <div class="container navbar-container">
+      
+      <!-- Brand Logo & Title -->
+      <a href="index.html" class="brand-logo" aria-label="Beranda Dinas Perindag ESDM Pinrang">
+        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" class="logo-img">
+        <div class="brand-text">
+          <span class="brand-title">DISPERINDAG ESDM</span>
+          <span class="brand-subtitle">KABUPATEN PINRANG</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <ul class="nav-menu">
+        <li><a href="index.html" class="nav-link active">Beranda</a></li>
+
+        <!-- Dropdown 1: Profil & Organisasi -->
+        <li class="nav-dropdown">
+          <a href="profil.html" class="nav-link nav-dropdown-toggle">
+            Profil <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="profil.html" class="dropdown-item">
+              <div class="dropdown-icon">🏛️</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Profil & Organisasi Resmi</span>
+                <span class="dropdown-desc">Visi, misi, struktur & tupoksi Perbup 35/2023</span>
+              </div>
+            </a>
+            <a href="maklumat-pelayanan.html" class="dropdown-item">
+              <div class="dropdown-icon">📜</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Maklumat Pelayanan</span>
+                <span class="dropdown-desc">Piagam komitmen moral aparatur dinas</span>
+              </div>
+            </a>
+            <a href="profil.html#berakhlak" class="dropdown-item">
+              <div class="dropdown-icon">🎯</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Core Values ASN BerAKHLAK</span>
+                <span class="dropdown-desc">Tata nilai budaya kerja ASN</span>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <!-- Dropdown 2: Layanan Publik -->
+        <li class="nav-dropdown">
+          <a href="layanan.html" class="nav-link nav-dropdown-toggle">
+            Layanan Publik <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="layanan.html" class="dropdown-item">
+              <div class="dropdown-icon">⚡</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Standar Pelayanan & SOP</span>
+                <span class="dropdown-desc">9 standar layanan publik resmi</span>
+              </div>
+            </a>
+            <a href="index.html#pengaduan" class="dropdown-item">
+              <div class="dropdown-icon">📨</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Pengaduan Online</span>
+                <span class="dropdown-desc">8 kanal resmi & SP4N-LAPOR!</span>
+              </div>
+            </a>
+            <a href="kontak.html" class="dropdown-item">
+              <div class="dropdown-icon">📞</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Kontak & Lokasi Kantor</span>
+                <span class="dropdown-desc">Alamat, peta & WhatsApp dinas</span>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <!-- Dropdown 3: Transparansi & Data -->
+        <li class="nav-dropdown">
+          <a href="#transparansi-pelayanan" class="nav-link nav-dropdown-toggle">
+            Transparansi <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#transparansi-pelayanan" class="dropdown-item">
+              <div class="dropdown-icon">📊</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Transparansi Pelayanan</span>
+                <span class="dropdown-desc">SKM, IKM & Rekapitulasi 2025</span>
+              </div>
+            </a>
+            <a href="pasar.html" class="dropdown-item">
+              <div class="dropdown-icon">🏬</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Direktori Pasar Daerah</span>
+                <span class="dropdown-desc">17 sarana pasar & status operasional</span>
+              </div>
+            </a>
+            <a href="#sembako" class="dropdown-item">
+              <div class="dropdown-icon">🛒</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Harga Pasar & Bapokting</span>
+                <span class="dropdown-desc">Pantauan komoditas harian</span>
+              </div>
+            </a>
+            <a href="katalog-ikm.html" class="dropdown-item">
+              <div class="dropdown-icon">🏭</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Katalog Produk IKM</span>
+                <span class="dropdown-desc">Produk unggulan Pinrang</span>
+              </div>
+            </a>
+            <a href="ppid.html" class="dropdown-item">
+              <div class="dropdown-icon">📋</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">PPID Pelaksana</span>
+                <span class="dropdown-desc">Informasi publik berkala</span>
+              </div>
+            </a>
+            <a href="dokumen.html" class="dropdown-item">
+              <div class="dropdown-icon">📁</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Dokumen & Regulasi</span>
+                <span class="dropdown-desc">Perbup & Renja kedinasan</span>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <li><a href="arsip-berita.html" class="nav-link">Berita</a></li>
+      </ul>
+
+      <!-- Action Buttons Kanan -->
+      <div class="header-actions">
+        <button class="search-toggle-btn" id="searchToggleBtn" aria-label="Buka Pencarian" onclick="openSearchModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #F1F5F9; border: 1.5px solid #CBD5E1; color: #334155; padding: 7px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: var(--transition);">
+          <span>🔍</span> <span>Cari Informasi...</span>
+        </button>
+
+        <!-- PORTAL PEGAWAI GATEWAY DROPDOWN -->
+        <div class="login-gateway-wrapper">
+          <button class="btn-topbar-login" type="button" title="Pintu Masuk Sistem Pegawai & Administrator" style="background: #0F2C59; color: #FFFFFF; border: 1.5px solid #0F2C59; padding: 7px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-family: inherit;">
+            <span>🔐</span> <span>Portal Pegawai</span> <span class="caret-down">▾</span>
+          </button>
+          <div class="login-dropdown-menu">
+            <a href="login.html" class="login-drop-item">
+              <div class="drop-item-icon" style="background: #FEF3C7; color: #B45309;">🔐</div>
+              <div><strong>Masuk / Ganti Akun</strong><small>Autentikasi keamanan RBAC</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="petugas.html" class="login-drop-item">
+              <div class="drop-item-icon mobile-badge">📱</div>
+              <div><strong>Aplikasi Petugas Lapangan</strong><small>Input harga pasar, sidak LPG & tera</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="admin.html" class="login-drop-item">
+              <div class="drop-item-icon desktop-badge">💻</div>
+              <div><strong>CMS Administrator</strong><small>Kelola berita, dokumen, dan banner</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="profil-petugas.html" class="login-drop-item">
+              <div class="drop-item-icon" style="background: #F1F5F9; color: #475569;">👤</div>
+              <div><strong>Profil Pegawai & Password</strong><small>Kelola akun ASN mandiri</small></div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hamburger Button (Mobile) -->
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Buka Menu Navigasi">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- MOBILE DRAWER NAVIGATION -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pinrang" style="width: 32px; height: auto;">
+        <div>
+          <h4>DISPERINDAG ESDM</h4>
+          <p>KABUPATEN PINRANG</p>
+        </div>
+      </div>
+      <button class="drawer-close-btn" id="drawerCloseBtn" aria-label="Tutup Menu">✕</button>
+    </div>
+    <div class="drawer-nav">
+      <div class="mobile-nav-group-title">MENU UTAMA</div>
+      <a href="index.html" class="drawer-link active"><span>🏠</span> Beranda</a>
+      <a href="profil.html" class="drawer-link"><span>🏛️</span> Profil & Tupoksi</a>
+      <a href="maklumat-pelayanan.html" class="drawer-link"><span>📜</span> Maklumat Pelayanan</a>
+
+      <div class="mobile-nav-group-title">LAYANAN PUBLIK</div>
+      <a href="layanan.html" class="drawer-link"><span>⚡</span> Standar Pelayanan & SOP</a>
+      <a href="#transparansi-pelayanan" class="drawer-link"><span>📊</span> Transparansi Pelayanan</a>
+      <a href="#pengaduan" class="drawer-link"><span>📨</span> Pengaduan Online</a>
+      <a href="kontak.html" class="drawer-link"><span>📞</span> Kontak & Lokasi</a>
+
+      <div class="mobile-nav-group-title">INFORMASI & DATA</div>
+      <a href="#sembako" class="drawer-link"><span>🛒</span> Harga Pasar & Sembako</a>
+      <a href="katalog-ikm.html" class="drawer-link"><span>🏭</span> Katalog Produk IKM</a>
+      <a href="ppid.html" class="drawer-link"><span>📋</span> PPID Pelaksana</a>
+      <a href="dokumen.html" class="drawer-link"><span>📁</span> Dokumen & Regulasi</a>
+      <a href="arsip-berita.html" class="drawer-link"><span>📰</span> Berita & Publikasi</a>
+
+      <div class="drawer-divider"></div>
+      <a href="login.html" class="drawer-link drawer-portal-btn"><span>🔑</span> Login Pegawai ASN</a>
+    </div>
+  </div>
+
+  <!-- 3. RUNNING PRICE TICKER -->
+  <div class="sembako-ticker" aria-label="Running Ticker Pantauan Harga Pangan Hari Ini">
+    <div class="ticker-container">
+      <div class="ticker-label-fixed">
+        <span>📊</span> Pasar Sentral Pinrang:
+      </div>
+      <div class="ticker-scroll-area">
+        <div class="ticker-content" id="priceTickerContainer">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. HERO SECTION -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-grid">
+        
+        <!-- Hero Carousel Banner -->
+        <div class="carousel-container" id="heroCarouselContainer">
+          <div id="heroCarouselTrack" style="width: 100%; height: 100%; position: relative;">
+            <!-- Injected via JavaScript -->
+          </div>
+          <div class="carousel-controls">
+            <button class="carousel-btn" id="prevHeroSlide" aria-label="Slide Sebelumnya" onclick="prevSlide()">←</button>
+            <button class="carousel-btn" id="nextHeroSlide" aria-label="Slide Berikutnya" onclick="nextSlide()">→</button>
+          </div>
+        </div>
+
+        <!-- Card Pimpinan: Kepala Dinas -->
+        <div class="kadis-card">
+          <div>
+            <div class="kadis-badge">
+              <span>️</span> Pimpinan Kedinasan
+            </div>
+            <div class="kadis-header">
+              <div class="kadis-photo-frame">
+                <img src="assets/officials/kadis_pinrang_opt.png" alt="Kepala Dinas Muhammad Yusuf Nur, S.STP" onerror="this.src='assets/brand/kadis_pinrang_opt.png'">
+              </div>
+              <div class="kadis-info">
+                <h3>Muhammad Yusuf Nur, S.STP</h3>
+                <p>Kepala Dinas Perindag ESDM Pinrang</p>
+                <div style="font-size: 0.74rem; color: #64748B; margin-top: 2px;">NIP. 19780512 199711 1 001 &bull; IV/c</div>
+              </div>
+            </div>
+            <blockquote class="kadis-quote">
+              "Mewujudkan pelayanan prima di bidang industri, perdagangan, kemetrologian, dan energi yang transparan, akuntabel, serta berpihak pada kesejahteraan ekonomi masyarakat Bumi Lasinrang."
+            </blockquote>
+          </div>
+
+          <div class="kadis-actions" style="margin-top: 20px; display: flex; gap: 10px;">
+            <a href="profil.html" class="btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; padding: 10px 14px;">
+              <span>️</span> Profil & Tupoksi
+            </a>
+            <a href="layanan.html" class="btn-outline" style="flex: 1; justify-content: center; font-size: 0.84rem; padding: 10px 14px;">
+              Akses Layanan &rarr;
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MOBILE QUICK ACTION BAR (4 CTA UTAMA SMARTPHONE <=768PX) -->
+      <div class="mobile-quick-cta-bar" aria-label="Akses Cepat Layanan & Informasi Publik">
+        <a href="layanan.html" class="quick-cta-item">
+          <span>⚡</span>
+          <strong>Layanan</strong>
+        </a>
+        <a href="#sembako" class="quick-cta-item">
+          <span>🛒</span>
+          <strong>Harga Pasar</strong>
+        </a>
+        <a href="#pengaduan" class="quick-cta-item">
+          <span>📨</span>
+          <strong>Pengaduan</strong>
+        </a>
+        <a href="ppid.html" class="quick-cta-item">
+          <span>📂</span>
+          <strong>PPID</strong>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 4.5 COMPACT SECTION: MOTTO MANTAP & JAM PELAYANAN -->
+  <section style="background: #FFFFFF; border-top: 1px solid #E2E8F0; border-bottom: 1px solid #E2E8F0; padding: 22px 0; margin-bottom: 8px;">
+    <div class="container">
+      <div class="service-info-grid">
+        
+        <!-- Motto Pelayanan MANTAP -->
+        <div style="background: linear-gradient(135deg, #0F2C59 0%, #1E3A8A 100%); color: #FFFFFF; padding: 16px 20px; border-radius: 12px; border-left: 5px solid var(--accent-gold); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 1.8rem; background: rgba(255,255,255,0.1); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            🎯
+          </div>
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 800; color: #FDE047; text-transform: uppercase; letter-spacing: 0.5px;">Motto Pelayanan Publik</div>
+            <div style="font-size: 1.15rem; font-weight: 900; color: #FFFFFF; margin: 1px 0;">MANTAP</div>
+            <div style="font-size: 0.78rem; color: #E2E8F0; line-height: 1.3;">Melayani Anda dengan Transparan, Adil & Profesional</div>
+          </div>
+        </div>
+
+        <!-- Jam Pelayanan Kantor -->
+        <div style="background: #F8FAFC; border: 1.5px solid #CBD5E1; padding: 16px 20px; border-radius: 12px; display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 1.8rem; background: #EFF6FF; color: #1E40AF; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            🕒
+          </div>
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 800; color: #1E40AF; text-transform: uppercase; letter-spacing: 0.5px;">Jam Pelayanan Tatap Muka</div>
+            <div style="font-size: 0.84rem; font-weight: 800; color: var(--primary-deep); margin-top: 2px;">
+              Senin–Kamis: 08.00–16.00 WITA<br class="mobile-only"> | Jumat: 08.00–16.30 WITA
+            </div>
+            <div style="font-size: 0.76rem; color: #64748B; margin-top: 1px;">Loket Kantor Disperindag ESDM Jl. Bintang No. 1 Pinrang</div>
+          </div>
+        </div>
+
+        <!-- Quick Action / Hubungi Kami -->
+        <div class="service-info-actions" style="background: #F0FDF4; border: 1.5px solid #BBF7D0; padding: 16px 20px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 800; color: #16A34A; text-transform: uppercase; letter-spacing: 0.5px;">Konsultasi & Pengaduan</div>
+            <div style="font-size: 0.95rem; font-weight: 900; color: #0F2C59; margin-top: 2px;">Layanan Respons Cepat</div>
+            <div style="font-size: 0.76rem; color: #15803D; margin-top: 1px;">WhatsApp: 0823 1600 2226</div>
+          </div>
+          <a href="https://wa.me/6282316002226" target="_blank" rel="noopener noreferrer" class="btn-primary" style="background: #16A34A; border-color: #16A34A; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; flex-shrink: 0;">
+            Chat &rarr;
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. KELOMPOK LAYANAN PUBLIK KEDINASAN -->
+  <section class="services-section is-dark" id="layanan">
+    <div class="container">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 28px;">
+        <div>
+          <span class="section-tag">Pelayanan Prima</span>
+          <h2 class="section-title">Kelompok Layanan Publik Kedinasan</h2>
+          <p class="section-desc">Standar pelayanan publik, SOP, dan prosedur perizinan resmi Dinas Perindag ESDM Kabupaten Pinrang.</p>
+        </div>
+        <a href="layanan.html" class="btn-primary" style="font-size: 0.85rem; padding: 10px 18px;">
+          <span>📅</span> Lihat Semua 9 Layanan Kedinasan &rarr;
+        </a>
+      </div>
+
+      <div class="services-grid" id="quickServicesGrid">
+        <!-- Injected via JavaScript renderQuickServices() -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 5.5 TRANSPARANSI & EVALUASI PELAYANAN PUBLIK -->
+  <section class="public-transparency-section" id="transparansi-pelayanan" style="background: #F8FAFC; border-top: 1px solid #E2E8F0; border-bottom: 1px solid #E2E8F0; padding: 48px 0;">
+    <div class="container">
+      <div class="section-header" style="margin-bottom: 28px;">
+        <div>
+          <span class="section-tag" style="background: #EFF6FF; color: #1E40AF; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.74rem;">Akuntabilitas Kinerja & Penilaian Publik</span>
+          <h2 class="section-title" style="margin-top: 6px;">Transparansi Pelayanan Publik</h2>
+          <p class="section-desc">Hasil pengukuran Indeks Kepuasan Masyarakat (IKM/SKM), evaluasi standar pelayanan, dan rekapitulasi penanganan pengaduan.</p>
+        </div>
+      </div>
+
+      <div class="transparency-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+        
+        <!-- Card 1: Piagam Maklumat Pelayanan -->
+        <div class="transparency-feature-card" style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                📜
+              </div>
+              <span style="font-size: 0.72rem; font-weight: 800; color: #16A34A; background: #DCFCE7; padding: 4px 10px; border-radius: 20px;">
+                ✅  RESMI & BERLAKU
+              </span>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 900; color: #0F2C59; margin-bottom: 6px;">Maklumat Pelayanan Publik</h3>
+            <p style="font-size: 0.84rem; color: #475569; line-height: 1.55; margin-bottom: 16px;">
+              Komitmen moral aparatur sipil negara dalam menyelenggarakan pelayanan publik sesuai standar, tepat waktu, transparan, dan bebas pungli.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="maklumat-pelayanan.html" class="btn-primary" style="flex: 1; justify-content: center; font-size: 0.82rem; padding: 9px 12px;">
+              <span>📜</span> Buka Piagam Maklumat
+            </a>
+            <button onclick="openInfographicModal('assets/infografis/Maklumat_Pelayanan.jpg', 'Infografis Maklumat Pelayanan')" class="btn-outline" style="padding: 9px 12px; font-size: 0.82rem; background: #FFFFFF; cursor: pointer; border: 1.5px solid #1E40AF; color: #1E40AF; font-weight: 800;">
+              <span>💼️</span> Infografis
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Indeks Kepuasan Masyarakat (IKM/SKM) -->
+        <div class="transparency-feature-card" style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #DBEAFE; color: #1D4ED8; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                ⭐
+              </div>
+              <span style="font-size: 0.72rem; font-weight: 800; color: #1E40AF; background: #EFF6FF; padding: 4px 10px; border-radius: 20px;">
+                TAHUN 2025/2026
+              </span>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 900; color: #0F2C59; margin-bottom: 6px;">Indeks Kepuasan Masyarakat (IKM)</h3>
+            <div style="display: flex; align-items: baseline; gap: 8px; margin: 10px 0 12px;">
+              <span style="font-size: 2.2rem; font-weight: 900; color: #1E3A8A;">88.64</span>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #16A34A; background: #DCFCE7; padding: 2px 8px; border-radius: 6px;">KATEGORI: SANGAT BAIK (A)</span>
+            </div>
+            <p style="font-size: 0.84rem; color: #475569; line-height: 1.55; margin-bottom: 16px;">
+              Survei mandiri berbasis PermenPAN-RB No. 14 Tahun 2017 (450 Responden) pada loket pelayanan tera metrologi, fasilitasi IKM, dan konsultasi perdagangan.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <a href="https://skm.pinrangkab.go.id/admin/dashboard" target="_blank" rel="noopener noreferrer" class="btn-outline" style="flex: 1; justify-content: center; font-size: 0.82rem; padding: 9px 12px; background: #FFFFFF;">
+              <span>🌐 </span> Portal SKM Pinrang
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 3: Rekapitulasi Pengaduan Tahun 2025 (Faktual) -->
+        <div class="transparency-feature-card" style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #DCFCE7; color: #16A34A; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                📢
+              </div>
+              <span style="font-size: 0.72rem; font-weight: 800; color: #15803D; background: #DCFCE7; padding: 4px 10px; border-radius: 20px;">
+                ✅ 100% TERSELESAIKAN
+              </span>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 900; color: #0F2C59; margin-bottom: 6px;">Rekapitulasi Pengaduan 2025</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 14px; text-align: center;">
+              <div style="background: #F8FAFC; padding: 8px; border-radius: 8px; border: 1px solid #E2E8F0;">
+                <div style="font-size: 1.25rem; font-weight: 900; color: #0F2C59;">2</div>
+                <div style="font-size: 0.68rem; color: #64748B; font-weight: 700;">Diterima</div>
+              </div>
+              <div style="background: #ECFDF5; padding: 8px; border-radius: 8px; border: 1px solid #A7F3D0;">
+                <div style="font-size: 1.25rem; font-weight: 900; color: #16A34A;">2</div>
+                <div style="font-size: 0.68rem; color: #15803D; font-weight: 700;">Selesai</div>
+              </div>
+              <div style="background: #EFF6FF; padding: 8px; border-radius: 8px; border: 1px solid #BFDBFE;">
+                <div style="font-size: 1.25rem; font-weight: 900; color: #1D4ED8;">100%</div>
+                <div style="font-size: 0.68rem; color: #1E40AF; font-weight: 700;">Penyelesaian</div>
+              </div>
+            </div>
+
+            <p style="font-size: 0.82rem; color: #475569; line-height: 1.5; margin-bottom: 14px;">
+              Kanal: Call Center (1), Tatap Muka (1). Seluruh laporan ditindaklanjuti tuntas dengan perlindungan privasi pelapor.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button onclick="openComplaintDetailModal('aduan_2025_01')" class="btn-outline" style="flex: 1; min-width: 90px; justify-content: center; font-size: 0.74rem; padding: 7px 8px; background: #FFFFFF; cursor: pointer; border-radius: 6px;">
+              Detail Kasus 1
+            </button>
+            <button onclick="openComplaintDetailModal('aduan_2025_02')" class="btn-outline" style="flex: 1; min-width: 90px; justify-content: center; font-size: 0.74rem; padding: 7px 8px; background: #FFFFFF; cursor: pointer; border-radius: 6px;">
+              Detail Kasus 2
+            </button>
+            <button onclick="openInfographicModal('assets/infografis/Rekapitulasi_Pengaduan_2025.jpg', 'Infografis Rekapitulasi Pengaduan 2025')" class="btn-primary" style="flex: 1; min-width: 100px; justify-content: center; font-size: 0.74rem; padding: 7px 8px; background: #059669; border: none; cursor: pointer; border-radius: 6px;">
+              <span>💼️</span> Infografis
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. DASHBOARD HARGA PASAR & KOMODITAS (BAPOKTING) -->
+  <section class="sembako-section" id="sembako">
+    <div class="container">
+      <div class="section-header" style="margin-bottom: 24px;">
+        <span class="section-tag">Stabilitas Harga Pangan</span>
+        <h2 class="section-title">Pantauan Harga Pasar & Komoditas</h2>
+        <p class="section-desc">Pusat Informasi Harga Pangan Strategis (PIHPS) Pasar Sentral Pinrang dan pasar daerah terpadu.</p>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="sembako-filter-bar">
+        <div class="filter-search-box">
+          <span>🔍</span>
+          <input type="text" id="searchSembako" placeholder="Cari nama komoditas (contoh: Beras, Minyak, Cabai)..." aria-label="Cari Komoditas">
+        </div>
+        <div class="filter-select-box">
+          <select id="categoryFilter" aria-label="Pilih Kategori Komoditas">
+            <option value="all">Semua Kategori</option>
+            <option value="Beras">Beras & Biji-bijian</option>
+            <option value="Minyak & Gula">Minyak & Gula</option>
+            <option value="Daging & Telur">Daging & Telur</option>
+            <option value="Bumbu Dapur">Bumbu Dapur</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sembako Grid Cards -->
+      <div class="sembako-grid" id="sembakoGrid">
+        <!-- Injected via JavaScript renderPriceDashboard() -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. BERITA & PUBLIKASI RESMI TERKINI -->
+  <section class="news-section is-dark" id="berita">
+    <div class="container">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 28px;">
+        <div>
+          <span class="section-tag">Kabar Kedinasan</span>
+          <h2 class="section-title">Berita & Informasi Kedinasan</h2>
+          <p class="section-desc">Dokumentasi kegiatan kedinasan, operasi pasar murah, fasilitasi IKM, dan sosialisasi kebijakan daerah.</p>
+        </div>
+        <a href="arsip-berita.html" class="btn-outline" style="font-size: 0.85rem; padding: 10px 18px;">
+          Lihat Semua Arsip Berita &rarr;
+        </a>
+      </div>
+
+      <div class="news-grid" id="homeNewsGrid">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. PRODUK UNGGULAN IKM BINAAN PINRANG -->
+  <section class="products-section" id="ikm">
+    <div class="container">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 28px;">
+        <div>
+          <span class="section-tag">Katalog Produk Lokal</span>
+          <h2 class="section-title">Produk Unggulan IKM Binaan</h2>
+          <p class="section-desc">Etalase produk olahan pangan, kerajinan tenun sutra, dan karya kreatif pelaku usaha binaan Disperindag ESDM Pinrang.</p>
+        </div>
+        <a href="katalog-ikm.html" class="btn-primary" style="font-size: 0.85rem; padding: 10px 18px;">
+          Lihat Semua Katalog IKM &rarr;
+        </a>
+      </div>
+
+      <div class="news-grid" id="homeProductsGrid">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. PORTAL LAYANAN & LEMBAGA TERKAIT (INTEROPERABILITAS NASIONAL) -->
+  <section class="partners-section">
+    <div class="container">
+      <div class="section-header" style="text-align: center; max-width: 720px; margin: 0 auto 32px;">
+        <span class="section-tag">Interoperabilitas Sistem</span>
+        <h2 class="section-title">Portal Layanan & Lembaga Terkait</h2>
+        <p class="section-desc">Akses cepat ke portal perizinan, standardisasi, regulasi perdagangan, dan layanan aspirasi nasional.</p>
+      </div>
+
+      <div class="partners-grid">
+        <a href="https://pinrangkab.go.id" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang"></div>
+          <div class="partner-info"><h5>Pemerintah Kab. Pinrang</h5><span>Portal Resmi Daerah</span></div>
+        </a>
+        <a href="https://kemenperin.go.id" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_kemenperin.png" alt="Logo Kemenperin RI"></div>
+          <div class="partner-info"><h5>Kementerian Perindustrian RI</h5><span>Portal Kemenperin RI</span></div>
+        </a>
+        <a href="https://kemendag.go.id" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_kemendag.png" alt="Logo Kemendag RI"></div>
+          <div class="partner-info"><h5>Kementerian Perdagangan RI</h5><span>Portal Kemendag RI</span></div>
+        </a>
+        <a href="https://esdm.go.id" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_esdm.png" alt="Logo Kementerian ESDM"></div>
+          <div class="partner-info"><h5>Kementerian ESDM RI</h5><span>Energi & Sumber Daya Mineral</span></div>
+        </a>
+        <a href="https://lapor.go.id" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_lapor.png" alt="Logo SP4N LAPOR!"></div>
+          <div class="partner-info"><h5>SP4N LAPOR! RI</h5><span>Layanan Aspirasi Nasional</span></div>
+        </a>
+        <a href="https://oss.go.id" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_oss.png" alt="Logo OSS Indonesia"></div>
+          <div class="partner-info"><h5>OSS Indonesia (BKPM)</h5><span>Perizinan Berusaha Terpadu</span></div>
+        </a>
+        <a href="https://bsn.go.id" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_bsn.png" alt="Logo BSN"></div>
+          <div class="partner-info"><h5>BSN / Metrologi Legal</h5><span>Standardisasi & Ukuran</span></div>
+        </a>
+        <a href="katalog-ikm.html" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_dekranas.png" alt="Logo Dekranasda Pinrang"></div>
+          <div class="partner-info"><h5>Dekranasda Pinrang</h5><span>Dewan Kerajinan Daerah</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. DIREKTORI APLIKASI INTERNAL PEGAWAI ASN PINRANG -->
+  <section class="partners-section" style="background: #F8FAFC; border-top: 1px solid #E2E8F0;">
+    <div class="container">
+      <div class="section-header" style="text-align: center; max-width: 720px; margin: 0 auto 32px;">
+        <span class="section-tag">Portal Pegawai Kedinasan</span>
+        <h2 class="section-title">Direktori Aplikasi Internal Pegawai ASN</h2>
+        <p class="section-desc">Pintu akses langsung ke sistem informasi administrasi, presensi, kinerja, dan pelaporan keuangan Pemkab Pinrang.</p>
+      </div>
+
+      <div class="apps-grid">
+        <a href="https://sippn.menpan.go.id/webcontrol/login" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_sippn.png" alt="Logo SIPPN"></div>
+          <div class="partner-info"><h5>SIPPN KemenPAN-RB</h5><span>Sistem Informasi Pelayanan Publik</span></div>
+        </a>
+        <a href="https://sipd.kemendagri.go.id/penatausahaan" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_sipd.png" alt="Logo SIPD Kemendagri"></div>
+          <div class="partner-info"><h5>SIPD Kemendagri</h5><span>Sistem Informasi Pemerintahan Daerah</span></div>
+        </a>
+        <a href="https://sakip.pinrangkab.go.id/#/account/login" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_esakip.png" alt="Logo e-SAKIP Pinrang"></div>
+          <div class="partner-info"><h5>e-SAKIP Pinrang</h5><span>Sistem Akuntabilitas Kinerja Instansi</span></div>
+        </a>
+        <a href="https://e-absensi.pinrangkab.go.id/login.htm" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_eabsensi.png" alt="Logo e-Absensi"></div>
+          <div class="partner-info"><h5>e-Absensi Pinrang</h5><span>Presensi Online Pegawai ASN</span></div>
+        </a>
+        <a href="https://sikda.pinrangkab.go.id/login?ind=dwwardhana2017" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_sikda.png" alt="Logo SIKDA"></div>
+          <div class="partner-info"><h5>SIKDA Pinrang</h5><span>Sistem Kearsipan Dinamis Daerah</span></div>
+        </a>
+        <a href="https://sakti.pinrangkab.go.id/login" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_sakti.png" alt="Logo SAKTI"></div>
+          <div class="partner-info"><h5>SAKTI Pinrang</h5><span>Sistem Akuntabilitas Keuangan</span></div>
+        </a>
+        <a href="https://kinerja.pinrangkab.go.id/" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_ekinerja.png" alt="Logo e-Kinerja"></div>
+          <div class="partner-info"><h5>e-Kinerja Pinrang</h5><span>Pengelolaan Sasaran Kinerja (SKP)</span></div>
+        </a>
+        <a href="https://skm.pinrangkab.go.id/admin/dashboard" target="_blank" rel="noopener noreferrer" class="partner-card">
+          <div class="partner-icon"><img src="assets/partners/logo_skm.png" alt="Logo SKM"></div>
+          <div class="partner-info"><h5>SKM Pinrang</h5><span>Dashboard Indeks Kepuasan Masyarakat</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. FORMULIR PENGADUAN, SARAN & MASUKAN RESMI -->
+  <section class="complaint-section" id="pengaduan">
+    <div class="container">
+      <div class="complaint-grid">
+        
+        <!-- Kolom Kiri: Informasi Pengaduan & Alur 6 Tahapan + 4 Prinsip Integritas -->
+        <div class="complaint-info-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <span class="section-tag" style="background: rgba(212,175,55,0.25); color: #FDE047; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.74rem;">Kanal Aspirasi & Pengaduan Resmi</span>
+            <h2 style="font-size: 1.85rem; font-weight: 900; color: #FFFFFF; margin: 14px 0 12px; line-height: 1.25;">
+              Layanan Pengaduan, Saran & Masukan
+            </h2>
+            <p style="color: #CBD5E1; font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px;">
+              Sampaikan pengaduan, saran, dan masukan Anda untuk pelayanan yang lebih baik. Setiap laporan akan diterima, diverifikasi, diteruskan kepada unit terkait, dan ditindaklanjuti secara akuntabel.
+            </p>
+
+            <!-- Alur Penanganan Pengaduan (6 Tahap) -->
+            <div style="margin-bottom: 24px;">
+              <div style="font-size: 0.78rem; font-weight: 800; color: #93C5FD; text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Alur Penanganan Pengaduan (6 Tahap)</span>
+                <button type="button" onclick="openInfographicModal('assets/infografis/Alur_pelayanan_Pengaduan.jpg', 'Infografis Alur Pelayanan Pengaduan')" class="btn-outline" style="background: rgba(255,255,255,0.15); color: #FFFFFF; border-color: rgba(255,255,255,0.3); font-size: 0.7rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                  Infografis Alur &rarr;
+                </button>
+              </div>
+              <div class="workflow-steps" style="display: flex; flex-direction: column; gap: 9px;">
+                <div class="wf-step" style="display: flex; gap: 12px; align-items: center; font-size: 0.82rem; color: #E2E8F0;">
+                  <span style="background: var(--accent-gold); color: #030D1B; font-weight: 900; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">1</span>
+                  <span><strong>Penyampaian Aduan:</strong> Melalui 8 kanal resmi dengan identitas yang valid.</span>
+                </div>
+                <div class="wf-step" style="display: flex; gap: 12px; align-items: center; font-size: 0.82rem; color: #E2E8F0;">
+                  <span style="background: var(--accent-gold); color: #030D1B; font-weight: 900; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">2</span>
+                  <span><strong>Pencatatan / Registrasi:</strong> Petugas mencatat dan menerbitkan kode tiket resmi.</span>
+                </div>
+                <div class="wf-step" style="display: flex; gap: 12px; align-items: center; font-size: 0.82rem; color: #E2E8F0;">
+                  <span style="background: var(--accent-gold); color: #030D1B; font-weight: 900; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">3</span>
+                  <span><strong>Verifikasi & Analisis:</strong> Telaah substansi kewenangan dan kelengkapan bukti.</span>
+                </div>
+                <div class="wf-step" style="display: flex; gap: 12px; align-items: center; font-size: 0.82rem; color: #E2E8F0;">
+                  <span style="background: var(--accent-gold); color: #030D1B; font-weight: 900; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">4</span>
+                  <span><strong>Penugasan & Tindak Lanjut:</strong> Disposisi pimpinan ke bidang teknis terkait.</span>
+                </div>
+                <div class="wf-step" style="display: flex; gap: 12px; align-items: center; font-size: 0.82rem; color: #E2E8F0;">
+                  <span style="background: var(--accent-gold); color: #030D1B; font-weight: 900; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">5</span>
+                  <span><strong>Respon & Penyelesaian:</strong> Penyampaian solusi konkret kepada pelapor.</span>
+                </div>
+                <div class="wf-step" style="display: flex; gap: 12px; align-items: center; font-size: 0.82rem; color: #E2E8F0;">
+                  <span style="background: var(--accent-gold); color: #030D1B; font-weight: 900; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">6</span>
+                  <span><strong>Pemantauan & Evaluasi:</strong> Pengawasan kepuasan pelapor dan perbaikan SOP.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 Prinsip Integritas Sejajar Rapi -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); padding: 12px 6px; border-radius: 10px; font-size: 0.74rem; font-weight: 800; color: #FEF08A;">
+              <div>🛡️ AMAN</div>
+              <div>⚡ CEPAT</div>
+              <div>👁️ TRANSPARAN</div>
+              <div>⚖️ AKUNTABEL</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 14px; font-size: 0.8rem; color: #94A3B8;">
+            ⏱️ <em>Respon awal diberikan maksimal 1x24 jam kerja sejak laporan diverifikasi.</em>
+          </div>
+        </div>
+
+        <!-- Kolom Kanan: Formulir Input Pengaduan + 8 Saluran Terpadu -->
+        <div class="complaint-form-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="form-header" style="margin-bottom: 20px;">
+              <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 6px;">
+                Formulir Aspirasi & Pengaduan
+              </h3>
+              <p style="font-size: 0.85rem; color: #64748B;">Lengkapi identitas Anda. Data pribadi dan identitas pelapor dilindungi kerahasiaannya.</p>
+            </div>
+
+            <form id="publicComplaintForm" onsubmit="handlePublicComplaintSubmit(event)">
+              <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <div class="form-group">
+                  <label for="complaintName" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Nama Lengkap *</label>
+                  <input type="text" id="complaintName" required placeholder="Nama Anda" style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.88rem;">
+                </div>
+                <div class="form-group">
+                  <label for="complaintPhone" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Nomor WhatsApp / HP *</label>
+                  <input type="tel" id="complaintPhone" required placeholder="08xxxxxxxxxx" style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.88rem;">
+                </div>
+              </div>
+
+              <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <div class="form-group">
+                  <label for="complaintCategory" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Kategori Laporan *</label>
+                  <select id="complaintCategory" required style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.88rem; background: #FFFFFF;">
+                    <option value="">Pilih Kategori...</option>
+                    <option value="Kelangkaan / HET Gas LPG 3 Kg">Kelangkaan / HET Gas LPG 3 Kg</option>
+                    <option value="Kemetrologian & Tera Timbangan">Kemetrologian & Tera Timbangan</option>
+                    <option value="Harga Sembako & Pasar">Harga Sembako & Pasar</option>
+                    <option value="Fasilitasi IKM & Sertifikasi Halal">Fasilitasi IKM & Sertifikasi Halal</option>
+                    <option value="Pelayanan Aparatur Kedinasan">Pelayanan Aparatur Kedinasan</option>
+                    <option value="Saran & Masukan Lainnya">Saran & Masukan Lainnya</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="complaintLocation" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Lokasi / Kecamatan *</label>
+                  <input type="text" id="complaintLocation" required placeholder="Contoh: Watang Sawitto / Pasar Sentral" style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.88rem;">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label for="complaintTitle" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Judul / Pokok Laporan *</label>
+                <input type="text" id="complaintTitle" required placeholder="Ringkasan pengaduan / aspirasi" style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.88rem;">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label for="complaintDetail" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Isi Laporan Lengkap *</label>
+                <textarea id="complaintDetail" rows="3" required placeholder="Ceritakan detail permasalahan, waktu kejadian, dan pihak terkait..." style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.88rem; font-family: inherit; resize: vertical;"></textarea>
+              </div>
+
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" onclick="openCheckTicketModal()" class="btn-outline" style="flex: 1; min-width: 160px; justify-content: center; padding: 12px; font-size: 0.88rem; font-weight: 800; border-radius: 8px; background: #FFFFFF; cursor: pointer;">
+                  <span>🔍</span> Cek Status Tiket
+                </button>
+                <button type="submit" class="btn-primary" style="flex: 2; min-width: 200px; justify-content: center; padding: 12px; font-size: 0.92rem; font-weight: 800; border-radius: 8px; cursor: pointer;">
+                  <span>📨</span> Kirim Laporan / Aspirasi
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- 8 Saluran Pengaduan Terpadu (Dipindahkan ke Kolom Kanan Sesuai Arahan) -->
+          <div style="margin-top: 20px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px;">
+              <div style="font-size: 0.82rem; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
+                <span>📢</span> 8 Saluran Pengaduan Terpadu
+              </div>
+              <button type="button" onclick="openInfographicModal('assets/infografis/Media_Pengaduan.jpg', 'Infografis Media Pengaduan Resmi')" class="btn-outline" style="background: #FFFFFF; color: var(--primary); border-color: #CBD5E1; font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                🖼️ Lihat Infografis &rarr;
+              </button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; font-size: 0.76rem; color: #334155;">
+              <div>1. 🌐 Formulir Website Resmi</div>
+              <div>2. 💬 WhatsApp: 0823 1600 2226</div>
+              <div>3. 🏛️ SP4N-LAPOR! RI</div>
+              <div>4. ✉️ Pos-el / Email Dinas</div>
+              <div>5. 🏢 Tatap Muka Langsung (Loket)</div>
+              <div>6. 📮 Kotak Saran Kantor</div>
+              <div>7. 📸 IG: @perindagempinrang</div>
+              <div>8. 👥 Facebook Disperindag</div>
+            </div>
+          </div>
+
+          <!-- Jaminan Kerahasiaan & Keamanan Pelapor (Kepatuhan UU PDP No. 27/2022) -->
+          <div style="margin-top: 14px; padding: 12px 14px; background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: 10px; font-size: 0.76rem; color: #1E3A8A;">
+            <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; color: #1E40AF; margin-bottom: 3px;">
+              <span>🛡️</span> Perlindungan Data Pribadi Pelapor (UU No. 27/2022)
+            </div>
+            <div style="line-height: 1.45; color: #475569;">
+              Data identitas dan nomor kontak Anda dienkripsi serta hanya diakses oleh Pejabat Pengelola Pengaduan yang berwenang untuk keperluan klarifikasi tindak lanjut. Identitas pelapor tidak dipublikasikan ke publik sesuai UU No. 25/2009, UU KIP No. 14/2008, dan UU PDP No. 27/2022.
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; font-size: 0.72rem; font-weight: 800; color: #059669;">
+              <span>✓ Kode Tiket Terenkripsi</span>
+              <span>✓ Respon &lt; 24 Jam Kerja</span>
+              <span>✓ 100% Bebas Biaya</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. SECTION KONTAK COMPACT (KENALI & HUBUNGI KAMI DENGAN REAL BRAND SVG ICONS) -->
+  <section style="background: #F8FAFC; border-top: 1px solid #E2E8F0; border-bottom: 1px solid #E2E8F0; padding: 48px 0;">
+    <div class="container">
+      <div class="contact-home-layout">
+        
+        <!-- Kolom Kiri: Heading & Tombol -->
+        <div>
+          <span class="section-tag" style="background: #EFF6FF; color: #1E40AF; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.74rem;">Saluran Komunikasi Resmi</span>
+          <h2 class="section-title" style="margin: 8px 0 10px; font-size: 1.85rem;">Kenali & Hubungi Kami</h2>
+          <p class="section-desc" style="margin-bottom: 20px;">Kanal komunikasi resmi, media sosial terverifikasi, dan layanan tatap muka di kantor Dinas Perindag ESDM Pinrang.</p>
+          <a href="kontak.html" class="btn-primary" style="font-size: 0.85rem; padding: 11px 20px;">
+            <span>📞</span> Lihat Semua Saluran Kontak &rarr;
+          </a>
+        </div>
+        
+        <!-- Kolom Kanan: Grid 2x2 Kartu Kontak Real Brand -->
+        <div class="contact-home-grid">
+          <!-- Card 1: WhatsApp (Real Brand SVG) -->
+          <a href="https://wa.me/6282316002226" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+            <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);">
+              <div style="width: 46px; height: 46px; border-radius: 12px; background: #25D366; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c4.54 0 8.24 3.7 8.24 8.24 0 2.2-.86 4.27-2.42 5.82a8.19 8.19 0 0 1-5.82 2.42c-1.47 0-2.92-.39-4.19-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.212 8.212 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.64c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.07-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.34-.76-1.84-.2-.49-.4-.42-.56-.43l-.47-.01c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.31 3.8 2.53 1.09 2.53.73 2.99.69.46-.04 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.07-.1-.23-.17-.48-.29z"/></svg>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #16A34A; text-transform: uppercase;">WhatsApp Resmi</div>
+                <div style="font-size: 0.96rem; font-weight: 900; color: #0F2C59; margin-top: 2px;">0823 1600 2226</div>
+              </div>
+            </div>
+          </a>
+
+          <!-- Card 2: Instagram (Real Brand Gradient SVG) -->
+          <a href="https://www.instagram.com/perindagempinrang/" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+            <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);">
+              <div style="width: 46px; height: 46px; border-radius: 12px; background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(214, 36, 159, 0.3);">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #DB2777; text-transform: uppercase;">Instagram Resmi</div>
+                <div style="font-size: 0.96rem; font-weight: 900; color: #0F2C59; margin-top: 2px;">@perindagempinrang</div>
+              </div>
+            </div>
+          </a>
+
+          <!-- Card 3: Facebook (Real Brand Blue SVG) -->
+          <a href="https://web.facebook.com/profile.php?id=100064574566979" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+            <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);">
+              <div style="width: 46px; height: 46px; border-radius: 12px; background: #1877F2; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(24, 119, 242, 0.3);">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #1877F2; text-transform: uppercase;">Facebook Resmi</div>
+                <div style="font-size: 0.92rem; font-weight: 900; color: #0F2C59; margin-top: 2px;">Disperindag-ESDM Pinrang</div>
+              </div>
+            </div>
+          </a>
+
+          <!-- Card 4: Lokasi Kantor (Google Maps Pin SVG) -->
+          <a href="https://maps.google.com/?q=Jalan+Bintang+No.+1+Pinrang+Sulawesi+Selatan" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+            <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);">
+              <div style="width: 46px; height: 46px; border-radius: 12px; background: #EA4335; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(234, 67, 53, 0.3);">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C7.58 0 4 3.58 4 8c0 5.25 7.15 15.35 7.45 15.78.3.42.8.42 1.1 0 .3-.43 7.45-10.53 7.45-15.78 0-4.42-3.58-8-8-8zm0 11.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #EA4335; text-transform: uppercase;">Lokasi Kantor</div>
+                <div style="font-size: 0.92rem; font-weight: 900; color: #0F2C59; margin-top: 2px;">Jalan Bintang No. 1</div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE SCRIPTS -->
+  <script src="js/pinrang-live.js?v=20260828_v13_lightbox"></script>
+  <script src="js/data.js?v=20260828_upload_web_v2"></script>
+  <script src="js/modal-system.js?v=20260828_upload_web_v2"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260828_v13_lightbox"></script>
+  <script src="js/app.js?v=20260828_upload_web_v2"></script>
+
+  <!-- FOOTER RESMI KEDINASAN KABUPATEN PINRANG -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="footer-grid">
+        
+        <!-- Kolom 1: Profil Kedinasan -->
+        <div class="footer-col">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+            <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" style="width: 44px; height: auto;">
+            <div>
+              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.03em;">DISPERINDAG ESDM</h4>
+              <span style="font-size: 0.76rem; color: #94A3B8; font-weight: 700;">KABUPATEN PINRANG</span>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.6; margin-bottom: 16px;">
+            Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen menyelenggarakan pelayanan publik prima, tertib metrologi, pengawasan distribusi pangan, dan pembinaan sentra IKM.
+          </p>
+          
+          <!-- Motto MANTAP Profesional Card -->
+          <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(250, 204, 21, 0.35); border-left: 4px solid var(--accent-gold, #EAB308); padding: 12px 14px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-top: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(250, 204, 21, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+              🎯
+            </div>
+            <div>
+              <div style="font-size: 0.68rem; font-weight: 800; color: #FDE047; text-transform: uppercase; letter-spacing: 0.5px;">Motto Pelayanan</div>
+              <div style="font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin: 1px 0;">MANTAP</div>
+              <div style="font-size: 0.72rem; color: #CBD5E1; line-height: 1.35;">Melayani Anda dengan Transparan, Adil &amp; Profesional</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom 2: Layanan Publik & Pengaduan -->
+        <div class="footer-col">
+          <h4>Standar Pelayanan</h4>
+          <ul class="footer-links">
+            <li><a href="layanan.html">Standar Pelayanan &amp; SOP</a></li>
+            <li><a href="layanan.html#srv_oss_industri">Verifikasi Perizinan OSS Industri</a></li>
+            <li><a href="layanan.html#srv_oss_perdagangan">Fasilitasi Perizinan OSS Perdagangan</a></li>
+            <li><a href="layanan.html#srv_pupuk_subsidi">Keterangan Distributor Pupuk</a></li>
+            <li><a href="layanan.html#srv_tera">Pelayanan Tera &amp; Tera Ulang UTTP</a></li>
+            <li><a href="index.html#pengaduan">Formulir Pengaduan Online</a></li>
+          </ul>
+        </div>
+
+        <!-- Kolom 3: Transparansi & Dokumen -->
+        <div class="footer-col">
+          <h4>Transparansi &amp; Dokumen</h4>
+          <ul class="footer-links">
+            <li><a href="pasar.html" style="color: var(--accent-gold, #FDE047); font-weight: 800;">🏬 Direktori Pasar Daerah</a></li>
+            <li><a href="index.html#transparansi-pelayanan">Transparansi Pelayanan Publik</a></li>
+            <li><a href="profil.html">Profil &amp; Organisasi Resmi</a></li>
+            <li><a href="maklumat-pelayanan.html">Maklumat Pelayanan</a></li>
+            <li><a href="ppid.html">Portal PPID Pelaksana</a></li>
+            <li><a href="dokumen.html">Dokumen &amp; Regulasi Daerah</a></li>
+            <li><a href="katalog-ikm.html">Katalog Produk IKM Binaan</a></li>
+          </ul>
+        </div>
+
+        <!-- Kolom 4: Kontak & Jam Layanan Resmi -->
+        <div class="footer-col">
+          <h4>Kontak &amp; Jam Layanan</h4>
+          <div style="font-size: 0.84rem; color: #CBD5E1; line-height: 1.65; display: flex; flex-direction: column; gap: 10px;">
+            
+            <!-- Alamat Google Maps -->
+            <a href="https://maps.google.com/?q=Jalan+Bintang+No.+1+Pinrang+Sulawesi+Selatan" target="_blank" rel="noopener noreferrer" style="color: #CBD5E1; text-decoration: none; display: flex; align-items: flex-start; gap: 10px; transition: color 0.2s ease;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#EA4335" style="flex-shrink: 0; margin-top: 3px;"><path d="M12 0C7.58 0 4 3.58 4 8c0 5.25 7.15 15.35 7.45 15.78.3.42.8.42 1.1 0 .3-.43 7.45-10.53 7.45-15.78 0-4.42-3.58-8-8-8zm0 11.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+              <span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span>
+            </a>
+
+            <!-- WhatsApp -->
+            <a href="https://wa.me/6282316002226" style="color: #FDE047; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700; transition: opacity 0.2s ease;" target="_blank" rel="noopener noreferrer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink: 0;"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c4.54 0 8.24 3.7 8.24 8.24 0 2.2-.86 4.27-2.42 5.82a8.19 8.19 0 0 1-5.82 2.42c-1.47 0-2.92-.39-4.19-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.212 8.212 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.64c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.07-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.34-.76-1.84-.2-.49-.4-.42-.56-.43l-.47-.01c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.31 3.8 2.53 1.09 2.53.73 2.99.69.46-.04 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.07-.1-.23-.17-.48-.29z"/></svg>
+              <span>0823 1600 2226</span>
+            </a>
+
+            <!-- Email -->
+            <a href="mailto:dinasperindagem.pinrang@gmail.com" style="color: #93C5FD; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 600; transition: opacity 0.2s ease;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#60A5FA" style="flex-shrink: 0;"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              <span>dinasperindagem.pinrang@gmail.com</span>
+            </a>
+
+            <!-- Jam Layanan -->
+            <div style="margin-top: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 0.78rem; display: flex; align-items: flex-start; gap: 10px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#FACC15" style="flex-shrink: 0; margin-top: 2px;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+              <div>
+                <strong style="color: #FFFFFF;">Jam Pelayanan Tatap Muka:</strong><br>
+                <span style="color: #CBD5E1;">Senin–Kamis: 08.00–16.00 WITA<br>Jumat: 08.00–16.30 WITA</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang - <a href="https://www.instagram.com/maroaproject/" target="_blank" rel="noopener noreferrer" style="color: #FACC15; font-weight: 800; text-decoration: none;">MAROA Project</a></div>
+        <div style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 700;">#BanggaMelayaniBangsa</div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

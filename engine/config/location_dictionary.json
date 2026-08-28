@@ -1,0 +1,175 @@
+{
+  "regency": {
+    "id": "pinrang",
+    "name": "Kabupaten Pinrang",
+    "aliases": ["Pinrang", "Kabupaten Pinrang", "Bumi Lasinrang", "Kab. Pinrang", "Kab Pinrang"]
+  },
+  "kecamatan": [
+    {
+      "id": "watang_sawitto",
+      "name": "Watang Sawitto",
+      "aliases": ["Watang Sawitto", "Kec. Watang Sawitto"],
+      "ibuKota": "Pinrang (Kota)",
+      "villages": ["Maccorawalie", "Penrang", "Salo", "Pallameang", "Siparappe", "Teppo", "Bentengnge", "Alitta"],
+      "strategicLocations": [
+        {"type": "pasar", "name": "Pasar Sentral Pinrang"},
+        {"type": "spbu", "name": "SPBU Watang Sawitto"},
+        {"type": "kantor_dinas", "name": "Kantor Disperindag ESDM Pinrang"}
+      ]
+    },
+    {
+      "id": "paleteang",
+      "name": "Paleteang",
+      "aliases": ["Paleteang", "Kec. Paleteang"],
+      "ibuKota": "Paleteang",
+      "villages": ["Laleng Bata", "Temmasossong", "Massewali", "Darung", "Temmabarang"],
+      "strategicLocations": [
+        {"type": "spbu", "name": "SPBU Paleteang"}
+      ]
+    },
+    {
+      "id": "tiroang",
+      "name": "Tiroang",
+      "aliases": ["Tiroang", "Kec. Tiroang"],
+      "ibuKota": "Tiroang",
+      "villages": ["Tiroang", "Paria", "Benteng Sawitto", "Tonrong Rijang"],
+      "strategicLocations": []
+    },
+    {
+      "id": "mattiro_bulu",
+      "name": "Mattiro Bulu",
+      "aliases": ["Mattiro Bulu", "Kec. Mattiro Bulu", "Mattirobulu"],
+      "ibuKota": "Langnga",
+      "villages": ["Langnga", "Mattiro Deceng", "Salo Karaja", "Mattombong", "Patobong"],
+      "strategicLocations": [
+        {"type": "pasar", "name": "Pasar Mattiro Bulu"},
+        {"type": "spbu", "name": "SPBU Mattiro Bulu"}
+      ]
+    },
+    {
+      "id": "mattiro_sompe",
+      "name": "Mattiro Sompe",
+      "aliases": ["Mattiro Sompe", "Kec. Mattiro Sompe", "Mattirosompe"],
+      "ibuKota": "Tamarupa",
+      "villages": ["Tamarupa", "Tasiwalie", "Lero", "Ujung Labuang", "Mattirotasi"],
+      "strategicLocations": [
+        {"type": "pelabuhan", "name": "Pelabuhan Lero"}
+      ]
+    },
+    {
+      "id": "suppa",
+      "name": "Suppa",
+      "aliases": ["Suppa", "Kec. Suppa"],
+      "ibuKota": "Suppa",
+      "villages": ["Suppa", "Belawa", "Lotang Salo", "Mitra", "Tasiwalie Suppa", "Wiring Tasi"],
+      "strategicLocations": [
+        {"type": "apms", "name": "APMS Suppa"},
+        {"type": "pasar", "name": "Pasar Suppa"},
+        {"type": "spbu", "name": "SPBU Suppa"}
+      ]
+    },
+    {
+      "id": "lanrisang",
+      "name": "Lanrisang",
+      "aliases": ["Lanrisang", "Kec. Lanrisang"],
+      "ibuKota": "Lanrisang",
+      "villages": ["Lanrisang", "Pekkabata Suppa", "Wae Tuo", "Bululoe"],
+      "strategicLocations": []
+    },
+    {
+      "id": "cempa",
+      "name": "Cempa",
+      "aliases": ["Cempa", "Kec. Cempa"],
+      "ibuKota": "Cempa",
+      "villages": ["Cempa", "Tonyaman", "Massewali Cempa"],
+      "strategicLocations": []
+    },
+    {
+      "id": "patampanua",
+      "name": "Patampanua",
+      "aliases": ["Patampanua", "Kec. Patampanua"],
+      "ibuKota": "Pekkabata",
+      "villages": ["Pekkabata", "Malimpung", "Maroneng", "Salipolo", "Sipatuo"],
+      "strategicLocations": [
+        {"type": "pasar", "name": "Pasar Pekkabata"},
+        {"type": "sentra_ikm", "name": "Sentra IKM Patampanua"}
+      ]
+    },
+    {
+      "id": "duampanua",
+      "name": "Duampanua",
+      "aliases": ["Duampanua", "Kec. Duampanua"],
+      "ibuKota": "Bungi",
+      "villages": ["Bungi", "Pincara", "Buttu Batu", "Bababinanga", "Massewali Duampanua", "Sabbang Paru", "Benteng Paremba"],
+      "strategicLocations": [
+        {"type": "pangkalan_lpg", "name": "Pangkalan LPG Bungi"},
+        {"type": "spbu", "name": "SPBU Duampanua"},
+        {"type": "sentra_pertanian", "name": "Sentra Pertanian Duampanua"}
+      ]
+    },
+    {
+      "id": "batulappa",
+      "name": "Batulappa",
+      "aliases": ["Batulappa", "Kec. Batulappa"],
+      "ibuKota": "Batulappa",
+      "villages": ["Batulappa", "Massewali Batulappa", "Pelana"],
+      "strategicLocations": [
+        {"type": "tambang", "name": "Lokasi Tambang Batulappa"}
+      ]
+    },
+    {
+      "id": "lembang",
+      "name": "Lembang",
+      "aliases": ["Lembang", "Kec. Lembang"],
+      "ibuKota": "Lembang",
+      "villages": ["Lembang", "Basseang", "Rante Balla", "Tandung", "Paminggalan", "Baraka", "Taure"],
+      "strategicLocations": [
+        {"type": "spbu", "name": "SPBU Lembang"},
+        {"type": "tambang", "name": "Lokasi Tambang Lembang"},
+        {"type": "sentra_pertanian", "name": "Sentra Kopi Lembang"}
+      ]
+    }
+  ],
+  "strategicLocations": {
+    "pasar": [
+      "Pasar Sentral Pinrang",
+      "Pasar Pekkabata",
+      "Pasar Suppa",
+      "Pasar Mattiro Bulu",
+      "Pasar Lembang",
+      "Pasar Duampanua"
+    ],
+    "spbu": [
+      "SPBU Watang Sawitto",
+      "SPBU Paleteang",
+      "SPBU Mattiro Bulu",
+      "SPBU Suppa",
+      "SPBU Duampanua",
+      "SPBU Lembang"
+    ],
+    "apms": ["APMS Suppa"],
+    "pangkalan_lpg": [
+      "Pangkalan LPG Bungi",
+      "Pangkalan LPG Watang Sawitto",
+      "Pangkalan LPG Lembang",
+      "Pangkalan LPG Duampanua",
+      "Pangkalan LPG Patampanua"
+    ],
+    "sentra_industri": [
+      "Sentra IKM Pinrang",
+      "Sentra Industri Patampanua",
+      "Sentra Kerajinan Pinrang",
+      "Sentra Rumput Laut Mattiro Sompe",
+      "Sentra Kopi Lembang",
+      "Sentra Tenun Sutra Pinrang"
+    ],
+    "tambang": [
+      "Tambang Batulappa",
+      "Tambang Lembang",
+      "Galian C Pinrang"
+    ]
+  },
+  "geoBoostLocations": [
+    "Bungi", "Suppa", "Lero", "Pekkabata", "Malimpung", "Lembang"
+  ]
+}

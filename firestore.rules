@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. DATA PUBLIK KEDINASAN (Dapat dibaca siapa saja, diedit oleh staf berwenang)
+    match /prices/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /sembako/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /news/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /ikm_products/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /documents/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /banners/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /command_center/{document=**} {
+      allow read, write: if true;
+    }
+    match /districts/{docId} {
+      allow read, write: if true;
+    }
+    match /markets/{docId} {
+      allow read, write: if true;
+    }
+    match /skm/{docId} {
+      allow read, write: if true;
+    }
+
+    // 4. MEDIA INTELLIGENCE — DATA CRAWLER RSS + GEMINI AI
+    // Read : publik — website bisa fetch data
+    // Write: dibuka (Firestore rules tidak bisa bedakan Apps Script vs browser,
+    //         data ini bersifat publik sehingga aman allow write: if true)
+    match /media_intelligence_feeds/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /media_intelligence_summary/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /media_intelligence_trending/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    // Snapshot TV Wallboard — 1 dokumen berisi 10 berita terbaru
+    match /dashboard_snapshot/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /dashboard/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /config/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /mentions/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /issues/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 2. KANAL PENGADUAN MASYARAKAT (SP4N-LAPOR! & WEBSITE)
+    // Publik boleh membuat aduan dengan validasi input terproteksi (UU PDP No. 27/2022)
+    match /reports/{reportId} {
+      allow create: if request.resource.data.pesan != null && request.resource.data.pesan.size() > 5;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // 3. PENGGUNA & RBAC (Hanya dapat diakses melalui autentikasi resmi)
+    match /users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

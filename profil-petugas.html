@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Akun ASN & Pengaturan Password | Disperindag ESDM Pinrang</title>
+  <meta name="description" content="Pengelolaan profil aparatur sipil negara (ASN), reset password, dan status kepegawaian internal Disperindag ESDM Pinrang.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/profil-petugas">
+  <script>
+    (function() {
+      try {
+        var s = localStorage.getItem('disperindag_current_session');
+        if (!s) {
+          document.documentElement.style.display = 'none';
+          window.location.replace('login.html?redirect=' + encodeURIComponent(window.location.pathname));
+        }
+      } catch(e) {
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
+  <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:title" content="Profil Akun ASN & Pengaturan Password | Disperindag ESDM Pinrang">
+  <meta property="og:description" content="Pengelolaan profil aparatur sipil negara (ASN), reset password, dan status kepegawaian internal Disperindag ESDM Pinrang.">
+  <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/social/default-share.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:alt" content="Profil Akun ASN & Pengaturan Password | Disperindag ESDM Pinrang">
+  <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/profil-petugas">
+  <meta property="og:locale" content="id_ID">
+  <!-- TWITTER / X CARDS -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Profil Akun ASN & Pengaturan Password | Disperindag ESDM Pinrang">
+  <meta name="twitter:description" content="Pengelolaan profil aparatur sipil negara (ASN), reset password, dan status kepegawaian internal Disperindag ESDM Pinrang.">
+  <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/social/default-share.jpg">
+    <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/petugas.css">
+  <link rel="stylesheet" href="css/modal-system.css">
+  <style>
+    .profile-page-shell {
+      width: 100%;
+      max-width: 540px;
+      background: #F8FAFC;
+      min-height: 100vh;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+    .profile-header-card {
+      background: linear-gradient(145deg, #030D1B 0%, #0F2C59 100%);
+      color: #FFFFFF;
+      padding: 32px 20px 24px 20px;
+      text-align: center;
+      position: relative;
+      border-bottom: 2px solid var(--accent-gold);
+    }
+    .profile-avatar-wrapper {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 14px auto;
+    }
+    .profile-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent-gold);
+      background: #FFFFFF;
+    }
+    .btn-change-avatar {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: var(--accent-gold);
+      color: #030D1B;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .profile-card-box {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      border: 1.5px solid var(--border-subtle);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    }
+    .top-nav-back {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="profile-page-shell">
+    
+    <!-- HEADER PROFIL -->
+    <div class="profile-header-card">
+      <a href="petugas.html" class="top-nav-back">&larr; Kembali ke Tugas</a>
+      
+      <div class="profile-avatar-wrapper">
+        <img id="displayAvatarImg" src="assets/brand/logo_pinrang_opt.png" class="profile-avatar-img" alt="Avatar">
+        <button type="button" class="btn-change-avatar" onclick="document.getElementById('avatarFileInput').click()" title="Ganti Foto Profil">
+          📷
+        </button>
+      </div>
+
+      <h2 style="font-size: 1.25rem; font-weight: 800; color: #FFFFFF;" id="displayProfileName">Memuat Akun...</h2>
+      <p style="font-size: 0.76rem; color: #CBD5E1;" id="displayProfileNip">NIP: -</p>
+      <div style="display: inline-block; margin-top: 6px; font-size: 0.76rem; font-weight: 800; background: #FEF3C7; color: #B45309; padding: 3px 12px; border-radius: 20px;" id="displayProfileRole">
+        Peran Pegawai
+      </div>
+    </div>
+
+    <!-- MAIN BODY -->
+    <div style="padding: 20px;">
+      
+      <!-- 1. DATA PRIBADI & KONTAK -->
+      <div class="profile-card-box">
+        <div style="font-size: 0.95rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 14px;">
+          👤 Data Identitas & Kontak ASN
+        </div>
+
+        <form id="formEditProfile" style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Nama Lengkap & Gelar (Terkunci)</label>
+            <input type="text" id="inputName" class="form-input" readonly style="background: #F1F5F9; color: #64748B; cursor: not-allowed;">
+            <small style="font-size: 0.7rem; color: #94A3B8;">Dikelola oleh Subbagian Umum & Kepegawaian.</small>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">NIP Pegawai (Terkunci)</label>
+            <input type="text" id="inputNip" class="form-input" readonly style="background: #F1F5F9; color: #64748B; cursor: not-allowed;">
+          </div>
+
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Jabatan & Unit Kerja (Terkunci)</label>
+            <input type="text" id="inputPosition" class="form-input" readonly style="background: #F1F5F9; color: #64748B; cursor: not-allowed;">
+          </div>
+
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Nomor WhatsApp Aktif (Koordinasi Dinas)</label>
+            <input type="tel" id="inputPhone" required class="form-input" placeholder="08xxxxxxxxxx">
+          </div>
+
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Bio / Deskripsi Tugas</label>
+            <textarea id="inputBio" rows="2" class="form-textarea" placeholder="Tuliskan fokus tugas bidang Anda..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary" style="padding: 10px; width: 100%; justify-content: center; font-size: 0.9rem;">
+            <span>💾</span> Simpan Perubahan Kontak & Bio
+          </button>
+        </form>
+      </div>
+
+      <!-- 2. GANTI KATA SANDI -->
+      <div class="profile-card-box">
+        <div style="font-size: 0.95rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 14px;">
+          🔑 Ganti Kata Sandi (Keamanan Akun)
+        </div>
+
+        <form id="formChangePassword" style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Kata Sandi Lama</label>
+            <input type="password" id="inputOldPassword" required class="form-input" placeholder="Masukkan kata sandi lama...">
+          </div>
+
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Kata Sandi Baru</label>
+            <input type="password" id="inputNewPassword" required class="form-input" placeholder="Minimal 6 karakter...">
+          </div>
+
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Ulangi Kata Sandi Baru</label>
+            <input type="password" id="inputConfirmPassword" required class="form-input" placeholder="Konfirmasi kata sandi baru...">
+          </div>
+
+          <button type="submit" class="btn-primary" style="padding: 10px; width: 100%; justify-content: center; font-size: 0.9rem; background: #0F172A;">
+            <span>🛡️</span> Perbarui Kata Sandi
+          </button>
+        </form>
+      </div>
+
+      <!-- 3. TOMBOL LOGOUT -->
+      <div style="text-align: center; margin-top: 14px;">
+        <button type="button" class="btn-danger" onclick="logoutUser()" style="width: 100%; justify-content: center; padding: 11px; font-size: 0.9rem;">
+          <span>🚪</span> Keluar dari Sesi Akun (Logout)
+        </button>
+      </div>
+
+    </div>
+
+    <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
+  </div>
+
+  <script src="js/data.js?v=20260828_upload_web_v2"></script>
+  <script src="js/modal-system.js?v=20260828_upload_web_v2"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let activeSession = null;
+    let newAvatarData = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      activeSession = requireAuth(['admin', 'petugas']);
+      if (!activeSession) return;
+
+      loadProfileFields();
+      initAvatarUpload();
+    });
+
+    function loadProfileFields() {
+      document.getElementById('displayProfileName').textContent = activeSession.name;
+      document.getElementById('displayProfileNip').textContent = `NIP: ${activeSession.nip}`;
+      document.getElementById('displayProfileRole').textContent = `${activeSession.roleIcon} ${activeSession.roleLabel}`;
+
+      document.getElementById('inputName').value = activeSession.name;
+      document.getElementById('inputNip').value = activeSession.nip;
+      document.getElementById('inputPosition').value = `${activeSession.position} (${activeSession.unit})`;
+      document.getElementById('inputPhone').value = activeSession.phone || '';
+      document.getElementById('inputBio').value = activeSession.bio || '';
+
+      if (activeSession.avatar) {
+        document.getElementById('displayAvatarImg').src = activeSession.avatar;
+      }
+    }
+
+    function initAvatarUpload() {
+      const fileInput = document.getElementById('avatarFileInput');
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            newAvatarData = evt.target.result;
+            document.getElementById('displayAvatarImg').src = newAvatarData;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    document.getElementById('formEditProfile')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const phone = document.getElementById('inputPhone').value.trim();
+      const bio = document.getElementById('inputBio').value.trim();
+
+      const res = updateSelfProfile({
+        phone,
+        bio,
+        avatar: newAvatarData || activeSession.avatar
+      });
+
+      if (res.success) {
+        CustomModal.alert({
+          title: "Profil Diperbarui",
+          message: "Data kontak dan bio Anda berhasil disimpan.",
+          icon: "✅",
+          type: "info"
+        });
+      }
+    });
+
+    document.getElementById('formChangePassword')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const oldP = document.getElementById('inputOldPassword').value;
+      const newP = document.getElementById('inputNewPassword').value;
+      const confirmP = document.getElementById('inputConfirmPassword').value;
+
+      if (newP !== confirmP) {
+        CustomModal.alert({ title: "Sandi Tidak Cocok", message: "Konfirmasi kata sandi baru tidak sama.", icon: "⚠️", type: "warning" });
+        return;
+      }
+
+      if (newP.length < 6) {
+        CustomModal.alert({ title: "Sandi Terlalu Pendek", message: "Kata sandi minimal 6 karakter.", icon: "⚠️", type: "warning" });
+        return;
+      }
+
+      const res = updateSelfProfile({
+        currentPassword: oldP,
+        newPassword: newP
+      });
+
+      if (res.success) {
+        CustomModal.alert({
+          title: "Kata Sandi Berhasil Diubah",
+          message: "Kata sandi akun Anda telah berhasil diperbarui.",
+          icon: "🔒",
+          type: "info"
+        });
+        e.target.reset();
+      } else {
+        CustomModal.alert({
+          title: "Gagal Mengubah Sandi",
+          message: res.message,
+          icon: "❌",
+          type: "error"
+        });
+      }
+    });
+  </script>
+</body>
+</html>

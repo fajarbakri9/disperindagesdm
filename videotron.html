@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layar Videotron Stage - Festival Literasi Pinrang 2026</title>
+    
+    <!-- TAILWIND CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        merah: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#bf212f', // MERAH MERDEKA PRIMARY
+                            800: '#9f1239',
+                            900: '#881337',
+                        },
+                        navy: {
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        display: ['Outfit', 'Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- GOOGLE FONTS & FONT AWESOME -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+            overflow: hidden;
+            background-color: #0f172a;
+        }
+
+        .bg-slideshow-container {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .bg-slide {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            filter: brightness(0.95) contrast(1.05);
+        }
+
+        .bg-slide.active {
+            opacity: 1;
+        }
+
+        .bg-readability-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.5) 0%, rgba(248, 250, 252, 0.8) 70%, rgba(226, 232, 240, 0.95) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .stage-sweep-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .sweep-beam-red {
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 60%;
+            height: 200%;
+            background: linear-gradient(115deg, transparent 0%, rgba(191, 33, 47, 0.08) 45%, rgba(191, 33, 47, 0.15) 50%, rgba(191, 33, 47, 0.08) 55%, transparent 100%);
+            animation: sweepDiagonal 12s infinite ease-in-out;
+            transform: rotate(-25deg);
+        }
+
+        .sweep-beam-white {
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.2) 45%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.2) 55%, transparent 100%);
+            animation: sweepDiagonal 15s infinite ease-in-out reverse;
+            transform: rotate(25deg);
+        }
+
+        @keyframes sweepDiagonal {
+            0% { transform: translateY(-30%) rotate(-25deg); }
+            50% { transform: translateY(30%) rotate(-20deg); }
+            100% { transform: translateY(-30%) rotate(-25deg); }
+        }
+
+        .glass-panel-light {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+        }
+
+        .glass-card-light {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(226, 232, 240, 0.95);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+        }
+
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 35s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-scaleUp {
+            animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between p-4 relative overflow-hidden">
+
+    <!-- DYNAMIC BACKGROUND SLIDESHOW -->
+    <div class="bg-slideshow-container">
+        <img src="bg_stage.jpg" class="bg-slide active" alt="Background Stage 1">
+        <img src="bg_festival.jpg" class="bg-slide" alt="Background Stage 2">
+        <img src="bg1.png" class="bg-slide" alt="Background Stage 3">
+        <img src="bg2.png" class="bg-slide" alt="Background Stage 4">
+    </div>
+
+    <!-- READABILITY SHIELD OVERLAY -->
+    <div class="bg-readability-overlay"></div>
+
+    <!-- PROFESSIONAL STAGE DIAGONAL SWEEP LIGHT BEAMS -->
+    <div class="stage-sweep-overlay">
+        <div class="sweep-beam-red"></div>
+        <div class="sweep-beam-white"></div>
+    </div>
+
+    <!-- STAGE HEADER BAR (PRO MERAH-PUTIH THEME WITH WHITE FRAME LOGOS) -->
+    <header class="bg-gradient-to-r from-red-900 via-merah-700 to-red-900 text-white rounded-3xl px-8 py-3.5 flex items-center justify-between z-20 shadow-2xl border-2 border-white/40">
+        <div class="flex items-center gap-6">
+            <!-- LOGO CONTAINER WHITE PILL WITH SHADOW -->
+            <div class="flex items-center gap-4 bg-white px-5 py-2.5 rounded-2xl shadow-lg border-2 border-slate-100 shrink-0">
+                <img src="logo_perpusnas_opt.png" onerror="this.src='Perpustakaan Nasional.png'" alt="Perpusnas" class="h-11 w-auto object-contain">
+                <img src="l1.png" alt="Dinas Perpustakaan" class="h-11 w-auto object-contain">
+                <img src="Logo_Pinrang.png" alt="Pemkab Pinrang" class="h-11 w-auto object-contain">
+                <img src="Logo Festival Literasi 2026.png" alt="Festival Literasi" class="h-11 w-auto object-contain">
+            </div>
+
+            <div class="h-12 w-0.5 bg-white/30"></div>
+
+            <div>
+                <span class="text-xs sm:text-sm text-red-100 font-extrabold uppercase tracking-widest block mb-0.5">PEMERINTAH KABUPATEN PINRANG</span>
+                <h1 class="font-display font-black text-2xl sm:text-3xl tracking-wide text-white flex items-center gap-3">
+                    FESTIVAL LITERASI PINRANG 2026
+                    <span class="bg-white text-merah-700 font-black text-xs px-3.5 py-1 rounded-full uppercase tracking-widest shadow-md border border-slate-200">STAGE LIVE</span>
+                </h1>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <span id="vClock" class="font-display font-black text-4xl text-white tracking-widest block">00:00:00</span>
+                <span class="text-xs text-red-100 font-extrabold tracking-widest uppercase">Waktu Indonesia Tengah (WITA)</span>
+            </div>
+            <button onclick="toggleFullScreen()" class="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white hover:text-red-700 text-white flex items-center justify-center transition-all cursor-pointer border border-white/30 shadow-sm" title="Toggle Fullscreen">
+                <i class="fas fa-expand text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN STAGE DISPLAY CANVAS -->
+    <main id="vMainCanvas" class="flex-1 my-3 relative z-10 flex items-center justify-center overflow-hidden">
+
+        <!-- ========================================== -->
+        <!-- MODE 1: STANDBY & COUNTDOWN BACKDROP MODE -->
+        <!-- ========================================== -->
+        <div id="modeStandby" class="w-full h-full flex flex-col justify-between items-center text-center p-2 space-y-3">
+            
+            <!-- HEADER BADGES & HEADLINE -->
+            <div class="space-y-2 mt-0.5">
+                <div class="inline-flex items-center gap-3 bg-gradient-to-r from-merah-700 via-merah-600 to-merah-700 px-7 py-2 rounded-full pulse-subtle shadow-xl border-2 border-white">
+                    <svg viewBox="0 0 3 2" class="w-6 h-4 rounded border border-white/50 shadow-sm shrink-0"><rect width="3" height="1" fill="#bf212f"/><rect y="1" width="3" height="1" fill="#ffffff"/></svg>
+                    <span class="text-xs sm:text-sm font-black text-white uppercase tracking-[0.25em]">MENYAMBUT HUT KE-81 REPUBLIK INDONESIA</span>
+                    <svg viewBox="0 0 3 2" class="w-6 h-4 rounded border border-white/50 shadow-sm shrink-0"><rect width="3" height="1" fill="#bf212f"/><rect y="1" width="3" height="1" fill="#ffffff"/></svg>
+                </div>
+
+                <h2 class="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-slate-900 tracking-tight leading-tight drop-shadow-sm">
+                    SELAMAT DATANG DI <br>
+                    <span class="bg-gradient-to-r from-merah-600 via-red-700 to-merah-600 bg-clip-text text-transparent">FESTIVAL LITERASI PINRANG 2026</span>
+                </h2>
+
+                <div>
+                    <span class="text-merah-700 text-base sm:text-lg lg:text-xl font-black uppercase tracking-widest bg-red-100/90 px-6 py-1 rounded-2xl border-2 border-red-300 shadow-md inline-block">
+                        🌟 LASINRANG MERDEKA FEST 🌟
+                    </span>
+                </div>
+
+                <div class="pt-1">
+                    <p class="text-slate-800 text-base sm:text-lg lg:text-xl font-extrabold max-w-4xl mx-auto leading-relaxed">
+                        <span class="text-merah-700 font-black">TEMA:</span> "Perayaan Literasi, Seni, & Budaya Terbesar Kabupaten Pinrang"
+                    </p>
+                </div>
+
+                <div>
+                    <div class="inline-flex items-center gap-3 bg-slate-900 text-white px-6 py-1.5 rounded-xl font-black text-sm sm:text-base lg:text-lg tracking-wide shadow-lg border border-slate-700">
+                        <span>📅 11 s.d. 15 AGUSTUS 2026</span>
+                        <span class="text-slate-400">&bull;</span>
+                        <span>📍 LASINRANG PARK, KABUPATEN PINRANG</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COUNTDOWN BOX (CLEAN MERAH-PUTIH THEME) -->
+            <div class="glass-panel-light p-5 rounded-3xl border-3 border-merah-600 shadow-2xl max-w-4xl w-full">
+                <span class="text-xs uppercase tracking-[0.3em] font-black text-merah-700 block mb-2">MENGHITUNG MUNDUR JADWAL RESMI EVENT</span>
+                <div class="grid grid-cols-4 gap-5 text-center">
+                    <div class="glass-card-light p-3 rounded-2xl border-2 border-merah-200">
+                        <span id="vDays" class="font-display font-black text-5xl lg:text-6xl text-merah-600 block">00</span>
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-widest mt-1 block">Hari</span>
+                    </div>
+                    <div class="glass-card-light p-3 rounded-2xl border-2 border-merah-200">
+                        <span id="vHours" class="font-display font-black text-5xl lg:text-6xl text-merah-600 block">00</span>
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-widest mt-1 block">Jam</span>
+                    </div>
+                    <div class="glass-card-light p-3 rounded-2xl border-2 border-merah-200">
+                        <span id="vMinutes" class="font-display font-black text-5xl lg:text-6xl text-merah-600 block">00</span>
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-widest mt-1 block">Menit</span>
+                    </div>
+                    <div class="glass-card-light p-3 rounded-2xl border-2 border-merah-200">
+                        <span id="vSeconds" class="font-display font-black text-5xl lg:text-6xl text-merah-600 block">00</span>
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-widest mt-1 block">Detik</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE AGENDA ROTATOR -->
+            <div class="glass-card-light px-7 py-3 rounded-2xl flex items-center gap-6 border-l-8 border-merah-600 max-w-3xl w-full text-left shadow-xl transition-all">
+                <div id="vAgendaIconBox" class="w-13 h-13 rounded-2xl bg-merah-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-lg border-2 border-white">
+                    <i id="vAgendaIcon" class="fas fa-calendar-alt text-white text-xl"></i>
+                </div>
+                <div class="overflow-hidden flex-1">
+                    <span id="vAgendaBadge" class="text-xs uppercase tracking-widest text-merah-700 font-black block mb-0.5">🗓️ AGENDA UTAMA YANG AKAN DATANG</span>
+                    <h3 id="vCurrentAgendaTitle" class="font-display font-black text-xl lg:text-2xl text-slate-900 truncate">Pembukaan Resmi & Parade Onthel Sastra</h3>
+                    <p id="vCurrentAgendaMeta" class="text-sm text-slate-600 truncate font-extrabold">Selasa, 11 Agustus 2026 &bull; 08:00 WITA &bull; Panggung Utama Lasinrang Park</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODE 2: LIVE QUIZ MODE (PRO MERAH-PUTIH) -->
+        <!-- ========================================== -->
+        <div id="modeQuiz" class="hidden w-full h-full flex-col justify-between p-4 space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 bg-merah-600 text-white font-black px-6 py-2 rounded-2xl shadow-lg border-2 border-white">
+                    <i class="fas fa-gamepad text-2xl"></i>
+                    <span class="text-lg uppercase tracking-wider">LIVE TRIVIA QUIZ STAGE</span>
+                </div>
+                <div class="bg-red-700 text-white font-black text-2xl px-8 py-2 rounded-2xl shadow-xl flex items-center gap-3 border-2 border-white animate-pulse">
+                    <i class="fas fa-stopwatch text-white"></i>
+                    <span id="vQuizTimer">15s</span>
+                </div>
+            </div>
+
+            <!-- SOAL UTAMA -->
+            <div class="glass-panel-light p-6 rounded-3xl border-3 border-merah-600 text-center shadow-2xl max-w-5xl mx-auto w-full">
+                <span class="text-xs uppercase font-black text-merah-700 tracking-[0.2em] block mb-1">SOAL KUIS TRIVIA EVENT</span>
+                <h3 id="vQuizQuestionText" class="font-display font-black text-3xl sm:text-4xl text-slate-900 leading-tight">
+                    Siapakah Tokoh Pahlawan Asal Pinrang Yang Dikenal Dengan Gelar Lasinrang?
+                </h3>
+            </div>
+
+            <!-- JAWABAN A B C D -->
+            <div class="grid grid-cols-2 gap-4 max-w-5xl mx-auto w-full">
+                <div id="vQuizOptABox" class="glass-card-light p-5 rounded-2xl border-l-8 border-rose-600 flex items-center justify-between shadow-lg">
+                    <div class="flex items-center gap-4">
+                        <span class="w-12 h-12 bg-rose-600 text-white font-black text-2xl rounded-2xl flex items-center justify-center shadow-md">A</span>
+                        <span id="vQuizOptA" class="font-black text-xl text-slate-900">I Managau Sanro</span>
+                    </div>
+                    <span id="vQuizCountA" class="font-display font-black text-2xl text-rose-600">0%</span>
+                </div>
+
+                <div id="vQuizOptBBox" class="glass-card-light p-5 rounded-2xl border-l-8 border-blue-600 flex items-center justify-between shadow-lg">
+                    <div class="flex items-center gap-4">
+                        <span class="w-12 h-12 bg-blue-600 text-white font-black text-2xl rounded-2xl flex items-center justify-center shadow-md">B</span>
+                        <span id="vQuizOptB" class="font-black text-xl text-slate-900">Petta Lasinrang</span>
+                    </div>
+                    <span id="vQuizCountB" class="font-display font-black text-2xl text-blue-600">0%</span>
+                </div>
+
+                <div id="vQuizOptCBox" class="glass-card-light p-5 rounded-2xl border-l-8 border-amber-500 flex items-center justify-between shadow-lg">
+                    <div class="flex items-center gap-4">
+                        <span class="w-12 h-12 bg-amber-500 text-slate-950 font-black text-2xl rounded-2xl flex items-center justify-center shadow-md">C</span>
+                        <span id="vQuizOptC" class="font-black text-xl text-slate-900">Andi Abdullah Bau Massepe</span>
+                    </div>
+                    <span id="vQuizCountC" class="font-display font-black text-2xl text-amber-600">0%</span>
+                </div>
+
+                <div id="vQuizOptDBox" class="glass-card-light p-5 rounded-2xl border-l-8 border-emerald-600 flex items-center justify-between shadow-lg">
+                    <div class="flex items-center gap-4">
+                        <span class="w-12 h-12 bg-emerald-600 text-white font-black text-2xl rounded-2xl flex items-center justify-center shadow-md">D</span>
+                        <span id="vQuizOptD" class="font-black text-xl text-slate-900">Sultan Hasanuddin</span>
+                    </div>
+                    <span id="vQuizCountD" class="font-display font-black text-2xl text-emerald-600">0%</span>
+                </div>
+            </div>
+
+            <!-- LEADERBOARD COMPONENT -->
+            <div id="vQuizLeaderboardSection" class="glass-card-light p-3.5 rounded-2xl flex items-center justify-between border-2 border-slate-200 max-w-5xl mx-auto w-full">
+                <span class="text-xs text-merah-700 font-black tracking-widest uppercase"><i class="fas fa-trophy mr-2 text-amber-500"></i>TOP 3 SKOR TERTINGGI REALTIME</span>
+                <div id="vQuizTopPlayers" class="flex gap-3 text-xs font-black text-slate-900">
+                    <span class="bg-slate-100 px-3.5 py-1 rounded-full border border-slate-300 text-slate-900">1. Rahmat (450pt)</span>
+                    <span class="bg-slate-100 px-3.5 py-1 rounded-full border border-slate-300 text-slate-800">2. Andi Nur (420pt)</span>
+                    <span class="bg-slate-100 px-3.5 py-1 rounded-full border border-slate-300 text-slate-800">3. Tari (390pt)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODE 3: LIVE POLLING VOTE MODE -->
+        <!-- ========================================== -->
+        <div id="modePoll" class="hidden w-full h-full flex-col justify-between p-4 space-y-4">
+            <div class="inline-flex items-center gap-3 bg-indigo-600 text-white px-8 py-2 rounded-full font-black text-lg uppercase tracking-[0.2em] shadow-xl border-2 border-white self-center">
+                <i class="fas fa-chart-bar text-2xl"></i> LIVE AUDIENCE POLLING VOTE
+            </div>
+
+            <div class="glass-panel-light p-5 rounded-3xl border-3 border-indigo-500 shadow-2xl text-center max-w-4xl mx-auto w-full">
+                <h3 id="vPollTitle" class="font-display font-black text-2xl lg:text-3xl text-slate-900">
+                    Pilih Penampilan Sanggar Seni Panggung Favorit Anda!
+                </h3>
+            </div>
+
+            <div id="vPollBarsContainer" class="flex-1 grid grid-cols-4 gap-6 items-end p-6 glass-panel-light rounded-3xl border-2 border-slate-200 shadow-2xl max-w-4xl mx-auto w-full">
+                <div class="flex flex-col items-center gap-3 h-full justify-end">
+                    <span id="vPollPct1" class="font-display font-black text-3xl text-merah-600">45%</span>
+                    <div id="vPollBar1" class="w-full bg-merah-600 rounded-2xl transition-all duration-700 shadow-xl" style="height: 65%;"></div>
+                    <span id="vPollLabel1" class="font-black text-sm text-slate-900 text-center">Sanggar Seni 3 Berlian</span>
+                </div>
+                <div class="flex flex-col items-center gap-3 h-full justify-end">
+                    <span id="vPollPct2" class="font-display font-black text-3xl text-blue-600">30%</span>
+                    <div id="vPollBar2" class="w-full bg-blue-600 rounded-2xl transition-all duration-700 shadow-xl" style="height: 40%;"></div>
+                    <span id="vPollLabel2" class="font-black text-sm text-slate-900 text-center">Tari Pakarena</span>
+                </div>
+                <div class="flex flex-col items-center gap-3 h-full justify-end">
+                    <span id="vPollPct3" class="font-display font-black text-3xl text-amber-500">15%</span>
+                    <div id="vPollBar3" class="w-full bg-amber-500 rounded-2xl transition-all duration-700 shadow-xl" style="height: 25%;"></div>
+                    <span id="vPollLabel3" class="font-black text-sm text-slate-900 text-center">Band Pemuda</span>
+                </div>
+                <div class="flex flex-col items-center gap-3 h-full justify-end">
+                    <span id="vPollPct4" class="font-display font-black text-3xl text-emerald-600">10%</span>
+                    <div id="vPollBar4" class="w-full bg-emerald-600 rounded-2xl transition-all duration-700 shadow-xl" style="height: 15%;"></div>
+                    <span id="vPollLabel4" class="font-black text-sm text-slate-900 text-center">Deklamasi Puisi</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODE 4: LIVE MERDEKA CHAT WALL MODE -->
+        <!-- ========================================== -->
+        <div id="modeChat" class="hidden w-full h-full flex-col justify-between p-4 space-y-4">
+            <div class="text-center space-y-1">
+                <span class="bg-rose-600 text-white text-xs font-black px-5 py-1 rounded-full tracking-widest uppercase shadow-lg inline-block">💬 WALL PESAN & UCAPAN WARGA</span>
+                <h3 class="font-display font-black text-3xl text-slate-900">Suara Merdeka & Harapan Untuk Pinrang</h3>
+            </div>
+
+            <div id="vChatGrid" class="grid grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto w-full flex-1 overflow-hidden p-2">
+                <div class="glass-panel-light p-6 rounded-3xl flex flex-col justify-between border-l-8 border-rose-600 shadow-xl">
+                    <p class="text-base text-slate-900 font-bold leading-relaxed italic mb-3">
+                        "Selamat HUT RI ke-81! Bangga jadi warga Pinrang. Literasi maju, generasi muda makin kreatif!"
+                    </p>
+                    <div class="flex items-center gap-3 pt-3 border-t border-slate-200">
+                        <div class="w-10 h-10 rounded-full bg-rose-600 text-white font-black flex items-center justify-center text-base shadow-md">A</div>
+                        <div>
+                            <h5 class="font-black text-sm text-slate-900">Andi Muhammad</h5>
+                            <span class="text-xs text-rose-700 font-bold">Komunitas Literasi Sawitto</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODE 5: LIVE WINNER & DOORPRIZE REVEAL (3-PHASE TRANSPARENT ENGINE) -->
+        <!-- ========================================== -->
+        <div id="modeWinner" class="hidden w-full h-full flex-col items-center justify-center text-center p-6 space-y-6">
+            
+            <!-- PHASE 1: INTRO INFORMASI UNDIAN (TRANSPARAN) -->
+            <div id="vWinnerPhaseIntro" class="glass-panel-light p-8 sm:p-10 rounded-3xl border-4 border-amber-400 shadow-2xl max-w-3xl w-full space-y-6 animate-scaleUp">
+                <div class="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 px-7 py-2 rounded-full font-black text-base uppercase tracking-[0.2em] shadow-xl">
+                    <i class="fas fa-gift text-2xl"></i>
+                    <span id="vWinnerIntroCategory">UNDIAN DOORPRIZE E-PASPOR FESTIVAL</span>
+                </div>
+                
+                <h2 class="font-display font-black text-4xl sm:text-5xl text-slate-900 leading-tight">
+                    PENGUNDIAN HADIAH DOORPRIZE DIGITAL
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto text-left">
+                    <div class="bg-amber-50/90 p-4 rounded-2xl border-2 border-amber-300 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-2xl font-black shrink-0 shadow-md">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-amber-900 uppercase block">Kategori Peserta</span>
+                            <span id="vWinnerIntroMeta" class="font-black text-slate-900 text-sm sm:text-base">Seluruh Pengunjung Terdaftar E-Paspor</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50/90 p-4 rounded-2xl border-2 border-emerald-300 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-2xl font-black shrink-0 shadow-md">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-emerald-900 uppercase block">Hadiah Doorprize Utama</span>
+                            <span id="vWinnerIntroPrize" class="font-black text-slate-900 text-sm sm:text-base">🎁 Tropi Utama + Hadiah Spesial</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <span class="inline-flex items-center gap-2 bg-slate-900 text-amber-400 px-6 py-2 rounded-full font-black text-xs sm:text-sm uppercase tracking-widest border border-slate-700 animate-pulse">
+                        <i class="fas fa-dice fa-spin text-amber-400 mr-1"></i> BERSIAP ACAK PEMENANG REALTIME...
+                    </span>
+                </div>
+            </div>
+
+            <!-- PHASE 2: ANIMASI SLOT MACHINE ROLLING ACAK REALTIME -->
+            <div id="vWinnerPhaseSpinning" class="hidden glass-panel-light p-8 sm:p-10 rounded-3xl border-4 border-amber-400 shadow-2xl max-w-3xl w-full space-y-6 text-center animate-scaleUp">
+                <div class="inline-flex items-center gap-3 bg-red-600 text-white px-8 py-2 rounded-full font-black text-lg uppercase tracking-[0.2em] shadow-xl animate-pulse">
+                    <i class="fas fa-dice fa-spin text-amber-300 text-2xl"></i> PROSES MENGUNDI PEMENANG ACAK...
+                </div>
+
+                <div class="bg-slate-950 p-8 rounded-3xl border-4 border-amber-400 shadow-inner space-y-4">
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-[0.3em] block">ID PASPOR DIGITAL TERPILIH</span>
+                    <!-- SLOT ROLLER PASPOR ID -->
+                    <div id="vSlotPasporId" class="font-mono font-black text-4xl sm:text-6xl text-amber-400 tracking-widest bg-slate-900 py-4 px-6 rounded-2xl border-2 border-slate-800 shadow-inner inline-block min-w-[280px]">
+                        #FLP2026-8888
+                    </div>
+
+                    <!-- SLOT ROLLER NAMA -->
+                    <div id="vSlotName" class="font-display font-black text-2xl sm:text-4xl text-white uppercase tracking-wider py-2">
+                        MENGACAK NAMA PEMENANG...
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHASE 3: SELEBRASI PEMENANG TERPILIH (WINNER REVEAL) -->
+            <div id="vWinnerPhaseReveal" class="hidden glass-panel-light p-8 sm:p-10 rounded-3xl border-4 border-amber-400 shadow-2xl max-w-3xl w-full space-y-5 animate-scaleUp">
+                <div class="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 px-8 py-2.5 rounded-full font-black text-base uppercase tracking-[0.2em] shadow-2xl animate-bounce">
+                    🏆 <span id="vWinnerCategoryBadge">PEMENANG SAH UNDIAN DOORPRIZE</span> 🏆
+                </div>
+
+                <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 text-white flex items-center justify-center text-4xl shadow-2xl border-4 border-white animate-bounce">
+                    <i class="fas fa-award text-white"></i>
+                </div>
+
+                <div>
+                    <span class="text-xs font-black text-merah-700 uppercase tracking-widest block mb-1" id="vWinnerLombaTitle">KATEGORI: 81 CERITA WARGA UNTUK PINRANG</span>
+                    <h2 id="vWinnerName" class="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-slate-900 leading-tight uppercase">
+                        ANDI MUHAMMAD RIZKY
+                    </h2>
+                    <p id="vWinnerMeta" class="text-lg font-extrabold text-slate-700 mt-1">
+                        Paspor #FLP2026-8812 &bull; Masyarakat Umum
+                    </p>
+                </div>
+
+                <div id="vWinnerPrizeBox" class="bg-amber-100 border-2 border-amber-400 p-3.5 rounded-2xl text-amber-900 font-black text-lg shadow-inner inline-block">
+                    🎁 HADIAH: Thropy Utama Bupati Pinrang + Doorprize Utama
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODE 6: LIVE FAN CAM PHOTOBOOTH -->
+        <!-- ========================================== -->
+        <div id="modeFanCam" class="hidden w-full h-full flex-col items-center justify-center p-6 space-y-6">
+            <div class="inline-flex items-center gap-3 bg-purple-600 text-white px-8 py-2 rounded-full font-black text-base uppercase tracking-[0.2em] shadow-xl">
+                <i class="fas fa-camera text-2xl"></i> LIVE FAN CAM PHOTOBOOTH
+            </div>
+            <div id="vFanCamGrid" class="grid grid-cols-3 gap-6 max-w-5xl w-full">
+                <div class="glass-panel-light p-4 rounded-3xl border-2 border-purple-400 text-center space-y-2">
+                    <div class="w-full h-44 bg-slate-200 rounded-2xl flex items-center justify-center text-slate-400">
+                        <i class="fas fa-image text-4xl"></i>
+                    </div>
+                    <span class="font-black text-slate-900 text-sm block">Pengunjung Panggung</span>
+                    <p class="text-xs text-slate-600 italic">"Keseruan Festival Literasi Pinrang 2026!"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 3-STATE FLOATING INTERACTIVE QR CODE SYSTEM -->
+        <!-- ========================================== -->
+
+        <!-- STATE 1: NORMAL FLOATING (BOTTOM-RIGHT - CLEAN QR CODE IMAGE ONLY, NO TEXT AT ALL) -->
+        <div id="vQrNormalWidget" class="fixed bottom-4 right-6 z-40 bg-white/95 backdrop-blur-md p-2 rounded-3xl border-3 border-merah-600 shadow-[0_15px_35px_rgba(191,33,47,0.3)] flex flex-col items-center gap-1 animate-pulse transition-all">
+            <div class="relative group cursor-pointer" onclick="setQrDisplayState('maximized')" title="Klik Untuk Memperbesar QR Code ke Tengah Layar">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://flp-2026.web.app/interaktif.html" alt="QR Interaktif" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border border-slate-200 object-contain bg-white p-1">
+                <div class="absolute inset-0 bg-merah-600/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span class="bg-merah-600 text-white font-black text-[10px] px-2 py-0.5 rounded shadow-md"><i class="fas fa-search-plus"></i></span>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 w-full justify-between px-1">
+                <button onclick="setQrDisplayState('minimized')" class="w-5 h-5 rounded-md bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 flex items-center justify-center text-[9px] font-bold transition-all cursor-pointer" title="Minimize / Sembunyikan Kode QR">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button onclick="setQrDisplayState('maximized')" class="w-5 h-5 rounded-md bg-merah-600 hover:bg-merah-700 text-white flex items-center justify-center text-[9px] font-bold transition-all cursor-pointer" title="Maximize / Tampilkan QR di Tengah Layar">
+                    <i class="fas fa-expand-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STATE 2: MINIMIZED BADGE (BOTTOM-RIGHT COLLAPSED INDICATOR) -->
+        <div id="vQrMinimizedWidget" class="hidden fixed bottom-4 right-6 z-40 bg-gradient-to-r from-merah-700 to-red-600 text-white px-3.5 py-2 rounded-full border-2 border-white shadow-2xl flex items-center gap-2 cursor-pointer hover:scale-105 transition-all" onclick="setQrDisplayState('normal')">
+            <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+            <span class="font-black text-xs uppercase tracking-wider">📱 QR CODE</span>
+            <i class="fas fa-chevron-up text-white text-xs"></i>
+        </div>
+
+        <!-- STATE 3: MAXIMIZED FULL STAGE MODAL OVERLAY (CENTERED SCREEN HIGH-IMPACT) -->
+        <div id="vQrMaximizedModal" class="hidden fixed inset-0 z-[200] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-6 fade-in">
+            <div class="bg-white rounded-3xl p-8 sm:p-10 max-w-lg w-full text-center space-y-6 shadow-[0_25px_60px_rgba(0,0,0,0.5)] border-4 border-merah-600 relative animate-scaleUp">
+                <button onclick="setQrDisplayState('normal')" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-600 hover:text-white text-slate-700 font-bold flex items-center justify-center transition-all cursor-pointer">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+
+                <div>
+                    <span class="bg-merah-600 text-white font-black text-xs px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md inline-block mb-3">
+                        🚀 PARTICIPATE LIVE FROM SMARTPHONE
+                    </span>
+                    <h3 class="font-display font-black text-3xl text-slate-900 leading-tight">SCAN QR CODE UNTUK KUIS & VOTE</h3>
+                    <p class="text-sm font-extrabold text-merah-700 mt-1">Buka Kamera HP Anda & Arahkan Ke Kode Di Bawah Ini</p>
+                </div>
+
+                <div class="flex justify-center">
+                    <div class="bg-white p-4 rounded-3xl border-4 border-merah-600 shadow-2xl inline-block">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=380x380&data=https://flp-2026.web.app/interaktif.html" alt="QR Code Interaktif Panggung" class="w-64 h-64 sm:w-80 sm:h-80 object-contain">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1">
+                    <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Atau Akses Alamat URL Website Langsung:</span>
+                    <span class="font-mono font-black text-sm sm:text-base text-navy-950 underline">flp-2026.web.app/interaktif.html</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- EMERGENCY ALERT BANNER OVERLAY -->
+        <div id="vEmergencyAlertOverlay" class="hidden fixed inset-x-8 top-28 z-[100] bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white p-6 rounded-3xl border-4 border-white shadow-2xl animate-bounce flex items-center gap-6">
+            <div class="w-16 h-16 rounded-2xl bg-white text-merah-700 flex items-center justify-center text-3xl font-black shrink-0 shadow-lg">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="flex-1">
+                <span class="text-xs font-black uppercase tracking-[0.2em] text-red-100 block mb-1">🚨 PERHATIAN / PANGGILAN DARURAT PANGGUNG</span>
+                <h3 id="vEmergencyAlertText" class="font-display font-black text-2xl lg:text-3xl leading-snug">
+                    PANGGILAN KEPADA ORANG TUA SISWA Sdr. ANDI NUR RAMADHAN SEGERA KE PANITIA PANGGUNG UTAMA!
+                </h3>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- STAGE FOOTER MARQUEE (BOLD MERDEKA RED BLOCK THEME WITH WHITE TEXT) -->
+    <footer class="bg-gradient-to-r from-red-900 via-merah-700 to-red-900 text-white rounded-2xl px-6 py-3.5 flex items-center justify-between z-20 border-t-4 border-white/80 shadow-2xl mr-36">
+        <div class="flex items-center gap-3 shrink-0 bg-white text-merah-700 px-4 py-1.5 rounded-xl border border-slate-200 shadow-md">
+            <span class="w-3.5 h-3.5 rounded-full bg-merah-600 animate-ping"></span>
+            <span class="text-base sm:text-lg font-black text-merah-700 tracking-widest uppercase">
+                INFO:
+            </span>
+        </div>
+        <div class="marquee-container flex-1 mx-4">
+            <div id="vRunningText" class="marquee-content text-xl sm:text-2xl font-black text-white tracking-wide">
+                🚀 Pendaftaran Paspor Festival Digital Gratis &bull; Kumpulkan Stempel Penjelajahan Booth di E-Paspor Digital Anda &bull; Kirim Cerita Warga di Website flp-2026.web.app &bull; Peringatan HUT ke-81 Republik Indonesia di Lasinrang Park Pinrang.
+            </div>
+        </div>
+    </footer>
+
+    <!-- FIREBASE COMPAT SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCKl__5GEVaudtJa40xiGnwb4LcsQc069I",
+            authDomain: "flp-2026.firebaseapp.com",
+            projectId: "flp-2026",
+            storageBucket: "flp-2026.firebasestorage.app",
+            messagingSenderId: "367123985721",
+            appId: "1:367123985721:web:86e2467d0cf0c0edcfc610"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // BACKGROUND SLIDESHOW ROTATION
+        const slides = document.querySelectorAll('.bg-slide');
+        let currentSlide = 0;
+        setInterval(() => {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }, 9000);
+
+        // REALTIME CLOCK WITA
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('vClock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // FULLSCREEN TOGGLE
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // COUNTDOWN TIMER TO EVENT
+        const targetDate = new Date("Aug 11, 2026 08:00:00").getTime();
+        setInterval(() => {
+            const now = new Date().getTime();
+            const diff = targetDate - now;
+            if (diff <= 0) return;
+            document.getElementById("vDays").innerText = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            document.getElementById("vHours").innerText = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            document.getElementById("vMinutes").innerText = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            document.getElementById("vSeconds").innerText = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+        }, 1000);
+
+        // ROUTER SWITCH MODE (LISTENER FIRESTORE)
+        const modes = {
+            standby: document.getElementById('modeStandby'),
+            quiz: document.getElementById('modeQuiz'),
+            chat: document.getElementById('modeChat'),
+            poll: document.getElementById('modePoll'),
+            winner: document.getElementById('modeWinner'),
+            fancam: document.getElementById('modeFanCam')
+        };
+
+        function switchMode(targetMode) {
+            Object.keys(modes).forEach(m => {
+                if (modes[m]) {
+                    if (m === targetMode) {
+                        modes[m].classList.remove('hidden');
+                        modes[m].classList.add('flex');
+                    } else {
+                        modes[m].classList.add('hidden');
+                        modes[m].classList.remove('flex');
+                    }
+                }
+            });
+        }
+
+        // 3-STATE FLOATING QR CODE MANAGER
+        function setQrDisplayState(state) {
+            window.vjQrState = state;
+            const norm = document.getElementById('vQrNormalWidget');
+            const mini = document.getElementById('vQrMinimizedWidget');
+            const maxi = document.getElementById('vQrMaximizedModal');
+
+            if (norm) norm.classList.toggle('hidden', state !== 'normal');
+            if (mini) mini.classList.toggle('hidden', state !== 'minimized');
+            if (maxi) maxi.classList.toggle('hidden', state !== 'maximized');
+        }
+
+        // 3-PHASE TRANSPARENT DOORPRIZE ENGINE MANAGER
+        let vjSpinInterval = null;
+
+        function setWinnerPhase(phase, winnerData) {
+            const pIntro = document.getElementById('vWinnerPhaseIntro');
+            const pSpin = document.getElementById('vWinnerPhaseSpinning');
+            const pReveal = document.getElementById('vWinnerPhaseReveal');
+
+            if (pIntro) pIntro.classList.toggle('hidden', phase !== 'intro');
+            if (pSpin) pSpin.classList.toggle('hidden', phase !== 'spinning');
+            if (pReveal) pReveal.classList.toggle('hidden', phase !== 'reveal');
+
+            if (winnerData) {
+                if (winnerData.lomba) {
+                    const catTitle = winnerData.lomba.toUpperCase();
+                    if (document.getElementById('vWinnerIntroCategory')) document.getElementById('vWinnerIntroCategory').textContent = catTitle;
+                    if (document.getElementById('vWinnerLombaTitle')) document.getElementById('vWinnerLombaTitle').textContent = catTitle;
+                }
+                if (winnerData.meta) {
+                    if (document.getElementById('vWinnerIntroMeta')) document.getElementById('vWinnerIntroMeta').textContent = winnerData.meta;
+                    if (document.getElementById('vWinnerMeta')) document.getElementById('vWinnerMeta').textContent = winnerData.meta;
+                }
+                if (winnerData.prize) {
+                    if (document.getElementById('vWinnerIntroPrize')) document.getElementById('vWinnerIntroPrize').textContent = '🎁 ' + winnerData.prize;
+                    if (document.getElementById('vWinnerPrizeBox')) document.getElementById('vWinnerPrizeBox').textContent = '🎁 HADIAH: ' + winnerData.prize;
+                }
+                if (winnerData.name && document.getElementById('vWinnerName')) {
+                    document.getElementById('vWinnerName').textContent = winnerData.name;
+                }
+            }
+
+            if (phase === 'spinning') {
+                if (vjSpinInterval) clearInterval(vjSpinInterval);
+                const sampleNames = ['ANDI MUHAMMAD', 'NUR HASANAH', 'FATIMAH ZAHRA', 'SULAIMAN', 'BAMBANG PRABOWO', 'RISKA AMALIA', 'RUDI HERMANTO', 'INDRA WIJAYA', 'MUTIA LESTARI'];
+                
+                vjSpinInterval = setInterval(() => {
+                    const randId = '#FLP2026-' + Math.floor(100000 + Math.random() * 900000);
+                    const randName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+                    const slotIdEl = document.getElementById('vSlotPasporId');
+                    const slotNameEl = document.getElementById('vSlotName');
+                    if (slotIdEl) slotIdEl.textContent = randId;
+                    if (slotNameEl) slotNameEl.textContent = randName;
+                }, 80);
+
+                setTimeout(() => {
+                    if (vjSpinInterval) {
+                        clearInterval(vjSpinInterval);
+                        vjSpinInterval = null;
+                    }
+                    if (window.vjCurrentWinnerPhase === 'spinning') {
+                        setWinnerPhase('reveal', winnerData);
+                    }
+                }, 5500);
+            } else {
+                if (vjSpinInterval) {
+                    clearInterval(vjSpinInterval);
+                    vjSpinInterval = null;
+                }
+            }
+
+            window.vjCurrentWinnerPhase = phase;
+        }
+
+        // DYNAMIC EVENT STAGE AGENDA ROTATOR
+        const EVENT_AGENDAS = [
+            {
+                badge: "🗓️ AGENDA UTAMA YANG AKAN DATANG",
+                icon: "fas fa-calendar-alt",
+                title: "Pembukaan Resmi & Parade Onthel Sastra",
+                meta: "Selasa, 11 Agustus 2026 • 08:00 WITA • Panggung Utama Lasinrang Park"
+            },
+            {
+                badge: "⏮️ AGENDA SEBELUMNYA",
+                icon: "fas fa-history",
+                title: "Registrasi E-Paspor & Penjelajahan Booth Literasi",
+                meta: "Selasa, 11 Agustus 2026 • 07.30 - 08.30 WITA • Booth Lasinrang Park"
+            },
+            {
+                badge: "▶️ AGENDA SAAT INI (LIVE ON STAGE)",
+                icon: "fas fa-broadcast-tower",
+                title: "Pembukaan Resmi & Atraksi Seni Budaya Bugis",
+                meta: "Selasa, 11 Agustus 2026 • 08.30 - 11.30 WITA • Panggung Utama"
+            },
+            {
+                badge: "⏭️ AGENDA SELANJUTNYA",
+                icon: "fas fa-forward",
+                title: "Talkshow Etika AI & Workshop Penulisan Warga",
+                meta: "Selasa, 11 Agustus 2026 • 13.30 - 16.00 WITA • Aula Utama"
+            }
+        ];
+
+        let currentAgendaIdx = 0;
+        setInterval(() => {
+            currentAgendaIdx = (currentAgendaIdx + 1) % EVENT_AGENDAS.length;
+            const ag = EVENT_AGENDAS[currentAgendaIdx];
+            const titleEl = document.getElementById('vCurrentAgendaTitle');
+            const metaEl = document.getElementById('vCurrentAgendaMeta');
+            const badgeEl = document.getElementById('vAgendaBadge');
+            const iconEl = document.getElementById('vAgendaIcon');
+
+            if (titleEl && ag.title) titleEl.textContent = ag.title;
+            if (metaEl && ag.meta) metaEl.textContent = ag.meta;
+            if (badgeEl && ag.badge) badgeEl.textContent = ag.badge;
+            if (iconEl && ag.icon) iconEl.className = ag.icon + ' text-white text-xl';
+        }, 10000);
+
+        // LISTEN TO REMOTE STATE FROM ADMIN
+        db.collection('videotron_state').doc('current').onSnapshot(doc => {
+            if (!doc.exists) return;
+            const data = doc.data();
+            if (data.mode) switchMode(data.mode);
+            if (data.qrState) setQrDisplayState(data.qrState);
+            if (data.runningText) document.getElementById('vRunningText').textContent = data.runningText;
+
+            // Handle Background Selection
+            if (data.bgImage && typeof data.bgImage === 'string') {
+                const slides = document.querySelectorAll('.bg-slide');
+                if (data.bgImage === 'auto') {
+                    // auto slideshow
+                } else {
+                    slides.forEach(s => {
+                        s.classList.remove('active');
+                        if (s.src && typeof s.src === 'string' && s.src.includes(data.bgImage)) {
+                            s.classList.add('active');
+                        }
+                    });
+                }
+            }
+
+            // Handle Emergency Alert Banner Overlay
+            const alertEl = document.getElementById('vEmergencyAlertOverlay');
+            const alertTxt = document.getElementById('vEmergencyAlertText');
+            if (data.emergencyAlert && data.emergencyAlert.active) {
+                if (alertTxt) alertTxt.textContent = data.emergencyAlert.text || 'PANGGILAN DARURAT PANGGUNG';
+                if (alertEl) alertEl.classList.remove('hidden');
+            } else {
+                if (alertEl) alertEl.classList.add('hidden');
+            }
+            
+            // Update poll candidate data
+            if (data.mode === 'poll' && data.poll) {
+                if (data.poll.title) document.getElementById('vPollTitle').textContent = data.poll.title;
+                if (data.poll.candidates) window.vjPollCandidates = data.poll.candidates;
+            }
+
+            // Update quiz data
+            if (data.mode === 'quiz' && data.quiz) {
+                if (data.quiz.question) document.getElementById('vQuizQuestionText').textContent = data.quiz.question;
+                if (data.quiz.optA) document.getElementById('vQuizOptA').textContent = data.quiz.optA;
+                if (data.quiz.optB) document.getElementById('vQuizOptB').textContent = data.quiz.optB;
+                if (data.quiz.optC) document.getElementById('vQuizOptC').textContent = data.quiz.optC;
+                if (data.quiz.optD) document.getElementById('vQuizOptD').textContent = data.quiz.optD;
+                if (data.quiz.timer) document.getElementById('vQuizTimer').textContent = data.quiz.timer + 's';
+            }
+
+            // Update winner data & phase
+            if (data.mode === 'winner' && data.winner) {
+                const phase = data.winner.phase || 'intro';
+                setWinnerPhase(phase, data.winner);
+            }
+        }, err => console.error('Videotron listener:', err));
+
+        // LISTEN TO LIVE QUIZ RESPONSES AGGREGATION FROM VISITORS
+        db.collection('videotron_quiz_responses').onSnapshot(snap => {
+            const counts = { A: 0, B: 0, C: 0, D: 0 };
+            let total = 0;
+            snap.forEach(d => {
+                const ans = d.data().answer;
+                if (counts[ans] !== undefined) {
+                    counts[ans]++;
+                    total++;
+                }
+            });
+            const pctA = total > 0 ? Math.round((counts.A / total) * 100) : 0;
+            const pctB = total > 0 ? Math.round((counts.B / total) * 100) : 0;
+            const pctC = total > 0 ? Math.round((counts.C / total) * 100) : 0;
+            const pctD = total > 0 ? Math.round((counts.D / total) * 100) : 0;
+
+            const elA = document.getElementById('vQuizCountA');
+            const elB = document.getElementById('vQuizCountB');
+            const elC = document.getElementById('vQuizCountC');
+            const elD = document.getElementById('vQuizCountD');
+            if (elA) elA.textContent = pctA + '%';
+            if (elB) elB.textContent = pctB + '%';
+            if (elC) elC.textContent = pctC + '%';
+            if (elD) elD.textContent = pctD + '%';
+        });
+
+        // LISTEN TO LIVE POLL VOTES AGGREGATION FROM VISITORS
+        db.collection('videotron_poll_votes').onSnapshot(snap => {
+            const counts = [0, 0, 0, 0];
+            let total = 0;
+            snap.forEach(d => {
+                const idx = d.data().candidateIndex;
+                if (idx >= 0 && idx < 4) {
+                    counts[idx]++;
+                    total++;
+                }
+            });
+            for (let i = 0; i < 4; i++) {
+                const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+                const bar = document.getElementById('vPollBar' + (i + 1));
+                const pctEl = document.getElementById('vPollPct' + (i + 1));
+                if (bar) bar.style.height = Math.max(pct, 10) + '%';
+                if (pctEl) pctEl.textContent = pct + '%';
+            }
+        });
+    </script>
+</body>
+</html>

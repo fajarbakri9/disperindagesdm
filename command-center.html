@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang</title>
+  <meta name="description" content="Executive Wallboard real-time: Pantauan harga 12 komoditas pangan pokok, metrologi legal, pengawasan gas LPG 3 kg, dan data industri 12 kecamatan Pinrang.">
+  <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/command-center">
+  <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:title" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:description" content="Executive Wallboard real-time: Pantauan harga 12 komoditas pangan pokok, metrologi legal, pengawasan gas LPG 3 kg, dan data industri 12 kecamatan Pinrang.">
+  <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/command-center">
+  <meta property="og:locale" content="id_ID">
+  <!-- TWITTER / X CARDS -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta name="twitter:description" content="Executive Wallboard real-time: Pantauan harga 12 komoditas pangan pokok, metrologi legal, pengawasan gas LPG 3 kg, dan data industri 12 kecamatan Pinrang.">
+  <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
+  <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
+  <!-- TWITTER / X CARDS -->
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
+  <!-- Open Graph / Medsos Sharing -->
+  <!-- Twitter Cards -->
+  <!-- Google Fonts: Plus Jakarta Sans, JetBrains Mono & Chakra Petch -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800;900&family=JetBrains+Mono:wght@700;800;900&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+  <!-- Command Center Modular Stylesheet -->
+  <link rel="stylesheet" href="css/command-center.css?v=20260828_cc_r7_autofit_tab_fix">
+</head>
+<body>
+
+  <!-- 1. TOP HEADER (BRAND, STATUS, WEATHER & CLOCK) -->
+  <header class="cc-header">
+    <div class="cc-header-left">
+      <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pinrang" class="cc-logo">
+      <div class="cc-title-box">
+        <h1>
+          COMMAND CENTER DISPERINDAG ESDM PINRANG
+          <span class="cc-live-badge status-live" id="systemLiveBadge"><span class="pulse-dot"></span> ● LIVE</span>
+        </h1>
+        <p>Pemerintah Kabupaten Pinrang • Sulawesi Selatan</p>
+      </div>
+    </div>
+
+    <div class="cc-header-right">
+      <!-- Data Freshness Indicator -->
+      <div class="cc-data-freshness" id="ccDataUpdatedAt">
+        <span>DATA TERAKHIR</span>
+        <strong>28 Agustus 2026 09:00 WITA</strong>
+      </div>
+
+      <!-- Live Weather Widget -->
+      <div class="cc-weather-badge" id="ccWeatherPill">
+        <span>⛅</span> CUACA PINRANG: <strong>--°C</strong> (Memuat...)
+      </div>
+
+      <!-- Clock & Date (Preserved existing format & timezone) -->
+      <div class="cc-clock-box">
+        <div class="cc-clock-time" id="ccLiveTime">00:00:00 WITA</div>
+        <div class="cc-clock-date" id="ccLiveDate">Memuat Tanggal...</div>
+      </div>
+
+      <!-- Icon-Only Theme Toggle (Dark/Light) -->
+      <button class="btn-icon-round" onclick="toggleThemeMode()" id="btnThemeToggle" title="Ganti Mode Gelap / Cerah">
+        <span id="themeIcon">🌙</span>
+      </button>
+
+      <!-- Icon-Only Fullscreen Toggle -->
+      <button class="btn-icon-round" onclick="toggleFullScreen()" id="btnFullscreen" title="Tampilkan Layar Penuh (TV Display)">
+        <span>⛶</span>
+      </button>
+
+      <!-- Icon-Only Media Intelligence Link -->
+      <a href="media-intelligence.html" class="btn-icon-round" style="text-decoration: none; border-color: rgba(6, 182, 212, 0.4); color: #06B6D4;" title="Buka Media & Social Intelligence Hub">
+        <span>📡</span>
+      </a>
+
+      <!-- Icon-Only Portal Link -->
+      <a href="index.html" class="btn-icon-round" style="text-decoration: none;" title="Kembali ke Portal Web Utama">
+        <span>🌐</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- 2. SUB-NAV STRIP (TAB NAVIGATION & AUTO-SLIDE CONTROLLER) -->
+  <nav class="cc-nav-strip">
+    <div class="cc-tab-group">
+      <button class="cc-tab-btn active" onclick="showSlide(0)"><span>🌐</span> 1. Ikhtisar Lengkap</button>
+      <button class="cc-tab-btn" onclick="showSlide(1)"><span>📊</span> 2. Bursa Harga Pasar</button>
+      <button class="cc-tab-btn" onclick="showSlide(2)"><span>⚖️</span> 3. Kemetrologian &amp; Tera</button>
+      <button class="cc-tab-btn" onclick="showSlide(3)"><span>⚡</span> 4. Gas LPG 3 Kg &amp; ESDM</button>
+      <button class="cc-tab-btn" onclick="showSlide(4)"><span>🏭</span> 5. Industri &amp; SP4N-LAPOR!</button>
+    </div>
+
+    <div class="cc-autoslide-box">
+      <div class="autoslide-progress-bar">
+        <div class="autoslide-progress-fill" id="slideProgressFill"></div>
+      </div>
+      <button class="btn-autoslide-toggle" onclick="toggleAutoSlide()" id="btnAutoSlide">
+        <span id="autoSlideIcon">⏸️</span> Auto-Slide
+      </button>
+    </div>
+  </nav>
+
+  <!-- 3. MAIN VIEWPORT (SLIDES CONTAINER) -->
+  <main class="cc-viewport">
+
+    <!-- ==========================================================================
+         SLIDE 0: IKHTISAR LENGKAP (EXECUTIVE OVERVIEW)
+         ========================================================================== -->
+    <div class="slide-panel active" id="slidePanel0">
+      
+      <!-- Top 4 Large KPI Tiles -->
+      <div class="overview-top-kpis">
+        <div class="kpi-tile-lg border-green">
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted);">PERUBAHAN HARGA BAPOKTING</div>
+            <div style="font-size: 1.05rem; font-weight: 900; color: var(--text-main);">Indeks Stabilitas Pasar</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="kpi-num-lg glow-green" style="color: var(--accent-emerald);" id="cc_kpi_inflation_rate">--</div>
+            <div style="font-size: 0.8rem; font-weight: 900; color: var(--accent-emerald);" id="cc_kpi_inflation_status">Memuat data...</div>
+          </div>
+        </div>
+
+        <div class="kpi-tile-lg border-gold">
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted);">SARANA PASAR RAKYAT</div>
+            <div style="font-size: 1.05rem; font-weight: 900; color: var(--text-main);">Status Operasional Faktual</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="kpi-num-lg glow-gold" style="color: var(--accent-emerald);"><span id="cc_kpi_markets_active_count">--</span> <span style="font-size: 1.1rem; color: var(--text-main);">AKTIF</span></div>
+            <div style="font-size: 0.76rem; font-weight: 800; color: var(--text-muted);" id="cc_kpi_markets_summary_sub">Memuat status pasar...</div>
+          </div>
+        </div>
+
+        <div class="kpi-tile-lg border-cyan">
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted);">KEPATUHAN METROLOGI</div>
+            <div style="font-size: 1.05rem; font-weight: 900; color: var(--text-main);">Tera UTTP Terverifikasi</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="kpi-num-lg glow-cyan" style="color: var(--accent-cyan);" id="cc_kpi_uttp_verified">--</div>
+            <div style="font-size: 0.8rem; font-weight: 900; color: var(--accent-cyan);" id="cc_kpi_uttp_status">Cap Tera Sah Aktif</div>
+          </div>
+        </div>
+
+        <div class="kpi-tile-lg border-purple">
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted);">PENGAWASAN ENERGI &amp; GAS</div>
+            <div style="font-size: 1.05rem; font-weight: 900; color: var(--text-main);">HET LPG 3 Kg Subsidi</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="kpi-num-lg" style="color: var(--accent-rose);" id="cc_kpi_het_lpg_price">--</div>
+            <div style="font-size: 0.8rem; font-weight: 900; color: var(--accent-gold);" id="cc_kpi_lpg_official_bases">Pangkalan Terdaftar</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main 3-Column Balanced Grid -->
+      <div class="overview-main-grid">
+        
+        <!-- Col 1: Bursa Harga Pasar Ringkas -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>📊</span> BURSA HARGA BAPOKTING</div>
+            <span class="card-badge badge-gold">PASAR SENTRAL</span>
+          </div>
+          <div style="flex: 1; overflow: hidden;">
+            <table class="table-price-lg">
+              <thead>
+                <tr>
+                  <th>Komoditas</th>
+                  <th>Satuan</th>
+                  <th>Harga Hari Ini</th>
+                  <th>Tren</th>
+                </tr>
+              </thead>
+              <tbody id="overviewPriceBody">
+                <tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">MEMUAT DATA HARGA...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Col 2: Energi & Kemetrologian -->
+        <!-- Col 2: Energi & Kemetrologian (Auto-Fit & Balanced) -->
+        <div class="card-box" style="display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>⚖️</span> METROLOGI &amp; ENERGI ESDM</div>
+            <span class="card-badge badge-green">PENGAWASAN TERA</span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; flex-shrink: 0;">
+            <div style="background: var(--bg-card-inner); padding: 10px 12px; border-radius: 8px; text-align: center; border: 2px solid var(--border-card);">
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 800;">SPBU TERUJI TERA</div>
+              <div style="font-size: 1.95rem; font-weight: 900; color: var(--accent-gold); font-family: 'Chakra Petch', monospace; line-height: 1.1;" id="cc_kpi_spbu_verified_pct">100%</div>
+              <div style="font-size: 0.74rem; color: var(--accent-emerald); font-weight: 800;">Nozzle Presisi &amp; Sah</div>
+            </div>
+
+            <div style="background: var(--bg-card-inner); padding: 10px 12px; border-radius: 8px; text-align: center; border: 2px solid var(--border-card);">
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 800;">PENYALURAN LPG 3 KG</div>
+              <div style="font-size: 1.95rem; font-weight: 900; color: var(--accent-cyan); font-family: 'Chakra Petch', monospace; line-height: 1.1;" id="cc_kpi_lpg_distribution_pct">84.5%</div>
+              <div style="font-size: 0.74rem; color: var(--accent-emerald); font-weight: 800;">Stok Daerah Terkendali</div>
+            </div>
+          </div>
+
+          <!-- District Matrix (12 Kecamatan se-Pinrang - Full Auto-Fit 3-Col x 4-Row) -->
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; min-height: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;">
+              <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-cyan);">🗺️ STATUS 12 KECAMATAN SE-KABUPATEN PINRANG:</span>
+              <span style="font-size: 0.74rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;">12 WILAYAH TERVERIFIKASI</span>
+            </div>
+            <div class="district-matrix-grid" id="ccDistrictMatrix0" style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; align-content: space-between;">
+              <!-- Injected dynamically: 12 kecamatan dalam 4 baris x 3 kolom -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 3: IKM & SP4N-LAPOR! -->
+        <div class="card-box" style="display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>🏭</span> INDUSTRI &amp; ADUAN PUBLIK</div>
+            <span class="card-badge badge-purple">PELAYANAN</span>
+          </div>
+
+          <div style="background: var(--bg-card-inner); padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid var(--accent-purple); flex-shrink: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.95rem; font-weight: 900; color: var(--text-main);" id="cc_kpi_total_ikm_trained">-- IKM Terbina</span>
+              <span style="font-size: 0.88rem; font-weight: 900; color: var(--accent-cyan);" id="cc_kpi_total_ikm_certified">-- Sertifikasi Halal/TKDN</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Sentra Sutra Lasinrang, Kopi Robusta &amp; Serat Alam Lembang</div>
+          </div>
+
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; overflow: hidden; min-height: 0;">
+            <div style="font-size: 0.86rem; font-weight: 900; color: var(--accent-gold); flex-shrink: 0;">📢 ADUAN PUBLIK TERAKHIR:</div>
+            <div id="ccRecentReportSlide0" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+
+          <div style="padding-top: 10px; border-top: 2px solid var(--border-card); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+            <div>
+              <span style="font-size: 0.88rem; font-weight: 900; color: var(--text-muted);">SKM TAHUN 2025 (PERIODIK):</span>
+              <div style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: 800;">Hasil SKM Disperindag ESDM Kab. Pinrang 2025</div>
+            </div>
+            <span style="font-size: 1.55rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;" id="cc_kpi_skm_score">88.64 / 100 (A)</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==========================================================================
+         SLIDE 1: BURSA HARGA PASAR LENGKAP (KOMODITAS & 7 PASAR RAKYAT AKTIF)
+         ========================================================================== -->
+    <div class="slide-panel" id="slidePanel1">
+      <div style="flex: 1; display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; overflow: hidden;">
+        
+        <!-- Left: Tabel Komoditas Pangan Penuh -->
+        <div class="card-box" style="display: flex; flex-direction: column; overflow: hidden;">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>📊</span> DAFTAR HARGA KOMODITAS PANGAN POKOK (BAPOKTING)</div>
+            <span class="card-badge badge-gold">MONITORING PETUGAS PASAR</span>
+          </div>
+          <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
+            <table class="table-price-lg" style="height: 100%;">
+              <thead>
+                <tr>
+                  <th>Nama Komoditas</th>
+                  <th>Satuan</th>
+                  <th>Harga Pasar Hari Ini</th>
+                  <th>Perubahan</th>
+                  <th>Status Pasokan</th>
+                </tr>
+              </thead>
+              <tbody id="tradeSlidePriceBody">
+                <tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">MEMUAT DATA BURSA HARGA...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Status Pasar Daerah Dinamis & Kebijakan (Auto-Fit 100% Full Height) -->
+        <div style="display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden;">
+          <div class="card-box" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 14px 18px;">
+            <div class="card-box-header" style="margin-bottom: 8px; padding-bottom: 8px;">
+              <div class="card-box-title"><span>🏪</span> <span id="cc_s1_markets_header">7 PASAR RAKYAT BEROPERASI AKTIF</span></div>
+              <span class="card-badge badge-blue" id="cc_s1_markets_badge">7 AKTIF • 17 TERDATA</span>
+            </div>
+            
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; overflow: hidden; min-height: 0;" id="cc_s1_markets_container">
+              <div style="text-align: center; padding: 20px; color: var(--text-muted);">MEMUAT DATA MASTER PASAR...</div>
+            </div>
+          </div>
+
+          <div class="card-box" style="flex-shrink: 0; background: linear-gradient(135deg, rgba(8, 26, 58, 0.95), rgba(15, 45, 95, 0.9)); border: 2px solid var(--accent-gold); padding: 10px 16px;">
+            <div style="font-size: 0.88rem; font-weight: 900; color: var(--accent-gold); text-transform: uppercase; margin-bottom: 3px;">🌾 KEBIJAKAN STABILISASI PANGAN DAERAH:</div>
+            <div style="font-size: 0.82rem; color: var(--text-main); line-height: 1.4; font-weight: 700;">
+              Pengawasan terintegrasi Tim Pengendali Inflasi Daerah (TPID) bersama Bulog &amp; Polres Pinrang. Posko Pasar Murah siap digelar jika terjadi deviasi harga di atas 5%.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         SLIDE 2: KEMETROLOGIAN LEGAL & PENGAWASAN TERA UTTP
+         ========================================================================== -->
+    <div class="slide-panel" id="slidePanel2">
+      <div style="flex: 1; display: grid; grid-template-columns: 1fr 1.35fr; gap: 16px; overflow: hidden;">
+        
+        <!-- Left: Metrik Utama Tera & SPBU -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="card-box" style="flex: 1;">
+            <div class="card-box-header">
+              <div class="card-box-title"><span>⚖️</span> KEMETROLOGIAN LEGAL KAB. PINRANG</div>
+              <span class="card-badge badge-green">CAP TERA SAH</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+              <div style="background: var(--bg-card-inner); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+                <div style="font-size: 0.84rem; color: var(--text-muted); font-weight: 900;">TOTAL UTTP DITERA</div>
+                <div style="font-size: 2.8rem; font-weight: 900; color: var(--accent-gold); font-family: 'Chakra Petch', monospace;" id="cc_s2_uttp_verified">--</div>
+                <div style="font-size: 0.82rem; color: var(--accent-emerald); font-weight: 900;">Timbangan Pedagang &amp; Pasar</div>
+              </div>
+
+              <div style="background: var(--bg-card-inner); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+                <div style="font-size: 0.84rem; color: var(--text-muted); font-weight: 900;">SPBU &amp; PERTASHOP</div>
+                <div style="font-size: 2.8rem; font-weight: 900; color: var(--accent-cyan); font-family: 'Chakra Petch', monospace;" id="cc_s2_spbu_verified_pct">--</div>
+                <div style="font-size: 0.82rem; color: var(--accent-emerald); font-weight: 900;">Nozzle Presisi Bersegel</div>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-emerald);">
+              <div style="font-size: 0.95rem; font-weight: 900; color: var(--text-main); margin-bottom: 4px;">🛡️ PINRANG DAERAH TERTIB UKUR</div>
+              <div style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.45;">
+                Menjamin perlindungan konsumen dan keadilan berusaha bagi pelaku usaha di 12 kecamatan sesuai UU No. 2 Tahun 1981 tentang Metrologi Legal.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Jadwal Tera Keliling & Kepatuhan Pabrik Beras/Sawit -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>🚚</span> JADWAL PELAYANAN TERA KELILING &amp; INDUSTRI</div>
+            <span class="card-badge badge-gold">AGENDA 2026</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-gold);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 1rem; color: var(--text-main);">Tera Ulang Pabrik Beras &amp; Penggilingan Padi (RMU)</strong>
+                <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-gold);">Kecamatan Lanrisang &amp; Mattiro Sompe</span>
+              </div>
+              <div style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">Pemeriksaan jembatan timbang kapasitas 30-50 Ton untuk akurasi gabah petani.</div>
+            </div>
+
+            <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-cyan);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 1rem; color: var(--text-main);">Tera Ulang Timbangan Elektronik &amp; Meja Pasar</strong>
+                <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-cyan);">Pasar Pekkabata &amp; Marawi</span>
+              </div>
+              <div style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">Layanan jemput bola bagi pedagang daging, ikan, dan sembako secara berkala.</div>
+            </div>
+
+            <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-purple);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 1rem; color: var(--text-main);">Sidak Tera Pompa Ukur BBM SPBU Jalur Trans</strong>
+                <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-purple);">Kec. Suppa, Paleteang &amp; Duampanua</span>
+              </div>
+              <div style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">Uji bejana standar 20 Liter memastikan toleransi batas kesalahan tidak melebihi 0.5%.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         SLIDE 3: ENERGI & PENGAWASAN GAS LPG 3 KG BERSUBSIDI
+         ========================================================================== -->
+    <div class="slide-panel" id="slidePanel3">
+      <div style="flex: 1; display: grid; grid-template-columns: 1.25fr 1.35fr; gap: 16px; overflow: hidden;">
+        
+        <!-- Left: Status Kuota & HET -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>⚡</span> PENGAWASAN DISTRIBUSI LPG 3 KG BERSUBSIDI</div>
+            <span class="card-badge badge-purple">HET RESMI PINRANG</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div style="background: var(--bg-card-inner); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+              <div style="font-size: 0.84rem; color: var(--text-muted); font-weight: 900;">HET RESMI PANGKALAN</div>
+              <div style="font-size: 2.8rem; font-weight: 900; color: var(--accent-rose); font-family: 'Chakra Petch', monospace;" id="cc_s3_het_lpg_price">--</div>
+              <div style="font-size: 0.82rem; color: var(--accent-gold); font-weight: 900;" id="cc_s3_het_lpg_regulation">Perbup Pinrang</div>
+            </div>
+
+            <div style="background: var(--bg-card-inner); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+              <div style="font-size: 0.84rem; color: var(--text-muted); font-weight: 900;">JARINGAN PENYALUR RESMI</div>
+              <div style="font-size: 2.8rem; font-weight: 900; color: var(--accent-cyan); font-family: 'Chakra Petch', monospace;" id="cc_s3_lpg_official_agents">--</div>
+              <div style="font-size: 0.82rem; color: var(--accent-emerald); font-weight: 900;" id="cc_s3_lpg_official_bases">Pangkalan Terdaftar</div>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-card-inner); padding: 16px; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.92rem; font-weight: 900;">
+              <span style="color: var(--text-main);">REALISASI KUOTA BULANAN DAERAH:</span>
+              <span style="color: var(--accent-emerald); font-family: 'Chakra Petch', monospace; font-size: 1.1rem;" id="cc_s3_lpg_progress_text">--</span>
+            </div>
+            <div style="width: 100%; height: 12px; background: rgba(255,255,255,0.15); border-radius: 6px; overflow: hidden; margin: 10px 0;">
+              <div id="cc_s3_lpg_progress_bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #10B981, #FACC15); transition: width 0.5s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); font-weight: 800;">
+              <span>Sasaran: Rumah Tangga Miskin &amp; Usaha Mikro</span>
+              <span id="cc_s3_lpg_total_quota_text">Total Alokasi: --/Bulan</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Pengawasan 12 Kecamatan -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>🗺️</span> STATUS DISTRIBUSI LPG 12 KECAMATAN</div>
+            <span class="card-badge badge-green">TERKONTROL</span>
+          </div>
+
+          <div class="district-matrix-grid" id="ccDistrictMatrix3" style="grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         SLIDE 4: INDUSTRI IKM, TKDN & PENGADUAN SP4N-LAPOR!
+         ========================================================================== -->
+    <div class="slide-panel" id="slidePanel4">
+      <div style="flex: 1; display: grid; grid-template-columns: 1.25fr 1.35fr; gap: 16px; overflow: hidden;">
+        
+        <!-- Left: Pembinaan IKM & Produk Unggulan -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>🏭</span> PEMBINAAN INDUSTRI &amp; IKM DAERAH</div>
+            <span class="card-badge badge-purple">SIINAS &amp; TKDN</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div style="background: var(--bg-card-inner); padding: 14px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+              <div style="font-size: 0.84rem; color: var(--text-muted); font-weight: 900;">TOTAL IKM TERBINA</div>
+              <div style="font-size: 2.6rem; font-weight: 900; color: var(--text-main); font-family: 'Chakra Petch', monospace;" id="cc_s4_total_ikm_trained">--</div>
+              <div style="font-size: 0.8rem; color: var(--accent-emerald); font-weight: 900;">12 Sentra Industri Daerah</div>
+            </div>
+
+            <div style="background: var(--bg-card-inner); padding: 14px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+              <div style="font-size: 0.84rem; color: var(--text-muted); font-weight: 900;">FASILITASI SERTIFIKASI</div>
+              <div style="font-size: 2.6rem; font-weight: 900; color: var(--accent-cyan); font-family: 'Chakra Petch', monospace;" id="cc_s4_total_ikm_certified">--</div>
+              <div style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 900;">Halal, TKDN &amp; HAKI Merek</div>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-purple);">
+            <div style="font-size: 0.95rem; font-weight: 900; color: var(--text-main); margin-bottom: 6px;">🌟 ETALASE PRODUK IKM UNGGULAN PINRANG:</div>
+            <div style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; font-weight: 700;">
+              • <strong>Kain Tenun Sutra Motif Corak Lasinrang</strong> (Sentra Watang Sawitto &amp; Tiroang)<br>
+              • <strong>Kopi Robusta &amp; Arabika Pegunungan Benteng Paremba</strong> (Kecamatan Lembang)<br>
+              • <strong>Kerajinan Anyaman Serat Alam &amp; Bambu</strong> (Kecamatan Mattiro Sompe)<br>
+              • <strong>Olahan Pangan Bandeng Presto &amp; Abon Ikan</strong> (Kecamatan Suppa &amp; Lanrisang)
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: SP4N-LAPOR! & Indeks Kepuasan -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>📢</span> LAYANAN ADUAN SP4N-LAPOR! &amp; SKM</div>
+            <span class="card-badge badge-green">MONITORING TERPADU</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; flex: 1;" id="ccRecentReportsSlide4">
+            <!-- Injected dynamically -->
+          </div>
+
+          <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border: 2px solid var(--accent-emerald); display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <div>
+              <div style="font-size: 0.92rem; font-weight: 900; color: var(--text-muted);">SURVEI KEPUASAN MASYARAKAT (SKM) TAHUN 2025:</div>
+              <div style="font-size: 0.82rem; font-weight: 900; color: var(--accent-emerald);" id="cc_s4_skm_grade">Predikat: SANGAT BAIK (A) • Hasil SKM 2025 Resmi</div>
+            </div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;" id="cc_s4_skm_score">88.64 / 100</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 4. BOTTOM LIVE RUNNING TICKER -->
+  <footer class="cc-ticker-bar">
+    <div class="cc-ticker-badge">📢 LIVE TICKER</div>
+    <div class="cc-ticker-track">
+      <div class="cc-ticker-content" id="ccTickerText">
+        <span>MEMUAT INFORMASI RESMI DISPERINDAG ESDM PINRANG...</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Scripts & Firebase Integration -->
+  <script src="js/data.js?v=20260828_cc_r5_markets_skm"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/command-center.js?v=20260828_cc_r7_autofit_tab_fix"></script>
+</body>
+</html>

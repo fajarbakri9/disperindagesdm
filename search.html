@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pencarian Global Terpadu | Disperindag ESDM Pinrang</title>
+  <meta name="description" content="Hasil pencarian terpadu layanan publik, dokumen regulasi, berita kedinasan, harga pasar bapokting, dan produk IKM Disperindag ESDM Kabupaten Pinrang.">
+  <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/search">
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/search">
+  <meta property="og:title" content="Pencarian Global Terpadu | Disperindag ESDM Pinrang">
+  <meta property="og:description" content="Cari informasi layanan publik, regulasi daerah, harga pangan pasar, rilis berita, dan katalog produk IKM Kabupaten Pinrang.">
+  <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/og_cover_disperindagesdm.png">
+  <meta property="og:site_name" content="Disperindag ESDM Pinrang">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pencarian Global Terpadu | Disperindag ESDM Pinrang">
+  <meta name="twitter:description" content="Cari informasi layanan publik, regulasi daerah, harga pangan pasar, rilis berita, dan katalog produk IKM Kabupaten Pinrang.">
+  <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/og_cover_disperindagesdm.png">
+
+  <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/modal-system.css">
+</head>
+<body>
+
+  <!-- 1. TOPBAR -->
+  <header class="topbar">
+    <div class="container">
+      <div class="topbar-left">
+        <span class="live-indicator"></span>
+        <span id="currentDate">Pencarian Terpadu Multi-Entitas Portal Kedinasan</span>
+      </div>
+
+      <div class="topbar-right-actions">
+        <form class="topbar-search-form" id="globalSearchForm">
+          <input type="text" id="globalSearchInput" class="topbar-search-input" placeholder="Cari layanan, dokumen, berita, harga..." aria-label="Pencarian Global">
+          <button type="submit" class="topbar-search-btn" aria-label="Tombol Cari">🔍</button>
+        </form>
+
+        <div class="login-gateway-wrapper">
+          <button class="btn-topbar-login" type="button">
+            <span>🔐</span> Portal Pegawai <span class="caret-down">▾</span>
+          </button>
+          <div class="login-dropdown-menu">
+            <a href="login.html" class="login-drop-item">
+              <div class="drop-item-icon" style="background: #FEF3C7; color: #B45309;">🔐</div>
+              <div><strong>Masuk / Ganti Akun</strong><small>Autentikasi keamanan RBAC</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="petugas.html" class="login-drop-item">
+              <div class="drop-item-icon mobile-badge">📱</div>
+              <div><strong>Aplikasi Petugas (HP)</strong><small>Input harga pasar, sidak LPG & tera</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="admin.html" class="login-drop-item">
+              <div class="drop-item-icon desktop-badge">💻</div>
+              <div><strong>Panel CMS Administrator</strong><small>Kelola berita, dokumen, dan banner</small></div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. NAVBAR UTAMA -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang">
+        <div class="brand-text">
+          <h1>DISPERINDAG ESDM</h1>
+          <p>KABUPATEN PINRANG</p>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Buka Navigasi Menu">☰</button>
+
+            <!-- Desktop Navigation Menu -->
+            <!-- Desktop Navigation Menu -->
+            <!-- Desktop Navigation Menu -->
+            <!-- Desktop Navigation Menu -->
+            <!-- Desktop Navigation Menu -->
+      <ul class="nav-menu">
+        <li><a href="index.html" class="nav-link ">Beranda</a></li>
+
+        <!-- Dropdown 1: Profil & Organisasi -->
+        <li class="nav-dropdown">
+          <a href="profil.html" class="nav-link nav-dropdown-toggle ">
+            Profil <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="profil.html" class="dropdown-item">
+              <div class="dropdown-icon">🏛️</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Profil & Organisasi Resmi</span>
+                <span class="dropdown-desc">Visi, misi, struktur & tupoksi Perbup 35/2023</span>
+              </div>
+            </a>
+            <a href="maklumat-pelayanan.html" class="dropdown-item">
+              <div class="dropdown-icon">📜</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Maklumat Pelayanan</span>
+                <span class="dropdown-desc">Piagam komitmen moral aparatur dinas</span>
+              </div>
+            </a>
+            <a href="profil.html#berakhlak" class="dropdown-item">
+              <div class="dropdown-icon">🎯</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Core Values ASN BerAKHLAK</span>
+                <span class="dropdown-desc">Tata nilai budaya kerja ASN</span>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <!-- Dropdown 2: Layanan Publik -->
+        <li class="nav-dropdown">
+          <a href="layanan.html" class="nav-link nav-dropdown-toggle ">
+            Layanan Publik <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="layanan.html" class="dropdown-item">
+              <div class="dropdown-icon">⚡</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Standar Pelayanan & SOP</span>
+                <span class="dropdown-desc">9 standar layanan publik resmi</span>
+              </div>
+            </a>
+            <a href="index.html#pengaduan" class="dropdown-item">
+              <div class="dropdown-icon">📨</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Pengaduan Online</span>
+                <span class="dropdown-desc">8 kanal resmi & SP4N-LAPOR!</span>
+              </div>
+            </a>
+            <a href="kontak.html" class="dropdown-item">
+              <div class="dropdown-icon">📞</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Kontak & Lokasi Kantor</span>
+                <span class="dropdown-desc">Alamat, peta & WhatsApp dinas</span>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <!-- Dropdown 3: Transparansi & Data -->
+        <li class="nav-dropdown">
+          <a href="index.html#transparansi-pelayanan" class="nav-link nav-dropdown-toggle ">
+            Transparansi <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="index.html#transparansi-pelayanan" class="dropdown-item">
+              <div class="dropdown-icon">📊</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Transparansi Pelayanan</span>
+                <span class="dropdown-desc">SKM, IKM & Rekapitulasi 2025</span>
+              </div>
+            </a>
+            <a href="pasar.html" class="dropdown-item">
+              <div class="dropdown-icon">🏬</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Direktori Pasar Daerah</span>
+                <span class="dropdown-desc">17 sarana pasar & status operasional</span>
+              </div>
+            </a>
+            <a href="index.html#sembako" class="dropdown-item">
+              <div class="dropdown-icon">🛒</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Harga Pasar & Bapokting</span>
+                <span class="dropdown-desc">Pantauan komoditas harian</span>
+              </div>
+            </a>
+            <a href="katalog-ikm.html" class="dropdown-item">
+              <div class="dropdown-icon">🏭</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Katalog Produk IKM</span>
+                <span class="dropdown-desc">Produk unggulan Pinrang</span>
+              </div>
+            </a>
+            <a href="ppid.html" class="dropdown-item">
+              <div class="dropdown-icon">📋</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">PPID Pelaksana</span>
+                <span class="dropdown-desc">Informasi publik berkala</span>
+              </div>
+            </a>
+            <a href="dokumen.html" class="dropdown-item">
+              <div class="dropdown-icon">📁</div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Dokumen & Regulasi</span>
+                <span class="dropdown-desc">Perbup & Renja kedinasan</span>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <li><a href="arsip-berita.html" class="nav-link ">Berita</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- MOBILE DRAWER -->
+  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pinrang">
+        <div class="drawer-brand-text">
+          <h4>DISPERINDAG ESDM</h4>
+          <p>KABUPATEN PINRANG</p>
+        </div>
+      </div>
+      <button class="drawer-close-btn" id="drawerCloseBtn">✕</button>
+    </div>
+    <div class="drawer-nav">
+      <a href="index.html" class="drawer-link"><span>🏠</span> Beranda</a>
+      <a href="profil.html" class="drawer-link"><span>🏛️</span> Profil & Tupoksi</a>
+      <a href="layanan.html" class="drawer-link"><span>⚡</span> Layanan Publik</a>
+      <a href="ppid.html" class="drawer-link"><span>📂</span> PPID & Dokumen</a>
+      <a href="index.html#sembako" class="drawer-link"><span>📊</span> Harga & Pasar</a>
+      <a href="katalog-ikm.html" class="drawer-link"><span>🏭</span> Industri & IKM</a>
+      <a href="arsip-berita.html" class="drawer-link"><span>📰</span> Berita & Rilis</a>
+      <a href="index.html#pengaduan" class="drawer-link"><span>📨</span> Pengaduan</a>
+      <div class="drawer-divider"></div>
+      <a href="login.html" class="drawer-link drawer-portal-btn"><span>🔐</span> Portal Pegawai ASN</a>
+    </div>
+  </div>
+
+  <!-- 3. PAGE HERO -->
+  <section class="page-hero">
+    <div class="container">
+      <h1 style="font-size: 2.2rem; font-weight: 900; margin-bottom: 12px;">Pencarian Global Terpadu</h1>
+      <p style="color: #CBD5E1; font-size: 1rem; max-width: 780px;">Menemukan layanan publik, dokumen regulasi, berita kedinasan, harga pangan, dan profil IKM daerah.</p>
+    </div>
+  </section>
+
+  <!-- 4. SEARCH RESULTS CONTENT -->
+  <main class="container" style="padding: 48px 20px;">
+    
+    <!-- Big Search Form -->
+    <div style="max-width: 760px; margin: 0 auto 36px;">
+      <form id="mainSearchForm" style="display: flex; gap: 10px;">
+        <input type="text" id="mainSearchInput" class="form-input" placeholder="Masukkan kata kunci pencarian..." style="padding: 14px 20px; font-size: 1rem; font-weight: 600;">
+        <button type="submit" class="btn-primary" style="padding: 14px 28px; font-size: 1rem; flex-shrink: 0;">
+          <span>🔍</span> Cari
+        </button>
+      </form>
+      <div style="margin-top: 10px; font-size: 0.82rem; color: #64748B;">
+        Contoh kata kunci: <em>tera, bapokting, lpg 3 kg, renstra, beras, kain tenun, ppid, pasar sentral</em>
+      </div>
+    </div>
+
+    <!-- Search Meta Header -->
+    <div id="searchMetaHeader" style="margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 1.25rem; color: var(--primary-deep); font-weight: 800;" id="searchQueryTitle">Hasil Pencarian</h2>
+      <span id="searchResultCount" style="font-size: 0.88rem; font-weight: 700; color: #1D4ED8; background: #EFF6FF; padding: 4px 12px; border-radius: 20px;">0 Hasil</span>
+    </div>
+
+    <!-- Container Hasil Pencarian -->
+    <div id="searchResultsContainer" style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- Injected via JavaScript -->
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
+       ========================================================================== -->
+  
+
+
+
+  <!-- ==========================================================================
+       FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
+       ========================================================================== -->
+  
+
+
+
+  <!-- 5. FOOTER TERPADU CANONICAL (SESUAI ARAHAN V3) -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- 13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN) -->
+  
+
+  <script src="js/data.js?v=20260828_upload_web_v2"></script>
+  <script src="js/modal-system.js?v=20260828_upload_web_v2"></script>
+  <script src="js/app.js?v=20260828_upload_web_v2"></script>
+  <script>
+    function executeGlobalSearch() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const query = (urlParams.get('q') || '').trim();
+      const mainInput = document.getElementById('mainSearchInput');
+      const titleEl = document.getElementById('searchQueryTitle');
+      const countEl = document.getElementById('searchResultCount');
+      const container = document.getElementById('searchResultsContainer');
+
+      if (mainInput) mainInput.value = query;
+
+      if (!query) {
+        titleEl.textContent = "Silakan masukkan kata kunci pencarian";
+        countEl.textContent = "0 Hasil";
+        container.innerHTML = `
+          <div style="text-align: center; padding: 48px; background: #FFFFFF; border-radius: 16px; border: 1.5px dashed #CBD5E1;">
+            <p style="color: #64748B; font-weight: 600;">Gunakan kotak pencarian di atas untuk mencari layanan, regulasi, berita, atau harga pasar.</p>
+          </div>
+        `;
+        return;
+      }
+
+      titleEl.innerHTML = `Hasil Pencarian untuk: <em>"${query}"</em>`;
+
+      const q = query.toLowerCase();
+      const results = [];
+
+      // 1. Cari di Layanan Publik
+      const services = getStorage('disperindag_services', DEFAULT_SERVICES);
+      services.forEach(s => {
+        if (s.name.toLowerCase().includes(q) || s.responsible_unit.toLowerCase().includes(q) || s.legal_basis.toLowerCase().includes(q)) {
+          results.push({
+            type: "Layanan Publik",
+            badgeColor: "#1D4ED8",
+            title: s.name,
+            desc: `Unit: ${s.responsible_unit} &bull; Biaya: ${s.fee} &bull; Waktu: ${s.duration}`,
+            link: `layanan.html#${s.id}`,
+            cta: "Buka Layanan"
+          });
+        }
+      });
+
+      // 2. Cari di Dokumen & Regulasi
+      const docs = getStorage('disperindag_documents', DEFAULT_DOCUMENTS);
+      docs.forEach(d => {
+        if (d.title.toLowerCase().includes(q) || d.number.toLowerCase().includes(q) || d.subject.toLowerCase().includes(q)) {
+          results.push({
+            type: "Dokumen Regulasi",
+            badgeColor: "#D97706",
+            title: d.title,
+            desc: `Nomor: ${d.number} &bull; Status: [${d.legal_status}] &bull; Pengelola: ${d.responsible_unit}`,
+            link: `dokumen.html?id=${d.id}`,
+            cta: "Unduh Dokumen"
+          });
+        }
+      });
+
+      // 3. Cari di Berita
+      const news = getStorage('disperindag_news', DEFAULT_NEWS);
+      news.forEach(n => {
+        if (n.title.toLowerCase().includes(q) || n.excerpt.toLowerCase().includes(q) || n.category.toLowerCase().includes(q)) {
+          results.push({
+            type: "Berita & Rilis",
+            badgeColor: "#059669",
+            title: n.title,
+            desc: `Tanggal: ${n.date} &bull; Kategori: ${n.category} &bull; ${n.excerpt.substring(0, 120)}...`,
+            link: `berita.html?id=${n.id}`,
+            cta: "Baca Berita"
+          });
+        }
+      });
+
+      // 4. Cari di Harga Pasar
+      const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
+      prices.forEach(p => {
+        if (p.commodity_name.toLowerCase().includes(q) || p.market_name.toLowerCase().includes(q)) {
+          results.push({
+            type: "Harga Pasar (Bapokting)",
+            badgeColor: "#DC2626",
+            title: `${p.commodity_name} — Rp ${p.price.toLocaleString('id-ID')} / ${p.unit}`,
+            desc: `Pasar: ${p.market_name} &bull; Tanggal: ${p.observed_date} &bull; Status: ${p.verification_status}`,
+            link: `index.html#sembako`,
+            cta: "Lihat Dashboard Harga"
+          });
+        }
+      });
+
+      // 5. Cari di IKM
+      const products = getStorage('disperindag_products_ikm', DEFAULT_PRODUCTS_IKM);
+      products.forEach(p => {
+        if (p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || (p.category_label && p.category_label.toLowerCase().includes(q))) {
+          results.push({
+            type: "Produk IKM Binaan",
+            badgeColor: "#7C3AED",
+            title: p.name,
+            desc: `Sentra: ${p.artisan} (${p.location}) &bull; ${p.description.substring(0, 120)}...`,
+            link: `katalog-ikm.html`,
+            cta: "Buka Katalog IKM"
+          });
+        }
+      });
+
+      // 6. Cari di Direktori Pasar Daerah
+      const markets = getStorage('disperindag_markets', DEFAULT_MARKETS);
+      markets.forEach(m => {
+        if (m.name.toLowerCase().includes(q) || (m.district && m.district.toLowerCase().includes(q)) || (m.address && m.address.toLowerCase().includes(q))) {
+          results.push({
+            type: "Pasar & Sarana Perdagangan",
+            badgeColor: "#059669",
+            title: m.name,
+            desc: `Kecamatan: ${m.district} &bull; Status: [${m.status === 'aktif' ? '🟢 Beroperasi Aktif' : (m.status === 'tidak-aktif' ? '⚫ Tidak Beroperasi / Aset' : '🟠 Perlu Verifikasi')}] &bull; Alamat: ${m.address || '-'}`,
+            link: m.slug ? `pasar/${m.slug}/` : `pasar.html`,
+            cta: "Lihat Profil Pasar"
+          });
+        }
+      });
+
+      // 7. Maklumat Pelayanan
+      if ("maklumat".includes(q) || "mantap".includes(q) || "janji layanan".includes(q) || "komitmen".includes(q)) {
+        results.push({
+          type: "Maklumat Pelayanan",
+          badgeColor: "#B45309",
+          title: "Piagam Maklumat Pelayanan Publik Disperindag ESDM Pinrang (MANTAP)",
+          desc: "Komitmen moral aparatur kedinasan menyelenggarakan pelayanan publik sesuai standar, tepat waktu, adil, transparan, dan bebas pungli (SK Kadis No. 800/12/2025).",
+          link: "maklumat-pelayanan.html",
+          cta: "Buka Piagam Maklumat"
+        });
+      }
+
+      countEl.textContent = `${results.length} Hasil Ditemukan`;
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 48px; background: #FFFFFF; border-radius: 16px; border: 1.5px dashed #CBD5E1;">
+            <p style="color: #64748B; font-weight: 600; font-size: 1rem;">Tidak ada informasi yang cocok dengan kata kunci "${query}".</p>
+            <p style="color: #94A3B8; font-size: 0.85rem; margin-top: 6px;">Coba gunakan kata kunci umum seperti <em>tera, pasar, berita, lpg,</em> atau <em>dokumen</em>.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = results.map(r => `
+        <div class="admin-card" style="margin-bottom: 0; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.74rem; font-weight: 800; color: #FFFFFF; background: ${r.badgeColor}; padding: 3px 10px; border-radius: 6px; text-transform: uppercase;">
+              ${r.type}
+            </span>
+          </div>
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-deep); margin: 4px 0;">
+            <a href="${r.link}" style="color: inherit; text-decoration: none;">${r.title}</a>
+          </h3>
+          <p style="font-size: 0.86rem; color: #475569; line-height: 1.5;">${r.desc}</p>
+          <div style="margin-top: 8px;">
+            <a href="${r.link}" class="service-link" style="color: #1D4ED8; font-weight: 700; font-size: 0.86rem; display: inline-flex; align-items: center; gap: 6px;">
+              ${r.cta} &rarr;
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('mainSearchForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = document.getElementById('mainSearchInput').value.trim();
+      if (val) {
+        window.location.href = `search.html?q=${encodeURIComponent(val)}`;
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', executeGlobalSearch);
+  </script>
+
+
+  <!-- ==========================================================================
+       FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
+       ========================================================================== -->
+  
+
+
+  <!-- FOOTER RESMI KEDINASAN KABUPATEN PINRANG -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="footer-grid">
+        
+        <!-- Kolom 1: Profil Kedinasan -->
+        <div class="footer-col">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+            <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" style="width: 44px; height: auto;">
+            <div>
+              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.03em;">DISPERINDAG ESDM</h4>
+              <span style="font-size: 0.76rem; color: #94A3B8; font-weight: 700;">KABUPATEN PINRANG</span>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.6; margin-bottom: 16px;">
+            Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen menyelenggarakan pelayanan publik prima, tertib metrologi, pengawasan distribusi pangan, dan pembinaan sentra IKM.
+          </p>
+          
+          <!-- Motto MANTAP Profesional Card -->
+          <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(250, 204, 21, 0.35); border-left: 4px solid var(--accent-gold); padding: 12px 14px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-top: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(250, 204, 21, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+              🎯
+            </div>
+            <div>
+              <div style="font-size: 0.68rem; font-weight: 800; color: #FDE047; text-transform: uppercase; letter-spacing: 0.5px;">Motto Pelayanan</div>
+              <div style="font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin: 1px 0;">MANTAP</div>
+              <div style="font-size: 0.72rem; color: #CBD5E1; line-height: 1.35;">Melayani Anda dengan Transparan, Adil &amp; Profesional</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom 2: Layanan Publik & Pengaduan -->
+        <div class="footer-col">
+          <h4>Standar Pelayanan</h4>
+          <ul class="footer-links">
+            <li><a href="layanan.html">Standar Pelayanan &amp; SOP</a></li>
+            <li><a href="layanan.html#srv_oss_industri">Verifikasi Perizinan OSS Industri</a></li>
+            <li><a href="layanan.html#srv_oss_perdagangan">Fasilitasi Perizinan OSS Perdagangan</a></li>
+            <li><a href="layanan.html#srv_pupuk_subsidi">Keterangan Distributor Pupuk</a></li>
+            <li><a href="layanan.html#srv_tera">Pelayanan Tera &amp; Tera Ulang UTTP</a></li>
+            <li><a href="index.html#pengaduan">Formulir Pengaduan Online</a></li>
+          </ul>
+        </div>
+
+        <!-- Kolom 3: Transparansi & Dokumen -->
+        <div class="footer-col">
+          <h4>Transparansi &amp; Dokumen</h4>
+          <ul class="footer-links">
+            <li><a href="pasar.html">Direktori Pasar Daerah</a></li>
+            <li><a href="index.html#transparansi-pelayanan">Transparansi Pelayanan Publik</a></li>
+            <li><a href="profil.html">Profil &amp; Organisasi Resmi</a></li>
+            <li><a href="maklumat-pelayanan.html">Maklumat Pelayanan</a></li>
+            <li><a href="ppid.html">Portal PPID Pelaksana</a></li>
+            <li><a href="dokumen.html">Dokumen &amp; Regulasi Daerah</a></li>
+            <li><a href="katalog-ikm.html">Katalog Produk IKM Binaan</a></li>
+          </ul>
+        </div>
+
+        <!-- Kolom 4: Kontak & Jam Layanan Resmi -->
+        <div class="footer-col">
+          <h4>Kontak &amp; Jam Layanan</h4>
+          <div style="font-size: 0.84rem; color: #CBD5E1; line-height: 1.65; display: flex; flex-direction: column; gap: 10px;">
+            
+            <!-- Alamat Google Maps -->
+            <a href="https://maps.google.com/?q=Jalan+Bintang+No.+1+Pinrang+Sulawesi+Selatan" target="_blank" rel="noopener noreferrer" style="color: #CBD5E1; text-decoration: none; display: flex; align-items: flex-start; gap: 10px; transition: color 0.2s ease;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#EA4335" style="flex-shrink: 0; margin-top: 3px;"><path d="M12 0C7.58 0 4 3.58 4 8c0 5.25 7.15 15.35 7.45 15.78.3.42.8.42 1.1 0 .3-.43 7.45-10.53 7.45-15.78 0-4.42-3.58-8-8-8zm0 11.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+              <span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span>
+            </a>
+
+            <!-- WhatsApp -->
+            <a href="https://wa.me/6282316002226" style="color: #FDE047; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700; transition: opacity 0.2s ease;" target="_blank" rel="noopener noreferrer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink: 0;"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c4.54 0 8.24 3.7 8.24 8.24 0 2.2-.86 4.27-2.42 5.82a8.19 8.19 0 0 1-5.82 2.42c-1.47 0-2.92-.39-4.19-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.212 8.212 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.64c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.07-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.34-.76-1.84-.2-.49-.4-.42-.56-.43l-.47-.01c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.31 3.8 2.53 1.09 2.53.73 2.99.69.46-.04 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.07-.1-.23-.17-.48-.29z"/></svg>
+              <span>0823 1600 2226</span>
+            </a>
+
+            <!-- Email -->
+            <a href="mailto:dinasperindagem.pinrang@gmail.com" style="color: #93C5FD; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 600; transition: opacity 0.2s ease;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#60A5FA" style="flex-shrink: 0;"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              <span>dinasperindagem.pinrang@gmail.com</span>
+            </a>
+
+            <!-- Jam Layanan -->
+            <div style="margin-top: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 0.78rem; display: flex; align-items: flex-start; gap: 10px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#FACC15" style="flex-shrink: 0; margin-top: 2px;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+              <div>
+                <strong style="color: #FFFFFF;">Jam Pelayanan Tatap Muka:</strong><br>
+                <span style="color: #CBD5E1;">Senin–Kamis: 08.00–16.00 WITA<br>Jumat: 08.00–16.30 WITA</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang - <a href="https://www.instagram.com/maroaproject/" target="_blank" rel="noopener noreferrer" style="color: #FACC15; font-weight: 800; text-decoration: none;">MAROA Project</a></div>
+        <div style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 700;">#BanggaMelayaniBangsa</div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

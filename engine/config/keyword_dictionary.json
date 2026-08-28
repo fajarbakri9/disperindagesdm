@@ -1,0 +1,307 @@
+[
+  {
+    "id": "entity",
+    "label": "Entitas Dinas",
+    "category": "entity",
+    "enabled": true,
+    "severityBase": 70,
+    "riskMultiplier": 2.0,
+    "scopeFilter": "tier_b_required",
+    "terms": [
+      "Disperindag Pinrang", "Disperindag ESDM Pinrang", "Disperindagem Pinrang",
+      "Dinas Perindustrian Pinrang", "Dinas Perdagangan Pinrang",
+      "Dinas Perindustrian Perdagangan Energi dan Sumber Daya Mineral Pinrang",
+      "Kadis Disperindag Pinrang", "Kadis Perindag Pinrang",
+      "Kepala Dinas Perindag Pinrang"
+    ],
+    "riskTerms": [],
+    "aspirationTerms": [],
+    "dynamicEntities": ["_KADIS_NAME_", "_BUPATI_NAME_"],
+    "updatedAt": "2026-08-28T00:00:00Z",
+    "notes": "Nama pejabat aktif ditambahkan melalui admin panel ke dynamicEntities"
+  },
+  {
+    "id": "lpg",
+    "label": "LPG 3 Kg",
+    "category": "energy",
+    "enabled": true,
+    "severityBase": 65,
+    "riskMultiplier": 2.5,
+    "scopeFilter": "none",
+    "terms": [
+      "LPG", "LPG 3 kg", "LPG subsidi", "elpiji", "elpiji 3 kg",
+      "gas 3 kilo", "gas melon", "pangkalan LPG", "agen LPG",
+      "HET LPG", "distribusi LPG", "kelangkaan LPG", "penimbunan LPG",
+      "permainan harga LPG", "tabung LPG"
+    ],
+    "riskTerms": [
+      "langka", "kelangkaan", "habis", "mahal", "di atas HET",
+      "penimbunan", "penyelewengan", "tidak tepat sasaran",
+      "dijual keluar daerah", "permainan harga", "naik harga",
+      "terlambat", "diputus kontrak"
+    ],
+    "aspirationTerms": [
+      "tolong cek pangkalan", "pangkalan tidak mau jual", "gas tidak ada",
+      "dimana beli gas", "gas mahal", "gas langka"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z",
+    "notes": "Kasus Bungi Ags 2026 — detikSulsel konfirmasi Kadis Disperindag"
+  },
+  {
+    "id": "bbm",
+    "label": "BBM & Solar Subsidi",
+    "category": "energy",
+    "enabled": true,
+    "severityBase": 65,
+    "riskMultiplier": 2.5,
+    "scopeFilter": "none",
+    "terms": [
+      "BBM", "BBM subsidi", "solar", "solar subsidi", "biosolar",
+      "Pertalite", "Pertamax", "Dexlite", "SPBU", "APMS",
+      "pelangsir", "langsir solar", "penimbunan BBM",
+      "penyalahgunaan BBM", "barcode BBM", "pompa BBM"
+    ],
+    "riskTerms": [
+      "penimbunan", "penyalahgunaan", "pelangsir", "langka", "antrean",
+      "habis", "curang", "tidak sesuai", "melebihi kuota",
+      "diduga", "oknum", "dibekuk", "ditangkap", "penyelewengan",
+      "nozzle rusak", "takaran kurang"
+    ],
+    "aspirationTerms": [
+      "solar susah", "antri solar", "solar habis", "bensin mahal",
+      "spbu curang", "timbangan spbu"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z",
+    "notes": "BeritaSulsel & Voice Sulawesi aktif isu solar subsidi Pinrang 2026"
+  },
+  {
+    "id": "harga_pangan",
+    "label": "Harga Pangan & Inflasi",
+    "category": "food",
+    "enabled": true,
+    "severityBase": 55,
+    "riskMultiplier": 2.0,
+    "scopeFilter": "none",
+    "terms": [
+      "harga pangan", "harga bahan pokok", "sembako", "bapok",
+      "beras", "cabai", "bawang", "telur", "gula", "minyak goreng",
+      "Minyakita", "daging ayam", "daging sapi", "stok pangan",
+      "SPHP", "inflasi", "deflasi", "TPID", "satgas pangan",
+      "GPM", "operasi pasar", "pasar murah", "bapokting"
+    ],
+    "riskTerms": [
+      "naik", "kenaikan", "mahal", "langka", "tidak ada stok",
+      "kehabisan", "lonjakan", "melonjak", "tidak terkendali",
+      "kekurangan pasokan", "distribusi terhambat"
+    ],
+    "aspirationTerms": [
+      "beras mahal", "cabai mahal", "kenapa mahal", "harga naik terus",
+      "tidak terjangkau", "susah beli"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "pasar",
+    "label": "Pasar & Perdagangan Retail",
+    "category": "trade",
+    "enabled": true,
+    "severityBase": 45,
+    "riskMultiplier": 1.5,
+    "scopeFilter": "none",
+    "terms": [
+      "pasar", "pasar rakyat", "pasar tradisional", "Pasar Sentral Pinrang",
+      "kios", "lapak", "pedagang", "retribusi pasar", "revitalisasi pasar",
+      "pasar murah", "operasi pasar", "pedagang kaki lima", "PKL"
+    ],
+    "riskTerms": [
+      "bongkar paksa", "penggusuran", "pungli retribusi", "tidak tertib",
+      "premanisme", "penolakan", "tutup", "tidak diperbolehkan"
+    ],
+    "aspirationTerms": [
+      "pedagang diusir", "lapak digusur", "retribusi tidak wajar"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "perdagangan",
+    "label": "Perdagangan & Distribusi",
+    "category": "trade",
+    "enabled": true,
+    "severityBase": 45,
+    "riskMultiplier": 1.5,
+    "scopeFilter": "none",
+    "terms": [
+      "perdagangan", "distributor", "agen", "pengecer", "pasokan",
+      "stok", "HET", "harga eceran tertinggi", "kelangkaan", "distribusi",
+      "suplai", "tata niaga"
+    ],
+    "riskTerms": [
+      "permainan harga", "kartel", "monopoli", "tidak sesuai HET",
+      "di atas HET", "spekulan", "penimbun"
+    ],
+    "aspirationTerms": [],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "industri",
+    "label": "Industri, IKM & UMKM",
+    "category": "industry",
+    "enabled": true,
+    "severityBase": 35,
+    "riskMultiplier": 1.2,
+    "scopeFilter": "none",
+    "terms": [
+      "industri", "IKM", "industri kecil", "industri rumah tangga",
+      "sentra industri", "produk unggulan", "produk lokal", "standardisasi",
+      "SNI", "sertifikasi produk", "hilirisasi", "ekspor", "UMKM",
+      "NIB", "SIINAS", "halal", "TKDN", "kerajinan",
+      "kopi Pinrang", "tenun sutra Pinrang", "rumput laut Pinrang"
+    ],
+    "riskTerms": [
+      "mati suri", "gulung tikar", "tidak berdaya saing",
+      "tanpa izin", "tidak bersertifikat", "palsu", "ilegal"
+    ],
+    "aspirationTerms": [
+      "butuh bantuan modal", "tidak ada akses pasar", "kesulitan izin"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "metrologi",
+    "label": "Metrologi Legal & Tera",
+    "category": "metrology",
+    "enabled": true,
+    "severityBase": 50,
+    "riskMultiplier": 1.8,
+    "scopeFilter": "none",
+    "terms": [
+      "metrologi", "tera", "tera ulang", "UTTP", "timbangan",
+      "alat ukur", "takaran", "pompa ukur BBM", "nozzle",
+      "kecurangan timbangan", "takaran SPBU", "segel tera"
+    ],
+    "riskTerms": [
+      "curang", "kecurangan", "tidak sesuai", "kurang takaran",
+      "timbangan palsu", "rusak sengaja", "manipulasi", "tidak disegel"
+    ],
+    "aspirationTerms": [
+      "timbangan kurang", "bensin tidak sesuai", "spbu curang"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "esdm",
+    "label": "ESDM & Pertambangan",
+    "category": "energy_mining",
+    "enabled": true,
+    "severityBase": 55,
+    "riskMultiplier": 2.0,
+    "scopeFilter": "none",
+    "terms": [
+      "ESDM", "energi", "sumber daya mineral", "pertambangan",
+      "tambang", "tambang ilegal", "galian C", "mineral",
+      "izin tambang", "energi terbarukan", "PLTS", "listrik",
+      "biogas", "IUP", "WPR"
+    ],
+    "riskTerms": [
+      "ilegal", "tanpa izin", "merusak lingkungan", "penambang liar",
+      "solar penambang", "BBM penambang"
+    ],
+    "aspirationTerms": [
+      "tambang merusak jalan", "tambang mencemari sungai"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "pemkab",
+    "label": "Entitas Pemkab Pinrang",
+    "category": "gov",
+    "enabled": true,
+    "severityBase": 40,
+    "riskMultiplier": 1.5,
+    "scopeFilter": "none",
+    "terms": [
+      "Pemkab Pinrang", "Pemerintah Kabupaten Pinrang",
+      "Bupati Pinrang", "Wakil Bupati Pinrang", "Wabup Pinrang",
+      "Sekda Pinrang", "DPRD Pinrang", "OPD Pinrang",
+      "APBD Pinrang", "dana desa Pinrang"
+    ],
+    "riskTerms": [
+      "korupsi", "pungli", "penyalahgunaan", "anggaran fiktif",
+      "markup", "proyek mangkrak", "tidak transparan"
+    ],
+    "aspirationTerms": [
+      "minta bertemu bupati", "lapor pemkab", "aduan ke dewan"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "bulog_pangan",
+    "label": "Bulog & Ketahanan Pangan",
+    "category": "food",
+    "enabled": true,
+    "severityBase": 55,
+    "riskMultiplier": 1.8,
+    "scopeFilter": "none",
+    "terms": [
+      "Bulog Pinrang", "beras Bulog", "beras SPHP", "beras stabilisasi",
+      "beras subsidi", "penyaluran beras", "bansos beras",
+      "ketahanan pangan", "cadangan pangan", "Bulog"
+    ],
+    "riskTerms": [
+      "tidak tersalurkan", "tidak merata", "penyelewengan",
+      "diperjualbelikan", "tidak tepat sasaran"
+    ],
+    "aspirationTerms": [
+      "beras bansos tidak dapat", "beras bulog habis"
+    ],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "sosial_pengaduan",
+    "label": "Isu Sosial & Aspirasi Warga",
+    "category": "social",
+    "enabled": true,
+    "severityBase": 60,
+    "riskMultiplier": 2.0,
+    "scopeFilter": "none",
+    "terms": [
+      "keluhan", "pengaduan", "aduan", "protes", "demo", "aksi",
+      "emak-emak", "warga mengeluh", "masyarakat mengeluh",
+      "viral", "melapor"
+    ],
+    "riskTerms": [
+      "korupsi", "pungli", "penipuan", "penggelapan",
+      "tidak dilayani", "diskriminasi", "diperas"
+    ],
+    "aspirationTerms": [
+      "tolong cek", "mohon diperiksa", "mohon ditindak",
+      "kenapa mahal", "kenapa langka", "tidak ada stok",
+      "susah didapat", "tidak dilayani", "dijual mahal",
+      "tidak sesuai harga", "curang", "diduga"
+    ],
+    "aspirationTypes": ["complaint", "question", "request", "suggestion", "appreciation", "report", "rumor"],
+    "updatedAt": "2026-08-28T00:00:00Z"
+  },
+  {
+    "id": "policy_impact",
+    "label": "Kebijakan Nasional Berdampak ke Pinrang",
+    "category": "policy",
+    "enabled": true,
+    "severityBase": 45,
+    "riskMultiplier": 1.3,
+    "scopeFilter": "policy_impact_only",
+    "scope": "policy_impact",
+    "terms": [
+      "harga LPG Sulawesi Selatan", "BBM Sulawesi Selatan",
+      "aturan LPG 3 kg", "Permendag sembako",
+      "kebijakan Kemendag", "regulasi BPH Migas",
+      "harga Pertamina", "HET nasional"
+    ],
+    "riskTerms": [
+      "naik", "kenaikan", "berubah", "kebijakan baru", "efektif mulai"
+    ],
+    "aspirationTerms": [],
+    "updatedAt": "2026-08-28T00:00:00Z",
+    "notes": "Tidak perlu menyebut Pinrang — kebijakan nasional berdampak langsung ke dinas"
+  }
+]

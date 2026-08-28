@@ -1,0 +1,9 @@
+# robots.txt untuk Portal Resmi Disperindag ESDM Kabupaten Pinrang
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /petugas.html
+Disallow: /profil-petugas.html
+
+# Sitemap Indexing
+Sitemap: https://disperindagesdm-pinrang.web.app/sitemap.xml
