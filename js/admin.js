@@ -294,12 +294,14 @@ function autoGenerateSlug(title) {
 
 // OPEN EDITOR (CREATE OR EDIT MODE)
 window.openNewsEditor = function(newsId = null) {
+  const headerCard = document.getElementById('newsHeaderCard');
   const listView = document.getElementById('newsListView');
   const editorView = document.getElementById('newsEditorView');
   const btnOpen = document.getElementById('btnOpenNewsEditor');
   const btnClose = document.getElementById('btnCloseNewsEditor');
   const formTitle = document.getElementById('newsEditorFormTitle');
 
+  if (headerCard) headerCard.style.display = 'none';
   if (listView) listView.style.display = 'none';
   if (editorView) editorView.style.display = 'block';
   if (btnOpen) btnOpen.style.display = 'none';
@@ -365,11 +367,13 @@ window.openNewsEditor = function(newsId = null) {
 };
 
 window.closeNewsEditor = function() {
+  const headerCard = document.getElementById('newsHeaderCard');
   const listView = document.getElementById('newsListView');
   const editorView = document.getElementById('newsEditorView');
   const btnOpen = document.getElementById('btnOpenNewsEditor');
   const btnClose = document.getElementById('btnCloseNewsEditor');
 
+  if (headerCard) headerCard.style.display = 'flex';
   if (listView) listView.style.display = 'block';
   if (editorView) editorView.style.display = 'none';
   if (btnOpen) btnOpen.style.display = 'inline-flex';
@@ -635,12 +639,40 @@ window.handleSaveNews = function(overrideStatus = null) {
   // Simpan ke LocalStorage
   setStorage('disperindag_news', allNews);
 
+  // Sinkronisasi otomatis ke Hero Carousel Banner (Headline Beranda)
+  let banners = getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []);
+  const existingBannerIdx = banners.findIndex(b => b.target_news_id === articleObj.id || b.title === articleObj.title);
+  if (isFeatured && status === 'published') {
+    const headlineBanner = {
+      id: existingBannerIdx !== -1 ? banners[existingBannerIdx].id : `bnr_news_${articleObj.id}`,
+      target_news_id: articleObj.id,
+      img: articleObj.img,
+      title: articleObj.title,
+      caption: articleObj.excerpt || (articleObj.content ? articleObj.content.slice(0, 140) + '...' : ''),
+      link: `berita.html?id=${articleObj.id}`,
+      active: true,
+      is_news_headline: true
+    };
+    if (existingBannerIdx !== -1) {
+      banners[existingBannerIdx] = headlineBanner;
+    } else {
+      banners.unshift(headlineBanner);
+    }
+  } else if (!isFeatured && existingBannerIdx !== -1 && banners[existingBannerIdx].is_news_headline) {
+    banners.splice(existingBannerIdx, 1);
+  }
+  setStorage('disperindag_banners', banners);
+  if (typeof renderAdminBanners === 'function') renderAdminBanners();
+
   // Sinkronisasi ke Cloud Firestore
   if (typeof db !== 'undefined' && db !== null) {
     try {
       db.collection('news').doc(articleObj.id).set(articleObj, { merge: true })
         .then(() => console.log("Firestore News Synced:", articleObj.id))
         .catch(err => console.warn("Firestore News Sync Warning:", err));
+      
+      // Sync banners to firestore
+      db.collection('settings').doc('banners').set({ list: banners }, { merge: true }).catch(() => {});
     } catch(e) {}
   }
 
@@ -649,7 +681,7 @@ window.handleSaveNews = function(overrideStatus = null) {
 
   CustomModal.alert({
     title: editId ? "Berita Berhasil Diperbarui" : (status === 'published' ? "Berita Berhasil Diterbitkan" : "Draf Berita Disimpan"),
-    message: `Artikel <strong>"${articleObj.title}"</strong> telah berhasil ${editId ? 'diperbarui' : (status === 'published' ? 'diterbitkan secara resmi' : 'disimpan sebagai draf')}.`,
+    message: `Artikel <strong>"${articleObj.title}"</strong> telah berhasil ${editId ? 'diperbarui' : (status === 'published' ? 'diterbitkan secara resmi' : 'disimpan sebagai draf')}.${isFeatured && status === 'published' ? '<br><br><span style="color:#047857; font-weight:700;">✓ Otomatis ditayangkan di Headline Hero Beranda!</span>' : ''}`,
     icon: status === 'published' ? "🚀" : "💾",
     type: "info"
   });
@@ -666,6 +698,15 @@ window.toggleNewsStatus = function(newsId) {
   item.updated_at = new Date().toISOString();
 
   setStorage('disperindag_news', allNews);
+
+  // Update banner sync
+  let banners = getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []);
+  const bannerIdx = banners.findIndex(b => b.target_news_id === item.id);
+  if (bannerIdx !== -1) {
+    banners[bannerIdx].active = (newStatus === 'published');
+    setStorage('disperindag_banners', banners);
+    if (typeof renderAdminBanners === 'function') renderAdminBanners();
+  }
 
   if (typeof db !== 'undefined' && db !== null) {
     try {

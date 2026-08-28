@@ -163,7 +163,30 @@ function renderHeroCarousel() {
   const container = document.getElementById('heroCarouselTrack');
   if (!container) return;
 
-  const banners = getStorage('disperindag_banners', DEFAULT_BANNERS).filter(b => b.active);
+  // 1. Ambil banners aktif
+  let banners = getStorage('disperindag_banners', DEFAULT_BANNERS).filter(b => b.active);
+  
+  // 2. Ambil berita featured dari disperindag_news
+  const news = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const featuredNewsList = news.filter(n => n.is_featured && (n.status || 'published') === 'published');
+  
+  // Masukkan featured news yang belum ada di banners ke posisi teratas
+  featuredNewsList.forEach(fn => {
+    const alreadyInBanner = banners.some(b => b.target_news_id === fn.id || b.title === fn.title);
+    if (!alreadyInBanner) {
+      banners.unshift({
+        id: `bnr_fn_${fn.id}`,
+        target_news_id: fn.id,
+        img: fn.img || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg',
+        title: fn.title,
+        caption: fn.excerpt || (fn.content ? fn.content.slice(0, 140) + '...' : 'Dokumentasi liputan kedinasan Disperindag ESDM Pinrang.'),
+        link: `berita.html?id=${fn.id}`,
+        active: true,
+        is_news_headline: true
+      });
+    }
+  });
+
   if (banners.length === 0) return;
 
   totalBannersCount = banners.length;
@@ -173,9 +196,16 @@ function renderHeroCarousel() {
       <img src="${b.img}" alt="${b.title}" loading="lazy" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
       <div class="carousel-overlay"></div>
       <div class="carousel-caption">
-        <span class="carousel-badge">Bumi Lasinrang &bull; Dokumentasi Kedinasan</span>
+        <span class="carousel-badge">${b.is_news_headline ? '🔥 Headline Berita Utama &bull; Sorotan Daerah' : 'Bumi Lasinrang &bull; Dokumentasi Kedinasan'}</span>
         <h2>${b.title}</h2>
         <p>${b.caption}</p>
+        ${b.link ? `
+          <div style="margin-top: 14px;">
+            <a href="${b.link}" class="btn-primary" style="padding: 8px 18px; font-size: 0.84rem; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+              Baca Berita Lengkap &rarr;
+            </a>
+          </div>
+        ` : ''}
       </div>
     </div>
   `).join('');

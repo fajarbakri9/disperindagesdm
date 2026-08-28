@@ -253,7 +253,7 @@
     <div class="admin-panel admin-tab-content" id="tabNews">
       
       <!-- HEADER NEWSROOM -->
-      <div class="admin-card" style="margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div class="admin-card" id="newsHeaderCard" style="margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
           <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 8px;">
             <span>📰</span> Newsroom & Publikasi Berita Kedinasan
@@ -346,21 +346,24 @@
           <input type="hidden" id="newsEditId" value="">
           
           <div class="news-editor-card" style="border-top: 4px solid var(--accent-gold);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #E2E8F0;">
+            <div class="news-editor-sticky-header">
               <div>
-                <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-deep);" id="newsEditorFormTitle">
-                  ✍️ Tulis Berita & Siaran Pers Baru
+                <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--primary-deep);" id="newsEditorFormTitle">
+                  ✍️ Tulis Berita &amp; Siaran Pers Baru
                 </h4>
-                <p style="font-size: 0.78rem; color: #64748B;">Lengkapi seluruh informasi berita sesuai kaidah jurnalistik kedinasan.</p>
+                <p style="font-size: 0.78rem; color: #64748B; margin-top: 2px;">Lengkapi seluruh informasi berita sesuai kaidah jurnalistik kedinasan.</p>
               </div>
-              <div style="display: flex; gap: 8px;">
-                <button type="button" onclick="previewCurrentNewsDraft()" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px;">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <button type="button" onclick="closeNewsEditor()" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px; white-space: nowrap;">
+                  <span>📋</span> Batal / Daftar
+                </button>
+                <button type="button" onclick="previewCurrentNewsDraft()" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px; white-space: nowrap; background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE;">
                   <span>👁️</span> Pratinjau
                 </button>
-                <button type="button" onclick="handleSaveNews('draft')" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px; background: #FEF3C7; color: #92400E; border-color: #FCD34D;">
+                <button type="button" onclick="handleSaveNews('draft')" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px; white-space: nowrap; background: #FEF3C7; color: #92400E; border-color: #FCD34D;">
                   <span>💾</span> Simpan Draf
                 </button>
-                <button type="button" onclick="handleSaveNews('published')" class="btn-primary" style="font-size: 0.8rem; padding: 7px 18px;">
+                <button type="button" onclick="handleSaveNews('published')" class="btn-primary" style="font-size: 0.8rem; padding: 7px 18px; white-space: nowrap; font-weight: 800;">
                   <span>🚀</span> Terbitkan Berita
                 </button>
               </div>
@@ -494,25 +497,42 @@
 
             <!-- RICH TEXT CONTENT EDITOR -->
             <div style="margin-bottom: 24px;">
-              <label class="form-label" style="font-weight: 800; font-size: 0.88rem;">
-                📝 Isi Berita Lengkap (Rich Article Content) <span style="color:#DC2626;">*</span>
+              <label class="form-label" style="font-weight: 800; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>📝 Isi Berita Lengkap (Rich Article Content) <span style="color:#DC2626;">*</span></span>
+                <span style="font-size: 0.74rem; color: #64748B; font-weight: normal;">Mendukung format paragraf, heading, kutipan resmi, list, dan link</span>
               </label>
 
-              <!-- TOOLBAR FORMATTING -->
+              <!-- TOOLBAR FORMATTING BERKELOMPOK -->
               <div class="news-toolbar">
-                <button type="button" class="news-tool-btn" onclick="insertFormat('p')" title="Paragraf Baru">¶ Paragraf</button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('h2')" title="Sub-judul Level 2"><strong>H2</strong></button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('h3')" title="Sub-judul Level 3"><strong>H3</strong></button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('b')" title="Teks Tebal"><strong>B</strong></button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('i')" title="Teks Miring"><em>I</em></button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('quote')" title="Kutipan Resmi Pejabat">💬 Kutipan</button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('ul')" title="Daftar Butir">• List</button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('ol')" title="Daftar Angka">1. List</button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('link')" title="Sisipkan Link">🔗 Tautan</button>
-                <button type="button" class="news-tool-btn" onclick="insertFormat('hr')" title="Garis Pembatas">— Pembatas</button>
+                <div class="news-toolbar-group">
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('p')" title="Paragraf Standar">¶ Paragraf</button>
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('h2')" title="Sub-judul Utama (Heading 2)"><strong>H2</strong> Sub-judul</button>
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('h3')" title="Bagian Artikel (Heading 3)"><strong>H3</strong> Bagian</button>
+                </div>
+
+                <div class="news-toolbar-group">
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('b')" title="Teks Tebal (Bold)"><strong>B</strong> Tebal</button>
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('i')" title="Teks Miring (Italic)"><em>I</em> Miring</button>
+                </div>
+
+                <div class="news-toolbar-group">
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('quote')" title="Kutipan Resmi Kepala Dinas / Pejabat" style="background:#FFFBEB; color:#92400E; border-color:#FDE68A;">
+                    💬 Kutipan Pejabat
+                  </button>
+                </div>
+
+                <div class="news-toolbar-group">
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('ul')" title="Daftar Butir Poin">• Poin Butir</button>
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('ol')" title="Daftar Angka / Urutan">1. Poin Angka</button>
+                </div>
+
+                <div class="news-toolbar-group">
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('link')" title="Sisipkan Tautan Dokumen/Portal">🔗 Tautan Link</button>
+                  <button type="button" class="news-tool-btn" onclick="insertFormat('hr')" title="Garis Pembatas Antar Bagian">— Garis Pembatas</button>
+                </div>
               </div>
 
-              <textarea id="newsContentInput" class="news-textarea-editor" required placeholder="Tuliskan isi berita lengkap di sini... Anda dapat menggunakan tombol toolbar di atas untuk menambahkan paragraf, kutipan komitmen pimpinan, dan poin-poin penjelasan."></textarea>
+              <textarea id="newsContentInput" class="news-textarea-editor" required placeholder="Tuliskan isi berita lengkap di sini... Gunakan tombol toolbar di atas untuk menyisipkan sub-judul kegiatan, kutipan resmi pimpinan dinas, poin-poin hasil verifikasi/pengawasan, dan tautan informasi."></textarea>
             </div>
 
             <!-- PENGATURAN PUBLIKASI & ACTION BAR -->
@@ -1025,13 +1045,13 @@
 
   </main>
 
-  <script src="js/data.js?v=20260829_newsroom_v3"></script>
-  <script src="js/modal-system.js?v=20260829_newsroom_v3"></script>
-  <script src="js/auth.js?v=20260829_newsroom_v3"></script>
+  <script src="js/data.js?v=20260829_newsroom_v6"></script>
+  <script src="js/modal-system.js?v=20260829_newsroom_v6"></script>
+  <script src="js/auth.js?v=20260829_newsroom_v6"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="js/firebase-config.js?v=20260829_newsroom_v3"></script>
-  <script src="js/admin.js?v=20260829_newsroom_v3"></script>
+  <script src="js/firebase-config.js?v=20260829_newsroom_v6"></script>
+  <script src="js/admin.js?v=20260829_newsroom_v6"></script>
 </body>
 </html>

@@ -369,26 +369,74 @@
     <!-- 13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN) -->
   
 
-  <script src="js/data.js?v=20260828_upload_web_v2"></script>
-  <script src="js/modal-system.js?v=20260828_upload_web_v2"></script>
-  <script src="js/app.js?v=20260828_upload_web_v2"></script>
+  <script src="js/data.js?v=20260829_newsroom_v4"></script>
+  <script src="js/modal-system.js?v=20260829_newsroom_v4"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260829_newsroom_v4"></script>
+  <script src="js/app.js?v=20260829_newsroom_v4"></script>
   <script>
-    function renderSingleArticle() {
+    async function renderSingleArticle() {
+      // 1. Ambil ID atau Slug dari URL (Query Param atau Pathname)
       const urlParams = new URLSearchParams(window.location.search);
-      const articleId = urlParams.get('id') || 'news_01';
+      let queryKey = urlParams.get('id') || urlParams.get('slug');
 
-      const newsList = getStorage('disperindag_news', DEFAULT_NEWS);
-      const article = newsList.find(n => n.id === articleId) || newsList[0];
+      if (!queryKey) {
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (pathParts.length >= 2 && pathParts[0] === 'berita') {
+          queryKey = decodeURIComponent(pathParts[1]);
+        }
+      }
 
-      // 1. UPDATE DYNAMIC TITLE & META DESCRIPTION
-      document.getElementById('pageTitle').textContent = `${article.title} | Disperindag ESDM Pinrang`;
-      document.getElementById('breadcrumbCategory').textContent = article.category;
+      const newsList = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
       
-      const snippet = article.content ? article.content.replace(/\n/g, ' ').substring(0, 160) + '...' : 'Rilis berita resmi Dinas Perindag ESDM Pinrang.';
-      const fullImgUrl = article.img.startsWith('http') ? article.img : `${window.location.origin}/${article.img}`;
+      // 2. Cari artikel berdasarkan ID atau Slug
+      let article = null;
+      if (queryKey) {
+        article = newsList.find(n => n.id === queryKey || n.slug === queryKey);
+      }
+
+      // Jika belum ditemukan di local storage, coba fetch dari Firestore
+      if (!article && queryKey && typeof db !== 'undefined' && db !== null) {
+        try {
+          const docSnap = await db.collection('news').doc(queryKey).get();
+          if (docSnap.exists) {
+            article = docSnap.data();
+          }
+        } catch(e) {}
+      }
+
+      // Fallback ke artikel pertama jika tidak ada query
+      if (!article) {
+        article = newsList[0];
+      }
+
+      if (!article) {
+        document.getElementById('articleContainer').innerHTML = `
+          <div style="text-align:center; padding: 60px 20px;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📰</div>
+            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 10px;">Artikel Berita Tidak Ditemukan</h2>
+            <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 20px;">Berita yang Anda cari mungkin telah dipindahkan atau dinonaktifkan dari publikasi.</p>
+            <a href="arsip-berita.html" class="btn-primary" style="padding: 10px 20px; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              <span>📂</span> Lihat Semua Arsip Berita
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      // 3. UPDATE DYNAMIC TITLE & META DESCRIPTION
+      document.getElementById('pageTitle').textContent = `${article.title} | Disperindag ESDM Pinrang`;
+      if (document.getElementById('breadcrumbCategory')) {
+        document.getElementById('breadcrumbCategory').textContent = article.category || 'Berita';
+      }
+      
+      const snippet = article.excerpt || (article.content ? article.content.replace(/\n/g, ' ').substring(0, 160) + '...' : 'Rilis berita resmi Dinas Perindag ESDM Pinrang.');
+      const fullImgUrl = article.img ? (article.img.startsWith('http') || article.img.startsWith('data:') ? article.img : `${window.location.origin}/${article.img}`) : `${window.location.origin}/assets/brand/cover_arsip_berita.png`;
       const pageUrl = window.location.href;
 
-      // 2. UPDATE OPEN GRAPH & TWITTER CARD TAGS
+      // 4. UPDATE OPEN GRAPH & TWITTER CARD TAGS
       const setMeta = (id, val) => { const el = document.getElementById(id); if (el) el.setAttribute('content', val); };
       setMeta('pageMetaDesc', snippet);
       setMeta('ogTitle', `${article.title} | Disperindag ESDM Pinrang`);
@@ -399,50 +447,99 @@
       setMeta('twitterDesc', snippet);
       setMeta('twitterImage', fullImgUrl);
 
+      // 5. PARSE MARKDOWN CONTENT
+      const rawContent = article.content || '';
+      const formattedContent = rawContent
+        .replace(/^## (.*$)/gim, '<h2 style="font-size:1.35rem; font-weight:800; color:#0F2C59; margin:28px 0 14px; line-height:1.35;">$1</h2>')
+        .replace(/^### (.*$)/gim, '<h3 style="font-size:1.15rem; font-weight:800; color:#0F2C59; margin:22px 0 12px; line-height:1.35;">$1</h3>')
+        .replace(/^\> (.*$)/gim, '<blockquote style="border-left:4px solid #D4AF37; background:#F8FAFC; padding:16px 20px; border-radius:8px; font-style:italic; margin:22px 0; color:#1E293B; line-height:1.65; box-shadow:inset 0 1px 3px rgba(0,0,0,0.03);">$1</blockquote>')
+        .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#0284C7; font-weight:700; text-decoration:underline;">$1</a>')
+        .replace(/^• (.*$)/gim, '<li style="margin-bottom:6px;">$1</li>')
+        .replace(/\n\n/gim, '</p><p style="margin-bottom:18px; line-height:1.8; color:#334155; font-size:0.96rem;">');
+
+      // 6. GALERI FOTO DOKUMENTASI
+      const galleryHtml = Array.isArray(article.gallery) && article.gallery.length > 0 ? `
+        <div style="margin-top: 36px; padding-top: 24px; border-top: 1.5px dashed #CBD5E1;">
+          <h4 style="font-size: 1.15rem; font-weight: 900; color: var(--primary-deep); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <span>📸</span> Galeri Dokumentasi Kegiatan
+          </h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            ${article.gallery.map((g, idx) => `
+              <div style="border-radius: 10px; overflow: hidden; border: 1.5px solid #E2E8F0; box-shadow: var(--shadow-sm); background: #FFFFFF;">
+                <img src="${g.img}" style="width: 100%; height: 160px; object-fit: cover;" alt="Galeri ${idx + 1}" onerror="this.src='assets/brand/cover_arsip_berita.png'">
+                <div style="padding: 10px 12px; font-size: 0.76rem; color: #64748B; background: #F8FAFC; line-height: 1.4;">${g.caption || 'Dokumentasi kegiatan Disperindag ESDM Pinrang.'}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      // 7. TAGS
+      const tagsList = Array.isArray(article.tags) && article.tags.length > 0 ? article.tags : (article.topic_tag ? [article.topic_tag] : ['DisperindagPinrang']);
+      const tagsHtml = tagsList.map(t => `<span style="background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:700;">#${t.replace(/^#/, '')}</span>`).join(' ');
+
       const mainContainer = document.getElementById('articleContainer');
       mainContainer.innerHTML = `
-        <span class="badge-cat" style="background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px;">
-          ${article.category}
-        </span>
-        <h1 class="article-title">${article.title}</h1>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #E2E8F0; font-size: 0.82rem; color: #64748B; flex-wrap: wrap; gap: 10px;">
-          <div>📅 ${article.date} &bull; ✍️ Oleh: <strong>${article.author}</strong></div>
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+          <span class="badge-cat" style="background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 0.82rem; padding: 4px 12px; border-radius: 6px;">
+            ${article.category || 'Berita Kedinasan'}
+          </span>
           <span class="verified-badge">✓ Rilis Resmi Kedinasan</span>
         </div>
 
-        <div class="article-cover">
-          <img src="${article.img}" alt="${article.title}" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
+        <h1 class="article-title">${article.title}</h1>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #E2E8F0; font-size: 0.84rem; color: #64748B; flex-wrap: wrap; gap: 10px;">
+          <div>📅 ${article.date} &bull; ✍️ Oleh: <strong>${article.author || 'Humas Disperindag ESDM Pinrang'}</strong></div>
+          <div style="font-size: 0.78rem; color: #94A3B8;">Unit: ${article.category || 'Disperindag ESDM'}</div>
         </div>
 
+        <div class="article-cover">
+          <img src="${article.img || 'assets/brand/cover_arsip_berita.png'}" alt="${article.title}" onerror="this.src='assets/brand/cover_arsip_berita.png'">
+        </div>
+        ${article.image_caption ? `<div style="font-size: 0.76rem; color: #64748B; font-style: italic; margin-top: -12px; margin-bottom: 20px; padding: 0 4px;">📷 ${article.image_caption}</div>` : ''}
+
         <div class="article-body-text">
-          ${article.content.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')}
+          <p style="margin-bottom: 18px; line-height: 1.8; color: #334155; font-size: 0.96rem;">
+            ${formattedContent}
+          </p>
+        </div>
+
+        ${galleryHtml}
+
+        <div style="margin-top: 32px; padding-top: 18px; border-top: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 0.82rem; font-weight: 800; color: #475569;">Topik Terkait:</span>
+          ${tagsHtml}
         </div>
 
         <div style="margin-top: 36px; padding-top: 20px; border-top: 2px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-          <a href="arsip-berita.html" class="btn-outline" style="padding: 8px 16px; font-size: 0.85rem;">
-            &larr; Kembali ke Arsip Berita
+          <a href="arsip-berita.html" class="btn-outline" style="padding: 9px 18px; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <span>📂</span> Kembali ke Arsip Berita
           </a>
-          <button onclick="shareArticle()" class="btn-primary" style="padding: 8px 18px; font-size: 0.85rem; background: var(--accent-gold); color: #030D1B; border: none;">
-            <span>🔗</span> Bagikan Rilis
+          <button onclick="shareArticle()" class="btn-primary" style="padding: 9px 20px; font-size: 0.85rem; background: var(--accent-gold); color: #030D1B; border: none; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
+            <span>🔗</span> Bagikan Rilis Berita
           </button>
         </div>
       `;
 
       // Related News
       const relatedContainer = document.getElementById('relatedNewsList');
-      const others = newsList.filter(n => n.id !== article.id).slice(0, 4);
-      relatedContainer.innerHTML = others.map(item => `
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <img src="${item.img}" style="width: 60px; height: 48px; object-fit: cover; border-radius: 6px; flex-shrink: 0;" alt="Thumb" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
-          <div>
-            <a href="berita.html?id=${item.id}" style="font-size: 0.84rem; font-weight: 800; color: var(--primary-deep); text-decoration: none; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-              ${item.title}
-            </a>
-            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">📅 ${item.date}</div>
+      if (relatedContainer) {
+        const others = newsList.filter(n => n.id !== article.id && (n.status || 'published') === 'published').slice(0, 4);
+        relatedContainer.innerHTML = others.map(item => `
+          <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #F1F5F9;">
+            <img src="${item.img || 'assets/brand/cover_arsip_berita.png'}" style="width: 64px; height: 50px; object-fit: cover; border-radius: 6px; flex-shrink: 0;" alt="Thumb" onerror="this.src='assets/brand/cover_arsip_berita.png'">
+            <div>
+              <a href="berita.html?id=${item.id}" style="font-size: 0.84rem; font-weight: 800; color: var(--primary-deep); text-decoration: none; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                ${item.title}
+              </a>
+              <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 3px;">📅 ${item.date}</div>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     }
 
     window.shareArticle = function() {
