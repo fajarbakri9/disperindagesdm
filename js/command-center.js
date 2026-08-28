@@ -681,6 +681,9 @@ function renderPricesDOM(pricesList) {
       tradeTbody.appendChild(tr);
     });
   }
+
+  // Sinkronisasi data ke Bottom Live Running Ticker
+  renderCommandCenterTicker(pricesList);
 }
 
 // --- 12. RENDER MATRIKS STATUS 12 KECAMATAN (SAFE DOM & AUTO-FIT) ---

@@ -604,9 +604,9 @@ body {
 }
 
 .cc-ticker-content {
-  display: inline-flex;
-  white-space: nowrap;
-  animation: tickerRun 45s linear infinite;
+  display: inline-flex !important;
+  width: max-content !important;
+  white-space: nowrap !important;
   font-size: 1.05rem;
   color: #FFFFFF;
   font-weight: 900;
@@ -616,12 +616,7 @@ body {
 }
 
 .cc-ticker-track:hover .cc-ticker-content {
-  animation-play-state: paused;
-}
-
-@keyframes tickerRun {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
+  cursor: pointer;
 }
 
 /* ==========================================================================
