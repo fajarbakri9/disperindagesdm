@@ -1,10 +1,11 @@
 /* ==========================================================================
-   MOBILE STAFF APP STYLESHEET - DISPERINDAG ESDM PINRANG (PWA EDITION)
+   PORTAL PETUGAS LAPANGAN - RESPONSIVE PROGRESSIVE APP (DESKTOP & MOBILE)
+   Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Pinrang
    ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --app-bg: #F1F5F9;
+  --app-bg: #F8FAFC;
   --app-card: #FFFFFF;
   --primary-deep: #030D1B;
   --primary: #0F2C59;
@@ -17,9 +18,9 @@
   --text-muted: #64748B;
   --border-color: #E2E8F0;
   --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --shadow-card: 0 4px 16px rgba(15, 44, 89, 0.08);
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-card: 0 4px 16px rgba(15, 44, 89, 0.06);
 }
 
 *, *::before, *::after {
@@ -31,28 +32,31 @@
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #030D1B;
+  background-color: var(--app-bg);
   color: var(--text-main);
   line-height: 1.5;
-  display: flex;
-  justify-content: center;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Smartphone App Container Wrapper */
+/* ==========================================================================
+   APP CONTAINER WRAPPER
+   ========================================================================== */
 .mobile-app-shell {
   width: 100%;
-  max-width: 480px;
-  background-color: var(--app-bg);
+  max-width: 100%;
+  background-color: #FFFFFF;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-  padding-bottom: 84px; /* space for bottom nav */
+  padding-bottom: 84px;
 }
 
-/* App Header */
+/* ==========================================================================
+   APP HEADER & ROLE SELECTOR
+   ========================================================================== */
 .app-header {
   background: var(--primary-deep);
   color: #FFFFFF;
@@ -61,65 +65,76 @@ body {
   top: 0;
   z-index: 100;
   border-bottom: 2px solid var(--accent-gold);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
 
 .app-header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .app-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .app-brand img {
-  height: 36px;
+  height: 38px;
   width: auto;
 }
 
 .app-brand-text h2 {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 900;
   letter-spacing: -0.01em;
 }
 
 .app-brand-text p {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--accent-gold);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .role-switcher-select {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 6px 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 14px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   font-weight: 800;
   outline: none;
   font-family: inherit;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-switcher-select:hover, .role-switcher-select:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--accent-gold);
 }
 
 .role-switcher-select option {
   background: #0F2C59;
   color: #FFFFFF;
+  font-weight: 700;
 }
 
 .user-status-strip {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   margin-top: 12px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: var(--radius-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
 }
 
 .user-badge {
@@ -139,18 +154,21 @@ body {
   box-shadow: 0 0 6px #4ADE80;
 }
 
-/* App Main Content */
+/* ==========================================================================
+   APP CONTENT CONTAINER
+   ========================================================================== */
 .app-content {
-  padding: 18px 16px;
+  padding: 20px 16px;
   flex: 1;
+  background-color: var(--app-bg);
 }
 
 .app-greeting-card {
   background: linear-gradient(135deg, #0F2C59 0%, #1A3E7A 100%);
   color: #FFFFFF;
-  padding: 20px;
+  padding: 22px 24px;
   border-radius: var(--radius-md);
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   box-shadow: var(--shadow-card);
   border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
@@ -160,60 +178,77 @@ body {
 .app-greeting-card::after {
   content: '🏛️';
   position: absolute;
-  right: -10px;
-  bottom: -15px;
-  font-size: 5rem;
-  opacity: 0.12;
+  right: -8px;
+  bottom: -16px;
+  font-size: 5.5rem;
+  opacity: 0.1;
   pointer-events: none;
 }
 
 .app-greeting-card h3 {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 900;
   margin-bottom: 4px;
 }
 
 .app-greeting-card p {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: #CBD5E1;
-  line-height: 1.45;
+  line-height: 1.5;
+  max-width: 680px;
 }
 
 /* Section Title */
 .app-section-title {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 900;
   color: var(--primary-deep);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .app-section-title span {
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: var(--primary);
-  font-weight: 700;
+  font-weight: 800;
+  background: #EFF6FF;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #BFDBFE;
 }
 
-/* Sembako Quick Card (Petugas Pasar) */
+/* ==========================================================================
+   SEMBAKO ITEM CARD
+   ========================================================================== */
+#mobileSembakoList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .market-item-card {
   background: var(--app-card);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 14px 18px;
+  border: 1.5px solid var(--border-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.market-item-card:hover {
+  border-color: #BFDBFE;
+  box-shadow: 0 4px 12px rgba(15, 44, 89, 0.06);
 }
 
 .market-item-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .market-item-emoji {
@@ -225,20 +260,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   flex-shrink: 0;
 }
 
 .market-item-name {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--primary-deep);
 }
 
 .market-item-unit {
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
   font-weight: 600;
+  margin-top: 2px;
 }
 
 .market-price-action {
@@ -246,7 +282,7 @@ body {
 }
 
 .market-price-val {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 900;
   color: var(--primary);
   display: block;
@@ -257,30 +293,39 @@ body {
   border: 1px solid #BFDBFE;
   color: #1D4ED8;
   font-weight: 800;
-  font-size: 0.74rem;
-  padding: 4px 10px;
+  font-size: 0.76rem;
+  padding: 5px 12px;
   border-radius: 14px;
   cursor: pointer;
   margin-top: 4px;
   display: inline-block;
+  transition: all 0.15s ease;
 }
 
-/* Form Styles for Mobile */
+.btn-quick-edit:hover {
+  background: #0F2C59;
+  color: #FFFFFF;
+  border-color: #0F2C59;
+}
+
+/* ==========================================================================
+   FORM STYLES & INPUTS
+   ========================================================================== */
 .mobile-form-card {
   background: var(--app-card);
   border-radius: var(--radius-md);
-  padding: 20px;
-  border: 1px solid var(--border-color);
+  padding: 22px;
+  border: 1.5px solid var(--border-color);
   box-shadow: var(--shadow-card);
   margin-bottom: 20px;
 }
 
 .mobile-form-group {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .mobile-form-label {
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 800;
   color: var(--primary-deep);
   margin-bottom: 6px;
@@ -289,53 +334,59 @@ body {
 
 .mobile-form-input, .mobile-form-select, .mobile-form-textarea {
   width: 100%;
-  padding: 11px 14px;
+  padding: 12px 14px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--border-color);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-family: inherit;
   background: #FFFFFF;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .mobile-form-input:focus, .mobile-form-select:focus, .mobile-form-textarea:focus {
   border-color: var(--primary);
   background: #F8FAFC;
+  box-shadow: 0 0 0 3px rgba(15, 44, 89, 0.08);
 }
 
 .btn-mobile-submit {
   width: 100%;
   background: var(--primary);
   color: #FFFFFF;
-  padding: 13px;
+  padding: 14px;
   border-radius: var(--radius-sm);
   font-weight: 800;
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(15, 44, 89, 0.25);
-  transition: transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(15, 44, 89, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-mobile-submit:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
 }
 
 .btn-mobile-submit:active {
   transform: scale(0.98);
 }
 
-/* Camera Upload Box for Mobile */
+/* Camera Upload Dropzone */
 .mobile-camera-box {
   background: #F8FAFC;
-  border: 2px dashed #CBD5E1;
+  border: 2px dashed #94A3B8;
   border-radius: var(--radius-sm);
-  padding: 16px;
+  padding: 18px;
   text-align: center;
   cursor: pointer;
-  margin-bottom: 14px;
-  transition: background 0.2s ease;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
 }
 
 .mobile-camera-box:hover {
@@ -344,26 +395,26 @@ body {
 }
 
 .mobile-camera-icon {
-  font-size: 2rem;
+  font-size: 2.2rem;
   margin-bottom: 4px;
 }
 
 .mobile-camera-text {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
   font-weight: 700;
 }
 
-/* Bottom Navigation Bar */
+/* ==========================================================================
+   BOTTOM NAVIGATION BAR
+   ========================================================================== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   width: 100%;
-  max-width: 480px;
   background: #FFFFFF;
-  border-top: 1px solid var(--border-color);
+  border-top: 1.5px solid var(--border-color);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   padding: 8px 0;
@@ -379,13 +430,13 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   gap: 4px;
   font-family: inherit;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .nav-item-btn.active {
@@ -394,7 +445,7 @@ body {
 }
 
 .nav-item-icon {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
 }
 
 /* Tab Pane Controller */
@@ -412,19 +463,76 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive tweaks */
-@media (min-width: 481px) {
+/* ==========================================================================
+   DESKTOP & TABLET RESPONSIVE STYLES (>= 768px)
+   ========================================================================== */
+@media (min-width: 768px) {
   body {
-    padding: 24px 0;
+    padding: 24px 16px;
     align-items: center;
+    background-color: #F1F5F9;
   }
+
   .mobile-app-shell {
+    max-width: 1080px;
     border-radius: var(--radius-lg);
+    border: 1.5px solid #E2E8F0;
+    box-shadow: 0 12px 32px rgba(15, 44, 89, 0.08);
     overflow: hidden;
-    min-height: 840px;
+    min-height: calc(100vh - 48px);
+    padding-bottom: 74px;
   }
+
+  .app-header {
+    padding: 18px 28px;
+  }
+
+  .app-header-top {
+    gap: 20px;
+  }
+
+  .app-brand-text h2 {
+    font-size: 1.15rem;
+  }
+
+  .role-switcher-select {
+    padding: 8px 18px;
+    font-size: 0.88rem;
+  }
+
+  .app-content {
+    padding: 28px;
+  }
+
+  .app-greeting-card {
+    padding: 26px 30px;
+  }
+
+  .app-greeting-card h3 {
+    font-size: 1.45rem;
+  }
+
+  /* Grid 2-kolom untuk daftar harga pasar di desktop */
+  #mobileSembakoList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 14px;
+  }
+
   .bottom-nav {
+    max-width: 1080px;
+    left: 50%;
+    transform: translateX(-50%);
     border-bottom-left-radius: var(--radius-lg);
     border-bottom-right-radius: var(--radius-lg);
+    padding: 10px 0;
+  }
+
+  .nav-item-btn {
+    font-size: 0.8rem;
+  }
+
+  .nav-item-icon {
+    font-size: 1.4rem;
   }
 }
