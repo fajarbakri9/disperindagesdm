@@ -1192,8 +1192,7 @@ function renderAdminCommandCenter() {
     'inflation_rate', 'inflation_status', 'pasar_sentral_stalls', 'pasar_sentral_status',
     'uttp_verified', 'spbu_verified_pct', 'uttp_status',
     'het_lpg_price', 'lpg_distribution_pct', 'lpg_distributed_bottles', 'lpg_total_quota',
-    'total_ikm_trained', 'total_ikm_certified', 'skm_score', 'skm_grade',
-    'ticker_text'
+    'total_ikm_trained', 'total_ikm_certified', 'skm_score', 'skm_grade'
   ];
 
   fields.forEach(f => {
@@ -1242,8 +1241,7 @@ window.saveCommandCenterMetrics = function(e) {
     'inflation_rate', 'inflation_status', 'pasar_sentral_stalls', 'pasar_sentral_status',
     'uttp_verified', 'spbu_verified_pct', 'uttp_status',
     'het_lpg_price', 'lpg_distribution_pct', 'lpg_distributed_bottles', 'lpg_total_quota',
-    'total_ikm_trained', 'total_ikm_certified', 'skm_score', 'skm_grade',
-    'ticker_text'
+    'total_ikm_trained', 'total_ikm_certified', 'skm_score', 'skm_grade'
   ];
 
   fields.forEach(f => {
@@ -1266,7 +1264,7 @@ window.saveCommandCenterMetrics = function(e) {
 
   CustomModal.alert({
     title: "Sinkronisasi Berhasil! 🎉",
-    message: "Seluruh metrik dan teks ticker Command Center berhasil diperbarui. Layar TV Wallboard pimpinan akan langsung menampilkan data terbaru secara seketika.",
+    message: "Seluruh metrik operasional Command Center berhasil diperbarui. Layar TV Wallboard pimpinan akan langsung menampilkan data terbaru beserta live running ticker harga pasar terpadu.",
     icon: "📺",
     type: "success"
   });

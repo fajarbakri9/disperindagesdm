@@ -430,8 +430,8 @@ function renderCommandCenterData(config, isFromCache = false) {
   setSafeText('cc_s4_skm_score', `${skmScoreVal} / 100`);
   setSafeText('cc_s4_skm_grade', `Predikat: ${skmGradeVal} • Hasil SKM ${defaultSkm.year} Resmi`);
 
-  // 8. Ticker Text Dinamis
-  renderTickerDOM(config.ticker_text);
+  // 8. Ticker Text Otomatis Harga Pasar Real-time
+  renderCommandCenterTicker();
 
   // Timestamp Freshness
   if (config.updated_at || config.last_updated) {
@@ -1084,11 +1084,25 @@ function renderCommandCenterTicker(pricesData) {
   const tickerTrack = document.querySelector('.cc-ticker-track');
   if (!tickerContainer) return;
 
-  const prices = pricesData || getCachedData('disperindag_prices')?.data || (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  let prices = pricesData;
+  if (!prices || prices.length === 0) {
+    if (typeof getStorage === 'function') {
+      prices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+    } else if (typeof getCachedData === 'function') {
+      prices = getCachedData('disperindag_prices')?.data || (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+    } else {
+      try {
+        prices = JSON.parse(localStorage.getItem('disperindag_prices') || 'null') || (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+      } catch(e) {
+        prices = typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : [];
+      }
+    }
+  }
 
   const priceParts = (prices && prices.length > 0) ? prices.map(p => {
+    const name = p.commodity_name || p.name || 'Komoditas';
     const trendIcon = p.trend === 'up' ? '<span style="color:#F43F5E;">▲ Naik</span>' : (p.trend === 'down' ? '<span style="color:#10B981;">▼ Turun</span>' : '<span style="color:#38BDF8;">— Stabil</span>');
-    return `🌾 <strong style="color:#FFFFFF;">${p.commodity_name}:</strong> <span style="color:var(--accent-gold); font-weight:900;">Rp ${Number(p.price).toLocaleString('id-ID')}/${p.unit}</span> (${trendIcon})`;
+    return `🌾 <strong style="color:#FFFFFF;">${name}:</strong> <span style="color:var(--accent-gold); font-weight:900;">Rp ${Number(p.price || 0).toLocaleString('id-ID')}/${p.unit || 'Kg'}</span> (${trendIcon})`;
   }) : [];
 
   const newsParts = [
