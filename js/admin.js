@@ -155,26 +155,647 @@ window.editPriceModal = function(priceId) {
   });
 };
 
-// 3. TABEL BERITA KEDINASAN
-function renderAdminNews() {
+// ==============================================================================
+// 3. ENTERPRISE NEWSROOM & PUBLIKASI BERITA KEDINASAN (FULL CMS CRUD)
+// ==============================================================================
+let currentNewsTags = [];
+let currentNewsGallery = [];
+let currentFeaturedImage = "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+
+function renderAdminNews(filterSearch = '', filterCat = '') {
   const tbody = document.getElementById('adminNewsTableBody');
   if (!tbody) return;
 
-  const news = getStorage('disperindag_news', DEFAULT_NEWS);
-  tbody.innerHTML = news.map(item => `
-    <tr>
-      <td><img src="${item.img}" style="width: 54px; height: 38px; object-fit: cover; border-radius: 6px;" alt="Thumb"></td>
-      <td><strong>${item.title}</strong></td>
-      <td><span class="badge-cat">${item.category}</span></td>
-      <td>${item.date}</td>
-      <td>
-        <a href="berita.html?id=${item.id}" target="_blank" class="btn-outline" style="padding: 4px 10px; font-size: 0.76rem;">
-          👁️ Lihat
-        </a>
-      </td>
-    </tr>
+  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  
+  // Update Statistik
+  const totalCount = allNews.length;
+  const publishedCount = allNews.filter(n => (n.status || 'published') === 'published').length;
+  const draftCount = allNews.filter(n => n.status === 'draft').length;
+
+  if (document.getElementById('newsStatTotal')) document.getElementById('newsStatTotal').textContent = totalCount;
+  if (document.getElementById('newsStatPublished')) document.getElementById('newsStatPublished').textContent = publishedCount;
+  if (document.getElementById('newsStatDraft')) document.getElementById('newsStatDraft').textContent = draftCount;
+  if (document.getElementById('statNewsCount')) document.getElementById('statNewsCount').textContent = totalCount;
+
+  // Filter Data
+  const searchVal = (filterSearch || (document.getElementById('newsSearchInput')?.value || '')).toLowerCase().trim();
+  const catVal = filterCat || (document.getElementById('newsCategoryFilter')?.value || '');
+
+  const filteredNews = allNews.filter(item => {
+    const matchSearch = !searchVal || 
+      item.title.toLowerCase().includes(searchVal) || 
+      (item.excerpt && item.excerpt.toLowerCase().includes(searchVal)) ||
+      (item.topic_tag && item.topic_tag.toLowerCase().includes(searchVal)) ||
+      (Array.isArray(item.tags) && item.tags.some(t => t.toLowerCase().includes(searchVal)));
+    const matchCat = !catVal || item.category === catVal;
+    return matchSearch && matchCat;
+  });
+
+  if (filteredNews.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center; padding:32px; color:#64748B;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">📭</div>
+          <strong>Tidak ada berita yang sesuai dengan filter atau pencarian.</strong>
+          <div style="margin-top: 8px;">
+            <button onclick="openNewsEditor()" class="btn-primary" style="font-size: 0.8rem; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px;">
+              <span>➕</span> Tulis Berita Baru Sekarang
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filteredNews.map(item => {
+    const isDraft = item.status === 'draft';
+    const isFeatured = !!item.is_featured;
+    const tagList = Array.isArray(item.tags) && item.tags.length > 0 ? item.tags : [item.topic_tag || 'Dinas'];
+    const tagsHtml = tagList.slice(0, 3).map(t => `<span style="font-size:0.68rem; background:#F1F5F9; color:#475569; padding:2px 6px; border-radius:4px; border:1px solid #E2E8F0;">#${t.replace(/^#/, '')}</span>`).join(' ');
+
+    return `
+      <tr>
+        <td>
+          <div style="position: relative; width: 62px; height: 44px; border-radius: 6px; overflow: hidden; border: 1px solid #CBD5E1; background: #030D1B;">
+            <img src="${item.img || 'assets/brand/cover_arsip_berita.png'}" style="width: 100%; height: 100%; object-fit: cover;" alt="Thumbnail" onerror="this.src='assets/brand/cover_arsip_berita.png'">
+            ${isFeatured ? '<span style="position:absolute; bottom:2px; right:2px; font-size:0.65rem;" title="Berita Sorotan Beranda">🌟</span>' : ''}
+          </div>
+        </td>
+        <td>
+          <div style="font-weight: 800; color: var(--primary-deep); line-height: 1.35; margin-bottom: 4px; font-size: 0.92rem;">
+            ${item.title}
+          </div>
+          <div style="font-size: 0.78rem; color: #64748B; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${item.excerpt || item.content?.slice(0, 120) || '—'}
+          </div>
+        </td>
+        <td>
+          <div style="margin-bottom: 4px;">
+            <span class="badge-cat" style="font-size: 0.74rem;">${item.category || 'Umum'}</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 3px;">
+            ${tagsHtml}
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.8rem; font-weight: 700; color: #1E293B;">${item.date || '—'}</div>
+          <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">👤 ${item.author || 'Humas'}</div>
+        </td>
+        <td>
+          <span class="news-status-pill ${isDraft ? 'status-draft' : 'status-published'}">
+            ${isDraft ? '📝 Draf' : '● Live'}
+          </span>
+        </td>
+        <td>
+          <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="openNewsEditor('${item.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.74rem; background: var(--accent-gold); color: #030D1B; border: none;" title="Sunting Berita">
+              ✏️ Edit
+            </button>
+            <a href="berita.html?id=${item.id}" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.74rem;" title="Lihat Tampilan Publik">
+              👁️
+            </a>
+            <button onclick="toggleNewsStatus('${item.id}')" class="btn-outline" style="padding: 4px 6px; font-size: 0.74rem;" title="${isDraft ? 'Publikasikan Berita Ini' : 'Tarik ke Draf'}">
+              ${isDraft ? '🚀' : '📦'}
+            </button>
+            <button onclick="deleteAdminNews('${item.id}')" class="btn-danger" style="padding: 4px 7px; font-size: 0.74rem;" title="Hapus Berita">
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterAdminNews() {
+  renderAdminNews();
+}
+
+function resetNewsFilter() {
+  if (document.getElementById('newsSearchInput')) document.getElementById('newsSearchInput').value = '';
+  if (document.getElementById('newsCategoryFilter')) document.getElementById('newsCategoryFilter').value = '';
+  renderAdminNews();
+}
+
+// SLUG AUTO-GENERATOR
+function autoGenerateSlug(title) {
+  const slugInput = document.getElementById('newsSlugInput');
+  if (!slugInput) return;
+  const slug = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  slugInput.value = slug;
+}
+
+// OPEN EDITOR (CREATE OR EDIT MODE)
+window.openNewsEditor = function(newsId = null) {
+  const listView = document.getElementById('newsListView');
+  const editorView = document.getElementById('newsEditorView');
+  const btnOpen = document.getElementById('btnOpenNewsEditor');
+  const btnClose = document.getElementById('btnCloseNewsEditor');
+  const formTitle = document.getElementById('newsEditorFormTitle');
+
+  if (listView) listView.style.display = 'none';
+  if (editorView) editorView.style.display = 'block';
+  if (btnOpen) btnOpen.style.display = 'none';
+  if (btnClose) btnClose.style.display = 'inline-flex';
+
+  // Reset State
+  currentNewsTags = [];
+  currentNewsGallery = [];
+  currentFeaturedImage = "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+
+  if (newsId) {
+    // Mode EDIT
+    const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+    const item = allNews.find(n => n.id === newsId);
+    if (item) {
+      if (formTitle) formTitle.innerHTML = `✏️ Sunting Berita: <span style="color:#1E40AF;">${item.title.slice(0, 45)}...</span>`;
+      document.getElementById('newsEditId').value = item.id;
+      document.getElementById('newsTitleInput').value = item.title || '';
+      document.getElementById('newsSlugInput').value = item.slug || autoGenerateSlug(item.title || '');
+      document.getElementById('newsCategorySelect').value = item.category || 'Perindustrian, Energi & SDM';
+      document.getElementById('newsDateInput').value = item.date || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('newsAuthorInput').value = item.author || 'Humas Disperindag ESDM Pinrang';
+      document.getElementById('newsExcerptInput').value = item.excerpt || '';
+      document.getElementById('newsContentInput').value = item.content || '';
+      document.getElementById('newsStatusSelect').value = item.status || 'published';
+      document.getElementById('newsIsFeaturedCheckbox').checked = !!item.is_featured;
+
+      currentFeaturedImage = item.img || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+      document.getElementById('newsFeaturedImageResult').value = currentFeaturedImage;
+      document.getElementById('newsFeaturedPreviewImg').src = currentFeaturedImage;
+      document.getElementById('newsFeaturedCaptionInput').value = item.image_caption || 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.';
+
+      currentNewsTags = Array.isArray(item.tags) ? [...item.tags] : (item.topic_tag ? [item.topic_tag] : ['Dinas']);
+      currentNewsGallery = Array.isArray(item.gallery) ? [...item.gallery] : [];
+    }
+  } else {
+    // Mode CREATE
+    if (formTitle) formTitle.innerHTML = `✍️ Tulis Berita & Siaran Pers Baru`;
+    document.getElementById('newsEditId').value = '';
+    document.getElementById('newsTitleInput').value = '';
+    document.getElementById('newsSlugInput').value = '';
+    document.getElementById('newsCategorySelect').value = 'Perindustrian, Energi & SDM';
+    document.getElementById('newsDateInput').value = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('newsAuthorInput').value = 'Humas Disperindag ESDM Pinrang';
+    document.getElementById('newsExcerptInput').value = '';
+    document.getElementById('newsContentInput').value = '';
+    document.getElementById('newsStatusSelect').value = 'published';
+    document.getElementById('newsIsFeaturedCheckbox').checked = false;
+
+    currentFeaturedImage = "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+    document.getElementById('newsFeaturedImageResult').value = currentFeaturedImage;
+    document.getElementById('newsFeaturedPreviewImg').src = currentFeaturedImage;
+    document.getElementById('newsFeaturedCaptionInput').value = 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.';
+
+    currentNewsTags = ['Pasar Murah', 'Bapokting'];
+    currentNewsGallery = [];
+  }
+
+  renderNewsTagChips();
+  renderNewsGalleryGrid();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.closeNewsEditor = function() {
+  const listView = document.getElementById('newsListView');
+  const editorView = document.getElementById('newsEditorView');
+  const btnOpen = document.getElementById('btnOpenNewsEditor');
+  const btnClose = document.getElementById('btnCloseNewsEditor');
+
+  if (listView) listView.style.display = 'block';
+  if (editorView) editorView.style.display = 'none';
+  if (btnOpen) btnOpen.style.display = 'inline-flex';
+  if (btnClose) btnClose.style.display = 'none';
+
+  renderAdminNews();
+};
+
+// TAGS CHIP SYSTEM
+function renderNewsTagChips() {
+  const container = document.getElementById('newsTagChips');
+  const hiddenInput = document.getElementById('newsTagHidden');
+  if (!container) return;
+
+  container.innerHTML = currentNewsTags.map((tag, idx) => `
+    <span class="tag-badge-chip">
+      #${tag}
+      <span class="tag-remove-btn" onclick="removeNewsTag(${idx})">&times;</span>
+    </span>
+  `).join('');
+
+  if (hiddenInput) hiddenInput.value = JSON.stringify(currentNewsTags);
+}
+
+window.addCurrentTag = function() {
+  const input = document.getElementById('newsTagInput');
+  if (!input) return;
+  const val = input.value.replace(/^[#\s]+/, '').trim();
+  if (val && !currentNewsTags.includes(val)) {
+    currentNewsTags.push(val);
+    renderNewsTagChips();
+    input.value = '';
+  }
+};
+
+window.handleTagInputKeydown = function(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    addCurrentTag();
+  }
+};
+
+window.removeNewsTag = function(idx) {
+  currentNewsTags.splice(idx, 1);
+  renderNewsTagChips();
+};
+
+window.quickAddTag = function(tagName) {
+  if (!currentNewsTags.includes(tagName)) {
+    currentNewsTags.push(tagName);
+    renderNewsTagChips();
+  }
+};
+
+// MEDIA & IMAGE HANDLERS
+window.selectArsipPhoto = function(path) {
+  if (!path) return;
+  currentFeaturedImage = path;
+  document.getElementById('newsFeaturedImageResult').value = path;
+  document.getElementById('newsFeaturedPreviewImg').src = path;
+};
+
+window.handleFeaturedImageUpload = function(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const rawImg = new Image();
+    rawImg.src = e.target.result;
+    rawImg.onload = function() {
+      // Kompresi Canvas ke maks 1200px lebar
+      const canvas = document.createElement('canvas');
+      const maxW = 1200;
+      let w = rawImg.width;
+      let h = rawImg.height;
+      if (w > maxW) {
+        h = Math.round((h * maxW) / w);
+        w = maxW;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(rawImg, 0, 0, w, h);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      currentFeaturedImage = compressedDataUrl;
+      document.getElementById('newsFeaturedImageResult').value = compressedDataUrl;
+      document.getElementById('newsFeaturedPreviewImg').src = compressedDataUrl;
+    };
+  };
+  reader.readAsDataURL(file);
+};
+
+window.handleGalleryImagesUpload = function(input) {
+  if (!input.files || input.files.length === 0) return;
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const rawImg = new Image();
+      rawImg.src = e.target.result;
+      rawImg.onload = function() {
+        const canvas = document.createElement('canvas');
+        const maxW = 1000;
+        let w = rawImg.width;
+        let h = rawImg.height;
+        if (w > maxW) {
+          h = Math.round((h * maxW) / w);
+          w = maxW;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(rawImg, 0, 0, w, h);
+        const compressed = canvas.toDataURL('image/jpeg', 0.82);
+
+        currentNewsGallery.push({
+          img: compressed,
+          caption: `Dokumentasi kegiatan - ${file.name.replace(/\.[^/.]+$/, '')}`
+        });
+        renderNewsGalleryGrid();
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+function renderNewsGalleryGrid() {
+  const grid = document.getElementById('newsGalleryGridAdmin');
+  if (!grid) return;
+
+  if (currentNewsGallery.length === 0) {
+    grid.innerHTML = `<div style="font-size:0.75rem; color:#94A3B8; font-style:italic; grid-column:1/-1;">Belum ada foto galeri kegiatan tambahan.</div>`;
+    return;
+  }
+
+  grid.innerHTML = currentNewsGallery.map((item, idx) => `
+    <div class="news-gallery-thumb-item">
+      <img src="${item.img}" alt="Galeri ${idx + 1}">
+      <button type="button" class="news-gallery-remove" onclick="removeGalleryItem(${idx})" title="Hapus Foto">✕</button>
+    </div>
   `).join('');
 }
+
+window.removeGalleryItem = function(idx) {
+  currentNewsGallery.splice(idx, 1);
+  renderNewsGalleryGrid();
+};
+
+// RICH TEXT TOOLBAR FORMATTER
+window.insertFormat = function(type) {
+  const textarea = document.getElementById('newsContentInput');
+  if (!textarea) return;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = textarea.value.substring(start, end);
+  let replacement = '';
+
+  switch (type) {
+    case 'p':
+      replacement = selectedText ? `\n\n${selectedText}\n\n` : '\n\nTulis paragraf penjelasan berita di sini...\n\n';
+      break;
+    case 'h2':
+      replacement = `\n\n## ${selectedText || 'Sub-judul Bahasan Berita'}\n`;
+      break;
+    case 'h3':
+      replacement = `\n\n### ${selectedText || 'Rincian Kegiatan'}\n`;
+      break;
+    case 'b':
+      replacement = `**${selectedText || 'Teks Tebal'}**`;
+      break;
+    case 'i':
+      replacement = `*${selectedText || 'Teks Miring'}*`;
+      break;
+    case 'quote':
+      replacement = `\n\n> "${selectedText || 'Mewujudkan pelayanan prima dan pengawasan terpadu demi perlindungan konsumen masyarakat Bumi Lasinrang.'}" — Kepala Dinas Perindag ESDM Pinrang\n\n`;
+      break;
+    case 'ul':
+      replacement = `\n• ${selectedText || 'Poin pertama hasil pengawasan'}\n• Poin kedua tindak lanjut kedinasan\n• Poin ketiga partisipasi masyarakat\n`;
+      break;
+    case 'ol':
+      replacement = `\n1. ${selectedText || 'Langkah pertama verifikasi lapangan'}\n2. Langkah kedua koordinasi penyalur\n3. Langkah ketiga penetapan sanksi tegas\n`;
+      break;
+    case 'link':
+      replacement = `[${selectedText || 'Portal Resmi Pemkab Pinrang'}](https://pinrangkab.go.id)`;
+      break;
+    case 'hr':
+      replacement = `\n\n---\n\n`;
+      break;
+    default:
+      replacement = selectedText;
+  }
+
+  textarea.setRangeText(replacement, start, end, 'end');
+  textarea.focus();
+};
+
+// SAVE NEWS HANDLER (CREATE / UPDATE)
+window.handleSaveNews = function(overrideStatus = null) {
+  const editId = document.getElementById('newsEditId')?.value || '';
+  const title = document.getElementById('newsTitleInput')?.value?.trim();
+  const slug = document.getElementById('newsSlugInput')?.value?.trim();
+  const category = document.getElementById('newsCategorySelect')?.value || 'Perindustrian, Energi & SDM';
+  const date = document.getElementById('newsDateInput')?.value?.trim() || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const author = document.getElementById('newsAuthorInput')?.value?.trim() || 'Humas Disperindag ESDM Pinrang';
+  const excerpt = document.getElementById('newsExcerptInput')?.value?.trim() || '';
+  const content = document.getElementById('newsContentInput')?.value?.trim();
+  const caption = document.getElementById('newsFeaturedCaptionInput')?.value?.trim() || 'Dokumentasi resmi Disperindag ESDM Pinrang.';
+  const isFeatured = document.getElementById('newsIsFeaturedCheckbox')?.checked || false;
+  const status = overrideStatus || document.getElementById('newsStatusSelect')?.value || 'published';
+
+  if (!title) {
+    CustomModal.alert({ title: "Judul Wajib Diisi", message: "Silakan masukkan judul utama artikel berita.", icon: "⚠️", type: "warning" });
+    document.getElementById('newsTitleInput')?.focus();
+    return;
+  }
+
+  if (!content) {
+    CustomModal.alert({ title: "Konten Berita Kosong", message: "Silakan masukkan isi berita lengkap pada editor.", icon: "⚠️", type: "warning" });
+    document.getElementById('newsContentInput')?.focus();
+    return;
+  }
+
+  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  
+  const articleObj = {
+    id: editId || `news_${Date.now()}`,
+    title: title,
+    slug: slug || autoGenerateSlug(title),
+    category: category,
+    topic_tag: currentNewsTags[0] || 'Dinas',
+    tags: currentNewsTags.length > 0 ? currentNewsTags : ['DisperindagPinrang'],
+    content_origin: "internal_release",
+    date: date,
+    author: author,
+    sourceName: "Humas Disperindag ESDM Pinrang",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
+    img: currentFeaturedImage || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
+    image_caption: caption,
+    gallery: currentNewsGallery,
+    excerpt: excerpt || content.slice(0, 160) + '...',
+    content: content,
+    status: status,
+    is_featured: isFeatured,
+    created_at: editId ? undefined : new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  if (editId) {
+    // Mode Update
+    const idx = allNews.findIndex(n => n.id === editId);
+    if (idx !== -1) {
+      allNews[idx] = { ...allNews[idx], ...articleObj };
+    } else {
+      allNews.unshift(articleObj);
+    }
+  } else {
+    // Mode Insert Baru di urutan teratas
+    allNews.unshift(articleObj);
+  }
+
+  // Simpan ke LocalStorage
+  setStorage('disperindag_news', allNews);
+
+  // Sinkronisasi ke Cloud Firestore
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      db.collection('news').doc(articleObj.id).set(articleObj, { merge: true })
+        .then(() => console.log("Firestore News Synced:", articleObj.id))
+        .catch(err => console.warn("Firestore News Sync Warning:", err));
+    } catch(e) {}
+  }
+
+  // Selesai & Tutup Editor
+  closeNewsEditor();
+
+  CustomModal.alert({
+    title: editId ? "Berita Berhasil Diperbarui" : (status === 'published' ? "Berita Berhasil Diterbitkan" : "Draf Berita Disimpan"),
+    message: `Artikel <strong>"${articleObj.title}"</strong> telah berhasil ${editId ? 'diperbarui' : (status === 'published' ? 'diterbitkan secara resmi' : 'disimpan sebagai draf')}.`,
+    icon: status === 'published' ? "🚀" : "💾",
+    type: "info"
+  });
+};
+
+// TOGGLE STATUS (PUBLISHED <-> DRAFT)
+window.toggleNewsStatus = function(newsId) {
+  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const item = allNews.find(n => n.id === newsId);
+  if (!item) return;
+
+  const newStatus = (item.status === 'draft') ? 'published' : 'draft';
+  item.status = newStatus;
+  item.updated_at = new Date().toISOString();
+
+  setStorage('disperindag_news', allNews);
+
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      db.collection('news').doc(item.id).update({ status: newStatus });
+    } catch(e) {}
+  }
+
+  renderAdminNews();
+
+  CustomModal.alert({
+    title: "Status Berita Diubah",
+    message: `Berita <strong>"${item.title}"</strong> kini berstatus <strong>${newStatus === 'published' ? 'DITERBITKAN (LIVE)' : 'DRAF / ARSIP'}</strong>.`,
+    icon: newStatus === 'published' ? "✅" : "📝",
+    type: "info"
+  });
+};
+
+// DELETE NEWS HANDLER
+window.deleteAdminNews = function(newsId) {
+  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const item = allNews.find(n => n.id === newsId);
+  if (!item) return;
+
+  CustomModal.confirm({
+    title: "Hapus Publikasi Berita?",
+    message: `Apakah Anda yakin ingin menghapus artikel <strong>"${item.title}"</strong>?<br><br><span style="color:#DC2626; font-size:0.8rem;">Tindakan ini akan menghapus berita dari arsip publik website.</span>`,
+    icon: "🗑️",
+    confirmText: "Ya, Hapus Berita",
+    cancelText: "Batal",
+    type: "danger",
+    onConfirm: () => {
+      const updatedNews = allNews.filter(n => n.id !== newsId);
+      setStorage('disperindag_news', updatedNews);
+
+      if (typeof db !== 'undefined' && db !== null) {
+        try {
+          db.collection('news').doc(newsId).delete();
+        } catch(e) {}
+      }
+
+      renderAdminNews();
+
+      CustomModal.alert({
+        title: "Berita Dihapus",
+        message: `Artikel telah berhasil dihapus dari sistem.`,
+        icon: "✅",
+        type: "info"
+      });
+    }
+  });
+};
+
+// LIVE PREVIEW MODAL
+window.previewCurrentNewsDraft = function() {
+  const title = document.getElementById('newsTitleInput')?.value?.trim() || 'Judul Contoh Berita Kedinasan';
+  const category = document.getElementById('newsCategorySelect')?.value || 'Perindustrian, Energi & SDM';
+  const date = document.getElementById('newsDateInput')?.value?.trim() || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const author = document.getElementById('newsAuthorInput')?.value?.trim() || 'Humas Disperindag ESDM Pinrang';
+  const content = document.getElementById('newsContentInput')?.value?.trim() || 'Isi artikel belum dituliskan...';
+  const caption = document.getElementById('newsFeaturedCaptionInput')?.value?.trim() || 'Dokumentasi resmi Disperindag ESDM Pinrang.';
+  const imgSrc = currentFeaturedImage || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg';
+
+  const tagsHtml = currentNewsTags.map(t => `<span style="background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE; padding:3px 10px; border-radius:16px; font-size:0.75rem; font-weight:700;">#${t}</span>`).join(' ');
+
+  // Parse Markdown sederhana untuk preview
+  const formattedContent = content
+    .replace(/^## (.*$)/gim, '<h2 style="font-size:1.3rem; font-weight:800; color:#0F2C59; margin:24px 0 12px;">$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3 style="font-size:1.1rem; font-weight:800; color:#0F2C59; margin:20px 0 10px;">$1</h3>')
+    .replace(/^\> (.*$)/gim, '<blockquote style="border-left:4px solid #D4AF37; background:#F8FAFC; padding:14px 18px; border-radius:8px; font-style:italic; margin:20px 0; color:#1E293B; line-height:1.6;">$1</blockquote>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    .replace(/\n\n/gim, '</p><p style="margin-bottom:16px; line-height:1.75; color:#334155; font-size:0.96rem;">');
+
+  const galleryHtml = currentNewsGallery.length > 0 ? `
+    <div style="margin-top: 32px; padding-top: 20px; border-top: 1.5px dashed #CBD5E1;">
+      <h4 style="font-size: 1.05rem; font-weight: 800; color: #0F2C59; margin-bottom: 14px;">📸 Galeri Dokumentasi Kegiatan</h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+        ${currentNewsGallery.map(g => `
+          <div style="border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+            <img src="${g.img}" style="width: 100%; height: 140px; object-fit: cover;" alt="Galeri">
+            <div style="padding: 8px 10px; font-size: 0.72rem; color: #64748B; background: #F8FAFC;">${g.caption}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const modalContainer = document.getElementById('newsPreviewContentContainer');
+  const modal = document.getElementById('modalNewsPreview');
+
+  if (modalContainer) {
+    modalContainer.innerHTML = `
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <span class="badge-cat">${category}</span>
+        <span style="font-size: 0.78rem; color: #64748B; align-self: center;">📅 ${date} • 👤 ${author}</span>
+      </div>
+
+      <h1 style="font-size: 1.6rem; font-weight: 900; color: #0F172A; line-height: 1.35; margin-bottom: 20px;">
+        ${title}
+      </h1>
+
+      <div style="border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); border: 1px solid #CBD5E1;">
+        <img src="${imgSrc}" style="width: 100%; max-height: 420px; object-fit: cover;" alt="Foto Utama">
+        <div style="padding: 8px 14px; font-size: 0.76rem; color: #64748B; background: #F8FAFC; border-top: 1px solid #E2E8F0;">
+          📷 ${caption}
+        </div>
+      </div>
+
+      <div style="font-family: 'Plus Jakarta Sans', sans-serif;">
+        <p style="margin-bottom: 16px; line-height: 1.75; color: #334155; font-size: 0.96rem;">
+          ${formattedContent}
+        </p>
+      </div>
+
+      ${galleryHtml}
+
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #64748B;">Topik Terkait:</span>
+        ${tagsHtml}
+      </div>
+    `;
+  }
+
+  if (modal) modal.style.display = 'block';
+};
+
+window.closeNewsPreviewModal = function() {
+  const modal = document.getElementById('modalNewsPreview');
+  if (modal) modal.style.display = 'none';
+};
 
 // 4. BANNER CAROUSEL (CRUD LENGKAP)
 function renderAdminBanners() {

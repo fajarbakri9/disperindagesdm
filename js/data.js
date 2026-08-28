@@ -48,6 +48,24 @@ const DEFAULT_SERVICE_HOURS = {
   legal_basis: "SK Kepala Dinas Nomor: 800.1.1/02/DISPERINDAG-ESDM/I/2025 tentang Penetapan Jam Pelayanan"
 };
 
+// 1.2 MAKLUMAT PELAYANAN RESMI (CANONICAL V3)
+const DEFAULT_MAKLUMAT = {
+  title: "Maklumat Pelayanan Publik",
+  decision_number: "Nomor: 800.1.1/01/DISPERINDAG-ESDM/I/2025",
+  signatory: "MUHAMMAD YUSUF NUR, S.STP",
+  signatory_title: "Kepala Dinas Perindag ESDM Kabupaten Pinrang",
+  nip: "19780512 199711 1 001",
+  date: "02 Januari 2025",
+  pledges: [
+    "Berjanji dan sanggup untuk melaksanakan pelayanan sesuai dengan Standar Pelayanan yang telah ditetapkan secara transparan, adil, dan profesional.",
+    "Memberikan pelayanan sesuai dengan kewajiban dan akan melakukan perbaikan secara terus menerus guna mewujudkan pelayanan prima bagi masyarakat Kabupaten Pinrang.",
+    "Siap menerima sanksi dan/atau memberikan kompensasi apabila pelayanan yang diberikan tidak sesuai standar yang telah dijanjikan."
+  ],
+  motto: "Melayani Anda dengan Transparan, Adil & Profesional (MANTAP)",
+  hashtag: "#BanggaMelayaniBangsa"
+};
+
+
 // 1.2 SALURAN KONTAK CANONICAL (ARAHAN V3 POIN 6, 9 & 10)
 const DEFAULT_CONTACT_CHANNELS = [
   {
@@ -1276,64 +1294,6 @@ const DEFAULT_BANNERS = [
   }
 ];
 
-// 12. DATA PENGADUAN DENGAN NOMOR TIKET (COMPLAINTS)
-const DEFAULT_REPORTS = [
-  {
-    id: "rep_01",
-    ticket_number: "DPE-2026-000101",
-    submitted_at: "20 Agustus 2026 • 14.15 WITA",
-    nama: "H. Basri Rahman",
-    kontak: "0852-9988-1234",
-    kategori: "Pangkalan LPG 3 Kg",
-    lokasi: "Jl. Poros Lampa, Kec. Duampanua",
-    pesan: "Pangkalan menjual gas 3 kg seharga Rp 26.000 per tabung tanpa melayani warga yang membawa KTP.",
-    assigned_unit: "Bidang Perindustrian, ESDM",
-    assigned_officer: "Ir. Faisal Aris, M.Si.",
-    status: "Selesai Ditindaklanjuti",
-    resolution: "Sidak lapangan bersama agen Pertamina tanggal 21 Agustus 2026. Pangkalan dikenai sanksi PHK."
-  },
-  {
-    id: "rep_02",
-    ticket_number: "DPE-2026-000102",
-    submitted_at: "22 Agustus 2026 • 09.30 WITA",
-    nama: "Ibu Fatimah",
-    kontak: "0813-4455-6789",
-    kategori: "Tera Timbangan Pasar",
-    lokasi: "Pasar Sentral Pinrang (Los Ikan No. 14)",
-    pesan: "Timbangan meja pedagang ikan terasa kurang 1,5 ons saat dicek ulang di pos ukur mandiri.",
-    assigned_unit: "Bidang Kemetrologian",
-    assigned_officer: "Supriadi Rahman, S.T.",
-    status: "Sedang Diproses UML",
-    resolution: "Petugas Penera telah menjadwalkan pemeriksaan dan re-kalibrasi pada 25 Agustus 2026."
-  }
-];
-
-// ------------------------------------------------------------------------------
-// INISIALISASI AUTO-MIGRASI DATA STORE (LOCALSTORAGE HYBRID)
-// ------------------------------------------------------------------------------
-initDataStoreMigration();
-
-function initDataStoreMigration() {
-  const currentVer = localStorage.getItem('disperindag_data_version');
-  if (currentVer !== NEWS_DATA_VERSION) {
-    localStorage.setItem('disperindag_site_settings', JSON.stringify(DEFAULT_SITE_SETTINGS));
-    localStorage.setItem('disperindag_officials', JSON.stringify(DEFAULT_OFFICIALS));
-    localStorage.setItem('disperindag_org_units', JSON.stringify(DEFAULT_ORGANIZATION_UNITS));
-    localStorage.setItem('disperindag_services', JSON.stringify(DEFAULT_SERVICES));
-    localStorage.setItem('disperindag_documents', JSON.stringify(DEFAULT_DOCUMENTS));
-    localStorage.setItem('disperindag_ppid', JSON.stringify(DEFAULT_PPID_CATEGORIES));
-    localStorage.setItem('disperindag_markets', JSON.stringify(DEFAULT_MARKETS));
-    localStorage.setItem('disperindag_commodities', JSON.stringify(DEFAULT_COMMODITIES));
-    localStorage.setItem('disperindag_prices', JSON.stringify(DEFAULT_COMMODITY_PRICES));
-    localStorage.setItem('disperindag_regulated_prices', JSON.stringify(DEFAULT_REGULATED_PRICES));
-    localStorage.setItem('disperindag_products_ikm', JSON.stringify(DEFAULT_PRODUCTS_IKM));
-    localStorage.setItem('disperindag_news', JSON.stringify(DEFAULT_NEWS));
-    localStorage.setItem('disperindag_banners', JSON.stringify(DEFAULT_BANNERS));
-    localStorage.setItem('disperindag_reports', JSON.stringify(DEFAULT_REPORTS));
-    localStorage.setItem('disperindag_data_version', NEWS_DATA_VERSION);
-  }
-}
-
 function getStorage(key, defaultVal) {
   try {
     const item = localStorage.getItem(key);
@@ -1400,21 +1360,316 @@ const DEFAULT_COMPLAINT_RECAP_2025 = {
   infographic: "assets/infografis/Rekapitulasi_Pengaduan_2025.jpg"
 };
 
-// 1.3 MAKLUMAT PELAYANAN RESMI (CANONICAL V3)
-const DEFAULT_MAKLUMAT = {
-  title: "Maklumat Pelayanan Publik",
-  decision_number: "Nomor: 800.1.1/01/DISPERINDAG-ESDM/I/2025",
-  signatory: "MUHAMMAD YUSUF NUR, S.STP",
-  signatory_title: "Kepala Dinas Perindag ESDM Kabupaten Pinrang",
-  nip: "19780512 199711 1 001",
-  date: "02 Januari 2025",
-  pledges: [
-    "Berjanji dan sanggup untuk melaksanakan pelayanan sesuai dengan Standar Pelayanan yang telah ditetapkan secara transparan, adil, dan profesional.",
-    "Memberikan pelayanan sesuai dengan kewajiban dan akan melakukan perbaikan secara terus menerus guna mewujudkan pelayanan prima bagi masyarakat Kabupaten Pinrang.",
-    "Siap menerima sanksi dan/atau memberikan kompensasi apabila pelayanan yang diberikan tidak sesuai standar yang telah dijanjikan."
+// 12. DATA PENGADUAN DENGAN NOMOR TIKET (COMPLAINTS - ARAHAN V3 POIN 15-18)
+const DEFAULT_REPORTS = [
+  {
+    id: "rep_01",
+    ticket_number: "DPE-2026-000101",
+    source_channel: "website",
+    submitted_at: "26 Agustus 2026 • 14.15 WITA",
+    nama: "H. Basri Rahman",
+    kontak: "0852-9988-1234",
+    kategori: "LPG 3 Kg / ESDM",
+    lokasi: "Jl. Poros Lampa, Kec. Duampanua",
+    pesan: "Pangkalan menjual gas 3 kg seharga Rp 26.000 per tabung di atas HET resmi tanpa mencatat logbook KTP pembeli.",
+    assigned_unit: "Bidang Perindustrian, ESDM",
+    assigned_officer: "Ir. Faisal Aris, M.Si.",
+    status: "Selesai Ditindaklanjuti",
+    timeline_step: 6,
+    resolution: "Tim Pengawas ESDM bersama agen telah melakukan sidak lapangan pada 26 Agustus 2026. Pangkalan diberikan Surat Peringatan (SP-1) dan wajib menjual kembali sesuai HET Rp 20.000."
+  },
+  {
+    id: "rep_02",
+    ticket_number: "DPE-2026-000102",
+    source_channel: "whatsapp",
+    submitted_at: "26 Agustus 2026 • 09.30 WITA",
+    nama: "Ibu Fatimah",
+    kontak: "0813-4455-6789",
+    kategori: "Kemetrologian / Tera",
+    lokasi: "Pasar Sentral Pinrang (Los Ikan No. 14)",
+    pesan: "Timbangan meja pedagang ikan diduga ada selisih minus 1,5 ons saat dicek mandiri di pos timbang ukur pasar.",
+    assigned_unit: "Bidang Kemetrologian",
+    assigned_officer: "Supriadi Rahman, S.T. (Penera Ahli)",
+    status: "Sedang Ditindaklanjuti",
+    timeline_step: 5,
+    resolution: "Petugas Penera telah melakukan re-kalibrasi dan membubuhkan Cap Tanda Tera Sah 2026 di tempat."
+  },
+  {
+    id: "rep_03",
+    ticket_number: "DPE-2026-000103",
+    source_channel: "website",
+    submitted_at: "27 Agustus 2026 • 07.45 WITA",
+    nama: "Mansyur, S.Pd.",
+    kontak: "0821-8765-4321",
+    kategori: "Perdagangan / Harga / Bapokting",
+    lokasi: "Pasar Pekkabata, Kec. Duampanua",
+    pesan: "Mohon informasi stok beras SPHP Bulog diperbanyak di Pasar Pekkabata untuk menstabilkan harga beras lokal.",
+    assigned_unit: "Bidang Pengembangan Perdagangan",
+    assigned_officer: "Koordinator Tim TPID",
+    status: "Verifikasi & Analisis",
+    timeline_step: 3,
+    resolution: "Laporan diteruskan ke Perum Bulog Cabang Pinrang untuk jadwal dropping beras SPHP tambahan pekan ini."
+  },
+  {
+    id: "rep_04",
+    ticket_number: "DPE-2026-000104",
+    source_channel: "sp4n_lapor",
+    submitted_at: "27 Agustus 2026 • 08.20 WITA",
+    nama: "Siti Rahmawati",
+    kontak: "0853-1122-3344",
+    kategori: "Industri & IKM",
+    lokasi: "Kecamatan Lembang",
+    pesan: "Ingin berkonsultasi mengenai pendampingan izin sertifikasi Halal gratis dan uji nutrisi produk olahan abon bandeng.",
+    assigned_unit: "Bidang Perindustrian",
+    assigned_officer: "Klinik Fasilitasi IKM",
+    status: "Diterima & Registrasi",
+    timeline_step: 2,
+    resolution: "Pemohon telah dihubungi petugas Klinik IKM untuk penjadwalan pendampingan pembuatan akun SIINas dan pendaftaran SiHalal."
+  }
+];
+
+// 13. DATA KONFIGURASI METRIK COMMAND CENTER & TV WALLBOARD
+const DEFAULT_COMMAND_CENTER_CONFIG = {
+  inflation_rate: "2.1%",
+  inflation_status: "Sangat Aman & Terkendali",
+  pasar_sentral_stalls: "786",
+  pasar_sentral_status: "100% Zonasi Aktif",
+  uttp_verified: "2.450+",
+  uttp_status: "Cap Tera Sah Aktif",
+  spbu_verified_pct: "100%",
+  het_lpg_price: "Rp 20.000",
+  het_lpg_regulation: "Perbup Pinrang No. 12/2024",
+  lpg_distribution_pct: "84.5%",
+  lpg_distributed_bottles: "24.800 Tabung",
+  lpg_total_quota: "29.350 Tabung",
+  lpg_official_agents: "11 Agen",
+  lpg_official_bases: "340+ Pangkalan Aktif",
+  total_ikm_trained: "1.248",
+  total_ikm_certified: "320+",
+  skm_score: "89.4 / 100",
+  skm_grade: "SANGAT BAIK (A)",
+  ticker_text: "🌾 Beras Medium SPHP: Rp 12.500/Kg (Stabil) • 🌾 Beras Premium Lokal Lasinrang: Rp 14.500/Kg (Turun Rp 500) • 🛢️ Minyakita: Rp 15.700/Liter (Terkendali) • 🌶️ Cabai Rawit Merah: Rp 42.000/Kg (Pasokan Terjaga) • ⚡ HET Gas LPG 3 Kg Pinrang: Rp 20.000/Tabung (Perbup No. 12/2024) • ⚖️ Posko Layanan Tera UTTP: Senin – Jumat 08.00–15.30 WITA • 🏭 Klinik Fasilitasi IKM: Pendaftaran Akun SIINas & Sertifikasi TKDN Gratis",
+  last_updated: "27 Agustus 2026 00:45 WITA"
+};
+
+// 14. DATA STATUS PENGAWASAN 12 KECAMATAN SE-KABUPATEN PINRANG
+const DEFAULT_DISTRICTS_STATUS = [
+  { id: "dist_01", name: "Watang Sawitto", status: "NORMAL", pangkalan: 62, icon: "🟢", note: "Pusat Induk Pasar Sentral & Tera Aman" },
+  { id: "dist_02", name: "Paleteang", status: "NORMAL", pangkalan: 48, icon: "🟢", note: "SPBU Jalur Poros Terverifikasi" },
+  { id: "dist_03", name: "Tiroang", status: "NORMAL", pangkalan: 26, icon: "🟢", note: "Pasar Marawi & Sentra Hortikultura" },
+  { id: "dist_04", name: "Patampanua", status: "NORMAL", pangkalan: 34, icon: "🟢", note: "Distribusi LPG & Timbangan Sawit Aman" },
+  { id: "dist_05", name: "Duampanua", status: "NORMAL", pangkalan: 42, icon: "🟢", note: "Pasar Pekkabata & Poros Trans Aman" },
+  { id: "dist_06", name: "Lembang", status: "NORMAL", pangkalan: 31, icon: "🟢", note: "Sentra Kopi Robusta & Serat Alam" },
+  { id: "dist_07", name: "Mattiro Sompe", status: "NORMAL", pangkalan: 28, icon: "🟢", note: "Sentra RMU Penggilingan Padi" },
+  { id: "dist_08", name: "Suppa", status: "NORMAL", pangkalan: 27, icon: "🟢", note: "Pesisir, Tambak & SPBU Jalur Trans" },
+  { id: "dist_09", name: "Lanrisang", status: "NORMAL", pangkalan: 20, icon: "🟢", note: "Sentra Padi & Jembatan Timbang Teruji" },
+  { id: "dist_10", name: "Mattiro Bulu", status: "NORMAL", pangkalan: 22, icon: "🟢", note: "Stok Pangkalan Terkendali" },
+  { id: "dist_11", name: "Cempa", status: "NORMAL", pangkalan: 18, icon: "🟢", note: "Penyaluran LPG Tepat Sasaran" },
+  { id: "dist_12", name: "Batulappa", status: "NORMAL", pangkalan: 14, icon: "🟢", note: "Wilayah Perbukitan Terlayani" }
+];
+
+// 17. DATASET MEDIA & SOCIAL INTELLIGENCE HUB (REAL-TIME MONITORING)
+const DEFAULT_MEDIA_INTELLIGENCE = {
+  summary: {
+    total_mentions: 1482,
+    positive_percentage: 78,
+    neutral_percentage: 16,
+    negative_percentage: 6,
+    total_reach: "185.4K",
+    total_engagement: "24.8K",
+    media_articles: 142,
+    social_posts: 486,
+    citizen_comments: 854,
+    hot_issues_count: 5,
+    last_crawler_sync: "27 Agustus 2026, 01:25 WITA",
+    crawling_status: "ACTIVE",
+    ingestion_nodes: 8
+  },
+  trending_topics: [
+    {
+      id: "tt_01",
+      topic: "Stabilitas HET Gas LPG 3 Kg & Pengawasan Pangkalan",
+      category: "ESDM & Energi",
+      volume: 512,
+      sentiment: { positive: 74, neutral: 20, negative: 6 },
+      trend: "up",
+      status: "Stabil & Terkendali",
+      badge_color: "emerald"
+    },
+    {
+      id: "tt_02",
+      topic: "Operasi Pasar Murah Bapokting Pengendalian Inflasi",
+      category: "Perdagangan",
+      volume: 428,
+      sentiment: { positive: 92, neutral: 6, negative: 2 },
+      trend: "up",
+      status: "Sangat Positif (Apresiasi Publik)",
+      badge_color: "emerald"
+    },
+    {
+      id: "tt_03",
+      topic: "Uji Tera Pompa SPBU & Timbangan Pasar Sentral",
+      category: "Kemetrologian",
+      volume: 264,
+      sentiment: { positive: 88, neutral: 10, negative: 2 },
+      trend: "stable",
+      status: "Kepatuhan Tinggi",
+      badge_color: "blue"
+    },
+    {
+      id: "tt_04",
+      topic: "Promosi Kain Sutra & Kerajinan IKM Pinrang",
+      category: "Perindustrian & IKM",
+      volume: 186,
+      sentiment: { positive: 95, neutral: 5, negative: 0 },
+      trend: "up",
+      status: "Pemberdayaan Berjalan Baik",
+      badge_color: "emerald"
+    },
+    {
+      id: "tt_05",
+      topic: "Penataan Parkir & Kebersihan Pasar Sentral Pinrang",
+      category: "Sarana Distribusi Pasar",
+      volume: 92,
+      sentiment: { positive: 45, neutral: 35, negative: 20 },
+      trend: "down",
+      status: "Dalam Proses Relokasi Trantib",
+      badge_color: "amber"
+    }
   ],
-  motto: "Melayani Anda dengan Transparan, Adil & Profesional (MANTAP)",
-  hashtag: "#BanggaMelayaniBangsa"
+  verified_news: [
+    {
+      id: "mn_01",
+      media_name: "Antara News Sulsel",
+      media_category: "Nasional",
+      title: "Disperindag ESDM Pinrang Jamin Stok LPG 3 Kg Aman Sesuai HET Rp 20.000",
+      url: "https://makassar.antaranews.com/berita/lpg-pinrang-aman",
+      published_at: "26 Agustus 2026, 17:45 WITA",
+      sentiment: "positive",
+      sentiment_label: "🟢 Sangat Positif",
+      summary: "Dinas Perindag ESDM Pinrang intensifkan sidak gabungan pangkalan dan agen di 12 kecamatan untuk memastikan tidak ada spekulasi harga elpiji bersubsidi."
+    },
+    {
+      id: "mn_02",
+      media_name: "Tribun Timur Pinrang",
+      media_category: "Regional",
+      title: "Pasar Murah TPID Pinrang Diserbu Ribuan Warga, Inflasi Daerah Terjaga 2,1 Persen",
+      url: "https://makassar.tribunnews.com/pinrang/pasar-murah-tpid",
+      published_at: "26 Agustus 2026, 14:20 WITA",
+      sentiment: "positive",
+      sentiment_label: "🟢 Sangat Positif",
+      summary: "Penyaluran beras medium SPHP dan minyak goreng bersubsidi di halaman kantor dinas berlangsung tertib dan membantu daya beli masyarakat."
+    },
+    {
+      id: "mn_03",
+      media_name: "Harian Fajar Online",
+      media_category: "Regional",
+      title: "Ukur Ulang Nozzle SPBU Jalur Trans Sulawesi, Tim UML Pinrang Tempel Segel Sah",
+      url: "https://fajar.co.id/metrologi-spbu-pinrang",
+      published_at: "25 Agustus 2026, 11:30 WITA",
+      sentiment: "positive",
+      sentiment_label: "🟢 Sangat Positif",
+      summary: "Pengujian bejana ukur standar 20 liter menunjukkan deviasi nozzle SPBU se-Kabupaten Pinrang di bawah batas toleransi resmi BKD (0,5%)."
+    }
+  ],
+  social_posts: [
+    {
+      id: "sp_01",
+      platform: "instagram",
+      platform_icon: "📸",
+      account_name: "Disperindag ESDM Pinrang",
+      account_handle: "@perindagempinrang",
+      url: "https://www.instagram.com/perindagempinrang/",
+      caption: "Tim Pengawas ESDM & Perdagangan melakukan sidak berkala ketersediaan tabung Gas LPG 3 Kg bersubsidi di pangkalan resmi Kec. Watang Sawitto dan Mattiro Bulu. Pastikan membeli di pangkalan resmi dengan harga HET Rp 20.000/tabung! ⛽🔥 #DisperindagPinrang #GasElpiji",
+      post_time: "Kemarin, 15:30 WITA",
+      likes: "1.420",
+      comments: 68,
+      shares: 112,
+      is_critical: false,
+      sentiment: "positive",
+      media_img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
+      engagement_rate: "4.8%"
+    },
+    {
+      id: "sp_02",
+      platform: "facebook",
+      platform_icon: "👥",
+      account_name: "Suara Warga Pinrang (Grup Publik)",
+      account_handle: "Komunitas 85K Anggota",
+      url: "https://web.facebook.com/groups/suarawargapinrang",
+      caption: "Lapor pak kadis, pedagang kaki lima di luar pagar timur Pasar Sentral mulai bikin macet tiap pagi jam 07.00. Mohon UPT Pasar dan dinas terkait menertibkan agar pembeli nyaman masuk ke dalam gedung pasar.",
+      post_time: "Kemarin, 19:15 WITA",
+      likes: "420",
+      comments: 89,
+      shares: 45,
+      is_critical: true,
+      sentiment: "negative",
+      media_img: "assets/banner/pasar_sentral_pinrang_clean_hd.jpg",
+      engagement_rate: "6.2%"
+    },
+    {
+      id: "sp_03",
+      platform: "tiktok",
+      platform_icon: "🎵",
+      account_name: "Warga Pinrang Official",
+      account_handle: "@wargapinrang",
+      url: "https://www.tiktok.com/@explorepinrang",
+      caption: "Serbuan emak-emak di Pasar Murah Disperindag Pinrang! Minyakita 14rb dan Beras 5kg cuma 55rb langsung ludes dalam 2 jam. Keren pemda sering-sering buat kayak gini ya pak bupati! 👍🍚🔥",
+      post_time: "2 hari lalu",
+      likes: "4.850",
+      comments: 230,
+      shares: 640,
+      views: "68.5K",
+      is_critical: false,
+      sentiment: "positive",
+      media_img: "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
+      engagement_rate: "8.2%"
+    }
+  ],
+  citizen_comments: [
+    {
+      id: "cc_01",
+      author_name: "Hasbullah (@hasbul_batulappa)",
+      source_platform: "Instagram",
+      source_icon: "📸",
+      direct_url: "https://www.instagram.com/perindagempinrang/",
+      avatar_char: "HB",
+      comment_text: "Tolong sidak pengecer di Batulappa pak, kami beli sampai 25 ribu per tabung 3kg karena pangkalan jauh dari dusun. Mohon ditambah pangkalan resmi di desa kami biar harga sesuai HET Rp 20.000!",
+      timestamp: "27 Agustus 2026, 01:10 WITA",
+      sentiment: "negative",
+      sentiment_label: "🔴 Keluhan / Evaluasi Mendesak",
+      disposition: "⚠️ DISPOSISI: Bidang ESDM (Jadwal Pengawasan Pangkalan Batulappa)",
+      official_response: "Laporan diterima Bapak Hasbullah. Tim Pengawas ESDM telah menjadwalkan verifikasi pangkalan dan kuota distribusi wilayah Batulappa pekan ini."
+    },
+    {
+      id: "cc_02",
+      author_name: "Iwan Darmawan (Warga Watang Sawitto)",
+      source_platform: "Facebook",
+      source_icon: "👥",
+      direct_url: "https://web.facebook.com/groups/suarawargapinrang",
+      avatar_char: "ID",
+      comment_text: "Trotoar timur Pasar Sentral macet parah tiap pagi karena lapak jualan di luar pagar. Pembeli yang mau parkir jadi susah. Tolong ditertibkan bersama Satpol PP pak.",
+      timestamp: "26 Agustus 2026, 21:30 WITA",
+      sentiment: "negative",
+      sentiment_label: "🔴 Masukan Ketertiban Pasar",
+      disposition: "⚠️ DISPOSISI: UPT Pengelola Pasar Sentral & Koordinasi Trantib",
+      official_response: "Terima kasih informasinya. UPT Pasar Sentral sedang melakukan penataan relokasi pedagang trotoar ke dalam blok los basah yang masih kosong."
+    },
+    {
+      id: "cc_03",
+      author_name: "Andi Sukmawati, S.Pd.",
+      source_platform: "Facebook",
+      source_icon: "👥",
+      direct_url: "https://web.facebook.com/groups/suarawargapinrang",
+      avatar_char: "AS",
+      comment_text: "Alhamdulillah kemarin dapat beras SPHP dan minyak goreng murah di halaman kantor dinas. Sangat meringankan beban dapur kami para ibu rumah tangga. Terima kasih jajaran Disperindag Pinrang!",
+      timestamp: "26 Agustus 2026, 18:15 WITA",
+      sentiment: "positive",
+      sentiment_label: "🟢 Apresiasi Publik",
+      disposition: null,
+      official_response: "Terima kasih Ibu Andi Sukmawati. Program pasar murah TPID akan terus berlanjut ke kecamatan lainnya secara bergilir demi menjaga daya beli warga."
+    }
+  ]
 };
 
 function initDataStoreMigration() {
@@ -1473,150 +1728,3 @@ window.DEFAULT_COMPLAINT_RECAP_2025 = DEFAULT_COMPLAINT_RECAP_2025;
 // INISIALISASI AUTO-MIGRASI DATA STORE (LOCALSTORAGE HYBRID)
 // ------------------------------------------------------------------------------
 initDataStoreMigration();
-
-// STRUKTUR PENGGUNA BERBASIS ROLE RESMI DINAS (SINKRON PERBUP 35/2023 & MASTER DATA 2026)
-const DEFAULT_SYSTEM_USERS = [
-  {
-    username: "kadis_pinrang",
-    password: "pinrang2026!",
-    name: "Muhammad Yusuf Nur, S.STP",
-    nip: "19800326 200003 1 001",
-    position: "Kepala Dinas",
-    unit: "Pimpinan Dinas",
-    role: "super_admin",
-    roleLabel: "Kepala Dinas (Super Admin)",
-    roleIcon: "👑",
-    phone: "0823 1600 2226",
-    avatar: "assets/officials/kadis_pinrang_opt.jpg",
-    bio: "Kepala Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.",
-    canAccessAdmin: true,
-    canAccessPetugas: true,
-    canManageUsers: true,
-    canPublishDirectly: true,
-    permissions: ["all"]
-  },
-  {
-    username: "sekretaris_dinas",
-    password: "sekretariat2026!",
-    name: "Hj. Ratnah, ST, M.Si",
-    nip: "19770816 200903 2 004",
-    position: "Sekretaris Dinas",
-    unit: "Sekretariat",
-    role: "sekretariat_admin",
-    roleLabel: "Sekretaris Dinas (Admin PPID & Organisasi)",
-    roleIcon: "📋",
-    phone: "0823 1600 2226",
-    avatar: "assets/officials/sekretaris_dinas_opt.jpg",
-    bio: "Sekretaris Dinas dan PPID Pelaksana Disperindag ESDM Pinrang.",
-    canAccessAdmin: true,
-    canAccessPetugas: true,
-    canManageUsers: true,
-    canPublishDirectly: true,
-    permissions: ["ppid", "documents", "organization", "officials", "news", "reports"]
-  },
-  {
-    username: "editor_perdagangan",
-    password: "dagang2026!",
-    name: "Rusdi, S.Sos",
-    nip: "19820112 200212 1 002",
-    position: "Kepala Bidang Pengembangan Perdagangan",
-    unit: "Bidang Pengembangan Perdagangan",
-    role: "perdagangan_editor",
-    roleLabel: "Kabid Perdagangan & Tim TPID",
-    roleIcon: "🛒",
-    phone: "0823 1600 2226",
-    avatar: "assets/brand/logo_pinrang_opt.png",
-    bio: "Pengendalian stabilitas pasokan, pemantauan harga 12 bapokting, dan operasi pasar.",
-    canAccessAdmin: true,
-    canAccessPetugas: true,
-    canManageUsers: false,
-    canPublishDirectly: true,
-    permissions: ["prices", "markets", "news"]
-  },
-  {
-    username: "editor_esdm_industri",
-    password: "esdm2026!",
-    name: "Nasrawianty Vetraniwati Nasri, S.AP",
-    nip: "19780921 200212 2 005",
-    position: "Kepala Bidang Perindustrian, Energi dan SDM",
-    unit: "Bidang Perindustrian, Energi dan SDM",
-    role: "industri_esdm_editor",
-    roleLabel: "Kabid Perindustrian, ESDM & Pengawas LPG",
-    roleIcon: "⚡",
-    phone: "0823 1600 2226",
-    avatar: "assets/brand/logo_pinrang_opt.png",
-    bio: "Pengawasan distribusi elpiji 3 kg bersubsidi dan fasilitasi klinik sertifikasi IKM Pinrang.",
-    canAccessAdmin: true,
-    canAccessPetugas: true,
-    canManageUsers: false,
-    canPublishDirectly: true,
-    permissions: ["ikm", "lpg", "news", "reports"]
-  },
-  {
-    username: "editor_kemetrologian",
-    password: "metrologi2026!",
-    name: "Arhan Razak, S.IP",
-    nip: "19700823 200212 1 003",
-    position: "Kepala Bidang Kemetrologian",
-    unit: "Bidang Kemetrologian",
-    role: "kemetrologian_editor",
-    roleLabel: "Kabid Kemetrologian (Metrologi Legal)",
-    roleIcon: "⚖️",
-    phone: "0823 1600 2226",
-    avatar: "assets/brand/logo_pinrang_opt.png",
-    bio: "Pelayanan sidang tera dan pengawasan akurasi UTTP timbangan pasar serta nozzle SPBU.",
-    canAccessAdmin: true,
-    canAccessPetugas: true,
-    canManageUsers: false,
-    canPublishDirectly: true,
-    permissions: ["tera", "services", "news", "reports"]
-  },
-  {
-    username: "editor_distribusi",
-    password: "distribusi2026!",
-    name: "Abdul Rauf, S.E",
-    nip: "19700622 200212 1 003",
-    position: "Kepala Bidang Sarana & Pelaku Distribusi",
-    unit: "Bidang Sarana dan Pelaku Distribusi",
-    role: "distribusi_editor",
-    roleLabel: "Kabid Sarana Pasar & Distribusi",
-    roleIcon: "🏪",
-    phone: "0823 1600 2226",
-    avatar: "assets/brand/logo_pinrang_opt.png",
-    bio: "Pengelolaan sarana pasar rakyat, penataan kios/lapak, dan pembinaan distributor pupuk.",
-    canAccessAdmin: true,
-    canAccessPetugas: true,
-    canManageUsers: false,
-    canPublishDirectly: true,
-    permissions: ["pasar", "distribution", "news"]
-  },
-  {
-    username: "petugas_pasar_sentral",
-    password: "pasar2026!",
-    name: "Eka Raharja, SH",
-    nip: "19830414 200801 1 011",
-    position: "Kepala UPTD Pasar Wilayah I (Pasar Sentral)",
-    unit: "UPTD Pasar Wilayah I",
-    role: "pasar_petugas",
-    roleLabel: "Kepala UPTD Pasar Wilayah I",
-    roleIcon: "🏬",
-    phone: "0823 1600 2226",
-    avatar: "assets/brand/logo_pinrang_opt.png",
-    bio: "Operasional pengelolaan dan ketertiban 786 lapak aktif di Pasar Sentral Pinrang.",
-    canAccessAdmin: false,
-    canAccessPetugas: true,
-    canManageUsers: false,
-    canPublishDirectly: false,
-    permissions: ["pasar", "prices"]
-  }
-];
-
-// Inisialisasi Database Pengguna (Versi Terkini 2026)
-function initAuthStore() {
-  const targetAuthVer = "2026_08_28_users_v3";
-  const currentVer = localStorage.getItem("disperindag_users_version");
-  if (currentVer !== targetAuthVer) {
-    localStorage.setItem(AUTH_STORE_KEY, JSON.stringify(DEFAULT_SYSTEM_USERS));
-    localStorage.setItem("disperindag_users_version", targetAuthVer);
-  }
-}

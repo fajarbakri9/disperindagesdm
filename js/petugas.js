@@ -338,28 +338,37 @@ function renderUmlModule(container) {
 function renderHumasModule(container) {
   container.innerHTML = `
     <div class="mobile-form-card">
-      <h4 style="font-size: 1rem; font-weight: 900; color: var(--primary-deep); margin-bottom: 12px;">📰 Publikasi Berita Cepat dari HP</h4>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h4 style="font-size: 1rem; font-weight: 900; color: var(--primary-deep); margin: 0;">📰 Publikasi Berita Lapangan</h4>
+        <a href="admin.html" class="btn-quick-edit" style="text-decoration: none; font-size: 0.72rem; padding: 4px 8px; background: #0F2C59; color: #FFFFFF;">💻 CMS Desktop</a>
+      </div>
       <form id="formHumasBerita">
         <div class="mobile-form-group">
           <label class="mobile-form-label">Judul Berita Kegiatan</label>
           <input type="text" id="humasJudul" required class="mobile-form-input" placeholder="Tuliskan judul berita kedinasan...">
         </div>
         <div class="mobile-form-group">
-          <label class="mobile-form-label">Kategori Berita</label>
+          <label class="mobile-form-label">Kategori Bidang</label>
           <select id="humasKategori" class="mobile-form-select">
-            <option>Pengawasan ESDM</option>
-            <option>Perdagangan Dalam Negeri</option>
-            <option>Metrologi Legal</option>
-            <option>Pengembangan Industri</option>
+            <option value="Perindustrian, Energi & SDM">Perindustrian, Energi & SDM</option>
+            <option value="Pengembangan Perdagangan">Pengembangan Perdagangan</option>
+            <option value="Sarana & Pelaku Distribusi">Sarana & Pelaku Distribusi</option>
+            <option value="Kemetrologian Legal">Kemetrologian Legal</option>
+            <option value="Pelayanan Publik">Pelayanan Publik & Transparansi</option>
+            <option value="Umum & Pimpinan">Umum & Pimpinan</option>
           </select>
         </div>
         <div class="mobile-form-group">
-          <label class="mobile-form-label">Ringkasan Berita (Lead)</label>
-          <textarea id="humasExcerpt" rows="2" required class="mobile-form-textarea" placeholder="Ringkasan 1-2 kalimat berita..."></textarea>
+          <label class="mobile-form-label">Topik / Tag Utama</label>
+          <input type="text" id="humasTag" class="mobile-form-input" placeholder="Contoh: Pasar Murah, Bapokting" value="Liputan Lapangan">
+        </div>
+        <div class="mobile-form-group">
+          <label class="mobile-form-label">Ringkasan Berita (Lead / Excerpt)</label>
+          <textarea id="humasExcerpt" rows="2" required class="mobile-form-textarea" placeholder="Ringkasan 1-2 kalimat pokok berita..."></textarea>
         </div>
         <div class="mobile-form-group">
           <label class="mobile-form-label">Naskah Berita Lengkap</label>
-          <textarea id="humasContent" rows="4" required class="mobile-form-textarea" placeholder="Isi naskah berita kedinasan lengkap..."></textarea>
+          <textarea id="humasContent" rows="4" required class="mobile-form-textarea" placeholder="Isi liputan berita kedinasan lengkap..."></textarea>
         </div>
 
         <div class="mobile-camera-box" onclick="document.getElementById('mobileCameraInput').click()">
@@ -369,7 +378,7 @@ function renderHumasModule(container) {
         </div>
 
         <button type="submit" class="btn-mobile-submit">
-          <span>🚀</span> Tayangkan Berita ke Website Publik
+          <span>🚀</span> Tayangkan Berita ke Portal Publik
         </button>
       </form>
     </div>
@@ -377,36 +386,55 @@ function renderHumasModule(container) {
 
   document.getElementById('formHumasBerita').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const title = document.getElementById('humasJudul').value;
+    const title = document.getElementById('humasJudul').value.trim();
     const category = document.getElementById('humasKategori').value;
-    const excerpt = document.getElementById('humasExcerpt').value;
-    const content = document.getElementById('humasContent').value;
-    const img = compressedMobilePhoto || 'assets/banner/1741917868_c77d822a24b99f45347f.png';
+    const tagRaw = document.getElementById('humasTag').value.trim() || 'Liputan Lapangan';
+    const excerpt = document.getElementById('humasExcerpt').value.trim();
+    const content = document.getElementById('humasContent').value.trim();
+    const img = compressedMobilePhoto || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg';
+
+    const tagsArray = tagRaw.split(/[,#]/).map(t => t.trim()).filter(t => t.length > 0);
 
     const newArticle = {
       id: "news_" + Date.now(),
       title,
+      slug: title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-'),
       category,
+      topic_tag: tagsArray[0] || 'Liputan Lapangan',
+      tags: tagsArray.length > 0 ? tagsArray : ['Liputan Lapangan'],
+      content_origin: "internal_release",
       date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
       author: currentUser ? currentUser.name : "Humas Disperindag Pinrang",
-      sourceName: "Rilis Resmi Disperindag ESDM",
-      sourceUrl: "https://pinrangkab.go.id",
+      sourceName: "Humas Disperindag ESDM Pinrang",
+      sourceUrl: "https://disperindagesdm-pinrang.web.app",
       img,
+      image_caption: "Dokumentasi liputan lapangan tim Humas Disperindag ESDM Pinrang.",
+      gallery: [],
       excerpt,
-      content
+      content,
+      status: "published",
+      is_featured: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     if (window.DBService) {
       await window.DBService.addNews(newArticle);
     } else {
-      const newsList = getStorage('disperindag_news', DEFAULT_NEWS);
+      const newsList = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
       newsList.unshift(newArticle);
       setStorage('disperindag_news', newsList);
     }
 
+    if (typeof db !== 'undefined' && db !== null) {
+      try {
+        db.collection('news').doc(newArticle.id).set(newArticle, { merge: true });
+      } catch(e) {}
+    }
+
     CustomModal.alert({
       title: "Berita Resmi Diterbitkan",
-      message: `Artikel <strong>"${title}"</strong> berhasil ditayangkan ke beranda dan halaman berita tunggal!`,
+      message: `Artikel <strong>"${title}"</strong> berhasil ditayangkan ke beranda dan arsip berita publik!`,
       icon: "📰",
       type: "info"
     });

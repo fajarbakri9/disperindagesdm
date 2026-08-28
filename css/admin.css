@@ -493,3 +493,223 @@
   }
 }
 
+/* ==========================================================================
+   ENTERPRISE NEWSROOM CMS EDITOR STYLES
+   ========================================================================== */
+.news-editor-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1.5px solid #E2E8F0;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.news-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 8px 10px;
+}
+
+.news-tool-btn {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.news-tool-btn:hover {
+  background: #0F2C59;
+  color: #FFFFFF;
+  border-color: #0F2C59;
+}
+
+.news-textarea-editor {
+  width: 100%;
+  min-height: 280px;
+  padding: 14px 16px;
+  border: 1px solid #CBD5E1;
+  border-radius: 0 0 8px 8px;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: #0F172A;
+  resize: vertical;
+  background: #FFFFFF;
+  box-sizing: border-box;
+}
+
+.news-textarea-editor:focus {
+  outline: none;
+  border-color: #0F2C59;
+  box-shadow: 0 0 0 3px rgba(15, 44, 89, 0.12);
+}
+
+.tag-input-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 44px;
+}
+
+.tag-badge-chip {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tag-badge-chip .tag-remove-btn {
+  cursor: pointer;
+  color: #94A3B8;
+  font-weight: 900;
+  font-size: 0.85rem;
+}
+
+.tag-badge-chip .tag-remove-btn:hover {
+  color: #DC2626;
+}
+
+.tag-quick-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tag-sug-item {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px dashed #CBD5E1;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.tag-sug-item:hover {
+  background: #0F2C59;
+  color: #FFFFFF;
+  border-color: #0F2C59;
+}
+
+.news-media-dropzone {
+  border: 2px dashed #CBD5E1;
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  background: #F8FAFC;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.news-media-dropzone:hover {
+  border-color: #0F2C59;
+  background: #EFF6FF;
+}
+
+.news-featured-preview-box {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #E2E8F0;
+  max-height: 220px;
+  background: #030D1B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.news-featured-preview-box img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.news-gallery-grid-admin {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.news-gallery-thumb-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #CBD5E1;
+  height: 100px;
+  background: #0F172A;
+}
+
+.news-gallery-thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.news-gallery-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(220, 38, 38, 0.9);
+  color: #FFFFFF;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.news-status-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-published {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.status-draft {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+
