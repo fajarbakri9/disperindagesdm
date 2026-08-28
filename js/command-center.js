@@ -1071,6 +1071,70 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// --- 15. BOTTOM RUNNING TICKER COMMAND CENTER (HIGH-PRECISION MARQUEE 60 FPS) ---
+let ccTickerAnimFrameId = null;
+let ccTickerOffset = 0;
+let isCCTickerPaused = false;
+
+function renderCommandCenterTicker(pricesData) {
+  const tickerContainer = document.getElementById('ccTickerText');
+  const tickerTrack = document.querySelector('.cc-ticker-track');
+  if (!tickerContainer) return;
+
+  const prices = pricesData || getCachedData('disperindag_prices')?.data || (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+
+  const priceParts = (prices && prices.length > 0) ? prices.map(p => {
+    const trendIcon = p.trend === 'up' ? '<span style="color:#F43F5E;">▲ Naik</span>' : (p.trend === 'down' ? '<span style="color:#10B981;">▼ Turun</span>' : '<span style="color:#38BDF8;">— Stabil</span>');
+    return `🌾 <strong style="color:#FFFFFF;">${p.commodity_name}:</strong> <span style="color:var(--accent-gold); font-weight:900;">Rp ${Number(p.price).toLocaleString('id-ID')}/${p.unit}</span> (${trendIcon})`;
+  }) : [];
+
+  const newsParts = [
+    `⛽ <strong style="color:#FFFFFF;">HET LPG 3 Kg Resmi:</strong> <span style="color:var(--accent-gold); font-weight:900;">Rp 18.500/Tabung</span> di 340 Pangkalan Resmi`,
+    `⚖️ <strong style="color:#FFFFFF;">Kemetrologian Pinrang:</strong> <span style="color:var(--accent-cyan); font-weight:900;">100% Nozzle SPBU & Timbangan Pasar Teruji Tera Sah</span>`,
+    `🌟 <strong style="color:#FFFFFF;">Indeks Kepuasan Masyarakat (SKM 2025):</strong> <span style="color:var(--accent-emerald); font-weight:900;">88.64 / 100 (Mutu A - Sangat Baik)</span>`,
+    `📢 <strong style="color:#FFFFFF;">Posko Pengaduan WhatsApp 0823 1600 2226:</strong> <span style="color:var(--accent-cyan); font-weight:900;">Respons Cepat & Penindakan Tegas</span>`
+  ];
+
+  const fullContent = [...priceParts, ...newsParts].map(txt => `<span class="cc-ticker-item" style="display:inline-flex; align-items:center; gap:8px; margin-right:48px; white-space:nowrap;">${txt}</span>`).join('');
+
+  // Gandakan untuk continuous infinite scroll
+  tickerContainer.innerHTML = fullContent + fullContent;
+
+  if (ccTickerAnimFrameId) {
+    cancelAnimationFrame(ccTickerAnimFrameId);
+    ccTickerAnimFrameId = null;
+  }
+  ccTickerOffset = 0;
+
+  if (tickerTrack && !tickerTrack.dataset.listenerAttached) {
+    tickerTrack.dataset.listenerAttached = 'true';
+    tickerTrack.addEventListener('mouseenter', () => { isCCTickerPaused = true; });
+    tickerTrack.addEventListener('mouseleave', () => { isCCTickerPaused = false; });
+  }
+
+  tickerContainer.style.animation = 'none';
+  tickerContainer.style.display = 'inline-flex';
+  tickerContainer.style.width = 'max-content';
+  tickerContainer.style.whiteSpace = 'nowrap';
+  tickerContainer.style.willChange = 'transform';
+
+  function stepCCTicker() {
+    if (!isCCTickerPaused && tickerContainer) {
+      const halfWidth = tickerContainer.scrollWidth / 2;
+      if (halfWidth > 0) {
+        ccTickerOffset += 1.0; // Kecepatan nyaman untuk TV display
+        if (ccTickerOffset >= halfWidth) {
+          ccTickerOffset = 0;
+        }
+        tickerContainer.style.transform = `translate3d(-${ccTickerOffset}px, 0, 0)`;
+      }
+    }
+    ccTickerAnimFrameId = requestAnimationFrame(stepCCTicker);
+  }
+
+  ccTickerAnimFrameId = requestAnimationFrame(stepCCTicker);
+}
+
 // --- 16. INITIALIZATION COMMAND CENTER ---
 document.addEventListener('DOMContentLoaded', () => {
   initThemeMode();
@@ -1085,6 +1149,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Inisialisasi Service Firestore & Cache
   initFirestoreRealtimeService();
+
+  // Inisialisasi Running Ticker Bawah
+  renderCommandCenterTicker();
 
   // Inisialisasi Auto-Slide
   showSlide(0);

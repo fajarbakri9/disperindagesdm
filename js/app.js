@@ -89,24 +89,69 @@ function initGlobalSearch() {
   }
 }
 
-// 3. RUNNING PRICE TICKER
+// 3. RUNNING PRICE TICKER (HIGH-PRECISION MARQUEE ENGINE 60 FPS)
+let tickerAnimFrameId = null;
+let tickerOffset = 0;
+let isTickerPaused = false;
+
 function renderRunningTicker() {
   const tickerContainer = document.getElementById('priceTickerContainer');
+  const scrollArea = document.querySelector('.ticker-scroll-area');
   if (!tickerContainer) return;
 
-  const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
+  const prices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  if (!prices || prices.length === 0) return;
+
   const items = prices.map(item => `
-    <div class="ticker-item">
-      <span>${item.commodity_name}:</span>
-      <span class="price">Rp ${item.price.toLocaleString('id-ID')}/${item.unit}</span>
-      <span class="trend-${item.trend}">
+    <div class="ticker-item" style="display:inline-flex; align-items:center; gap:8px; font-size:0.86rem; margin-right:32px; white-space:nowrap;">
+      <span style="color:#CBD5E1; font-weight:700;">${item.commodity_name}:</span>
+      <span class="price" style="font-weight:800; color:#FDE047; font-family:'Plus Jakarta Sans',monospace;">Rp ${Number(item.price).toLocaleString('id-ID')}/${item.unit}</span>
+      <span class="trend-${item.trend}" style="font-weight:900; ${item.trend === 'up' ? 'color:#F87171;' : item.trend === 'down' ? 'color:#4ADE80;' : 'color:#94A3B8;'}">
         ${item.trend === 'up' ? '▲' : item.trend === 'down' ? '▼' : '—'}
       </span>
     </div>
   `).join('');
 
-  // Gandakan untuk continuous infinite scroll
+  // Gandakan untuk continuous infinite scroll tanpa jeda
   tickerContainer.innerHTML = items + items;
+
+  // Hentikan frame animasi sebelumnya jika ada re-render
+  if (tickerAnimFrameId) {
+    cancelAnimationFrame(tickerAnimFrameId);
+    tickerAnimFrameId = null;
+  }
+  tickerOffset = 0;
+
+  if (scrollArea && !scrollArea.dataset.tickerListenersAttached) {
+    scrollArea.dataset.tickerListenersAttached = 'true';
+    scrollArea.addEventListener('mouseenter', () => { isTickerPaused = true; });
+    scrollArea.addEventListener('mouseleave', () => { isTickerPaused = false; });
+    scrollArea.addEventListener('touchstart', () => { isTickerPaused = true; }, { passive: true });
+    scrollArea.addEventListener('touchend', () => { isTickerPaused = false; }, { passive: true });
+  }
+
+  // Terapkan styling hardware accelerated
+  tickerContainer.style.animation = 'none';
+  tickerContainer.style.display = 'inline-flex';
+  tickerContainer.style.width = 'max-content';
+  tickerContainer.style.whiteSpace = 'nowrap';
+  tickerContainer.style.willChange = 'transform';
+
+  function stepTicker() {
+    if (!isTickerPaused && tickerContainer) {
+      const halfWidth = tickerContainer.scrollWidth / 2;
+      if (halfWidth > 0) {
+        tickerOffset += 0.85; // Kecepatan scroll mulus dan nyaman dibaca
+        if (tickerOffset >= halfWidth) {
+          tickerOffset = 0;
+        }
+        tickerContainer.style.transform = `translate3d(-${tickerOffset}px, 0, 0)`;
+      }
+    }
+    tickerAnimFrameId = requestAnimationFrame(stepTicker);
+  }
+
+  tickerAnimFrameId = requestAnimationFrame(stepTicker);
 }
 
 // 4. HERO CAROUSEL CONTROLLER
