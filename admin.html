@@ -342,315 +342,345 @@
 
       <!-- VIEW 2: FORM EDITOR PENULISAN BERITA PROFESIONAL (EDITOR VIEW) -->
       <div id="newsEditorView" style="display: none;">
-        <form id="formNewsEditor" onsubmit="event.preventDefault(); handleSaveNews();">
+        
+        <!-- FORM PENULISAN BERITA ENTERPRISE (TWO-COLUMN STUDIO) -->
+        <form id="adminNewsForm" onsubmit="event.preventDefault();">
           <input type="hidden" id="newsEditId" value="">
-          
-          <div class="news-editor-card" style="border-top: 4px solid var(--accent-gold);">
+          <input type="hidden" id="newsTagHidden" value="">
+          <input type="hidden" id="newsFeaturedImageResult" value="assets/news/operasi_pasar_murah_sembako_pinrang.jpg">
+
+          <div class="news-editor-card">
+            <!-- STICKY TOPBAR FORM -->
             <div class="news-editor-sticky-header">
               <div>
-                <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--primary-deep);" id="newsEditorFormTitle">
-                  ✍️ Tulis Berita &amp; Siaran Pers Baru
+                <h4 style="font-size: 1.2rem; font-weight: 800; color: var(--primary-deep);" id="newsEditorFormTitle">
+                  ✍️ Studio Berita &amp; Siaran Pers Kedinasan
                 </h4>
-                <p style="font-size: 0.78rem; color: #64748B; margin-top: 2px;">Lengkapi seluruh informasi berita sesuai kaidah jurnalistik kedinasan.</p>
+                <p style="font-size: 0.78rem; color: #64748B; margin-top: 2px;">Tulis, sunting, dan kelola rilis berita kedinasan dengan standar jurnalistik dan integrasi media sosial.</p>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <button type="button" onclick="closeNewsEditor()" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px; white-space: nowrap;">
+                <button type="button" onclick="closeNewsEditor()" class="btn-outline" style="font-size: 0.8rem; padding: 8px 14px; white-space: nowrap;">
                   <span>📋</span> Batal / Daftar
                 </button>
-                <button type="button" onclick="previewCurrentNewsDraft()" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px; white-space: nowrap; background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE;">
+                <button type="button" onclick="previewCurrentNewsDraft()" class="btn-outline" style="font-size: 0.8rem; padding: 8px 14px; white-space: nowrap; background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE;">
                   <span>👁️</span> Pratinjau
                 </button>
-                <button type="button" onclick="handleSaveNews('draft')" class="btn-outline" style="font-size: 0.8rem; padding: 7px 14px; white-space: nowrap; background: #FEF3C7; color: #92400E; border-color: #FCD34D;">
+                <button type="button" onclick="handleSaveNews('draft')" class="btn-outline" style="font-size: 0.8rem; padding: 8px 14px; white-space: nowrap; background: #FEF3C7; color: #92400E; border-color: #FCD34D;">
                   <span>💾</span> Simpan Draf
                 </button>
-                <button type="button" onclick="handleSaveNews('published')" class="btn-primary" style="font-size: 0.8rem; padding: 7px 18px; white-space: nowrap; font-weight: 800;">
+                <button type="button" onclick="handleSaveNews('published')" class="btn-primary" style="font-size: 0.8rem; padding: 8px 18px; white-space: nowrap; font-weight: 800;">
                   <span>🚀</span> Terbitkan Berita
                 </button>
               </div>
             </div>
 
-            <!-- JUDUL & SLUG -->
-            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
-              <div>
-                <label class="form-label" style="font-weight: 800; font-size: 0.88rem;">Judul Utama Berita <span style="color:#DC2626;">*</span></label>
-                <input type="text" id="newsTitleInput" class="form-input" required placeholder="Contoh: Disperindag ESDM Pinrang Gelar Operasi Pasar Beras SPHP dan Pantau Ketersediaan Gas LPG" style="font-size: 1.05rem; font-weight: 700; padding: 12px 14px;" oninput="autoGenerateSlug(this.value)">
-              </div>
+            <!-- TWO-COLUMN STUDIO LAYOUT -->
+            <div class="news-studio-layout">
 
-              <div>
-                <label class="form-label" style="font-size: 0.78rem; color: #64748B;">Slug URL Ramah SEO</label>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="font-size: 0.78rem; color: #94A3B8; background: #F1F5F9; padding: 9px 12px; border-radius: 6px; border: 1px solid #CBD5E1;">https://disperindagesdm-pinrang.web.app/berita/</span>
-                  <input type="text" id="newsSlugInput" class="form-input" placeholder="judul-berita-resmi" style="font-size: 0.82rem; font-family: monospace;">
-                </div>
-              </div>
-            </div>
+              <!-- KOLOM KIRI (65%): MAIN CONTENT CANVAS -->
+              <div class="news-studio-main">
 
-            <!-- GRID META: KATEGORI, TANGGAL, PENULIS -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px; background: #F8FAFC; padding: 16px; border-radius: 10px; border: 1px solid #E2E8F0;">
-              <div>
-                <label class="form-label">Kategori Bidang Kedinasan <span style="color:#DC2626;">*</span></label>
-                <select id="newsCategorySelect" class="form-input" required>
-                  <option value="Perindustrian, Energi & SDM">Perindustrian, Energi & SDM</option>
-                  <option value="Pengembangan Perdagangan">Pengembangan Perdagangan</option>
-                  <option value="Sarana & Pelaku Distribusi">Sarana & Pelaku Distribusi</option>
-                  <option value="Kemetrologian Legal">Kemetrologian Legal</option>
-                  <option value="Pelayanan Publik">Pelayanan Publik & Transparansi</option>
-                  <option value="Umum & Pimpinan">Umum & Pimpinan</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="form-label">Tanggal Publikasi Berita <span style="color:#DC2626;">*</span></label>
-                <input type="text" id="newsDateInput" class="form-input" required placeholder="Contoh: 29 Agustus 2026">
-              </div>
-
-              <div>
-                <label class="form-label">Penulis / Wartawan Tim Humas <span style="color:#DC2626;">*</span></label>
-                <input type="text" id="newsAuthorInput" class="form-input" required placeholder="Contoh: Tim Humas Disperindag ESDM" value="Humas Disperindag ESDM Pinrang">
-              </div>
-            </div>
-
-            <!-- TAGS / KATA KUNCI DINAMIS -->
-            <div style="margin-bottom: 20px;">
-              <label class="form-label">Tags / Topik Berita (Ketik lalu tekan Enter atau tombol Tambah)</label>
-              <div class="tag-input-wrapper" id="newsTagWrapper">
-                <div id="newsTagChips" style="display: inline-flex; flex-wrap: wrap; gap: 6px;"></div>
-                <input type="text" id="newsTagInput" placeholder="Ketik tag (contoh: PasarMurah) lalu tekan Enter..." style="border: none; outline: none; flex: 1; min-width: 180px; font-size: 0.85rem;" onkeydown="handleTagInputKeydown(event)">
-                <button type="button" onclick="addCurrentTag()" class="btn-primary" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 4px;">
-                  + Tambah
-                </button>
-              </div>
-              <input type="hidden" id="newsTagHidden" value="">
-              
-              <div class="tag-quick-suggestions">
-                <span style="font-size: 0.72rem; color: #64748B; align-self: center;">Saran Topik:</span>
-                <span class="tag-sug-item" onclick="quickAddTag('Pasar Murah')">+ Pasar Murah</span>
-                <span class="tag-sug-item" onclick="quickAddTag('Bapokting')">+ Bapokting</span>
-                <span class="tag-sug-item" onclick="quickAddTag('LPG 3 Kg')">+ LPG 3 Kg</span>
-                <span class="tag-sug-item" onclick="quickAddTag('Tera Ulang')">+ Tera Ulang</span>
-                <span class="tag-sug-item" onclick="quickAddTag('IKM Pinrang')">+ IKM Pinrang</span>
-                <span class="tag-sug-item" onclick="quickAddTag('Pelayanan Publik')">+ Pelayanan Publik</span>
-                <span class="tag-sug-item" onclick="quickAddTag('Dekranasda')">+ Dekranasda</span>
-              </div>
-            </div>
-
-            <!-- RINGKASAN / EXCERPT -->
-            <div style="margin-bottom: 20px;">
-              <label class="form-label">Ringkasan Berita (Lead / Excerpt) <span style="color:#DC2626;">*</span></label>
-              <textarea id="newsExcerptInput" class="form-input" rows="3" required placeholder="Ringkasan 2–3 kalimat yang menggambarkan pokok berita untuk ditampilkan pada kartu beranda dan pratinjau media sosial..." style="resize: vertical;"></textarea>
-            </div>
-
-            <!-- AREA MEDIA: FOTO UTAMA & GALERI FOTO DOKUMENTASI -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-bottom: 24px; background: #F8FAFC; padding: 18px; border-radius: 10px; border: 1.5px solid #E2E8F0;">
-              
-              <!-- FOTO UTAMA -->
-              <div>
-                <label class="form-label" style="font-weight: 800;">🖼️ Foto Utama Berita (Featured Image) <span style="color:#DC2626;">*</span></label>
-                <div class="news-media-dropzone" onclick="document.getElementById('newsFeaturedFileInput').click()">
-                  <div style="font-size: 1.8rem; margin-bottom: 6px;">📸</div>
-                  <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Klik untuk Unggah Foto Utama</div>
-                  <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">JPG, PNG, atau WEBP (Kompresi Otomatis Maks 1200px)</div>
-                </div>
-                <input type="file" id="newsFeaturedFileInput" accept="image/*" style="display: none;" onchange="handleFeaturedImageUpload(this)">
-                <input type="hidden" id="newsFeaturedImageResult" value="assets/news/operasi_pasar_murah_sembako_pinrang.jpg">
-
-                <div style="margin-top: 8px;">
-                  <label style="font-size: 0.74rem; color: #64748B;">Atau pilih dari arsip media resmi:</label>
-                  <select id="newsArsipPhotoSelect" class="form-input" style="font-size: 0.78rem; padding: 6px 10px;" onchange="selectArsipPhoto(this.value)">
-                    <option value="">-- Pilih Foto Arsip Tersedia --</option>
-                    <option value="assets/news/operasi_pasar_murah_sembako_pinrang.jpg">Operasi Pasar Murah Sembako</option>
-                    <option value="assets/news/sidak_lpg3kg_pinrang_hd.jpg">Sidak Pengawasan LPG 3 Kg</option>
-                    <option value="assets/news/forum_konsultasi_publik_pelayanan_pinrang.jpg">Forum Konsultasi Publik Pelayanan</option>
-                    <option value="assets/news/pelayanan_tera_ulang_uttp_pinrang.jpg">Pelayanan Sidang Tera Ulang UTTP</option>
-                    <option value="assets/news/tera_uttp_spbu_hd.jpg">Tera Nozzle SPBU</option>
-                    <option value="assets/news/pameran_produk_ikm_pinrang.jpg">Pameran Produk IKM Daerah</option>
-                    <option value="assets/news/pasar_sentral_pinrang_clean_hd.jpg">Pasar Sentral Pinrang</option>
-                    <option value="assets/news/batik_motif_lasinrang_pinrang_hd.jpg">Tenun Sutra Corak Lasinrang</option>
-                    <option value="assets/news/kopi_robusta_pinrang_murni_hd.jpg">Kopi Robusta Khas Pinrang</option>
-                  </select>
-                </div>
-
-                <div id="newsFeaturedPreviewWrapper" style="margin-top: 10px;">
-                  <div class="news-featured-preview-box">
-                    <img id="newsFeaturedPreviewImg" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" alt="Preview Foto Utama">
+                <!-- 1. JUDUL UTAMA BERITA -->
+                <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                  <label class="form-label" style="font-weight: 800; font-size: 0.92rem; color: #0F2C59; margin-bottom: 8px;">
+                    Judul Utama Rilis Berita <span style="color:#DC2626;">*</span>
+                  </label>
+                  <input type="text" id="newsTitleInput" class="news-title-headline-input" required placeholder="Tuliskan judul rilis berita kedinasan yang jelas dan lugas..." oninput="autoGenerateSlug(this.value); updateLiveSocialPreview();">
+                  
+                  <!-- SLUG URL CONTAINER -->
+                  <div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div class="news-slug-badge-box" style="flex: 1;">
+                      <span style="color: #059669; font-weight: 800;">🌐 URL SEO:</span>
+                      <span style="color: #94A3B8;">https://disperindagesdm-pinrang.web.app/berita/</span>
+                      <input type="text" id="newsSlugInput" placeholder="slug-judul-berita" oninput="updateLiveSocialPreview()">
+                    </div>
+                    <button type="button" class="btn-outline" style="font-size: 0.75rem; padding: 6px 12px; border-radius: 6px; background: #F8FAFC;" onclick="autoGenerateSlug(document.getElementById('newsTitleInput').value)" title="Buat ulang slug dari judul">
+                      🔄 Refresh Slug
+                    </button>
                   </div>
-                  <input type="text" id="newsFeaturedCaptionInput" class="form-input" placeholder="Keterangan / Caption foto utama..." style="font-size: 0.78rem; margin-top: 6px;" value="Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.">
-                </div>
-              </div>
-
-              <!-- GALERI FOTO DOKUMENTASI -->
-              <div>
-                <label class="form-label" style="font-weight: 800;">📸 Galeri Foto Kegiatan (Dokumentasi Lapangan)</label>
-                <div class="news-media-dropzone" onclick="document.getElementById('newsGalleryFileInput').click()" style="background: #FFFFFF;">
-                  <div style="font-size: 1.8rem; margin-bottom: 6px;">📂</div>
-                  <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Tambah Foto Galeri (Bisa Lebih dari Satu)</div>
-                  <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">Pilih foto-foto dokumentasi pendukung kegiatan</div>
-                </div>
-                <input type="file" id="newsGalleryFileInput" accept="image/*" multiple style="display: none;" onchange="handleGalleryImagesUpload(this)">
-
-                <div id="newsGalleryGridAdmin" class="news-gallery-grid-admin">
-                  <!-- Injected via JavaScript -->
-                </div>
-              </div>
-
-            </div>
-
-            <!-- WYSIWYG RICH TEXT STUDIO & LIVE VISUAL FORMATTER -->
-            <div style="margin-bottom: 24px;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-                <label class="form-label" style="font-weight: 800; font-size: 0.92rem; margin-bottom: 0;">
-                  <span>📝 Isi Rilis Berita Lengkap (Rich Text Studio) <span style="color:#DC2626;">*</span></span>
-                </label>
-
-                <!-- DUAL MODE SELECTOR -->
-                <div class="news-editor-tabs">
-                  <button type="button" id="tabModeVisual" class="news-editor-tab-btn active" onclick="switchEditorMode('visual')">
-                    <span>🎨</span> Mode Visual (WYSIWYG)
-                  </button>
-                  <button type="button" id="tabModeCode" class="news-editor-tab-btn" onclick="switchEditorMode('code')">
-                    <span>💻</span> Mode Kode / Markdown
-                  </button>
-                </div>
-              </div>
-
-              <!-- VISUAL TOOLBAR RIBBON LENGKAP -->
-              <div class="news-toolbar" id="newsVisualToolbar">
-                <div class="news-toolbar-group">
-                  <select class="news-tool-select" id="formatBlockSelect" onchange="applyBlockFormat(this.value); this.value='p';" title="Format Blok Paragraf / Heading">
-                    <option value="p">¶ Paragraf Standar</option>
-                    <option value="h2">H2 — Sub-Judul Utama</option>
-                    <option value="h3">H3 — Bagian Artikel</option>
-                  </select>
                 </div>
 
-                <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="execCmd('bold')" title="Teks Tebal (Ctrl+B)"><strong>B</strong></button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('italic')" title="Teks Miring (Ctrl+I)"><em>I</em></button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('underline')" title="Garis Bawah (Ctrl+U)"><u>U</u></button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('strikeThrough')" title="Coret Teks"><s>S</s></button>
-                </div>
-
-                <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="execCmd('justifyLeft')" title="Rata Kiri">≡</button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('justifyCenter')" title="Rata Tengah">⩶</button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('justifyRight')" title="Rata Kanan">≣</button>
-                </div>
-
-                <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="insertOfficialQuote()" title="Kutipan Resmi Kepala Dinas / Pejabat" style="background:#FEFCE8; color:#92400E; border-color:#FDE68A; font-weight:800;">
-                    💬 Kutipan Pejabat
-                  </button>
-                  <button type="button" class="news-tool-btn" onclick="insertDinasCallout()" title="Kotak Catatan Penting / Pengumuman" style="background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE; font-weight:800;">
-                    ℹ️ Info Dinas
-                  </button>
-                </div>
-
-                <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="execCmd('insertUnorderedList')" title="Daftar Butir Poin">• List</button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('insertOrderedList')" title="Daftar Nomor">1. List</button>
-                </div>
-
-                <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="insertEditorLink()" title="Sisipkan Link Tautan Web">🔗 Link</button>
-                  <button type="button" class="news-tool-btn" onclick="insertInlineImageModal()" title="Sisipkan Foto Sisipan Berita">🖼️ Foto</button>
-                  <button type="button" class="news-tool-btn" onclick="insertDataTableModal()" title="Sisipkan Tabel Data">📊 Tabel</button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('insertHorizontalRule')" title="Garis Pembatas Antar Bagian">— Garis</button>
-                </div>
-
-                <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="execCmd('removeFormat')" title="Hapus Format Teks">🧹 Hapus Format</button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('undo')" title="Undo (Kembalikan)">↩️</button>
-                  <button type="button" class="news-tool-btn" onclick="execCmd('redo')" title="Redo (Ulangi)">↪️</button>
-                </div>
-              </div>
-
-              <!-- AREA KANVAS WYSIWYG VISUAL INTERAKTIF -->
-              <div id="newsVisualCanvas" class="news-visual-canvas" contenteditable="true" data-placeholder="Tuliskan isi rilis berita kedinasan di sini... Tekan tombol toolbar di atas untuk memformat teks, menyisipkan kutipan resmi pimpinan dinas, tabel, maupun foto dokumentasi." oninput="syncVisualToRaw()"></div>
-
-              <!-- AREA TEXTAREA KODE MARKDOWN / HTML (UNTUK ADVANCED USER) -->
-              <textarea id="newsContentInput" class="news-textarea-editor" style="display: none;" placeholder="Tuliskan kode markdown atau HTML artikel di sini..." oninput="syncRawToVisual()"></textarea>
-
-              <!-- STATUS BAR REAL-TIME STATS -->
-              <div class="editor-status-bar">
-                <div style="display: flex; gap: 16px;">
-                  <span id="editorWordCount">📊 <strong>0</strong> Kata</span>
-                  <span id="editorCharCount">📝 <strong>0</strong> Karakter</span>
-                  <span id="editorReadTime">⏱️ <strong>~1</strong> Menit Baca</span>
-                </div>
-                <div style="color: #059669; font-weight: 700;">
-                  <span>✓ Mode Penyuntingan Aktif</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- LIVE OPEN GRAPH & SOCIAL SHARE PREVIEW CARD -->
-            <div class="social-preview-section">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                <div>
-                  <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0; display: flex; align-items: center; gap: 6px;">
-                    <span>📱</span> Pratinjau Tampilan Media Sosial (Open Graph / WhatsApp / Facebook)
-                  </h4>
-                  <p style="font-size: 0.76rem; color: #64748B; margin: 2px 0 0;">
-                    Tampilan nyata bagaimana rilis berita ini muncul ketika dibagikan oleh masyarakat atau media ke WhatsApp, Facebook, dan X.
+                <!-- 2. RINGKASAN BERITA (EXCERPT / LEAD) -->
+                <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                  <label class="form-label" style="font-weight: 800; font-size: 0.9rem; color: #0F2C59;">
+                    Ringkasan Berita (Lead / Excerpt) <span style="color:#DC2626;">*</span>
+                  </label>
+                  <p style="font-size: 0.76rem; color: #64748B; margin: -4px 0 10px;">
+                    Ringkasan 2–3 kalimat pengantar untuk ditampilkan di kartu Beranda, Arsip, dan Pratinjau Media Sosial.
                   </p>
+                  <textarea id="newsExcerptInput" class="form-input" rows="3" required placeholder="Tuliskan ringkasan pokok berita (5W+1H) yang menggambarkan keseluruhan rilis..." style="resize: vertical; font-size: 0.9rem; line-height: 1.6;" oninput="updateLiveSocialPreview()"></textarea>
                 </div>
-                <div class="social-preview-tabs">
-                  <button type="button" class="social-tab-btn active" id="btnPreviewFB" onclick="switchSocialPreview('facebook')">📘 Facebook / X Card</button>
-                  <button type="button" class="social-tab-btn" id="btnPreviewWA" onclick="switchSocialPreview('whatsapp')">💬 WhatsApp Bubble</button>
-                </div>
-              </div>
 
-              <!-- CARD PREVIEW: FACEBOOK / TWITTER -->
-              <div id="socialCardFB" class="fb-card-preview">
-                <img id="ogPreviewImg" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" alt="Preview Share">
-                <div class="fb-card-meta">
-                  <div class="fb-card-domain">DISPERINDAGESDM-PINRANG.WEB.APP</div>
-                  <div class="fb-card-title" id="ogPreviewTitle">Judul Rilis Berita Resmi Kedinasan Disperindag ESDM Pinrang</div>
-                  <div class="fb-card-desc" id="ogPreviewDesc">Ringkasan rilis berita resmi untuk pratinjau media sosial...</div>
-                </div>
-              </div>
+                <!-- 3. WYSIWYG RICH TEXT STUDIO -->
+                <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                      <label class="form-label" style="font-weight: 800; font-size: 0.95rem; color: #0F2C59; margin: 0;">
+                        <span>📝 Isi Rilis Lengkap Berita (Studio Visual) <span style="color:#DC2626;">*</span></span>
+                      </label>
+                      <p style="font-size: 0.76rem; color: #64748B; margin: 2px 0 0;">
+                        Gunakan ribbon toolbar untuk memformat teks, menyisipkan kutipan pejabat, atau tabel data.
+                      </p>
+                    </div>
 
-              <!-- CARD PREVIEW: WHATSAPP -->
-              <div id="socialCardWA" style="display: none; max-width: 440px; background: #DCF8C6; border-radius: 12px 12px 12px 2px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #C2E7A4;">
-                <div style="background: #FFFFFF; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0;">
-                  <img id="ogPreviewImgWA" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" style="width: 100%; height: 160px; object-fit: cover;" alt="Preview WA">
-                  <div style="padding: 10px;">
-                    <div id="ogPreviewTitleWA" style="font-size: 0.88rem; font-weight: 800; color: #0F172A; line-height: 1.35; margin-bottom: 4px;">Judul Rilis Berita Resmi Kedinasan</div>
-                    <div id="ogPreviewDescWA" style="font-size: 0.75rem; color: #64748B; line-height: 1.35;">Ringkasan berita...</div>
-                    <div style="font-size: 0.68rem; color: #059669; font-weight: 700; margin-top: 6px;">disperindagesdm-pinrang.web.app</div>
+                    <!-- DUAL MODE TABS -->
+                    <div class="news-editor-tabs">
+                      <button type="button" id="tabModeVisual" class="news-editor-tab-btn active" onclick="switchEditorMode('visual')">
+                        <span>🎨</span> Visual (WYSIWYG)
+                      </button>
+                      <button type="button" id="tabModeCode" class="news-editor-tab-btn" onclick="switchEditorMode('code')">
+                        <span>💻</span> Kode / Markdown
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- TOOLBAR RIBBON -->
+                  <div class="news-toolbar" id="newsVisualToolbar">
+                    <div class="news-toolbar-group">
+                      <select class="news-tool-select" id="formatBlockSelect" onchange="applyBlockFormat(this.value); this.value='p';" title="Format Paragraf">
+                        <option value="p">¶ Paragraf Standar</option>
+                        <option value="h2">H2 — Sub-Judul Utama</option>
+                        <option value="h3">H3 — Bagian Artikel</option>
+                      </select>
+                    </div>
+
+                    <div class="news-toolbar-group">
+                      <button type="button" class="news-tool-btn" onclick="execCmd('bold')" title="Tebal (Ctrl+B)"><strong>B</strong></button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('italic')" title="Miring (Ctrl+I)"><em>I</em></button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('underline')" title="Garis Bawah (Ctrl+U)"><u>U</u></button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('strikeThrough')" title="Coret Teks"><s>S</s></button>
+                    </div>
+
+                    <div class="news-toolbar-group">
+                      <button type="button" class="news-tool-btn" onclick="execCmd('justifyLeft')" title="Rata Kiri">≡</button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('justifyCenter')" title="Rata Tengah">⩶</button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('justifyRight')" title="Rata Kanan">≣</button>
+                    </div>
+
+                    <div class="news-toolbar-group">
+                      <button type="button" class="news-tool-btn" onclick="insertOfficialQuote()" title="Kutipan Resmi Kepala Dinas / Pejabat" style="background:#FEFCE8; color:#92400E; border-color:#FDE68A; font-weight:800;">
+                        💬 Kutipan Pejabat
+                      </button>
+                      <button type="button" class="news-tool-btn" onclick="insertDinasCallout()" title="Kotak Info Catatan Dinas" style="background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE; font-weight:800;">
+                        ℹ️ Info Dinas
+                      </button>
+                    </div>
+
+                    <div class="news-toolbar-group">
+                      <button type="button" class="news-tool-btn" onclick="execCmd('insertUnorderedList')" title="Daftar Butir Poin">• List</button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('insertOrderedList')" title="Daftar Nomor">1. List</button>
+                    </div>
+
+                    <div class="news-toolbar-group">
+                      <button type="button" class="news-tool-btn" onclick="insertEditorLink()" title="Sisipkan Link Tautan Web">🔗 Link</button>
+                      <button type="button" class="news-tool-btn" onclick="insertInlineImageModal()" title="Sisipkan Foto Sisipan">🖼️ Foto</button>
+                      <button type="button" class="news-tool-btn" onclick="insertDataTableModal()" title="Sisipkan Tabel Data">📊 Tabel</button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('insertHorizontalRule')" title="Garis Pembatas">— Garis</button>
+                    </div>
+
+                    <div class="news-toolbar-group">
+                      <button type="button" class="news-tool-btn" onclick="execCmd('removeFormat')" title="Hapus Format">🧹</button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('undo')" title="Undo">↩️</button>
+                      <button type="button" class="news-tool-btn" onclick="execCmd('redo')" title="Redo">↪️</button>
+                    </div>
+                  </div>
+
+                  <!-- KANVAS WYSIWYG VISUAL -->
+                  <div id="newsVisualCanvas" class="news-visual-canvas" contenteditable="true" data-placeholder="Tuliskan isi rilis berita kedinasan di sini... Tekan tombol toolbar di atas untuk memformat teks, menyisipkan kutipan resmi pimpinan dinas, tabel, maupun foto dokumentasi." oninput="syncVisualToRaw()" style="min-height: 420px; font-size: 1rem; line-height: 1.8;"></div>
+
+                  <!-- TEXTAREA RAW HTML/MARKDOWN -->
+                  <textarea id="newsContentInput" class="news-textarea-editor" style="display: none; min-height: 420px;" placeholder="Tuliskan kode markdown atau HTML artikel di sini..." oninput="syncRawToVisual()"></textarea>
+
+                  <!-- STATUS BAR COUNTER -->
+                  <div class="editor-status-bar">
+                    <div style="display: flex; gap: 16px;">
+                      <span id="editorWordCount">📊 <strong>0</strong> Kata</span>
+                      <span id="editorCharCount">📝 <strong>0</strong> Karakter</span>
+                      <span id="editorReadTime">⏱️ <strong>~1</strong> Menit Baca</span>
+                    </div>
+                    <div style="color: #059669; font-weight: 700;">
+                      <span>✓ Studio Siap Digunakan</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- PENGATURAN PUBLIKASI & ACTION BAR -->
-            <div style="background: #F1F5F9; padding: 18px 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-              <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
-                  <input type="checkbox" id="newsIsFeaturedCheckbox" style="width: 18px; height: 18px; accent-color: #0F2C59;">
-                  <span>🌟 Tampilkan sebagai Berita Sorotan di Beranda</span>
-                </label>
-
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 0.82rem; font-weight: 700;">Status Publikasi:</span>
-                  <select id="newsStatusSelect" class="form-input" style="font-size: 0.82rem; padding: 6px 12px; width: auto;">
-                    <option value="published">✅ Publikasikan Langsung (Live)</option>
-                    <option value="draft">📝 Simpan sebagai Draf</option>
-                  </select>
+                <!-- 4. GALERI DOKUMENTASI LAPANGAN TAMBAHAN -->
+                <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                  <label class="form-label" style="font-weight: 800; font-size: 0.9rem; color: #0F2C59;">
+                    📸 Galeri Foto Pendukung Liputan Lapangan
+                  </label>
+                  <div class="news-media-dropzone" onclick="document.getElementById('newsGalleryFileInput').click()" style="background: #F8FAFC; border: 2px dashed #CBD5E1; border-radius: 10px; padding: 18px; text-align: center; cursor: pointer;">
+                    <div style="font-size: 1.8rem; margin-bottom: 4px;">📂</div>
+                    <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Tambah Foto Galeri (Bisa Lebih dari Satu)</div>
+                    <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">Pilih foto-foto dokumentasi pendukung kegiatan</div>
+                  </div>
+                  <input type="file" id="newsGalleryFileInput" accept="image/*" multiple style="display: none;" onchange="handleGalleryImagesUpload(this)">
+                  <div id="newsGalleryGridAdmin" class="news-gallery-grid-admin" style="margin-top: 14px;"></div>
                 </div>
+
               </div>
 
-              <div style="display: flex; gap: 10px;">
-                <button type="button" onclick="closeNewsEditor()" class="btn-outline" style="padding: 10px 18px; font-size: 0.85rem;">
-                  Batal
-                </button>
-                <button type="button" onclick="previewCurrentNewsDraft()" class="btn-outline" style="padding: 10px 18px; font-size: 0.85rem; background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE;">
-                  <span>👁️</span> Pratinjau
-                </button>
-                <button type="button" onclick="handleSaveNews()" class="btn-primary" style="padding: 10px 24px; font-size: 0.88rem; font-weight: 800;">
-                  <span>💾</span> Simpan &amp; Terapkan
-                </button>
+              <!-- KOLOM KANAN (35%): PUBLISHING INSPECTOR & LIVE SOCIAL PREVIEW -->
+              <div class="news-studio-sidebar">
+
+                <!-- CARD 1: STATUS PUBLIKASI & AKSI -->
+                <div class="sidebar-widget-card">
+                  <div class="sidebar-widget-card-header">
+                    <h5 class="sidebar-widget-title">🚀 Status Publikasi</h5>
+                    <span class="badge badge-published" id="sidebarStatusBadge">Live</span>
+                  </div>
+
+                  <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                      <label class="form-label" style="font-size: 0.78rem;">Status Penerbitan:</label>
+                      <select id="newsStatusSelect" class="form-input" style="font-size: 0.82rem; padding: 8px 12px;" onchange="updateSidebarStatusBadge(this.value)">
+                        <option value="published">✅ Publikasikan Langsung (Live)</option>
+                        <option value="draft">📝 Simpan sebagai Draf</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="form-label" style="font-size: 0.78rem;">Kategori Bidang Kedinasan:</label>
+                      <select id="newsCategorySelect" class="form-input" style="font-size: 0.82rem; padding: 8px 12px;" required>
+                        <option value="Perindustrian, Energi & SDM">Perindustrian, Energi & SDM</option>
+                        <option value="Pengembangan Perdagangan">Pengembangan Perdagangan</option>
+                        <option value="Sarana & Pelaku Distribusi">Sarana & Pelaku Distribusi</option>
+                        <option value="Kemetrologian Legal">Kemetrologian Legal</option>
+                        <option value="Pelayanan Publik">Pelayanan Publik & Transparansi</option>
+                        <option value="Umum & Pimpinan">Umum & Pimpinan</option>
+                      </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                      <div>
+                        <label class="form-label" style="font-size: 0.78rem;">Tanggal Rilis:</label>
+                        <input type="text" id="newsDateInput" class="form-input" style="font-size: 0.8rem; padding: 8px 10px;" required>
+                      </div>
+                      <div>
+                        <label class="form-label" style="font-size: 0.78rem;">Penulis / Humas:</label>
+                        <input type="text" id="newsAuthorInput" class="form-input" style="font-size: 0.8rem; padding: 8px 10px;" required value="Humas Disperindag ESDM Pinrang">
+                      </div>
+                    </div>
+
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; background: #F8FAFC; padding: 10px 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+                      <input type="checkbox" id="newsIsFeaturedCheckbox" style="width: 16px; height: 16px; accent-color: #0F2C59;">
+                      <span>🌟 Jadikan Headline Beranda</span>
+                    </label>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
+                      <button type="button" onclick="handleSaveNews('published')" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-weight: 800; font-size: 0.88rem;">
+                        <span>🚀</span> Terbitkan Berita Sekarang
+                      </button>
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <button type="button" onclick="handleSaveNews('draft')" class="btn-outline" style="justify-content: center; padding: 9px; font-size: 0.8rem; background: #FEF3C7; color: #92400E; border-color: #FCD34D;">
+                          <span>💾</span> Simpan Draf
+                        </button>
+                        <button type="button" onclick="previewCurrentNewsDraft()" class="btn-outline" style="justify-content: center; padding: 9px; font-size: 0.8rem; background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE;">
+                          <span>👁️</span> Pratinjau
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CARD 2: FOTO UTAMA BERITA (FEATURED IMAGE) -->
+                <div class="sidebar-widget-card">
+                  <div class="sidebar-widget-card-header">
+                    <h5 class="sidebar-widget-title">🖼️ Foto Utama Berita</h5>
+                    <span style="color:#DC2626; font-size:0.75rem; font-weight:800;">Wajib</span>
+                  </div>
+
+                  <div class="news-media-dropzone" onclick="document.getElementById('newsFeaturedFileInput').click()" style="background: #F8FAFC; border: 2px dashed #CBD5E1; border-radius: 10px; padding: 16px 10px; text-align: center; cursor: pointer;">
+                    <div style="font-size: 1.6rem; margin-bottom: 4px;">📸</div>
+                    <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary);">Unggah Foto Utama Baru</div>
+                    <div style="font-size: 0.7rem; color: #64748B;">JPG, PNG, WEBP (Maks 1200px)</div>
+                  </div>
+                  <input type="file" id="newsFeaturedFileInput" accept="image/*" style="display: none;" onchange="handleFeaturedImageUpload(this)">
+
+                  <div style="margin-top: 10px;">
+                    <label style="font-size: 0.74rem; color: #64748B; font-weight: 700;">Atau pilih dari arsip media dinas:</label>
+                    <select id="newsArsipPhotoSelect" class="form-input" style="font-size: 0.78rem; padding: 6px 10px; margin-top: 4px;" onchange="selectArsipPhoto(this.value)">
+                      <option value="">-- Pilih Foto Arsip Tersedia --</option>
+                      <option value="assets/news/operasi_pasar_murah_sembako_pinrang.jpg">Operasi Pasar Murah Sembako</option>
+                      <option value="assets/news/sidak_lpg3kg_pinrang_hd.jpg">Sidak Pengawasan LPG 3 Kg</option>
+                      <option value="assets/news/forum_konsultasi_publik_pelayanan_pinrang.jpg">Forum Konsultasi Publik Pelayanan</option>
+                      <option value="assets/news/pelayanan_tera_ulang_uttp_pinrang.jpg">Pelayanan Sidang Tera Ulang UTTP</option>
+                      <option value="assets/news/tera_uttp_spbu_hd.jpg">Tera Nozzle SPBU</option>
+                      <option value="assets/news/pameran_produk_ikm_pinrang.jpg">Pameran Produk IKM Daerah</option>
+                      <option value="assets/news/pasar_sentral_pinrang_clean_hd.jpg">Pasar Sentral Pinrang</option>
+                      <option value="assets/news/batik_motif_lasinrang_pinrang_hd.jpg">Tenun Sutra Corak Lasinrang</option>
+                      <option value="assets/news/kopi_robusta_pinrang_murni_hd.jpg">Kopi Robusta Khas Pinrang</option>
+                    </select>
+                  </div>
+
+                  <div id="newsFeaturedPreviewWrapper" style="margin-top: 12px;">
+                    <div class="news-featured-preview-box" style="border-radius: 8px; overflow: hidden; border: 1.5px solid #CBD5E1; max-height: 180px;">
+                      <img id="newsFeaturedPreviewImg" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" alt="Preview Foto Utama" style="width: 100%; height: 180px; object-fit: cover;">
+                    </div>
+                    <input type="text" id="newsFeaturedCaptionInput" class="form-input" placeholder="Caption foto utama..." style="font-size: 0.76rem; margin-top: 6px; padding: 6px 10px;" value="Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.">
+                  </div>
+                </div>
+
+                <!-- CARD 3: TOPIK & TAGAR -->
+                <div class="sidebar-widget-card">
+                  <div class="sidebar-widget-card-header">
+                    <h5 class="sidebar-widget-title">🏷️ Topik &amp; Tagar</h5>
+                  </div>
+
+                  <div class="tag-input-wrapper" id="newsTagWrapper" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border: 1px solid #CBD5E1; border-radius: 8px; background: #F8FAFC;">
+                    <div id="newsTagChips" style="display: inline-flex; flex-wrap: wrap; gap: 6px;"></div>
+                    <input type="text" id="newsTagInput" placeholder="Ketik tag lalu tekan Enter..." style="border: none; outline: none; flex: 1; min-width: 110px; font-size: 0.8rem; background: transparent;" onkeydown="handleTagInputKeydown(event)">
+                    <button type="button" onclick="addCurrentTag()" class="btn-primary" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 4px;">
+                      + Tambah
+                    </button>
+                  </div>
+
+                  <div class="tag-quick-suggestions" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px;">
+                    <span style="font-size: 0.7rem; color: #64748B; width: 100%; font-weight: 700;">Saran Cepat:</span>
+                    <span class="tag-sug-item" onclick="quickAddTag('Pasar Murah')" style="font-size: 0.72rem; padding: 3px 8px; background: #EFF6FF; color: #1D4ED8; border-radius: 4px; cursor: pointer;">+ Pasar Murah</span>
+                    <span class="tag-sug-item" onclick="quickAddTag('Bapokting')" style="font-size: 0.72rem; padding: 3px 8px; background: #EFF6FF; color: #1D4ED8; border-radius: 4px; cursor: pointer;">+ Bapokting</span>
+                    <span class="tag-sug-item" onclick="quickAddTag('LPG 3 Kg')" style="font-size: 0.72rem; padding: 3px 8px; background: #EFF6FF; color: #1D4ED8; border-radius: 4px; cursor: pointer;">+ LPG 3 Kg</span>
+                    <span class="tag-sug-item" onclick="quickAddTag('Tera Ulang')" style="font-size: 0.72rem; padding: 3px 8px; background: #EFF6FF; color: #1D4ED8; border-radius: 4px; cursor: pointer;">+ Tera Ulang</span>
+                    <span class="tag-sug-item" onclick="quickAddTag('IKM Pinrang')" style="font-size: 0.72rem; padding: 3px 8px; background: #EFF6FF; color: #1D4ED8; border-radius: 4px; cursor: pointer;">+ IKM Pinrang</span>
+                    <span class="tag-sug-item" onclick="quickAddTag('Pelayanan Publik')" style="font-size: 0.72rem; padding: 3px 8px; background: #EFF6FF; color: #1D4ED8; border-radius: 4px; cursor: pointer;">+ Pelayanan Publik</span>
+                  </div>
+                </div>
+
+                <!-- CARD 4: PRATINJAU MEDIA SOSIAL LIVE (REAL-TIME OG PREVIEW) -->
+                <div class="sidebar-widget-card" style="border: 2px solid #BFDBFE; background: #F0F7FF;">
+                  <div class="sidebar-widget-card-header" style="border-bottom-color: #BFDBFE;">
+                    <h5 class="sidebar-widget-title" style="color: #1E40AF;">📱 Pratinjau Media Sosial</h5>
+                    <div class="social-preview-tabs" style="display: flex; gap: 4px;">
+                      <button type="button" class="social-tab-btn active" id="btnPreviewFB" onclick="switchSocialPreview('facebook')" style="font-size: 0.7rem; padding: 3px 8px;">📘 FB / X</button>
+                      <button type="button" class="social-tab-btn" id="btnPreviewWA" onclick="switchSocialPreview('whatsapp')" style="font-size: 0.7rem; padding: 3px 8px;">💬 WA</button>
+                    </div>
+                  </div>
+
+                  <!-- CARD PREVIEW: FACEBOOK / TWITTER -->
+                  <div id="socialCardFB" class="fb-card-preview" style="border-radius: 8px; overflow: hidden; border: 1px solid #CBD5E1; background: #FFFFFF;">
+                    <img id="ogPreviewImg" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" alt="Preview Share" style="width: 100%; height: 140px; object-fit: cover;">
+                    <div class="fb-card-meta" style="padding: 10px;">
+                      <div class="fb-card-domain" style="font-size: 0.68rem; color: #64748B; font-weight: 700; text-transform: uppercase;">DISPERINDAGESDM-PINRANG.WEB.APP</div>
+                      <div class="fb-card-title" id="ogPreviewTitle" style="font-size: 0.82rem; font-weight: 800; color: #0F172A; line-height: 1.35; margin: 4px 0;">Judul Rilis Berita Resmi Kedinasan</div>
+                      <div class="fb-card-desc" id="ogPreviewDesc" style="font-size: 0.72rem; color: #475569; line-height: 1.35;">Ringkasan rilis berita resmi...</div>
+                    </div>
+                  </div>
+
+                  <!-- CARD PREVIEW: WHATSAPP -->
+                  <div id="socialCardWA" style="display: none; background: #DCF8C6; border-radius: 10px 10px 10px 2px; padding: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #C2E7A4;">
+                    <div style="background: #FFFFFF; border-radius: 6px; overflow: hidden; border: 1px solid #E2E8F0;">
+                      <img id="ogPreviewImgWA" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" style="width: 100%; height: 130px; object-fit: cover;" alt="Preview WA">
+                      <div style="padding: 8px;">
+                        <div id="ogPreviewTitleWA" style="font-size: 0.8rem; font-weight: 800; color: #0F172A; line-height: 1.3; margin-bottom: 3px;">Judul Rilis Berita Resmi Kedinasan</div>
+                        <div id="ogPreviewDescWA" style="font-size: 0.7rem; color: #64748B; line-height: 1.3;">Ringkasan berita...</div>
+                        <div style="font-size: 0.65rem; color: #059669; font-weight: 700; margin-top: 4px;">disperindagesdm-pinrang.web.app</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
+
             </div>
 
           </div>

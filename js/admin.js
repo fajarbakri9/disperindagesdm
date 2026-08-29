@@ -336,18 +336,87 @@ window.copyNewsPublicLink = function(slugOrId, title) {
   }
 };
 
-// SLUG AUTO-GENERATOR
-function autoGenerateSlug(title) {
-  const slugInput = document.getElementById('newsSlugInput');
-  if (!slugInput) return;
-  const slug = title
+// SLUG STRING GENERATOR
+function generateSlugString(title) {
+  if (!title) return '';
+  return title
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
-  slugInput.value = slug;
 }
+
+window.autoGenerateSlug = function(title) {
+  const slug = generateSlugString(title);
+  const slugInput = document.getElementById('newsSlugInput');
+  if (slugInput) slugInput.value = slug;
+  return slug;
+};
+
+// SIDEBAR STATUS BADGE
+window.updateSidebarStatusBadge = function(status) {
+  const badge = document.getElementById('sidebarStatusBadge');
+  if (!badge) return;
+  if (status === 'draft') {
+    badge.className = 'badge badge-draft';
+    badge.textContent = 'Draf';
+  } else {
+    badge.className = 'badge badge-published';
+    badge.textContent = 'Live';
+  }
+};
+
+// REALTIME SOCIAL SHARE OPEN GRAPH PREVIEW
+window.updateLiveSocialPreview = function() {
+  const titleInp = document.getElementById('newsTitleInput');
+  const excerptInp = document.getElementById('newsExcerptInput');
+  
+  const title = (titleInp && titleInp.value.trim()) 
+    ? titleInp.value.trim() 
+    : "Judul Rilis Berita Resmi Kedinasan Disperindag ESDM Pinrang";
+    
+  const desc = (excerptInp && excerptInp.value.trim()) 
+    ? excerptInp.value.trim() 
+    : "Ringkasan rilis berita resmi untuk pratinjau media sosial...";
+
+  const img = currentFeaturedImage || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+
+  // 1. Update Facebook / X Card Preview
+  const fbImg = document.getElementById('ogPreviewImg');
+  const fbTitle = document.getElementById('ogPreviewTitle');
+  const fbDesc = document.getElementById('ogPreviewDesc');
+  if (fbImg) fbImg.src = img;
+  if (fbTitle) fbTitle.textContent = title;
+  if (fbDesc) fbDesc.textContent = desc;
+
+  // 2. Update WhatsApp Bubble Preview
+  const waImg = document.getElementById('ogPreviewImgWA');
+  const waTitle = document.getElementById('ogPreviewTitleWA');
+  const waDesc = document.getElementById('ogPreviewDescWA');
+  if (waImg) waImg.src = img;
+  if (waTitle) waTitle.textContent = title;
+  if (waDesc) waDesc.textContent = desc;
+};
+
+window.switchSocialPreview = function(platform) {
+  const cardFB = document.getElementById('socialCardFB');
+  const cardWA = document.getElementById('socialCardWA');
+  const btnFB = document.getElementById('btnPreviewFB');
+  const btnWA = document.getElementById('btnPreviewWA');
+
+  if (platform === 'facebook') {
+    if (cardFB) cardFB.style.display = 'block';
+    if (cardWA) cardWA.style.display = 'none';
+    if (btnFB) btnFB.classList.add('active');
+    if (btnWA) btnWA.classList.remove('active');
+  } else {
+    if (cardFB) cardFB.style.display = 'none';
+    if (cardWA) cardWA.style.display = 'block';
+    if (btnFB) btnFB.classList.remove('active');
+    if (btnWA) btnWA.classList.add('active');
+  }
+};
 
 // OPEN EDITOR (CREATE OR EDIT MODE)
 window.openNewsEditor = function(newsId = null) {
@@ -374,10 +443,13 @@ window.openNewsEditor = function(newsId = null) {
     const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
     const item = allNews.find(n => n.id === newsId);
     if (item) {
-      if (formTitle) formTitle.innerHTML = `✏️ Sunting Berita: <span style="color:#1E40AF;">${item.title.slice(0, 45)}...</span>`;
+      if (formTitle) formTitle.innerHTML = `✏️ Sunting Berita: <span style="color:#1E40AF;">${(item.title || '').slice(0, 45)}...</span>`;
       document.getElementById('newsEditId').value = item.id;
       document.getElementById('newsTitleInput').value = item.title || '';
-      document.getElementById('newsSlugInput').value = item.slug || autoGenerateSlug(item.title || '');
+      
+      const resolvedSlug = item.slug || generateSlugString(item.title || '');
+      document.getElementById('newsSlugInput').value = resolvedSlug;
+      
       document.getElementById('newsCategorySelect').value = item.category || 'Perindustrian, Energi & SDM';
       document.getElementById('newsDateInput').value = item.date || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
       document.getElementById('newsAuthorInput').value = item.author || 'Humas Disperindag ESDM Pinrang';
@@ -395,6 +467,7 @@ window.openNewsEditor = function(newsId = null) {
       }
 
       document.getElementById('newsStatusSelect').value = item.status || 'published';
+      updateSidebarStatusBadge(item.status || 'published');
       document.getElementById('newsIsFeaturedCheckbox').checked = !!item.is_featured;
 
       currentFeaturedImage = item.img || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
@@ -407,7 +480,7 @@ window.openNewsEditor = function(newsId = null) {
     }
   } else {
     // Mode CREATE
-    if (formTitle) formTitle.innerHTML = `✍️ Tulis Berita & Siaran Pers Baru`;
+    if (formTitle) formTitle.innerHTML = `✍️ Studio Berita &amp; Siaran Pers Baru`;
     document.getElementById('newsEditId').value = '';
     document.getElementById('newsTitleInput').value = '';
     document.getElementById('newsSlugInput').value = '';
@@ -419,6 +492,7 @@ window.openNewsEditor = function(newsId = null) {
     const visualCanvas = document.getElementById('newsVisualCanvas');
     if (visualCanvas) visualCanvas.innerHTML = '';
     document.getElementById('newsStatusSelect').value = 'published';
+    updateSidebarStatusBadge('published');
     document.getElementById('newsIsFeaturedCheckbox').checked = false;
 
     currentFeaturedImage = "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
@@ -433,7 +507,10 @@ window.openNewsEditor = function(newsId = null) {
   // Pasang live listener judul & excerpt untuk realtime social OG card preview
   const titleInp = document.getElementById('newsTitleInput');
   const excerptInp = document.getElementById('newsExcerptInput');
-  if (titleInp) titleInp.oninput = updateLiveSocialPreview;
+  if (titleInp) titleInp.oninput = function() {
+    autoGenerateSlug(this.value);
+    updateLiveSocialPreview();
+  };
   if (excerptInp) excerptInp.oninput = updateLiveSocialPreview;
 
   renderNewsTagChips();
