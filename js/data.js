@@ -133,7 +133,15 @@ window.mergeNewsWithDefaults = mergeNewsWithDefaults;
 
 // Universal Helper Merge Data Banner Hero Carousel
 function mergeBannersWithDefaults(incomingList) {
-  const baseList = JSON.parse(JSON.stringify(typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []));
+  let deletedIds = [];
+  try {
+    const rawDeleted = localStorage.getItem('disperindag_deleted_banner_ids');
+    if (rawDeleted) deletedIds = JSON.parse(rawDeleted);
+  } catch (e) {}
+  const deletedSet = new Set(Array.isArray(deletedIds) ? deletedIds : []);
+
+  const baseList = JSON.parse(JSON.stringify(typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []))
+    .filter(banner => banner && !deletedSet.has(banner.id));
   if (!Array.isArray(incomingList) || incomingList.length === 0) return baseList;
 
   const map = new Map();
@@ -141,7 +149,7 @@ function mergeBannersWithDefaults(incomingList) {
   
   const customBanners = [];
   incomingList.forEach(inc => {
-    if (inc && inc.id) {
+    if (inc && inc.id && !deletedSet.has(inc.id)) {
       if (map.has(inc.id)) {
         map.set(inc.id, { ...map.get(inc.id), ...inc });
       } else {

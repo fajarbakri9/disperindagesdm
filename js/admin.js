@@ -36,7 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       db.collection('settings').doc('banners').onSnapshot(doc => {
         if (doc.exists && doc.data() && Array.isArray(doc.data().list)) {
-          const merged = mergeBannersWithDefaults(doc.data().list);
+          const bannerData = doc.data();
+          if (Array.isArray(bannerData.deleted_ids)) {
+            localStorage.setItem('disperindag_deleted_banner_ids', JSON.stringify(bannerData.deleted_ids));
+          }
+          const merged = mergeBannersWithDefaults(bannerData.list);
           setStorage('disperindag_banners', merged);
           renderAdminBanners();
         }
@@ -1368,6 +1372,25 @@ window.closeNewsPreviewModal = function() {
 };
 
 // 4. BANNER CAROUSEL (CRUD LENGKAP)
+function getDeletedBannerIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('disperindag_deleted_banner_ids') || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function syncBannerStateToCloud(banners) {
+  if (typeof db === 'undefined' || db === null) return false;
+  await db.collection('settings').doc('banners').set({
+    list: banners,
+    deleted_ids: getDeletedBannerIds(),
+    updated_at: new Date().toISOString()
+  }, { merge: true });
+  return true;
+}
+
 function renderAdminBanners() {
   const container = document.getElementById('adminBannersList');
   if (!container) return;
@@ -1418,7 +1441,7 @@ function initBannerUploader() {
   }
 
   if (form) {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('bannerTitle').value.trim();
       const caption = document.getElementById('bannerCaption').value.trim();
@@ -1436,6 +1459,13 @@ function initBannerUploader() {
       banners.unshift(newBanner);
       setStorage('disperindag_banners', banners);
 
+      try {
+        await syncBannerStateToCloud(banners);
+      } catch (err) {
+        console.error('Gagal menyinkronkan banner baru:', err);
+        CustomModal.toast('Banner tersimpan lokal, tetapi sinkronisasi cloud gagal.', 'warning');
+      }
+
       form.reset();
       resultInput.value = '';
       renderAdminBanners();
@@ -1450,7 +1480,7 @@ function initBannerUploader() {
   }
 }
 
-window.toggleBannerActive = function(bannerId) {
+window.toggleBannerActive = async function(bannerId) {
   const banners = getStorage('disperindag_banners', DEFAULT_BANNERS);
   const b = banners.find(item => item.id === bannerId);
   if (!b) return;
@@ -1458,38 +1488,91 @@ window.toggleBannerActive = function(bannerId) {
   b.active = !b.active;
   setStorage('disperindag_banners', banners);
   renderAdminBanners();
+  try {
+    await syncBannerStateToCloud(banners);
+  } catch (err) {
+    console.error('Gagal menyinkronkan status banner:', err);
+    CustomModal.toast('Status tersimpan lokal, tetapi sinkronisasi cloud gagal.', 'warning');
+  }
 };
 
-window.editBannerText = function(bannerId) {
+window.editBannerText = async function(bannerId) {
   const banners = getStorage('disperindag_banners', DEFAULT_BANNERS);
   const b = banners.find(item => item.id === bannerId);
   if (!b) return;
 
-  CustomModal.prompt({
+  const newTitle = await CustomModal.prompt({
     title: "Edit Judul Banner",
     message: "Masukkan judul baru untuk banner ini:",
-    defaultValue: b.title,
-    onConfirm: (newTitle) => {
-      if (newTitle) b.title = newTitle;
-      setStorage('disperindag_banners', banners);
-      renderAdminBanners();
-    }
+    defaultValue: b.title
   });
+
+  if (!newTitle || !newTitle.trim()) return;
+  b.title = newTitle.trim();
+  setStorage('disperindag_banners', banners);
+  renderAdminBanners();
+  try {
+    await syncBannerStateToCloud(banners);
+  } catch (err) {
+    console.error('Gagal menyinkronkan perubahan banner:', err);
+    CustomModal.toast('Perubahan tersimpan lokal, tetapi sinkronisasi cloud gagal.', 'warning');
+  }
 };
 
-window.deleteBanner = function(bannerId) {
-  CustomModal.confirm({
+window.deleteBanner = async function(bannerId) {
+  const currentBanners = getStorage('disperindag_banners', DEFAULT_BANNERS);
+  const targetBanner = currentBanners.find(item => item.id === bannerId);
+  if (!targetBanner) return;
+
+  const confirmed = await CustomModal.confirm({
     title: "Hapus Banner Carousel?",
     message: "Apakah Anda yakin ingin menghapus banner ini dari beranda?",
     icon: "🗑️",
-    type: "danger",
-    onConfirm: () => {
-      let banners = getStorage('disperindag_banners', DEFAULT_BANNERS);
-      banners = banners.filter(item => item.id !== bannerId);
-      setStorage('disperindag_banners', banners);
-      renderAdminBanners();
-    }
+    isDanger: true,
+    confirmText: "Ya, Hapus Banner",
+    cancelText: "Batal"
   });
+
+  if (!confirmed) return;
+
+  const deletedIds = getDeletedBannerIds();
+  if (!deletedIds.includes(bannerId)) deletedIds.push(bannerId);
+  localStorage.setItem('disperindag_deleted_banner_ids', JSON.stringify(deletedIds));
+
+  const banners = currentBanners.filter(item => item.id !== bannerId);
+  setStorage('disperindag_banners', banners);
+
+  // Banner headline berita juga harus dilepas dari status featured agar
+  // carousel beranda tidak merekonstruksinya kembali dari koleksi berita.
+  if (targetBanner.target_news_id) {
+    const newsList = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+    const relatedNews = newsList.find(item => item.id === targetBanner.target_news_id);
+    if (relatedNews) {
+      relatedNews.is_featured = false;
+      relatedNews.updated_at = new Date().toISOString();
+      setStorage('disperindag_news', newsList);
+      if (typeof db !== 'undefined' && db !== null) {
+        try {
+          await db.collection('news').doc(relatedNews.id).set({
+            is_featured: false,
+            updated_at: relatedNews.updated_at
+          }, { merge: true });
+        } catch (err) {
+          console.error('Gagal melepas status featured berita:', err);
+        }
+      }
+    }
+  }
+
+  renderAdminBanners();
+
+  try {
+    await syncBannerStateToCloud(banners);
+    CustomModal.toast(`Banner "${targetBanner.title}" berhasil dihapus dari carousel.`, 'success');
+  } catch (err) {
+    console.error('Gagal menyinkronkan penghapusan banner:', err);
+    CustomModal.toast('Banner dihapus lokal, tetapi sinkronisasi cloud gagal.', 'warning');
+  }
 };
 
 // 5. TABEL DOKUMEN & REGULASI
@@ -2977,6 +3060,5 @@ window.clearAuditLogs = function() {
   renderAuditLogs();
   CustomModal.toast("Catatan riwayat audit log berhasil dibersihkan.", "info");
 };
-
 
 

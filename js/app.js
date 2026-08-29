@@ -54,7 +54,11 @@ function initFirestoreLiveSync() {
       // 2. Sync Banners Live dari Cloud Firestore
       db.collection('settings').doc('banners').onSnapshot(doc => {
         if (doc.exists && doc.data() && Array.isArray(doc.data().list)) {
-          const cloudBanners = doc.data().list;
+          const bannerData = doc.data();
+          if (Array.isArray(bannerData.deleted_ids)) {
+            localStorage.setItem('disperindag_deleted_banner_ids', JSON.stringify(bannerData.deleted_ids));
+          }
+          const cloudBanners = bannerData.list;
           const mergedBanners = mergeBannersWithDefaults(cloudBanners);
           setStorage('disperindag_banners', mergedBanners);
           renderHeroCarousel();
