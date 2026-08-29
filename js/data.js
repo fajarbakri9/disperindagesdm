@@ -307,7 +307,7 @@ const DEFAULT_OFFICIALS = [
     full_name: "Muhammad Yusuf Nur, S.STP",
     position: "Kepala Dinas",
     unit: "Pimpinan Dinas",
-    photo_url: "Kadis perindesdm pinrang.png",
+    photo_url: "assets/officials/kadis_muhammad_yusuf_nur_2026.jpg",
     nip: "19780512 199711 1 001",
     rank: "Pembina Utama Muda (IV/c)",
     start_date: "01 Januari 2024",
@@ -2029,7 +2029,7 @@ const DEFAULT_MEDIA_INTELLIGENCE = {
 
 function initDataStoreMigration() {
   const currentVer = localStorage.getItem('disperindag_data_version');
-  const targetVer = "2026_08_29_dedup_clean_v5";
+  const targetVer = "2026_08_29_official_photo_v6";
   if (currentVer !== targetVer) {
     localStorage.setItem('disperindag_site_settings', JSON.stringify(DEFAULT_SITE_SETTINGS));
     localStorage.setItem('disperindag_contact_channels', JSON.stringify(DEFAULT_CONTACT_CHANNELS));

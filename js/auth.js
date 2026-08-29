@@ -32,7 +32,7 @@ const DEFAULT_SYSTEM_USERS = [
     roleLabel: "Kepala Dinas (Super Admin)",
     roleIcon: "👑",
     phone: "0823 1600 2226",
-    avatar: "assets/officials/kadis_pinrang_opt.jpg",
+    avatar: "assets/officials/kadis_muhammad_yusuf_nur_2026.jpg",
     bio: "Kepala Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.",
     canAccessAdmin: true,
     canAccessPetugas: true,
@@ -158,12 +158,21 @@ const DEFAULT_SYSTEM_USERS = [
 
 // Inisialisasi Database Pengguna (Versi Terkini 2026)
 function initAuthStore() {
-  const targetAuthVer = "2026_08_28_users_v3";
+  const targetAuthVer = "2026_08_29_official_photo_v4";
   const currentVer = localStorage.getItem("disperindag_users_version");
   if (currentVer !== targetAuthVer) {
     localStorage.setItem(AUTH_STORE_KEY, JSON.stringify(DEFAULT_SYSTEM_USERS));
     localStorage.setItem("disperindag_users_version", targetAuthVer);
   }
+
+  // Perbarui juga sesi yang sudah aktif agar avatar lama tidak bertahan di browser.
+  try {
+    const currentSession = JSON.parse(localStorage.getItem(SESSION_AUTH_KEY));
+    if (currentSession && currentSession.username === "kadis_pinrang") {
+      currentSession.avatar = "assets/officials/kadis_muhammad_yusuf_nur_2026.jpg";
+      localStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(currentSession));
+    }
+  } catch (e) {}
 }
 initAuthStore();
 
