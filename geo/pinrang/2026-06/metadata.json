@@ -1,0 +1,20 @@
+{
+  "source": "Badan Informasi Geospasial",
+  "dataset": "Batas Wilayah Administrasi Nasional",
+  "edition": "Juni 2026",
+  "spatialReference": "EPSG:4326",
+  "downloadedAt": "2026-08-30",
+  "filter": "Kabupaten Pinrang, Provinsi Sulawesi Selatan",
+  "webSimplification": {
+    "geometryPrecision": 5,
+    "maxAllowableOffsetDegrees": 0.00005
+  },
+  "featureCounts": {
+    "kecamatan": 12,
+    "desaKelurahan": 109
+  },
+  "sourceServices": {
+    "kecamatan": "https://geoservices.big.go.id/rbi/rest/services/BATASWILAYAH/BATAS_KECAMATAN_AR/MapServer/0",
+    "desaKelurahan": "https://geoservices.big.go.id/rbi/rest/services/BATASWILAYAH/BATAS_DESAKEL_AR/MapServer/0"
+  }
+}

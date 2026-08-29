@@ -35,8 +35,12 @@ let lpgGisLayers = {
   agents: null,
   districts: null,
   routes: null,
-  verifiedPangkalan: null
+  verifiedPangkalan: null,
+  kecamatanBoundary: null,
+  desaBoundary: null
 };
+const LPG_BOUNDARY_BASE = 'geo/pinrang/2026-06';
+const LPG_DISTRICT_COLORS = ['#2563EB','#059669','#7C3AED','#D97706','#0891B2','#DC2626','#4F46E5','#0D9488','#9333EA','#EA580C','#0284C7','#65A30D'];
 
 function escapeLpgMapText(value) {
   return String(value == null ? '' : value)
@@ -60,6 +64,9 @@ function ensureLpgMapStyles() {
     .lpg-pangkalan-pin{width:17px;height:17px;border:3px solid #FFF;border-radius:50%;background:#059669;box-shadow:0 3px 7px rgba(5,150,105,.45)}
     .lpg-map-tooltip{padding:6px 9px!important;border:0!important;border-radius:7px!important;background:#0F172A!important;color:#FFF!important;font:800 11px/1.25 sans-serif!important;box-shadow:0 4px 12px rgba(15,23,42,.28)!important}
     .lpg-map-tooltip:before{display:none!important}
+    .lpg-region-label{padding:4px 7px!important;border:1px solid rgba(255,255,255,.9)!important;border-radius:6px!important;background:rgba(15,44,89,.88)!important;color:#FFF!important;font:900 10px/1.15 sans-serif!important;text-align:center!important;box-shadow:0 3px 9px rgba(15,23,42,.2)!important}
+    .lpg-region-label:before{display:none!important}
+    .lpg-region-label span{display:block;margin-top:2px;color:#FDE047;font-size:9px}
     .leaflet-popup-content-wrapper{border-radius:11px!important;box-shadow:0 12px 30px rgba(15,23,42,.2)!important}
   `;
   document.head.appendChild(style);
@@ -85,7 +92,7 @@ window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
   // Base Layer OpenStreetMap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Disperindag ESDM Pinrang'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Batas: BIG Juni 2026'
   }).addTo(lpgGisMapInstance);
 
   // Inisialisasi Layer Groups
@@ -96,8 +103,56 @@ window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
 
   populateLpgGisFilters();
   renderLpgGisMarkers();
+  loadLpgAdministrativeBoundaries();
   setTimeout(() => { lpgGisMapInstance?.invalidateSize({ pan: false }); homeLpgGisMap(); }, 100);
 };
+
+async function loadLpgAdministrativeBoundaries() {
+  if (!lpgGisMapInstance) return;
+  try {
+    const [districts, villages] = await Promise.all([
+      fetch(`${LPG_BOUNDARY_BASE}/kecamatan.geojson`).then(r => { if (!r.ok) throw new Error('Batas kecamatan tidak tersedia'); return r.json(); }),
+      fetch(`${LPG_BOUNDARY_BASE}/desa-kelurahan.geojson`).then(r => { if (!r.ok) throw new Error('Batas desa/kelurahan tidak tersedia'); return r.json(); })
+    ]);
+    const pangkalan = getLpgMapData().filter(item => !item.isDeleted);
+    const districtCounts = pangkalan.reduce((acc, item) => { acc[item.kecamatan] = (acc[item.kecamatan] || 0) + 1; return acc; }, {});
+    lpgGisLayers.kecamatanBoundary = L.geoJSON(districts, {
+      style: feature => {
+        const name = feature.properties.WADMKC || feature.properties.NAMOBJ;
+        const index = Math.max(0, Object.keys(PINRANG_KECAMATAN_COORDS).indexOf(name));
+        return { color: LPG_DISTRICT_COLORS[index % LPG_DISTRICT_COLORS.length], weight: 2.2, opacity: .95, fillColor: LPG_DISTRICT_COLORS[index % LPG_DISTRICT_COLORS.length], fillOpacity: .13 };
+      },
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.WADMKC || feature.properties.NAMOBJ;
+        layer.bindTooltip(`${escapeLpgMapText(name)}<span>${districtCounts[name] || 0} pangkalan</span>`, { permanent: true, direction: 'center', className: 'lpg-region-label' });
+        layer.on({ mouseover: e => e.target.setStyle({ weight: 3.5, fillOpacity: .24 }), mouseout: e => lpgGisLayers.kecamatanBoundary.resetStyle(e.target), click: e => lpgGisMapInstance.fitBounds(e.target.getBounds(), { padding: [35,35] }) });
+      }
+    }).addTo(lpgGisMapInstance);
+    lpgGisLayers.desaBoundary = L.geoJSON(villages, {
+      style: { color:'#475569', weight:.8, opacity:.65, dashArray:'3 3', fillColor:'#94A3B8', fillOpacity:.035 },
+      onEachFeature: (feature, layer) => {
+        const village = feature.properties.WADMKD || feature.properties.NAMOBJ;
+        const district = feature.properties.WADMKC || '-';
+        layer.bindTooltip(`${escapeLpgMapText(village)} • Kec. ${escapeLpgMapText(district)}`, { sticky:true, className:'lpg-map-tooltip' });
+        layer.on({ mouseover:e => e.target.setStyle({ weight:1.7, color:'#F59E0B', fillOpacity:.12 }), mouseout:e => lpgGisLayers.desaBoundary.resetStyle(e.target) });
+      }
+    });
+    lpgGisMapInstance.getPanes().overlayPane.style.zIndex = 400;
+    L.control.layers(null, { 'Batas kecamatan': lpgGisLayers.kecamatanBoundary, 'Batas desa/kelurahan': lpgGisLayers.desaBoundary }, { collapsed:true, position:'topright' }).addTo(lpgGisMapInstance);
+    const syncVillageLayer = () => {
+      if (lpgGisMapInstance.getZoom() >= 12) {
+        if (!lpgGisMapInstance.hasLayer(lpgGisLayers.desaBoundary)) lpgGisLayers.desaBoundary.addTo(lpgGisMapInstance);
+      } else if (lpgGisMapInstance.hasLayer(lpgGisLayers.desaBoundary)) lpgGisMapInstance.removeLayer(lpgGisLayers.desaBoundary);
+    };
+    lpgGisMapInstance.on('zoomend', syncVillageLayer);
+    syncVillageLayer();
+    lpgGisHomeBounds = lpgGisLayers.kecamatanBoundary.getBounds();
+    lpgGisLayers.districts.clearLayers();
+    homeLpgGisMap();
+  } catch (error) {
+    console.warn('Overlay batas administrasi BIG tidak dapat dimuat:', error);
+  }
+}
 
 function getLpgMapData() {
   return (typeof getLpgStore === 'function')
