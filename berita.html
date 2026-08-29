@@ -511,9 +511,17 @@
           if (docSnap.exists) {
             article = { id: docSnap.id, ...docSnap.data() };
           } else {
-            const querySnap = await db.collection('news').where('slug', '==', queryKey).limit(1).get();
+            const querySnap = await db.collection('news').where('slug', '==', queryKey).get();
             if (!querySnap.empty) {
-              const d = querySnap.docs[0];
+              const d = querySnap.docs.slice().sort((a, b) => {
+                const timeOf = doc => {
+                  const data = doc.data();
+                  return typeof getNewsTimestamp === 'function'
+                    ? getNewsTimestamp(data)
+                    : new Date(data.updated_at || data.created_at || 0).getTime() || 0;
+                };
+                return timeOf(b) - timeOf(a);
+              })[0];
               article = { id: d.id, ...d.data() };
             }
           }

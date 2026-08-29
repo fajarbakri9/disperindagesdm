@@ -49,35 +49,35 @@ function mergePricesWithDefaults(incomingList) {
 }
 window.mergePricesWithDefaults = mergePricesWithDefaults;
 
-// Universal Helper Deduplikasi Berita (Mencegah Penumpukan / Duplikasi Berita)
+// Waktu kanonis berita untuk pengurutan dan resolusi konflik secara deterministik.
+function getNewsTimestamp(item) {
+  if (!item) return 0;
+  const candidates = [item.updated_at, item.updatedAt, item.published_at, item.publishedAt, item.created_at, item.createdAt];
+  for (const value of candidates) {
+    if (!value) continue;
+    const dateValue = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+    const timestamp = dateValue.getTime();
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return 0;
+}
+window.getNewsTimestamp = getNewsTimestamp;
+
+// Deduplikasi berdasarkan ID/slug. Jika data lama berkonflik, versi terbaru selalu menang.
 function deduplicateNewsList(list) {
   if (!Array.isArray(list)) return [];
+  const sorted = list.filter(Boolean).slice().sort((a, b) => getNewsTimestamp(b) - getNewsTimestamp(a));
   const seenIds = new Set();
   const seenSlugs = new Set();
-  const seenTitles = new Set();
-  const result = [];
 
-  list.forEach(item => {
-    if (!item) return;
-    const id = item.id || '';
-    const slug = (item.slug || '').toLowerCase().trim();
-    const cleanTitle = (item.title || '').toLowerCase().trim().replace(/[^\w\s]/gi, '');
-
-    // Cek apakah sudah pernah masuk berdasarkan ID, Slug, atau Judul Bersih
-    const isDuplicate = 
-      (id && seenIds.has(id)) ||
-      (slug && seenSlugs.has(slug)) ||
-      (cleanTitle && cleanTitle.length > 8 && seenTitles.has(cleanTitle));
-
-    if (!isDuplicate) {
-      if (id) seenIds.add(id);
-      if (slug) seenSlugs.add(slug);
-      if (cleanTitle) seenTitles.add(cleanTitle);
-      result.push(item);
-    }
+  return sorted.filter(item => {
+    const id = String(item.id || '').trim();
+    const slug = String(item.slug || '').toLowerCase().trim();
+    if ((id && seenIds.has(id)) || (slug && seenSlugs.has(slug))) return false;
+    if (id) seenIds.add(id);
+    if (slug) seenSlugs.add(slug);
+    return true;
   });
-
-  return result;
 }
 window.deduplicateNewsList = deduplicateNewsList;
 
@@ -93,16 +93,14 @@ function mergeNewsWithDefaults(incomingList) {
 
   // 2. Filter base default news
   const rawBaseList = JSON.parse(JSON.stringify(typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []));
-  const baseList = rawBaseList.filter(item => !deletedSet.has(item.id) && !deletedSet.has(item.slug));
+  const baseList = rawBaseList.filter(item => !deletedSet.has(item.id));
 
   if (!Array.isArray(incomingList) || incomingList.length === 0) {
     return deduplicateNewsList(baseList);
   }
 
   // 3. Filter incoming list dari ID terhapus
-  const cleanIncoming = incomingList.filter(item => 
-    item && item.id && !deletedSet.has(item.id) && !deletedSet.has(item.slug)
-  );
+  const cleanIncoming = incomingList.filter(item => item && item.id && !deletedSet.has(item.id));
 
   const baseMap = new Map();
   baseList.forEach(item => baseMap.set(item.id, item));
@@ -121,11 +119,7 @@ function mergeNewsWithDefaults(incomingList) {
   const merged = [...newCustomItems, ...Array.from(baseMap.values())];
   
   // Sortir agar artikel dengan updated_at terbaru selalu berada di paling atas
-  merged.sort((a, b) => {
-    const timeA = a.updated_at ? new Date(a.updated_at).getTime() : 0;
-    const timeB = b.updated_at ? new Date(b.updated_at).getTime() : 0;
-    return timeB - timeA;
-  });
+  merged.sort((a, b) => getNewsTimestamp(b) - getNewsTimestamp(a));
 
   return deduplicateNewsList(merged);
 }

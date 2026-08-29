@@ -520,7 +520,15 @@ function renderHomeNews() {
   if (!container) return;
 
   const rawNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
-  const news = (Array.isArray(rawNews) ? rawNews : []).slice(0, 3);
+  const news = (Array.isArray(rawNews) ? rawNews : [])
+    .filter(item => item && (item.status || 'published') === 'published')
+    .sort((a, b) => {
+      const getTime = typeof getNewsTimestamp === 'function'
+        ? getNewsTimestamp
+        : item => new Date(item?.published_at || item?.updated_at || item?.created_at || 0).getTime() || 0;
+      return getTime(b) - getTime(a);
+    })
+    .slice(0, 3);
   
   container.innerHTML = news.map(item => {
     const rawTag = Array.isArray(item.tags) && item.tags.length > 0 

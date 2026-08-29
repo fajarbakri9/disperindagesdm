@@ -365,24 +365,26 @@
       const countLabel = document.getElementById('newsCountLabel');
       if (!container) return;
 
-      const news = getStorage('disperindag_news', DEFAULT_NEWS);
+      let news = getStorage('disperindag_news', DEFAULT_NEWS);
       let currentTopic = null;
 
       function applyFilter() {
         const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const cat = catSelect ? catSelect.value : 'all';
 
-        const filtered = news.filter(item => {
-          const matchQ = !q || (item.title && item.title.toLowerCase().includes(q)) || 
-                               (item.excerpt && item.excerpt.toLowerCase().includes(q)) || 
-                               (item.category && item.category.toLowerCase().includes(q)) ||
-                               (item.topic_tag && item.topic_tag.toLowerCase().includes(q));
-          const matchCat = cat === 'all' || item.category === cat;
-          const matchTopic = !currentTopic || (item.topic_tag && item.topic_tag.toLowerCase().includes(currentTopic.toLowerCase())) ||
-                             (item.title && item.title.toLowerCase().includes(currentTopic.toLowerCase())) ||
-                             (item.excerpt && item.excerpt.toLowerCase().includes(currentTopic.toLowerCase()));
-          return matchQ && matchCat && matchTopic;
-        });
+        const filtered = news
+          .filter(item => item && (item.status || 'published') === 'published')
+          .filter(item => {
+            const matchQ = !q || (item.title && item.title.toLowerCase().includes(q)) ||
+                                 (item.excerpt && item.excerpt.toLowerCase().includes(q)) ||
+                                 (item.category && item.category.toLowerCase().includes(q)) ||
+                                 (item.topic_tag && item.topic_tag.toLowerCase().includes(q));
+            const matchCat = cat === 'all' || item.category === cat;
+            const matchTopic = !currentTopic || (item.topic_tag && item.topic_tag.toLowerCase().includes(currentTopic.toLowerCase())) ||
+                               (item.title && item.title.toLowerCase().includes(currentTopic.toLowerCase())) ||
+                               (item.excerpt && item.excerpt.toLowerCase().includes(currentTopic.toLowerCase()));
+            return matchQ && matchCat && matchTopic;
+          });
 
         if (countLabel) {
           countLabel.textContent = `Menampilkan ${filtered.length} Berita Kedinasan`;
@@ -475,8 +477,8 @@
             if (!snapshot.empty) {
               const cloudNews = [];
               snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));
-              allNews = mergeNewsWithDefaults(cloudNews);
-              setStorage('disperindag_news', allNews);
+              news = mergeNewsWithDefaults(cloudNews);
+              setStorage('disperindag_news', news);
               applyFilter();
             }
           }, err => console.warn("Firestore News listener:", err));

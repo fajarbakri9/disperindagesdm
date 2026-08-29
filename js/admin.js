@@ -382,13 +382,8 @@ window.deleteAdminNews = async function(id) {
     deletedIds.push(id);
     localStorage.setItem('disperindag_deleted_news_ids', JSON.stringify(deletedIds));
   }
-  if (targetNews.slug && !deletedIds.includes(targetNews.slug)) {
-    deletedIds.push(targetNews.slug);
-    localStorage.setItem('disperindag_deleted_news_ids', JSON.stringify(deletedIds));
-  }
-
   // 2. Hapus dari LocalStorage Berita
-  const updatedList = allNews.filter(n => n.id !== id && n.slug !== targetNews.slug);
+  const updatedList = allNews.filter(n => n.id !== id);
   setStorage('disperindag_news', updatedList);
 
   // 3. Hapus dari Banner jika artikel ini adalah headline
@@ -1118,12 +1113,40 @@ window.handleSaveNews = async function(overrideStatus = null) {
 
   const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
   const nowIso = new Date().toISOString();
+  const normalizedSlug = autoGenerateSlug(slug || title);
+  const existingArticle = editId ? allNews.find(item => item && item.id === editId) : null;
+  const keepsExistingSlug = Boolean(editId && existingArticle && String(existingArticle.slug || '').toLowerCase().trim() === normalizedSlug);
+
+  // Slug adalah alamat publik dan wajib unik. Cegah dokumen baru menimpa/menyamarkan berita lama.
+  let slugConflict = keepsExistingSlug
+    ? null
+    : allNews.find(item => item && item.id !== editId && String(item.slug || '').toLowerCase().trim() === normalizedSlug);
+  if (!keepsExistingSlug && typeof db !== 'undefined' && db !== null) {
+    try {
+      const conflictSnapshot = await db.collection('news').where('slug', '==', normalizedSlug).get();
+      const cloudConflict = conflictSnapshot.docs.find(doc => doc.id !== editId);
+      if (cloudConflict) slugConflict = { id: cloudConflict.id, ...cloudConflict.data() };
+    } catch (err) {
+      console.warn('Pemeriksaan keunikan slug menggunakan cache lokal:', err);
+    }
+  }
+
+  if (slugConflict) {
+    CustomModal.alert({
+      title: "Alamat Berita Sudah Digunakan",
+      message: `Slug <strong>${normalizedSlug}</strong> telah digunakan oleh berita <strong>"${slugConflict.title || slugConflict.id}"</strong>.<br><br>Silakan edit berita tersebut atau gunakan slug yang berbeda agar berita tidak hilang setelah refresh.`,
+      icon: "⚠️",
+      type: "warning"
+    });
+    document.getElementById('newsSlugInput')?.focus();
+    return;
+  }
   
   // Payload Bersih TANPA Field undefined (Mencegah Firestore Error)
   const articleObj = {
     id: editId || `news_${Date.now()}`,
     title: title,
-    slug: slug || autoGenerateSlug(title),
+    slug: normalizedSlug,
     category: category,
     topic_tag: currentNewsTags[0] || 'Dinas',
     tags: currentNewsTags.length > 0 ? currentNewsTags : ['DisperindagPinrang'],
@@ -1139,7 +1162,8 @@ window.handleSaveNews = async function(overrideStatus = null) {
     content: content,
     status: status,
     is_featured: isFeatured,
-    updated_at: nowIso
+    updated_at: nowIso,
+    published_at: status === 'published' ? (existingArticle?.published_at || nowIso) : null
   };
 
   if (!editId) {
@@ -3060,5 +3084,3 @@ window.clearAuditLogs = function() {
   renderAuditLogs();
   CustomModal.toast("Catatan riwayat audit log berhasil dibersihkan.", "info");
 };
-
-
