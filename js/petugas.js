@@ -152,7 +152,8 @@ function renderAppForRole() {
 
 // 4. MODUL 1: PETUGAS PASAR (UPDATE HARGA SEMBAKO DENGAN CUSTOM MODAL)
 function renderMarketModule(container) {
-  const pricesList = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const pricesList = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
 
   container.innerHTML = `
     <div class="app-section-title">
@@ -235,7 +236,8 @@ window.mobileEditPrice = async function(id, name, currentPrice, unit = 'Kg') {
     return;
   }
 
-  const prices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const prices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
   const item = prices.find(p => p.id === id);
   if (item) {
     const prevPrice = item.price;

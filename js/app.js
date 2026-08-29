@@ -322,7 +322,8 @@ function renderPriceDashboard() {
   const categorySelect = document.getElementById('categoryFilter');
   if (!container) return;
 
-  const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
+  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const prices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
 
   function filterAndRender() {
     const q = searchInput ? searchInput.value.toLowerCase().trim() : '';

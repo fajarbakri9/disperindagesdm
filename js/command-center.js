@@ -893,7 +893,8 @@ function initFirestoreRealtimeService() {
   }
 
   if (cachedPrices && cachedPrices.data) {
-    renderPricesDOM(cachedPrices.data);
+    const resolvedPrices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(cachedPrices.data) : cachedPrices.data;
+    renderPricesDOM(resolvedPrices);
   } else if (typeof DEFAULT_COMMODITY_PRICES !== 'undefined') {
     renderPricesDOM(DEFAULT_COMMODITY_PRICES);
   }
@@ -984,17 +985,29 @@ function initFirestoreRealtimeService() {
         (err) => console.error("Firestore Districts Error:", err.code, err.message)
       );
 
-      // Listener Prices
-      db.collection('prices').limit(20).onSnapshot(
+      // Listener Prices (Smart Hybrid Merge: Mencegah Kehilangan Komoditas Default saat Update Parsial)
+      db.collection('prices').limit(50).onSnapshot(
         { includeMetadataChanges: true },
         (snapshot) => {
           const list = [];
-          snapshot.forEach(d => list.push(d.data()));
-          if (list.length > 0) {
-            lastFirestoreSuccess = Date.now();
-            setCachedData('disperindag_prices', list);
-            renderPricesDOM(list);
-            if (!snapshot.metadata.fromCache) setSystemStatus("live");
+          snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
+          
+          const mergedList = typeof mergePricesWithDefaults === 'function'
+            ? mergePricesWithDefaults(list)
+            : (list.length >= (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES.length : 12) ? list : DEFAULT_COMMODITY_PRICES);
+
+          lastFirestoreSuccess = Date.now();
+          setCachedData('disperindag_prices', mergedList);
+          renderPricesDOM(mergedList);
+          if (!snapshot.metadata.fromCache) setSystemStatus("live");
+
+          // Auto-seed dokumen harga yang belum ada di server Firestore
+          if (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' && snapshot.size < DEFAULT_COMMODITY_PRICES.length) {
+            DEFAULT_COMMODITY_PRICES.forEach(item => {
+              if (!snapshot.docs.some(doc => doc.id === item.id)) {
+                db.collection('prices').doc(item.id).set(item, { merge: true }).catch(() => {});
+              }
+            });
           }
         },
         (err) => console.error("Firestore Prices Error:", err.code, err.message)
@@ -1045,7 +1058,10 @@ window.addEventListener('storage', (e) => {
         renderDistrictsDOM('ccDistrictMatrix0', cached.data, 2);
         renderDistrictsDOM('ccDistrictMatrix3', cached.data, 3);
       }
-      if (e.key === 'disperindag_prices') renderPricesDOM(cached.data);
+      if (e.key === 'disperindag_prices') {
+        const merged = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(cached.data) : cached.data;
+        renderPricesDOM(merged);
+      }
       if (e.key === 'disperindag_reports') renderReportsDOM(cached.data);
     }
   }

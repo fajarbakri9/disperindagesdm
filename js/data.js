@@ -27,7 +27,27 @@ if (typeof window.setStorage !== 'function') {
   };
 }
 
-const NEWS_DATA_VERSION = "2026_08_26_v9_prod";
+// Universal Helper Merge Data Harga Komoditas (Mencegah Penurunan Data saat Sinkronisasi Parsial)
+function mergePricesWithDefaults(incomingList) {
+  const baseList = JSON.parse(JSON.stringify(typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
+  if (!Array.isArray(incomingList) || incomingList.length === 0) return baseList;
+
+  const map = new Map();
+  baseList.forEach(item => map.set(item.id, item));
+
+  incomingList.forEach(inc => {
+    if (inc && inc.id) {
+      if (map.has(inc.id)) {
+        map.set(inc.id, { ...map.get(inc.id), ...inc });
+      } else {
+        map.set(inc.id, inc);
+      }
+    }
+  });
+
+  return Array.from(map.values());
+}
+window.mergePricesWithDefaults = mergePricesWithDefaults;
 
 // 1. PENGATURAN SITUS & KONTAK TERPADU (SITE SETTINGS)
 // 1. PENGATURAN SITUS & KONTAK TERPADU CANONICAL V3 (SESUAI ARAHAN RESMI)
@@ -1698,7 +1718,7 @@ const DEFAULT_MEDIA_INTELLIGENCE = {
 
 function initDataStoreMigration() {
   const currentVer = localStorage.getItem('disperindag_data_version');
-  const targetVer = "2026_08_28_konten_lengkap_v1";
+  const targetVer = "2026_08_29_harga_lengkap_v2";
   if (currentVer !== targetVer) {
     localStorage.setItem('disperindag_site_settings', JSON.stringify(DEFAULT_SITE_SETTINGS));
     localStorage.setItem('disperindag_contact_channels', JSON.stringify(DEFAULT_CONTACT_CHANNELS));
@@ -1711,7 +1731,12 @@ function initDataStoreMigration() {
     localStorage.setItem('disperindag_ppid', JSON.stringify(DEFAULT_PPID_CATEGORIES));
     localStorage.setItem('disperindag_markets', JSON.stringify(DEFAULT_MARKETS));
     localStorage.setItem('disperindag_commodities', JSON.stringify(DEFAULT_COMMODITIES));
-    localStorage.setItem('disperindag_prices', JSON.stringify(DEFAULT_COMMODITY_PRICES));
+    
+    // Auto-Recovery Prices: gabungkan data tersimpan jika ada dengan 12 default prices
+    const existingPrices = getStorage('disperindag_prices', null);
+    const resolvedPrices = existingPrices ? mergePricesWithDefaults(existingPrices) : DEFAULT_COMMODITY_PRICES;
+    localStorage.setItem('disperindag_prices', JSON.stringify(resolvedPrices));
+    
     localStorage.setItem('disperindag_regulated_prices', JSON.stringify(DEFAULT_REGULATED_PRICES));
     localStorage.setItem('disperindag_products_ikm', JSON.stringify(DEFAULT_PRODUCTS_IKM));
     localStorage.setItem('disperindag_news', JSON.stringify(DEFAULT_NEWS));
@@ -1722,6 +1747,13 @@ function initDataStoreMigration() {
     localStorage.setItem('disperindag_media_intelligence', JSON.stringify(DEFAULT_MEDIA_INTELLIGENCE));
     localStorage.setItem('disperindag_complaint_recap_2025', JSON.stringify(DEFAULT_COMPLAINT_RECAP_2025));
     localStorage.setItem('disperindag_data_version', targetVer);
+  } else {
+    // Validasi liveness data harga pada runtime
+    const storedPrices = getStorage('disperindag_prices', []);
+    if (!Array.isArray(storedPrices) || storedPrices.length < (DEFAULT_COMMODITY_PRICES || []).length) {
+      const recovered = mergePricesWithDefaults(storedPrices);
+      localStorage.setItem('disperindag_prices', JSON.stringify(recovered));
+    }
   }
 }
 
