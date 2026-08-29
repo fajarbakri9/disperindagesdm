@@ -91,7 +91,7 @@ function mergeNewsWithDefaults(incomingList) {
   } catch(e) {}
   const deletedSet = new Set(Array.isArray(deletedIds) ? deletedIds : []);
 
-  // 2. Filter base default news agar tidak memunculkan kembali berita yang sengaja dihapus admin
+  // 2. Filter base default news
   const rawBaseList = JSON.parse(JSON.stringify(typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []));
   const baseList = rawBaseList.filter(item => !deletedSet.has(item.id) && !deletedSet.has(item.slug));
 
@@ -100,25 +100,25 @@ function mergeNewsWithDefaults(incomingList) {
   }
 
   // 3. Filter incoming list dari ID terhapus
-  const cleanIncoming = deduplicateNewsList(incomingList).filter(item => 
-    item && !deletedSet.has(item.id) && !deletedSet.has(item.slug)
+  const cleanIncoming = incomingList.filter(item => 
+    item && item.id && !deletedSet.has(item.id) && !deletedSet.has(item.slug)
   );
 
   const baseMap = new Map();
   baseList.forEach(item => baseMap.set(item.id, item));
 
-  const customItems = [];
+  // Gantikan item default dengan item editan dari incoming
   cleanIncoming.forEach(inc => {
-    if (inc && inc.id) {
-      if (baseMap.has(inc.id)) {
-        baseMap.set(inc.id, { ...baseMap.get(inc.id), ...inc });
-      } else {
-        customItems.push(inc);
-      }
+    if (baseMap.has(inc.id)) {
+      baseMap.set(inc.id, { ...baseMap.get(inc.id), ...inc });
     }
   });
 
-  const merged = [...customItems, ...Array.from(baseMap.values())];
+  // Kumpulkan item baru yang tidak ada di default
+  const newCustomItems = cleanIncoming.filter(inc => !baseList.some(b => b.id === inc.id));
+
+  // Gabungkan custom items baru di paling atas, diikuti baseMap terupdate
+  const merged = [...newCustomItems, ...Array.from(baseMap.values())];
   return deduplicateNewsList(merged);
 }
 window.mergeNewsWithDefaults = mergeNewsWithDefaults;

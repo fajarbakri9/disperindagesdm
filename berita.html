@@ -502,7 +502,8 @@
         }
       }
 
-      let newsList = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+      const rawStorage = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+      let newsList = typeof mergeNewsWithDefaults === 'function' ? mergeNewsWithDefaults(rawStorage) : rawStorage;
       if (typeof deduplicateNewsList === 'function') {
         newsList = deduplicateNewsList(newsList);
       }
