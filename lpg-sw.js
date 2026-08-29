@@ -1,4 +1,4 @@
-const LPG_SHELL_CACHE = 'disperindag-lpg-shell-v1';
+const LPG_SHELL_CACHE = 'disperindag-lpg-shell-v2';
 const LPG_SHELL_ASSETS = [
   '/lpg-agen.html',
   '/login.html',

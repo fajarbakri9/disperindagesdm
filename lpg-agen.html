@@ -353,6 +353,45 @@
       pointer-events: auto;
       touch-action: manipulation;
     }
+    /* Social-style operational home: ringan, tanpa framework/asset eksternal. */
+    .lpg-app-container { max-width:560px; background:#F4F7FB; }
+    .lpg-topbar { padding:13px 18px; }
+    .lpg-agent-header-card { margin:12px 14px 8px; padding:12px; border:1px solid #DBEAFE; border-radius:14px; background:#FFF; box-shadow:0 4px 14px rgba(15,44,89,.06); }
+    .lpg-agent-profile { display:flex; align-items:center; gap:10px; min-width:0; }
+    .lpg-agent-avatar { display:grid; place-items:center; flex:0 0 42px; width:42px; height:42px; border-radius:50%; background:linear-gradient(145deg,#1D4ED8,#0F2C59); color:#FFF; font-size:.78rem; font-weight:900; border:3px solid #DBEAFE; }
+    .lpg-agent-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lpg-welcome-strip { padding:10px 18px 5px; display:flex; justify-content:space-between; align-items:end; gap:10px; }
+    .lpg-welcome-strip strong { display:block; font-size:1.02rem; color:#0F172A; }
+    .lpg-welcome-strip span { display:block; margin-top:2px; font-size:.72rem; color:#64748B; }
+    .lpg-mini-date { text-align:right; font-size:.68rem!important; font-weight:800; color:#1D4ED8!important; }
+    #lpgPersistenceNotice { margin:7px 14px 10px!important; padding:8px 11px!important; border-radius:999px!important; font-size:.69rem!important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lpg-tabs-bar { top:64px; margin:0 14px; border:1px solid #E2E8F0; border-radius:12px; padding:4px; box-shadow:0 3px 12px rgba(15,23,42,.04); }
+    .lpg-tab-btn { padding:9px 5px; border:0!important; border-radius:9px; font-size:.76rem; }
+    .lpg-tab-btn.active { background:#EFF6FF; color:#1D4ED8; box-shadow:inset 0 0 0 1px #DBEAFE; }
+    .lpg-panel { padding:14px; }
+    .lpg-stock-hero { position:relative; overflow:hidden; padding:18px 20px; border:0; border-radius:18px; background:linear-gradient(135deg,#0F2C59,#1D4ED8); text-align:left; box-shadow:0 10px 24px rgba(15,44,89,.2); }
+    .lpg-stock-hero::after { content:""; position:absolute; width:130px; height:130px; right:-38px; top:-48px; border-radius:50%; background:rgba(255,255,255,.08); }
+    .lpg-stock-label,.lpg-stock-unit { color:#BFDBFE; }
+    .lpg-stock-val { color:#FFF; font-size:2.65rem; margin:7px 0 2px; }
+    .lpg-stock-status { position:absolute; right:16px; bottom:17px; padding:5px 9px; border-radius:999px; background:rgba(255,255,255,.12); color:#FFF; font-size:.66rem; font-weight:800; }
+    .lpg-stock-hero.is-anomaly { background:linear-gradient(135deg,#991B1B,#DC2626); }
+    .lpg-today-grid { gap:9px; padding:10px 0 0; }
+    .lpg-today-box { padding:11px; border-radius:13px; background:#FFF; box-shadow:0 3px 12px rgba(15,23,42,.04); }
+    .lpg-actions-wrapper { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; padding:14px 0; }
+    .btn-lpg-action { min-height:82px; padding:11px 6px; flex-direction:column; gap:6px; border-radius:14px; font-size:.72rem; line-height:1.25; box-shadow:0 5px 14px rgba(15,23,42,.09); }
+    .btn-lpg-action span { display:grid; place-items:center; width:31px; height:31px; border-radius:10px; background:rgba(255,255,255,.16); font-size:1rem; }
+    .btn-pangkalan { background:#FFF; color:#0F2C59; border:1px solid #D8E2F0; }
+    .btn-pangkalan span { background:#EFF6FF; }
+    .lpg-feed-section { padding:0; }
+    .lpg-section-heading { display:flex; justify-content:space-between; align-items:center; margin:2px 2px 9px; }
+    .lpg-section-heading strong { font-size:.82rem; color:#334155; }
+    .lpg-section-heading span { font-size:.67rem; color:#64748B; }
+    #lpgRecentActivityFeed { padding:0!important; overflow:hidden; border:1px solid #E2E8F0!important; border-radius:15px!important; background:#FFF!important; box-shadow:0 4px 15px rgba(15,23,42,.04); }
+    .activity-feed-item { justify-content:flex-start; gap:10px; padding:12px 13px; }
+    .activity-feed-icon { display:grid; place-items:center; flex:0 0 37px; width:37px; height:37px; border-radius:50%; font-size:.9rem; }
+    .activity-feed-body { flex:1; min-width:0; }
+    .activity-feed-amount { font-size:.9rem; font-weight:900; white-space:nowrap; }
+    @media (max-width:390px) { .lpg-brand-text p{display:none}.btn-install-lpg{font-size:0;width:34px}.btn-install-lpg::after{content:"↓";font-size:1rem}.lpg-actions-wrapper{gap:6px}.btn-lpg-action{font-size:.66rem}.lpg-mini-date{display:none!important} }
   </style>
 </head>
 <body>
@@ -373,12 +412,17 @@
 
     <!-- 2. IDENTITAS AGEN AKTIF -->
     <div class="lpg-agent-header-card">
-      <div>
-        <div class="lpg-agent-name" id="lpgAgentHeaderName">Memuat Agen...</div>
-        <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">Penyalur Resmi LPG 3 Kg Subsidi</div>
+      <div class="lpg-agent-profile">
+        <div class="lpg-agent-avatar" id="lpgAgentAvatar">AG</div>
+        <div style="min-width:0;">
+          <div class="lpg-agent-name" id="lpgAgentHeaderName">Memuat Agen...</div>
+          <div style="font-size:0.7rem;color:#64748B;margin-top:2px;">Penyalur resmi LPG 3 Kg</div>
+        </div>
       </div>
       <span class="lpg-agent-code" id="lpgAgentHeaderCode">AG-000</span>
     </div>
+
+    <div class="lpg-welcome-strip"><div><strong id="lpgWelcomeText">Selamat bekerja</strong><span>Catat distribusi dengan cepat dan tertib.</span></div><span class="lpg-mini-date" id="lpgTodayLabel">Hari ini</span></div>
 
     <div id="lpgPersistenceNotice" style="margin:0 16px 12px;padding:10px 12px;border:1px solid #F59E0B;background:#FFFBEB;color:#92400E;border-radius:9px;font-size:0.76rem;line-height:1.45;">
       <strong>Mode penyimpanan lokal.</strong> Catatan pada perangkat ini belum merupakan ledger server dan tidak ikut indikator resmi Command Center.
@@ -395,10 +439,11 @@
     <div class="lpg-panel active" id="panelDashboard">
       
       <!-- HERO SALDO TERHITUNG -->
-      <div class="lpg-stock-hero">
+      <div class="lpg-stock-hero" id="lpgStockHero">
         <div class="lpg-stock-label">Saldo Stok Terhitung Saat Ini</div>
         <div class="lpg-stock-val" id="lpgCurrentStockVal">0</div>
         <div class="lpg-stock-unit">Tabung Isi 3 Kg</div>
+        <div class="lpg-stock-status" id="lpgStockStatus">Saldo ledger normal</div>
       </div>
 
       <!-- REKAP HARI INI -->
@@ -421,11 +466,12 @@
         <button type="button" class="btn-lpg-action btn-distribution" onclick="openModalDistribution()">
           <span>🚚</span> Distribusi ke Pangkalan
         </button>
+        <button type="button" class="btn-lpg-action btn-pangkalan" onclick="switchLpgTab('pangkalan')"><span>🏪</span> Kelola Pangkalan</button>
       </div>
 
       <!-- AKTIVITAS TERAKHIR -->
-      <div style="padding: 0 20px 20px;">
-        <div style="font-size: 0.8rem; font-weight: 800; color: #475569; margin-bottom: 10px;">Aktivitas Transaksi Terbaru:</div>
+      <div class="lpg-feed-section">
+        <div class="lpg-section-heading"><strong>Aktivitas terbaru</strong><span>Feed operasional</span></div>
         <div id="lpgRecentActivityFeed" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 14px;">
           <div style="font-size: 0.76rem; color: #94A3B8; padding: 10px 0; text-align: center;">Belum ada aktivitas transaksi.</div>
         </div>
@@ -630,6 +676,6 @@
   <script src="js/lpg-engine.js?v=20260830_lpg_alerts_v4"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
-  <script src="js/lpg-agen.js?v=20260830_lpg_pwa_v5"></script>
+  <script src="js/lpg-agen.js?v=20260830_lpg_social_v6"></script>
 </body>
 </html>

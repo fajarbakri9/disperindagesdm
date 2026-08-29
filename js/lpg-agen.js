@@ -13,6 +13,18 @@ let isSubmittingStockIn = false;
 let isSubmittingDistribution = false;
 let deferredLpgInstallPrompt = null;
 
+function escapeLpgAgentText(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[character]));
+}
+
+function formatLpgAgentTime(value) {
+  const date = new Date(value || '');
+  if (Number.isNaN(date.getTime())) return '--.--';
+  return new Intl.DateTimeFormat('id-ID', {
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Makassar'
+  }).format(date).replace('.', ':');
+}
+
 window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault();
   deferredLpgInstallPrompt = event;
@@ -47,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const codeEl = document.getElementById('lpgAgentHeaderCode');
   if (nameEl) nameEl.textContent = currentAgentSession.agentName || currentAgentSession.name;
   if (codeEl) codeEl.textContent = currentAgentId;
+  const displayName = currentAgentSession.agentName || currentAgentSession.name || 'Agen LPG';
+  const avatar = document.getElementById('lpgAgentAvatar');
+  if (avatar) avatar.textContent = displayName.replace(/^PT\.?\s*/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase() || 'AG';
+  const hour = new Date().getHours();
+  const welcome = document.getElementById('lpgWelcomeText');
+  if (welcome) welcome.textContent = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam';
+  const todayLabel = document.getElementById('lpgTodayLabel');
+  if (todayLabel) todayLabel.textContent = new Intl.DateTimeFormat('id-ID', { weekday:'long', day:'numeric', month:'short', timeZone:'Asia/Makassar' }).format(new Date());
 
   updateLpgPersistenceNotice();
   if (typeof auth !== 'undefined' && auth) {
@@ -145,6 +165,10 @@ function refreshAgentDashboardUI() {
 
   const stockValEl = document.getElementById('lpgCurrentStockVal');
   if (stockValEl) stockValEl.textContent = currentBal.toLocaleString('id-ID');
+  const stockHeroEl = document.getElementById('lpgStockHero');
+  const stockStatusEl = document.getElementById('lpgStockStatus');
+  if (stockHeroEl) stockHeroEl.classList.toggle('is-anomaly', currentBal < 0);
+  if (stockStatusEl) stockStatusEl.textContent = currentBal < 0 ? 'Perlu rekonsiliasi' : 'Saldo ledger normal';
 
   // Rekap Hari Ini
   const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
@@ -172,21 +196,23 @@ function refreshAgentDashboardUI() {
   if (recentFeedEl) {
     const latest5 = agentEvents.slice(0, 5);
     if (latest5.length === 0) {
-      recentFeedEl.innerHTML = `<div style="font-size: 0.76rem; color: #94A3B8; padding: 10px 0; text-align: center;">Belum ada aktivitas transaksi.</div>`;
+      recentFeedEl.innerHTML = `<div style="padding:22px 14px;text-align:center;"><div style="font-size:1.35rem;margin-bottom:5px;">&#128203;</div><strong style="display:block;font-size:.78rem;color:#475569;">Belum ada aktivitas</strong><span style="font-size:.68rem;color:#94A3B8;">Transaksi terbaru akan tampil di sini.</span></div>`;
     } else {
       recentFeedEl.innerHTML = latest5.map(e => {
         const isStockIn = e.type === 'STOCK_IN';
-        const timeStr = (e.effectiveAt || e.createdAt || '').slice(11, 16);
+        const timeStr = formatLpgAgentTime(e.effectiveAt || e.createdAt);
         const title = isStockIn ? `Stok Masuk DO` : (e.pangkalanSnapshot ? e.pangkalanSnapshot.name : 'Pangkalan');
         const color = isStockIn ? '#059669' : '#1D4ED8';
+        const surface = isStockIn ? '#ECFDF5' : '#EFF6FF';
         const sign = isStockIn ? '+' : '-';
         return `
           <div class="activity-feed-item">
-            <div>
-              <div style="font-size: 0.82rem; font-weight: 800; color: #0F172A;">${title}</div>
-              <div style="font-size: 0.7rem; color: #64748B;">⏰ ${timeStr} WITA ${e.doNumber ? '&bull; DO: ' + e.doNumber : ''}</div>
+            <div class="activity-feed-icon" style="background:${surface};color:${color};">${isStockIn ? '&darr;' : '&rarr;'}</div>
+            <div class="activity-feed-body">
+              <div style="font-size:.79rem;font-weight:800;color:#0F172A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeLpgAgentText(title)}</div>
+              <div style="font-size:.67rem;color:#64748B;margin-top:2px;">${escapeLpgAgentText(timeStr)} WITA ${e.doNumber ? '&bull; DO: ' + escapeLpgAgentText(e.doNumber) : ''}</div>
             </div>
-            <div style="font-size: 0.95rem; font-weight: 800; color: ${color};">${sign}${e.quantity.toLocaleString('id-ID')}</div>
+            <div class="activity-feed-amount" style="color:${color};">${sign}${Number(e.quantity || 0).toLocaleString('id-ID')}</div>
           </div>
         `;
       }).join('');
