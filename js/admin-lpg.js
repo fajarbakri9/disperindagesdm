@@ -440,7 +440,7 @@ window.renderAdminLpgPangkalanTable = function() {
           <div style="font-size: 0.72rem; color: #64748B;">📞 ${p.phone || '-'}</div>
         </td>
         <td style="font-weight: 800; color: #059669; font-size: 0.84rem;">
-          ${(p.monthlyAllocation || 560).toLocaleString('id-ID')} Tabung
+          ${p.monthlyAllocation !== null && p.monthlyAllocation !== undefined && p.monthlyAllocation !== '' ? `${Number(p.monthlyAllocation).toLocaleString('id-ID')} Tabung` : '<span style="color:#94A3B8;">Belum tersedia</span>'}
         </td>
         <td>
           ${statusBadge}
