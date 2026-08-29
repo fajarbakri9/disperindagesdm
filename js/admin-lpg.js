@@ -491,6 +491,7 @@ window.renderAdminLpgPangkalanTable = function() {
                 ⚖️ Kasus
               </button>
             ` : ''}
+            ${!isDeleted ? `<button onclick="openAdminTransferPangkalan('${p.id}')" class="btn-outline" style="padding:4px 8px;font-size:.72rem;color:#7C3AED;border-color:#C4B5FD;" title="Pindahkan pangkalan ke agen penyalur lain">⇄ Pindah</button>` : ''}
             <button onclick="adminDetailPangkalan('${p.id}')" class="btn-outline" style="padding: 4px 8px; font-size: 0.72rem;" title="Lihat Detail & Jejak Sumber">
               🔍 Detail
             </button>
@@ -698,6 +699,7 @@ window.adminDetailPangkalan = function(pangkalanId) {
         <strong>Alamat Lengkap:</strong> ${p.address}<br>
         <strong>Penanggung Jawab:</strong> ${p.ownerName || '-'} (📞 ${p.phone || '-' })<br>
         <strong>Status:</strong> ${p.status} | <strong>Verifikasi:</strong> ${p.verificationStatus}<br>
+        ${p.lastTransfer ? `<strong>Pemindahan Terakhir:</strong> ${p.lastTransfer.fromAgentId} → ${p.lastTransfer.toAgentId}, efektif ${p.lastTransfer.effectiveDate}<br><strong>Alasan:</strong> ${escapeLpgAlertHtml(p.lastTransfer.reason)}<br>${p.lastTransfer.supportingDocumentReference ? `<strong>Dokumen:</strong> ${escapeLpgAlertHtml(p.lastTransfer.supportingDocumentReference)}<br>` : ''}` : ''}
         <hr style="margin:10px 0; border:0; border-top:1px solid #E2E8F0;">
         <strong style="color:#1E3A8A;">🏛️ Metadata Provenance Sumber Resmi:</strong><br>
         • Sumber: <code>${p.sourceType || 'ESDM_PUBLIC_SEED'}</code><br>
@@ -766,6 +768,37 @@ window.adminVerifyPangkalan = async function(pangkalanId) {
   } catch (error) {
     CustomModal.alert({ title: 'Gagal Memverifikasi', message: error.message || 'Write Firestore ditolak.', icon: '!', type: 'error' });
   }
+};
+
+window.openAdminTransferPangkalan = function(pangkalanId) {
+  const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []).find(item => item.id === pangkalanId);
+  if (!pangkalan || pangkalan.isDeleted) return;
+  const targetAgents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).filter(agent => agent.status === 'ACTIVE' && agent.id !== pangkalan.agentId);
+  if (!targetAgents.length) return CustomModal.alert({ title: 'Agen Tujuan Tidak Tersedia', message: 'Tidak ada agen aktif lain yang dapat dipilih.', icon: '!', type: 'warning' });
+  CustomModal.form({
+    title: 'Pindahkan Pangkalan Antaragen', icon: '⇄', submitText: 'Simpan Pemindahan',
+    fields: [
+      { name: 'toAgentId', label: 'Agen Penyalur Tujuan', type: 'select', required: true, options: targetAgents.map(agent => ({ value: agent.id, label: `${agent.id} — ${agent.name}` })) },
+      { name: 'effectiveDate', label: 'Tanggal Efektif', type: 'date', required: true, value: getLpgWitaDateKey() },
+      { name: 'supportingDocumentReference', label: 'Referensi Dokumen Pendukung', type: 'text', required: false, placeholder: 'Contoh: Nomor surat / berita acara (opsional)' },
+      { name: 'reason', label: 'Dasar / Alasan Pemindahan', type: 'textarea', required: true, rows: 3, placeholder: 'Nomor surat, hasil rekonsiliasi, atau keputusan resmi' }
+    ],
+    onSubmit: async values => {
+      const target = targetAgents.find(agent => agent.id === values.toAgentId);
+      const reason = values.reason?.trim();
+      if (!target || !values.effectiveDate || !reason) throw new Error('Agen tujuan, tanggal efektif, dan alasan wajib diisi.');
+      const transfer = { fromAgentId: pangkalan.agentId, fromAgentName: pangkalan.agentName || null, toAgentId: target.id, toAgentName: target.name, effectiveDate: values.effectiveDate, reason, supportingDocumentReference: values.supportingDocumentReference?.trim() || null, transferredBy: auth.currentUser.uid, transferredAt: firebase.firestore.FieldValue.serverTimestamp() };
+      const result = await commitAdminPangkalanAction(pangkalan, {
+        agentId: target.id, agentName: target.name, lastTransfer: transfer
+      }, {
+        action: 'TRANSFER_PANGKALAN', before: { agentId: pangkalan.agentId, agentName: pangkalan.agentName || null },
+        after: { agentId: target.id, agentName: target.name, effectiveDate: values.effectiveDate, supportingDocumentReference: transfer.supportingDocumentReference }, reason
+      });
+      if (!result.success) throw new Error(result.message);
+      adminLpgSelectedIds.delete(pangkalan.id);
+      CustomModal.alert({ title: 'Pemindahan Tersimpan', message: `<strong>${escapeLpgAlertHtml(pangkalan.name)}</strong> dipindahkan ke <strong>${escapeLpgAlertHtml(target.name)}</strong>. Histori transaksi lama tetap utuh.`, icon: '✓', type: 'info' });
+    }
+  });
 };
 
 // 5. TABEL SALDO 8 AGEN RESMI & REKONSILIASI AGEN BARU
