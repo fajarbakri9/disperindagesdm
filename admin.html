@@ -262,7 +262,10 @@
             Kelola artikel kegiatan, siaran pers resmi, dokumentasi foto, dan publikasi transparansi dinas.
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="btnExportNews" onclick="exportNewsDataJson()" class="btn-outline" style="padding: 9px 14px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px; background: #F8FAFC; border-color: #CBD5E1;">
+            <span>📥</span> Ekspor JSON (Data Backup)
+          </button>
           <button id="btnOpenNewsEditor" onclick="openNewsEditor()" class="btn-primary" style="padding: 9px 18px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
             <span>➕</span> Tulis Berita Baru
           </button>

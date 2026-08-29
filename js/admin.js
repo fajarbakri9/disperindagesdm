@@ -418,6 +418,23 @@ window.deleteAdminNews = async function(id) {
   CustomModal.toast(`Berita "${targetNews.title.slice(0, 35)}..." berhasil dihapus secara permanen.`, "success");
 };
 
+// EXPORT NEWS DATA (JSON BACKUP)
+window.exportNewsDataJson = function() {
+  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const cleanList = deduplicateNewsList(allNews);
+  const jsonStr = JSON.stringify(cleanList, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `disperindag_news_backup_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  CustomModal.toast(`Data ${cleanList.length} artikel berita berhasil diekspor ke file JSON.`, "success");
+};
+
 // COPY PUBLIC NEWS LINK
 window.copyNewsPublicLink = function(slugOrId, title) {
   const url = `https://disperindagesdm-pinrang.web.app/berita/${slugOrId}`;
