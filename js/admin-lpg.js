@@ -9,6 +9,7 @@ let unsubscribeAdminLpgPangkalan = null;
 let unsubscribeAdminLpgAudit = null;
 let unsubscribeAdminLpgEvents = null;
 let unsubscribeAdminLpgAgents = null;
+let unsubscribeAdminLpgAlerts = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdminLpgMonitoring();
@@ -20,6 +21,7 @@ function initAdminLpgMonitoring() {
   renderAdminLpgAgentsTable();
   renderAdminLpgLedgerTable();
   renderAdminLpgAuditTable();
+  renderAdminLpgAlertTable();
 
   if (typeof auth !== 'undefined' && auth) {
     auth.onAuthStateChanged(user => {
@@ -94,6 +96,16 @@ function subscribeAdminLpgFirestore() {
     renderAdminLpgLedgerTable();
     publishLpgDashboardSnapshot();
   }, error => console.error('[-] Sinkron ledger LPG admin gagal:', error.code));
+
+  unsubscribeAdminLpgAlerts = db.collection('lpg_alerts').onSnapshot(snapshot => {
+    const alerts = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const normalizeTime = value => value && typeof value.toDate === 'function' ? value.toDate().toISOString() : value;
+      return { id: doc.id, ...data, createdAt: normalizeTime(data.createdAt), updatedAt: normalizeTime(data.updatedAt), acknowledgedAt: normalizeTime(data.acknowledgedAt), resolvedAt: normalizeTime(data.resolvedAt), dismissedAt: normalizeTime(data.dismissedAt) };
+    });
+    setLpgStore(LPG_STORAGE_KEYS.ALERTS, alerts);
+    renderAdminLpgAlertTable();
+  }, error => console.error('[-] Sinkron alert LPG admin gagal:', error.code));
 }
 
 let lpgSnapshotWriteTimer = null;
@@ -191,8 +203,8 @@ function renderAdminLpgAlerts() {
   if (!container) return;
   const alerts = getAdminLpgAlertSummary();
   const cards = [
-    { label: 'Saldo Negatif', count: alerts.negativeStockAgents.length, color: '#B91C1C', bg: '#FEF2F2', detail: 'Perlu rekonsiliasi stok', action: "switchAdminLpgSubView('agen')" },
-    { label: 'Belum Melapor Hari Ini', count: alerts.inactiveAgentsToday.length, color: '#B45309', bg: '#FFFBEB', detail: 'Dari agen aktif', action: "switchAdminLpgSubView('agen')" },
+    { label: 'Saldo Negatif', count: alerts.negativeStockAgents.length, color: '#B91C1C', bg: '#FEF2F2', detail: 'Perlu rekonsiliasi stok', action: "switchAdminLpgSubView('alerts')" },
+    { label: 'Belum Melapor Hari Ini', count: alerts.inactiveAgentsToday.length, color: '#B45309', bg: '#FFFBEB', detail: 'Dari agen aktif', action: "switchAdminLpgSubView('alerts')" },
     { label: 'Menunggu Verifikasi', count: alerts.pendingVerification.length, color: '#1D4ED8', bg: '#EFF6FF', detail: 'Pangkalan baru', action: "document.getElementById('adminLpgFilterStatus').value='PENDING';switchAdminLpgSubView('pangkalan')" },
     { label: 'Review PHU', count: alerts.pendingPhuReview.length, color: '#7C3AED', bg: '#F5F3FF', detail: 'Perlu keputusan admin', action: "document.getElementById('adminLpgFilterStatus').value='PHU_FLAG';switchAdminLpgSubView('pangkalan')" }
   ];
@@ -204,9 +216,103 @@ function renderAdminLpgAlerts() {
     </button>`).join('');
 }
 
+function escapeLpgAlertHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
+
+function getAdminLpgAlertCandidates() {
+  const summary = getAdminLpgAlertSummary();
+  const today = getLpgWitaDateKey();
+  const candidates = [];
+  summary.negativeStockAgents.forEach(agent => candidates.push({
+    id: `STOCK_VARIANCE-${today}-${agent.id}`, type: 'STOCK_VARIANCE', severity: 'CRITICAL',
+    entityType: 'AGENT', entityId: agent.id, agentId: agent.id, subject: agent.name || agent.id,
+    message: 'Saldo hasil agregasi immutable ledger berada di bawah nol dan perlu rekonsiliasi.'
+  }));
+  summary.inactiveAgentsToday.forEach(agent => candidates.push({
+    id: `AGENT_NO_ACTIVITY-${today}-${agent.id}`, type: 'AGENT_NO_ACTIVITY_24H', severity: 'WARNING',
+    entityType: 'AGENT', entityId: agent.id, agentId: agent.id, subject: agent.name || agent.id,
+    message: 'Belum ada aktivitas ledger yang tercatat pada hari ini (WITA).'
+  }));
+  summary.pendingVerification.forEach(item => candidates.push({
+    id: `PANGKALAN_UNVERIFIED-${item.id}`, type: 'PANGKALAN_CREATED_UNVERIFIED', severity: 'WARNING',
+    entityType: 'PANGKALAN', entityId: item.id, agentId: item.agentId, subject: item.name || item.id,
+    message: `${item.desaKelurahan || '-'}, ${item.kecamatan || '-'} menunggu verifikasi Disperindag.`
+  }));
+  summary.pendingPhuReview.forEach(item => candidates.push({
+    id: `DATA_REVIEW-${item.id}`, type: 'DATA_REVIEW_REQUIRED', severity: 'CRITICAL',
+    entityType: 'PANGKALAN', entityId: item.id, agentId: item.agentId, subject: item.name || item.id,
+    message: 'Kemungkinan terkait kasus PHU Agustus 2026; keputusan wajib melalui verifikasi manual.'
+  }));
+  return candidates;
+}
+
+window.renderAdminLpgAlertTable = function() {
+  const tbody = document.getElementById('adminLpgAlertTableBody');
+  if (!tbody) return;
+  const saved = new Map(getLpgStore(LPG_STORAGE_KEYS.ALERTS, []).map(item => [item.id, item]));
+  const candidates = getAdminLpgAlertCandidates().map(item => ({ ...item, ...(saved.get(item.id) || {}) }));
+  const historical = getLpgStore(LPG_STORAGE_KEYS.ALERTS, []).filter(item => !candidates.some(candidate => candidate.id === item.id));
+  const filter = document.getElementById('adminLpgAlertStatusFilter')?.value || 'ACTIVE';
+  const rows = [...candidates, ...historical].filter(item => {
+    const status = item.status || 'OPEN';
+    if (filter === 'ALL') return true;
+    if (filter === 'ACTIVE') return status === 'OPEN' || status === 'ACKNOWLEDGED';
+    return status === filter;
+  });
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748B;">Tidak ada alert pada filter ini.</td></tr>';
+    return;
+  }
+  const order = { CRITICAL: 0, WARNING: 1, INFO: 2 };
+  rows.sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
+  tbody.innerHTML = rows.map(item => {
+    const status = item.status || 'OPEN';
+    const time = item.updatedAt || item.createdAt;
+    const timeText = time ? new Date(time).toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA' : 'Belum ditindaklanjuti';
+    const severityColor = item.severity === 'CRITICAL' ? '#B91C1C' : '#B45309';
+    return `<tr>
+      <td><strong style="font-size:.76rem;color:${severityColor};">${escapeLpgAlertHtml(item.type)}</strong><br><span style="font-size:.68rem;font-weight:800;color:${severityColor};">${escapeLpgAlertHtml(item.severity)}</span></td>
+      <td><strong>${escapeLpgAlertHtml(item.subject || item.entityId)}</strong><br><code>${escapeLpgAlertHtml(item.entityId)}</code></td>
+      <td style="font-size:.78rem;color:#475569;max-width:360px;">${escapeLpgAlertHtml(item.message)}</td>
+      <td><span style="font-size:.7rem;font-weight:900;">${escapeLpgAlertHtml(status)}</span>${item.note ? `<br><small>${escapeLpgAlertHtml(item.note)}</small>` : ''}</td>
+      <td style="font-size:.72rem;color:#64748B;"><code>${escapeLpgAlertHtml(item.updatedBy || '-')}</code><br>${escapeLpgAlertHtml(timeText)}</td>
+      <td style="text-align:center;white-space:nowrap;">${status === 'OPEN' ? `<button class="btn-outline" onclick="updateAdminLpgAlert('${item.id}','ACKNOWLEDGED')" style="padding:4px 7px;font-size:.68rem;">Akui</button>` : ''} ${(status === 'OPEN' || status === 'ACKNOWLEDGED') ? `<button class="btn-outline" onclick="updateAdminLpgAlert('${item.id}','RESOLVED')" style="padding:4px 7px;font-size:.68rem;color:#047857;">Selesai</button><button class="btn-outline" onclick="updateAdminLpgAlert('${item.id}','DISMISSED')" style="padding:4px 7px;font-size:.68rem;color:#64748B;">Abaikan</button>` : '-'}</td>
+    </tr>`;
+  }).join('');
+};
+
+window.updateAdminLpgAlert = function(alertId, nextStatus) {
+  const candidate = getAdminLpgAlertCandidates().find(item => item.id === alertId) || getLpgStore(LPG_STORAGE_KEYS.ALERTS, []).find(item => item.id === alertId);
+  if (!candidate || !auth?.currentUser || !db) return;
+  CustomModal.form({
+    title: `Tindak Lanjut Alert: ${nextStatus}`, icon: '⚠️', submitText: 'Simpan Tindak Lanjut',
+    fields: [{ name: 'note', label: 'Catatan / Dasar Tindakan', type: 'textarea', required: true, rows: 3, placeholder: 'Tuliskan hasil pemeriksaan atau dasar keputusan' }],
+    onSubmit: async data => {
+      const user = auth.currentUser;
+      const alertRef = db.collection('lpg_alerts').doc(alertId);
+      const auditRef = db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`);
+      const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+      await db.runTransaction(async transaction => {
+        const existing = await transaction.get(alertRef);
+        const statusFields = nextStatus === 'ACKNOWLEDGED'
+          ? { acknowledgedBy: user.uid, acknowledgedAt: timestamp }
+          : nextStatus === 'RESOLVED'
+            ? { resolvedBy: user.uid, resolvedAt: timestamp }
+            : { dismissedBy: user.uid, dismissedAt: timestamp };
+        const update = { status: nextStatus, note: data.note.trim(), ...statusFields, updatedBy: user.uid, updatedAt: timestamp };
+        if (existing.exists) transaction.update(alertRef, update);
+        else transaction.set(alertRef, { id: alertId, type: candidate.type, severity: candidate.severity, entityType: candidate.entityType, entityId: candidate.entityId, agentId: candidate.agentId || null, subject: candidate.subject, message: candidate.message, ...update, createdAt: timestamp });
+        transaction.set(auditRef, { action: `ALERT_${nextStatus}`, entityType: 'ALERT', entityId: alertId, agentId: candidate.agentId || 'SYSTEM', actorUid: user.uid, actorRole: getCurrentSession()?.role || 'LPG_ADMIN', before: { status: existing.exists ? existing.data().status : 'OPEN' }, after: { status: nextStatus }, reason: data.note.trim(), createdAt: timestamp });
+      });
+      CustomModal.alert({ title: 'Tindak Lanjut Tersimpan', message: `Status alert menjadi <strong>${nextStatus}</strong> dan audit trail telah dibuat.`, icon: '✓', type: 'info' });
+    }
+  });
+};
+
 // 2. SUBVIEW SWITCHER
 window.switchAdminLpgSubView = function(viewName) {
-  const views = ['pangkalan', 'map', 'agen', 'ledger', 'audit'];
+  const views = ['pangkalan', 'map', 'agen', 'ledger', 'audit', 'alerts'];
   views.forEach(v => {
     const el = document.getElementById(`subViewLpg${v.charAt(0).toUpperCase() + v.slice(1)}`);
     const btn = document.getElementById(`btnSub${v.charAt(0).toUpperCase() + v.slice(1)}`);
@@ -234,6 +340,7 @@ window.switchAdminLpgSubView = function(viewName) {
   if (viewName === 'agen') renderAdminLpgAgentsTable();
   if (viewName === 'ledger') renderAdminLpgLedgerTable();
   if (viewName === 'audit') renderAdminLpgAuditTable();
+  if (viewName === 'alerts') renderAdminLpgAlertTable();
 };
 
 // 3. TABEL 681 PANGKALAN (FILTER, SEARCH, PAGINATION)

@@ -908,6 +908,9 @@
             <button onclick="switchAdminLpgSubView('audit')" class="btn-outline" id="btnSubAudit" style="padding: 8px 14px; font-size: 0.8rem;">
               <span>🛡️</span> Audit Trail
             </button>
+            <button onclick="switchAdminLpgSubView('alerts')" class="btn-outline" id="btnSubAlerts" style="padding: 8px 14px; font-size: 0.8rem; border-color:#B45309;color:#B45309;">
+              <span>⚠️</span> Tindak Lanjut Alert
+            </button>
             <button onclick="exportLpgPangkalanCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #059669; color: #059669;" title="Download Master 681 Pangkalan (Excel / CSV)">
               <span>📥</span> Ekspor CSV Pangkalan
             </button>
@@ -1051,7 +1054,27 @@
           </div>
         </div>
 
-        <!-- 5. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
+        <!-- 5. SUBVIEW: ALERT DAN TINDAK LANJUT -->
+        <div id="subViewLpgAlerts" style="display:none;">
+          <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px;">
+            <p style="margin:0;font-size:.82rem;color:#64748B;">Alert dihitung dari master dan immutable ledger. Keputusan petugas tersimpan di Firestore beserta audit trail.</p>
+            <select id="adminLpgAlertStatusFilter" class="form-input" onchange="renderAdminLpgAlertTable()" style="width:auto;min-width:190px;padding:8px 12px;font-size:.8rem;">
+              <option value="ACTIVE">Alert Aktif</option>
+              <option value="ALL">Semua Status</option>
+              <option value="ACKNOWLEDGED">Sudah Ditindaklanjuti</option>
+              <option value="RESOLVED">Selesai</option>
+              <option value="DISMISSED">Diabaikan</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Jenis &amp; Tingkat</th><th>Objek Pengawasan</th><th>Keterangan</th><th>Status</th><th>Petugas / Waktu</th><th style="text-align:center;">Tindak Lanjut</th></tr></thead>
+              <tbody id="adminLpgAlertTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 6. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
         <div id="subViewLpgMap" style="display: none;">
           <!-- FILTER PETA GIS -->
           <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
@@ -1566,7 +1589,7 @@
 
   <script src="js/data.js?v=20260829_sync15_v1"></script>
   <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-engine.js?v=20260830_lpg_alerts_v4"></script>
+  <script src="js/lpg-engine.js?v=20260830_lpg_workflow_v5"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/lpg-gis-map.js?v=20260830_lpg_integrity_v2"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
@@ -1576,6 +1599,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_alerts_v8"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_workflow_v9"></script>
 </body>
 </html>

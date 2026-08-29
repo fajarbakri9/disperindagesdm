@@ -9,6 +9,7 @@ const LPG_STORAGE_KEYS = {
   EVENTS: 'disperindag_lpg_events_db',
   BALANCES: 'disperindag_lpg_balances_db',
   AUDIT_LOGS: 'disperindag_lpg_audit_logs_db',
+  ALERTS: 'disperindag_lpg_alerts_db',
   DASHBOARD: 'disperindag_lpg_dashboard_summary',
   VERSION: 'disperindag_lpg_db_version'
 };

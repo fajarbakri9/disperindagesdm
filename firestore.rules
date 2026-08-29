@@ -202,6 +202,25 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /lpg_alerts/{alertId} {
+      allow read: if isLpgAdmin();
+      allow create: if isLpgAdmin() &&
+        request.resource.data.status in ['OPEN', 'ACKNOWLEDGED', 'RESOLVED', 'DISMISSED'] &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+      allow update: if isLpgAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'note', 'acknowledgedBy', 'acknowledgedAt',
+          'resolvedBy', 'resolvedAt', 'dismissedBy', 'dismissedAt',
+          'updatedBy', 'updatedAt'
+        ]) &&
+        request.resource.data.status in ['OPEN', 'ACKNOWLEDGED', 'RESOLVED', 'DISMISSED'] &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
     match /lpg_dashboard/{documentId} {
       allow read: if true;
       allow create, update: if isLpgAdmin() &&
