@@ -10,6 +10,8 @@ let unsubscribeAdminLpgAudit = null;
 let unsubscribeAdminLpgEvents = null;
 let unsubscribeAdminLpgAgents = null;
 let unsubscribeAdminLpgAlerts = null;
+let unsubscribeAdminLpgSettings = null;
+const DEFAULT_LPG_SETTINGS = Object.freeze({ reportingNormalHours: 12, reportingLateHours: 24, minimumStockCylinders: 100, noDeliveryAlertDays: 7 });
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdminLpgMonitoring();
@@ -113,6 +115,13 @@ function subscribeAdminLpgFirestore() {
     setLpgStore(LPG_STORAGE_KEYS.ALERTS, alerts);
     renderAdminLpgAlertTable();
   }, error => console.error('[-] Sinkron alert LPG admin gagal:', error.code));
+
+  unsubscribeAdminLpgSettings = db.collection('lpg_settings').doc('operational').onSnapshot(doc => {
+    const settings = doc.exists ? { ...DEFAULT_LPG_SETTINGS, ...doc.data() } : { ...DEFAULT_LPG_SETTINGS };
+    setLpgStore(LPG_STORAGE_KEYS.SETTINGS, settings);
+    renderAdminLpgSettings();
+    renderAdminLpgAgentsTable();
+  }, error => console.error('[-] Sinkron pengaturan LPG admin gagal:', error.code));
 }
 
 let lpgSnapshotWriteTimer = null;
@@ -319,7 +328,7 @@ window.updateAdminLpgAlert = function(alertId, nextStatus) {
 
 // 2. SUBVIEW SWITCHER
 window.switchAdminLpgSubView = function(viewName) {
-  const views = ['pangkalan', 'map', 'agen', 'ledger', 'audit', 'alerts', 'reports'];
+  const views = ['pangkalan', 'map', 'agen', 'ledger', 'audit', 'alerts', 'reports', 'settings'];
   views.forEach(v => {
     const el = document.getElementById(`subViewLpg${v.charAt(0).toUpperCase() + v.slice(1)}`);
     const btn = document.getElementById(`btnSub${v.charAt(0).toUpperCase() + v.slice(1)}`);
@@ -348,6 +357,7 @@ window.switchAdminLpgSubView = function(viewName) {
   if (viewName === 'ledger') renderAdminLpgLedgerTable();
   if (viewName === 'audit') renderAdminLpgAuditTable();
   if (viewName === 'alerts') renderAdminLpgAlertTable();
+  if (viewName === 'settings') renderAdminLpgSettings();
 };
 
 // 3. TABEL 681 PANGKALAN (FILTER, SEARCH, PAGINATION)
@@ -684,6 +694,7 @@ function renderAdminLpgAgentsTable() {
   const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
   const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
   const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
+  const settings = { ...DEFAULT_LPG_SETTINGS, ...getLpgStore(LPG_STORAGE_KEYS.SETTINGS, {}) };
   const todayStr = getLpgWitaDateKey();
 
   tbody.innerHTML = agents.map(ag => {
@@ -703,10 +714,20 @@ function renderAdminLpgAgentsTable() {
       }
     });
 
-    const isReported = inToday > 0 || outToday > 0;
-    const statusReportBadge = isReported 
-      ? `<span style="background:#ECFDF5; color:#065F46; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Ledger Firestore Hari Ini</span>`
-      : `<span style="background:#F1F5F9; color:#64748B; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Belum Ada Catatan</span>`;
+    const agentEvents = events.filter(event => event.agentId === ag.id && isLocallyAppliedLpgEvent(event));
+    const latestTime = agentEvents.reduce((latest, event) => {
+      const time = new Date(event.effectiveAt || event.createdAt).getTime();
+      return Number.isFinite(time) && time > latest ? time : latest;
+    }, 0);
+    const hoursSinceActivity = latestTime ? Math.max(0, (Date.now() - latestTime) / 3600000) : Infinity;
+    const reportingStatus = !latestTime ? 'BELUM ADA AKTIVITAS' : hoursSinceActivity <= settings.reportingNormalHours ? 'NORMAL' : hoursSinceActivity <= settings.reportingLateHours ? 'STALE' : 'LATE';
+    const reportingColor = reportingStatus === 'NORMAL' ? '#065F46' : reportingStatus === 'STALE' ? '#B45309' : '#B91C1C';
+    const reportingBg = reportingStatus === 'NORMAL' ? '#ECFDF5' : reportingStatus === 'STALE' ? '#FFFBEB' : '#FEF2F2';
+    const hasOpeningBalance = agentEvents.some(event => event.type === 'OPENING_BALANCE');
+    const stockStatus = !hasOpeningBalance ? 'UNKNOWN' : bal < 0 ? 'CRITICAL' : bal === 0 ? 'ZERO' : bal <= settings.minimumStockCylinders ? 'LOW' : 'AVAILABLE';
+    const stockColor = stockStatus === 'AVAILABLE' ? '#047857' : stockStatus === 'LOW' ? '#B45309' : stockStatus === 'UNKNOWN' ? '#64748B' : '#B91C1C';
+    const lastActivity = latestTime ? new Date(latestTime).toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA' : 'Belum pernah';
+    const statusReportBadge = `<span style="background:${reportingBg};color:${reportingColor};font-size:.7rem;font-weight:900;padding:3px 7px;border-radius:4px;">${reportingStatus}</span><br><small style="color:#64748B;">${lastActivity}</small>`;
 
     return `
       <tr>
@@ -716,7 +737,7 @@ function renderAdminLpgAgentsTable() {
         </td>
         <td style="font-size: 0.82rem; color: #475569;">${ag.address || 'Kabupaten Pinrang'}</td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #334155;">${agPangkalan.length} Pangkalan</td>
-        <td style="font-weight: 900; font-size: 0.95rem; color: #D97706;">${bal.toLocaleString('id-ID')} Tabung</td>
+        <td style="font-weight:900;font-size:.95rem;color:${stockColor};">${bal.toLocaleString('id-ID')} Tabung<br><span style="font-size:.68rem;">${stockStatus}</span></td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #059669;">+${inToday.toLocaleString('id-ID')}</td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #2563EB;">-${outToday.toLocaleString('id-ID')}</td>
         <td>${statusReportBadge}</td>
@@ -1091,6 +1112,42 @@ window.exportLpgMonthlyReportCSV = function() {
     return [month, agent.id, agent.name, stockIn, distributed, served, allocation, realization, allocation === null ? 'DATA ALOKASI BELUM TERSEDIA' : 'TERSEDIA'];
   });
   downloadLpgCsv(`Rekap_Bulanan_LPG_Pinrang_${month}.csv`, ['Bulan WITA', 'Kode Agen', 'Nama Agen', 'Total Stok Masuk', 'Total Distribusi', 'Pangkalan Terlayani', 'Alokasi Resmi', 'Realisasi', 'Status Alokasi'], rows);
+};
+
+function renderAdminLpgSettings() {
+  const settings = { ...DEFAULT_LPG_SETTINGS, ...getLpgStore(LPG_STORAGE_KEYS.SETTINGS, {}) };
+  const values = {
+    lpgSettingNormalHours: settings.reportingNormalHours,
+    lpgSettingLateHours: settings.reportingLateHours,
+    lpgSettingMinimumStock: settings.minimumStockCylinders,
+    lpgSettingNoDeliveryDays: settings.noDeliveryAlertDays
+  };
+  Object.entries(values).forEach(([id, value]) => { const input = document.getElementById(id); if (input) input.value = value; });
+}
+
+window.saveAdminLpgSettings = async function() {
+  if (!auth?.currentUser || !db) return CustomModal.alert({ title: 'Sesi Diperlukan', message: 'Silakan login ulang sebagai administrator.', icon: '!', type: 'warning' });
+  const settings = {
+    reportingNormalHours: Number(document.getElementById('lpgSettingNormalHours')?.value),
+    reportingLateHours: Number(document.getElementById('lpgSettingLateHours')?.value),
+    minimumStockCylinders: Number(document.getElementById('lpgSettingMinimumStock')?.value),
+    noDeliveryAlertDays: Number(document.getElementById('lpgSettingNoDeliveryDays')?.value)
+  };
+  if (!Number.isInteger(settings.reportingNormalHours) || settings.reportingNormalHours < 1 || !Number.isInteger(settings.reportingLateHours) || settings.reportingLateHours <= settings.reportingNormalHours || !Number.isInteger(settings.minimumStockCylinders) || settings.minimumStockCylinders < 0 || !Number.isInteger(settings.noDeliveryAlertDays) || settings.noDeliveryAlertDays < 1) {
+    return CustomModal.alert({ title: 'Pengaturan Tidak Valid', message: 'Pastikan semua nilai berupa bilangan bulat, batas LATE lebih besar dari NORMAL, dan nilai tidak negatif.', icon: '!', type: 'warning' });
+  }
+  const user = auth.currentUser;
+  const previous = { ...DEFAULT_LPG_SETTINGS, ...getLpgStore(LPG_STORAGE_KEYS.SETTINGS, {}) };
+  const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+  const batch = db.batch();
+  batch.set(db.collection('lpg_settings').doc('operational'), { ...settings, updatedBy: user.uid, updatedAt: timestamp });
+  batch.set(db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`), { action: 'LPG_SETTINGS_UPDATE', entityType: 'SETTINGS', entityId: 'operational', agentId: 'SYSTEM', actorUid: user.uid, actorRole: getCurrentSession()?.role || 'LPG_ADMIN', before: previous, after: settings, reason: 'Pembaruan threshold pengawasan LPG', createdAt: timestamp });
+  try {
+    await batch.commit();
+    CustomModal.alert({ title: 'Pengaturan Tersimpan', message: 'Status pelaporan, status stok, dan alert akan memakai threshold terbaru.', icon: '✓', type: 'info' });
+  } catch (error) {
+    CustomModal.alert({ title: 'Gagal Menyimpan', message: error.message || 'Firestore menolak perubahan pengaturan.', icon: '!', type: 'error' });
+  }
 };
 
 // 9. EKSPOR DATA KE CSV RESMI DISPERINDAG

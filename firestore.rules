@@ -221,6 +221,26 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /lpg_settings/{settingsId} {
+      allow read: if signedIn();
+      allow create, update: if isLpgAdmin() &&
+        request.resource.data.keys().hasOnly([
+          'reportingNormalHours', 'reportingLateHours', 'minimumStockCylinders',
+          'noDeliveryAlertDays', 'updatedBy', 'updatedAt'
+        ]) &&
+        request.resource.data.reportingNormalHours is int &&
+        request.resource.data.reportingNormalHours >= 1 &&
+        request.resource.data.reportingLateHours is int &&
+        request.resource.data.reportingLateHours > request.resource.data.reportingNormalHours &&
+        request.resource.data.minimumStockCylinders is int &&
+        request.resource.data.minimumStockCylinders >= 0 &&
+        request.resource.data.noDeliveryAlertDays is int &&
+        request.resource.data.noDeliveryAlertDays >= 1 &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
     match /lpg_dashboard/{documentId} {
       allow read: if true;
       allow create, update: if isLpgAdmin() &&

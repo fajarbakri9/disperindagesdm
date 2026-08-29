@@ -914,6 +914,9 @@
             <button onclick="switchAdminLpgSubView('reports')" class="btn-outline" id="btnSubReports" style="padding:8px 14px;font-size:.8rem;border-color:#047857;color:#047857;">
               <span>📊</span> Laporan Operasional
             </button>
+            <button onclick="switchAdminLpgSubView('settings')" class="btn-outline" id="btnSubSettings" style="padding:8px 14px;font-size:.8rem;">
+              <span>⚙️</span> Pengaturan LPG
+            </button>
             <button onclick="exportLpgPangkalanCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #059669; color: #059669;" title="Download Master 681 Pangkalan (Excel / CSV)">
               <span>📥</span> Ekspor CSV Pangkalan
             </button>
@@ -1102,7 +1105,22 @@
           <div style="margin-top:14px;padding:11px 14px;border-radius:9px;background:#EFF6FF;color:#1E3A8A;font-size:.76rem;">Semua periode memakai zona waktu WITA. Kolom alokasi dan realisasi dikosongkan apabila belum ada master alokasi resmi.</div>
         </div>
 
-        <!-- 7. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
+        <!-- 7. SUBVIEW: PENGATURAN STATUS DAN ALERT -->
+        <div id="subViewLpgSettings" style="display:none;max-width:760px;">
+          <div style="padding:18px;border:1px solid #CBD5E1;border-radius:12px;background:#F8FAFC;">
+            <h4 style="margin:0 0 5px;">Threshold Pengawasan LPG</h4>
+            <p style="margin:0 0 16px;font-size:.78rem;color:#64748B;">Nilai ini menjadi sumber status pelaporan, status stok, dan alert. Perubahan disimpan dengan audit trail.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;">
+              <label style="font-size:.76rem;font-weight:800;">Batas NORMAL (jam)<input id="lpgSettingNormalHours" type="number" min="1" class="form-input" style="margin-top:5px;"></label>
+              <label style="font-size:.76rem;font-weight:800;">Mulai LATE (jam)<input id="lpgSettingLateHours" type="number" min="2" class="form-input" style="margin-top:5px;"></label>
+              <label style="font-size:.76rem;font-weight:800;">Minimum stok (tabung)<input id="lpgSettingMinimumStock" type="number" min="0" class="form-input" style="margin-top:5px;"></label>
+              <label style="font-size:.76rem;font-weight:800;">Tanpa kiriman (hari)<input id="lpgSettingNoDeliveryDays" type="number" min="1" class="form-input" style="margin-top:5px;"></label>
+            </div>
+            <button type="button" class="btn-primary" onclick="saveAdminLpgSettings()" style="margin-top:16px;padding:9px 16px;">Simpan Pengaturan</button>
+          </div>
+        </div>
+
+        <!-- 8. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
         <div id="subViewLpgMap" style="display: none;">
           <!-- FILTER PETA GIS -->
           <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
@@ -1617,7 +1635,7 @@
 
   <script src="js/data.js?v=20260829_sync15_v1"></script>
   <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-engine.js?v=20260830_lpg_workflow_v5"></script>
+  <script src="js/lpg-engine.js?v=20260830_lpg_settings_v6"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/lpg-gis-map.js?v=20260830_lpg_integrity_v2"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
@@ -1627,6 +1645,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_reports_v11"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_settings_v12"></script>
 </body>
 </html>
