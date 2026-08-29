@@ -2078,20 +2078,56 @@ window.openEditReportModal = function(repId) {
 };
 
 // 8. TABEL PENGGUNA ASN & RBAC
+let firebaseManagedUsers = null;
+let firebaseUsersAuthWaitRegistered = false;
+
+async function loadFirebaseManagedUsers() {
+  const session = getCurrentSession();
+  if (!session || session.authProvider !== 'FIREBASE' || typeof db === 'undefined' || !db) return;
+  if (typeof auth !== 'undefined' && auth && !auth.currentUser) {
+    if (!firebaseUsersAuthWaitRegistered) {
+      firebaseUsersAuthWaitRegistered = true;
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        if (!user) return;
+        unsubscribe();
+        firebaseUsersAuthWaitRegistered = false;
+        loadFirebaseManagedUsers();
+      });
+    }
+    return;
+  }
+  try {
+    const snapshot = await db.collection('users').orderBy('name').get();
+    firebaseManagedUsers = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    renderAdminUsers();
+  } catch (error) {
+    console.error('Gagal memuat pengguna Firebase:', error.code);
+    const tbody = document.getElementById('adminUsersTableBody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#B91C1C;padding:24px;">Pengguna Firebase tidak dapat dimuat.</td></tr>';
+  }
+}
+
 function renderAdminUsers() {
   const tbody = document.getElementById('adminUsersTableBody');
   if (!tbody) return;
 
-  const users = getAllUsers();
   const session = getCurrentSession();
+  if (session && session.authProvider === 'FIREBASE') {
+    if (firebaseManagedUsers === null) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748B;padding:24px;">Memuat pengguna Firebase...</td></tr>';
+      loadFirebaseManagedUsers();
+      return;
+    }
+  }
+  const users = session && session.authProvider === 'FIREBASE' ? firebaseManagedUsers : getAllUsers();
 
   tbody.innerHTML = users.map(u => {
-    const isCurrent = session && session.username === u.username;
+    const isCurrent = session && ((u.uid && session.uid === u.uid) || session.username === u.username);
     return `
       <tr>
         <td>
           <strong>${u.name}</strong> ${isCurrent ? '<span style="font-size:0.68rem; background:#DCFCE7; color:#166534; padding:2px 6px; border-radius:4px; font-weight:800;">(Anda)</span>' : ''}<br>
-          <small style="color: #64748B;">@${u.username}</small>
+          <small style="color: #64748B;">${u.email || '@' + u.username}</small>
         </td>
         <td><code>${u.nip || '-'}</code></td>
         <td><strong>${u.position}</strong><br><small style="color: #64748B;">${u.unit}</small></td>
@@ -2099,11 +2135,11 @@ function renderAdminUsers() {
         <td><span class="verified-badge">${u.canAccessAdmin ? '✓ CMS Admin' : '📱 Hanya Petugas HP'}</span></td>
         <td style="text-align: center;">
           <div class="btn-action-group" style="justify-content: center;">
-            <button onclick="openEditUserModal('${u.username}')" class="btn-action-item btn-action-edit" title="Sunting Akun ASN">
+            <button onclick="openEditUserModal('${u.uid || u.username}')" class="btn-action-item btn-action-edit" title="Sunting Akun ASN">
               ✏️ Edit
             </button>
             ${!isCurrent ? `
-              <button onclick="deleteUserRecord('${u.username}')" class="btn-action-item btn-action-delete" title="Hapus Pengguna">
+              <button onclick="deleteUserRecord('${u.uid || u.username}')" class="btn-action-item btn-action-delete" title="Hapus Pengguna">
                 🗑️
               </button>
             ` : ''}
@@ -2115,6 +2151,11 @@ function renderAdminUsers() {
 }
 
 window.openAddUserModal = function() {
+  const session = getCurrentSession();
+  if (session && session.authProvider === 'FIREBASE') {
+    openAddFirebaseUserModal();
+    return;
+  }
   CustomModal.form({
     title: "Tambah Pengguna ASN Baru",
     icon: "👤",
@@ -2205,7 +2246,91 @@ window.openAddUserModal = function() {
   });
 };
 
+function openAddFirebaseUserModal() {
+  CustomModal.form({
+    title: "Tambah Akun Firebase",
+    icon: "🔐",
+    fields: [
+      { name: "email", label: "Email Login", type: "email", required: true, placeholder: "agen01@lpg.pinrang" },
+      { name: "password", label: "Password Awal", type: "password", required: true, placeholder: "Minimal 12 karakter" },
+      { name: "name", label: "Nama Pengguna / Operator", type: "text", required: true },
+      {
+        name: "role", label: "Role", type: "select", required: true,
+        options: [
+          { value: "LPG_AGENT_ADMIN", label: "Admin Agen LPG" },
+          { value: "LPG_AGENT_OPERATOR", label: "Operator Agen LPG" },
+          { value: "LPG_MONITOR", label: "Monitor LPG (Read Only)" },
+          { value: "LPG_ADMIN", label: "Administrator LPG Dinas" },
+          { value: "SUPER_ADMIN", label: "Super Administrator" }
+        ]
+      },
+      { name: "agentId", label: "Kode Agen (wajib untuk akun agen)", type: "text", placeholder: "AG-001" },
+      { name: "agentName", label: "Nama Agen", type: "text", placeholder: "PT. ..." }
+    ],
+    onSubmit: async vals => {
+      const email = vals.email.trim().toLowerCase();
+      const password = vals.password;
+      const isAgentRole = ['LPG_AGENT_ADMIN', 'LPG_AGENT_OPERATOR'].includes(vals.role);
+      const agentId = (vals.agentId || '').trim().toUpperCase();
+      if (password.length < 12) {
+        CustomModal.alert({ title: 'Password Terlalu Pendek', message: 'Gunakan minimal 12 karakter.', type: 'warning', icon: '⚠️' });
+        return;
+      }
+      if (isAgentRole && !/^AG-\d{3}$/.test(agentId)) {
+        CustomModal.alert({ title: 'Kode Agen Tidak Valid', message: 'Akun agen wajib memakai format AG-001.', type: 'warning', icon: '⚠️' });
+        return;
+      }
+
+      let secondaryApp = null;
+      let secondaryUser = null;
+      try {
+        const appName = `user-provision-${Date.now()}`;
+        secondaryApp = firebase.initializeApp(firebaseConfig, appName);
+        const credential = await secondaryApp.auth().createUserWithEmailAndPassword(email, password);
+        secondaryUser = credential.user;
+        const profile = {
+          email,
+          username: email.split('@')[0],
+          name: vals.name.trim(),
+          role: vals.role,
+          roleLabel: vals.role.replace(/_/g, ' '),
+          status: 'ACTIVE',
+          agentId: isAgentRole ? agentId : null,
+          agentName: isAgentRole ? (vals.agentName || '').trim() : null,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdBy: getCurrentSession().uid
+        };
+        await db.collection('users').doc(secondaryUser.uid).set(profile);
+        await secondaryApp.auth().signOut();
+        await secondaryApp.delete();
+        secondaryApp = null;
+        firebaseManagedUsers = null;
+        await loadFirebaseManagedUsers();
+        CustomModal.toast(`Akun Firebase ${email} berhasil dibuat.`, 'success');
+      } catch (error) {
+        if (secondaryUser) {
+          try { await secondaryUser.delete(); } catch (cleanupError) {}
+        }
+        if (secondaryApp) {
+          try { await secondaryApp.delete(); } catch (cleanupError) {}
+        }
+        const messages = {
+          'auth/email-already-in-use': 'Email sudah digunakan akun Firebase lain.',
+          'auth/invalid-email': 'Format email tidak valid.',
+          'auth/weak-password': 'Password belum memenuhi persyaratan Firebase.'
+        };
+        CustomModal.alert({ title: 'Gagal Membuat Akun', message: messages[error.code] || 'Akun Firebase tidak dapat dibuat.', type: 'error', icon: '❌' });
+      }
+    }
+  });
+}
+
 window.openEditUserModal = function(targetUsername) {
+  const activeSession = getCurrentSession();
+  if (activeSession && activeSession.authProvider === 'FIREBASE') {
+    openEditFirebaseUserModal(targetUsername);
+    return;
+  }
   const users = getAllUsers();
   const u = users.find(x => x.username === targetUsername);
   if (!u) return;
@@ -2284,8 +2409,81 @@ window.openEditUserModal = function(targetUsername) {
   });
 };
 
+function openEditFirebaseUserModal(uid) {
+  const user = (firebaseManagedUsers || []).find(item => item.uid === uid);
+  if (!user) return;
+  CustomModal.form({
+    title: `Sunting Profil: ${user.email}`,
+    icon: '✏️',
+    fields: [
+      { name: 'name', label: 'Nama Pengguna / Operator', type: 'text', required: true, value: user.name || '' },
+      {
+        name: 'role', label: 'Role', type: 'select', required: true, value: user.role,
+        options: [
+          { value: 'LPG_AGENT_ADMIN', label: 'Admin Agen LPG' },
+          { value: 'LPG_AGENT_OPERATOR', label: 'Operator Agen LPG' },
+          { value: 'LPG_MONITOR', label: 'Monitor LPG (Read Only)' },
+          { value: 'LPG_ADMIN', label: 'Administrator LPG Dinas' },
+          { value: 'SUPER_ADMIN', label: 'Super Administrator' }
+        ]
+      },
+      { name: 'agentId', label: 'Kode Agen', type: 'text', value: user.agentId || '' },
+      { name: 'agentName', label: 'Nama Agen', type: 'text', value: user.agentName || '' },
+      {
+        name: 'status', label: 'Status Akun', type: 'select', value: user.status || 'ACTIVE',
+        options: [{ value: 'ACTIVE', label: 'Aktif' }, { value: 'DISABLED', label: 'Dinonaktifkan' }]
+      }
+    ],
+    onSubmit: async vals => {
+      const isAgentRole = ['LPG_AGENT_ADMIN', 'LPG_AGENT_OPERATOR'].includes(vals.role);
+      const agentId = (vals.agentId || '').trim().toUpperCase();
+      if (isAgentRole && !/^AG-\d{3}$/.test(agentId)) {
+        CustomModal.alert({ title: 'Kode Agen Tidak Valid', message: 'Gunakan format AG-001.', type: 'warning', icon: '⚠️' });
+        return;
+      }
+      await db.collection('users').doc(uid).update({
+        name: vals.name.trim(),
+        role: vals.role,
+        roleLabel: vals.role.replace(/_/g, ' '),
+        agentId: isAgentRole ? agentId : null,
+        agentName: isAgentRole ? (vals.agentName || '').trim() : null,
+        status: vals.status,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: getCurrentSession().uid
+      });
+      firebaseManagedUsers = null;
+      await loadFirebaseManagedUsers();
+      CustomModal.toast(`Profil ${user.email} berhasil diperbarui.`, 'success');
+    }
+  });
+}
+
 window.deleteUserRecord = function(targetUsername) {
   const session = getCurrentSession();
+  if (session && session.authProvider === 'FIREBASE') {
+    if (session.uid === targetUsername) {
+      CustomModal.alert({ title: 'Tindakan Ditolak', message: 'Akun yang sedang digunakan tidak dapat dinonaktifkan.', icon: '🚫', type: 'warning' });
+      return;
+    }
+    const target = (firebaseManagedUsers || []).find(item => item.uid === targetUsername);
+    if (!target) return;
+    CustomModal.confirm({
+      title: 'Nonaktifkan Profil Akses?',
+      message: `Profil akses <strong>${target.email}</strong> akan dinonaktifkan. Akun Auth tidak dihapus agar histori UID tetap utuh.`,
+      icon: '🚫', isDanger: true, confirmText: 'Nonaktifkan',
+      onSubmit: async () => {
+        await db.collection('users').doc(targetUsername).update({
+          status: 'DISABLED',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedBy: session.uid
+        });
+        firebaseManagedUsers = null;
+        await loadFirebaseManagedUsers();
+        CustomModal.toast(`Profil ${target.email} dinonaktifkan.`, 'info');
+      }
+    });
+    return;
+  }
   if (session && session.username === targetUsername) {
     CustomModal.alert({ title: "Tindakan Ditolak", message: "Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif digunakan.", icon: "🚫", type: "warning" });
     return;
