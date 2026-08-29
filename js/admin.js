@@ -21,6 +21,29 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAdminSettings();
   initBannerUploader();
 
+  // Real-Time Cloud Firestore Sync di CMS Admin
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      db.collection('news').onSnapshot(snapshot => {
+        if (!snapshot.empty) {
+          const cloudNews = [];
+          snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));
+          const merged = mergeNewsWithDefaults(cloudNews);
+          setStorage('disperindag_news', merged);
+          renderAdminNews();
+        }
+      }, err => console.warn("Firestore Admin News Sync:", err));
+
+      db.collection('settings').doc('banners').onSnapshot(doc => {
+        if (doc.exists && doc.data() && Array.isArray(doc.data().list)) {
+          const merged = mergeBannersWithDefaults(doc.data().list);
+          setStorage('disperindag_banners', merged);
+          renderAdminBanners();
+        }
+      }, err => console.warn("Firestore Admin Banners Sync:", err));
+    } catch(e) {}
+  }
+
   // Buka tab Dashboard secara default dan sembunyikan semua panel lainnya
   switchAdminTab('tabDashboard');
 });
@@ -182,7 +205,8 @@ function renderAdminNews(filterSearch = '', filterCat = '') {
   const tbody = document.getElementById('adminNewsTableBody');
   if (!tbody) return;
 
-  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const rawNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const allNews = typeof mergeNewsWithDefaults === 'function' ? mergeNewsWithDefaults(rawNews) : rawNews;
   
   // Update Statistik
   const totalCount = allNews.length;

@@ -468,6 +468,21 @@
         applyFilter();
       };
 
+      // REAL-TIME CLOUD FIRESTORE SYNC UNTUK ARSIP BERITA
+      if (typeof db !== 'undefined' && db !== null) {
+        try {
+          db.collection('news').onSnapshot(snapshot => {
+            if (!snapshot.empty) {
+              const cloudNews = [];
+              snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));
+              allNews = mergeNewsWithDefaults(cloudNews);
+              setStorage('disperindag_news', allNews);
+              applyFilter();
+            }
+          }, err => console.warn("Firestore News listener:", err));
+        } catch(e) {}
+      }
+
       applyFilter();
     }
 

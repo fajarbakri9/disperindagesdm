@@ -33,7 +33,36 @@ document.addEventListener('DOMContentLoaded', () => {
   renderHomeProductsIKM();
   initComplaintForm();
   initTabsSystem();
+  initFirestoreLiveSync();
 });
+
+// REAL-TIME FIRESTORE NEWS, BANNERS & PRICES SYNC
+function initFirestoreLiveSync() {
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      // 1. Sync Berita Live dari Cloud Firestore
+      db.collection('news').onSnapshot(snapshot => {
+        if (!snapshot.empty) {
+          const cloudNews = [];
+          snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));
+          const merged = mergeNewsWithDefaults(cloudNews);
+          setStorage('disperindag_news', merged);
+          renderHomeNews();
+        }
+      }, err => console.warn("Firestore News listener:", err));
+
+      // 2. Sync Banners Live dari Cloud Firestore
+      db.collection('settings').doc('banners').onSnapshot(doc => {
+        if (doc.exists && doc.data() && Array.isArray(doc.data().list)) {
+          const cloudBanners = doc.data().list;
+          const mergedBanners = mergeBannersWithDefaults(cloudBanners);
+          setStorage('disperindag_banners', mergedBanners);
+          renderHeroCarousel();
+        }
+      }, err => console.warn("Firestore Banner listener:", err));
+    } catch(e) {}
+  }
+}
 
 // 1. MOBILE DRAWER NAVIGATION CONTROLLER (WCAG 2.1 AA)
 function initMobileDrawer() {

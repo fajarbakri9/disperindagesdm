@@ -49,6 +49,53 @@ function mergePricesWithDefaults(incomingList) {
 }
 window.mergePricesWithDefaults = mergePricesWithDefaults;
 
+// Universal Helper Merge Data Berita (Mencegah Kehilangan Berita Buatan Admin saat Deploy / Migrasi)
+function mergeNewsWithDefaults(incomingList) {
+  const baseList = JSON.parse(JSON.stringify(typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []));
+  if (!Array.isArray(incomingList) || incomingList.length === 0) return baseList;
+
+  const map = new Map();
+  baseList.forEach(item => map.set(item.id, item));
+
+  const customItems = [];
+  incomingList.forEach(inc => {
+    if (inc && (inc.id || inc.slug)) {
+      const key = inc.id || inc.slug;
+      if (map.has(key)) {
+        map.set(key, { ...map.get(key), ...inc });
+      } else {
+        customItems.push(inc);
+      }
+    }
+  });
+
+  return [...customItems, ...Array.from(map.values())];
+}
+window.mergeNewsWithDefaults = mergeNewsWithDefaults;
+
+// Universal Helper Merge Data Banner Hero Carousel
+function mergeBannersWithDefaults(incomingList) {
+  const baseList = JSON.parse(JSON.stringify(typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []));
+  if (!Array.isArray(incomingList) || incomingList.length === 0) return baseList;
+
+  const map = new Map();
+  baseList.forEach(b => map.set(b.id, b));
+  
+  const customBanners = [];
+  incomingList.forEach(inc => {
+    if (inc && inc.id) {
+      if (map.has(inc.id)) {
+        map.set(inc.id, { ...map.get(inc.id), ...inc });
+      } else {
+        customBanners.push(inc);
+      }
+    }
+  });
+
+  return [...customBanners, ...Array.from(map.values())];
+}
+window.mergeBannersWithDefaults = mergeBannersWithDefaults;
+
 // 1. PENGATURAN SITUS & KONTAK TERPADU (SITE SETTINGS)
 // 1. PENGATURAN SITUS & KONTAK TERPADU CANONICAL V3 (SESUAI ARAHAN RESMI)
 const DEFAULT_SITE_SETTINGS = {
@@ -1718,7 +1765,7 @@ const DEFAULT_MEDIA_INTELLIGENCE = {
 
 function initDataStoreMigration() {
   const currentVer = localStorage.getItem('disperindag_data_version');
-  const targetVer = "2026_08_29_seo_slug_v3";
+  const targetVer = "2026_08_29_enterprise_cloud_sync_v4";
   if (currentVer !== targetVer) {
     localStorage.setItem('disperindag_site_settings', JSON.stringify(DEFAULT_SITE_SETTINGS));
     localStorage.setItem('disperindag_contact_channels', JSON.stringify(DEFAULT_CONTACT_CHANNELS));
@@ -1732,16 +1779,30 @@ function initDataStoreMigration() {
     localStorage.setItem('disperindag_markets', JSON.stringify(DEFAULT_MARKETS));
     localStorage.setItem('disperindag_commodities', JSON.stringify(DEFAULT_COMMODITIES));
     
-    // Auto-Recovery Prices: gabungkan data tersimpan jika ada dengan 12 default prices
+    // 1. Auto-Recovery Prices: gabungkan data tersimpan jika ada dengan 12 default prices
     const existingPrices = getStorage('disperindag_prices', null);
     const resolvedPrices = existingPrices ? mergePricesWithDefaults(existingPrices) : DEFAULT_COMMODITY_PRICES;
     localStorage.setItem('disperindag_prices', JSON.stringify(resolvedPrices));
     
     localStorage.setItem('disperindag_regulated_prices', JSON.stringify(DEFAULT_REGULATED_PRICES));
     localStorage.setItem('disperindag_products_ikm', JSON.stringify(DEFAULT_PRODUCTS_IKM));
-    localStorage.setItem('disperindag_news', JSON.stringify(DEFAULT_NEWS));
-    localStorage.setItem('disperindag_banners', JSON.stringify(DEFAULT_BANNERS));
-    localStorage.setItem('disperindag_reports', JSON.stringify(DEFAULT_REPORTS));
+    
+    // 2. Auto-Recovery Berita: Gabungkan berita buatan admin tersimpan tanpa menimpanya
+    const existingNews = getStorage('disperindag_news', null);
+    const resolvedNews = existingNews ? mergeNewsWithDefaults(existingNews) : DEFAULT_NEWS;
+    localStorage.setItem('disperindag_news', JSON.stringify(resolvedNews));
+    
+    // 3. Auto-Recovery Banners: Gabungkan banner buatan admin tersimpan
+    const existingBanners = getStorage('disperindag_banners', null);
+    const resolvedBanners = existingBanners ? mergeBannersWithDefaults(existingBanners) : DEFAULT_BANNERS;
+    localStorage.setItem('disperindag_banners', JSON.stringify(resolvedBanners));
+    
+    // 4. Auto-Recovery Aduan & Laporan Masyarakat: Pertahankan aduan yang sudah masuk
+    const existingReports = getStorage('disperindag_reports', null);
+    if (!existingReports || existingReports.length === 0) {
+      localStorage.setItem('disperindag_reports', JSON.stringify(DEFAULT_REPORTS));
+    }
+    
     localStorage.setItem('disperindag_command_center', JSON.stringify(DEFAULT_COMMAND_CENTER_CONFIG));
     localStorage.setItem('disperindag_districts', JSON.stringify(DEFAULT_DISTRICTS_STATUS));
     localStorage.setItem('disperindag_media_intelligence', JSON.stringify(DEFAULT_MEDIA_INTELLIGENCE));
@@ -1753,6 +1814,11 @@ function initDataStoreMigration() {
     if (!Array.isArray(storedPrices) || storedPrices.length < (DEFAULT_COMMODITY_PRICES || []).length) {
       const recovered = mergePricesWithDefaults(storedPrices);
       localStorage.setItem('disperindag_prices', JSON.stringify(recovered));
+    }
+    // Validasi liveness data berita pada runtime
+    const storedNews = getStorage('disperindag_news', []);
+    if (!Array.isArray(storedNews) || storedNews.length === 0) {
+      localStorage.setItem('disperindag_news', JSON.stringify(DEFAULT_NEWS));
     }
   }
 }
