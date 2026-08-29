@@ -49,27 +49,60 @@ function mergePricesWithDefaults(incomingList) {
 }
 window.mergePricesWithDefaults = mergePricesWithDefaults;
 
-// Universal Helper Merge Data Berita (Mencegah Kehilangan Berita Buatan Admin saat Deploy / Migrasi)
+// Universal Helper Deduplikasi Berita (Mencegah Penumpukan / Duplikasi Berita)
+function deduplicateNewsList(list) {
+  if (!Array.isArray(list)) return [];
+  const seenIds = new Set();
+  const seenSlugs = new Set();
+  const seenTitles = new Set();
+  const result = [];
+
+  list.forEach(item => {
+    if (!item) return;
+    const id = item.id || '';
+    const slug = (item.slug || '').toLowerCase().trim();
+    const cleanTitle = (item.title || '').toLowerCase().trim().replace(/[^\w\s]/gi, '');
+
+    // Cek apakah sudah pernah masuk berdasarkan ID, Slug, atau Judul Bersih
+    const isDuplicate = 
+      (id && seenIds.has(id)) ||
+      (slug && seenSlugs.has(slug)) ||
+      (cleanTitle && cleanTitle.length > 8 && seenTitles.has(cleanTitle));
+
+    if (!isDuplicate) {
+      if (id) seenIds.add(id);
+      if (slug) seenSlugs.add(slug);
+      if (cleanTitle) seenTitles.add(cleanTitle);
+      result.push(item);
+    }
+  });
+
+  return result;
+}
+window.deduplicateNewsList = deduplicateNewsList;
+
+// Universal Helper Merge Data Berita (Mencegah Duplikasi & Kehilangan Berita Buatan Admin)
 function mergeNewsWithDefaults(incomingList) {
   const baseList = JSON.parse(JSON.stringify(typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []));
-  if (!Array.isArray(incomingList) || incomingList.length === 0) return baseList;
+  if (!Array.isArray(incomingList) || incomingList.length === 0) return deduplicateNewsList(baseList);
 
-  const map = new Map();
-  baseList.forEach(item => map.set(item.id, item));
+  const cleanIncoming = deduplicateNewsList(incomingList);
+  const baseMap = new Map();
+  baseList.forEach(item => baseMap.set(item.id, item));
 
   const customItems = [];
-  incomingList.forEach(inc => {
-    if (inc && (inc.id || inc.slug)) {
-      const key = inc.id || inc.slug;
-      if (map.has(key)) {
-        map.set(key, { ...map.get(key), ...inc });
+  cleanIncoming.forEach(inc => {
+    if (inc && inc.id) {
+      if (baseMap.has(inc.id)) {
+        baseMap.set(inc.id, { ...baseMap.get(inc.id), ...inc });
       } else {
         customItems.push(inc);
       }
     }
   });
 
-  return [...customItems, ...Array.from(map.values())];
+  const merged = [...customItems, ...Array.from(baseMap.values())];
+  return deduplicateNewsList(merged);
 }
 window.mergeNewsWithDefaults = mergeNewsWithDefaults;
 
@@ -1765,7 +1798,7 @@ const DEFAULT_MEDIA_INTELLIGENCE = {
 
 function initDataStoreMigration() {
   const currentVer = localStorage.getItem('disperindag_data_version');
-  const targetVer = "2026_08_29_enterprise_cloud_sync_v4";
+  const targetVer = "2026_08_29_dedup_clean_v5";
   if (currentVer !== targetVer) {
     localStorage.setItem('disperindag_site_settings', JSON.stringify(DEFAULT_SITE_SETTINGS));
     localStorage.setItem('disperindag_contact_channels', JSON.stringify(DEFAULT_CONTACT_CHANNELS));
@@ -1787,17 +1820,17 @@ function initDataStoreMigration() {
     localStorage.setItem('disperindag_regulated_prices', JSON.stringify(DEFAULT_REGULATED_PRICES));
     localStorage.setItem('disperindag_products_ikm', JSON.stringify(DEFAULT_PRODUCTS_IKM));
     
-    // 2. Auto-Recovery Berita: Gabungkan berita buatan admin tersimpan tanpa menimpanya
+    // 2. Auto-Recovery & Deduplikasi Berita: Bersihkan tumpukan duplikat
     const existingNews = getStorage('disperindag_news', null);
-    const resolvedNews = existingNews ? mergeNewsWithDefaults(existingNews) : DEFAULT_NEWS;
+    const resolvedNews = existingNews ? mergeNewsWithDefaults(existingNews) : deduplicateNewsList(DEFAULT_NEWS);
     localStorage.setItem('disperindag_news', JSON.stringify(resolvedNews));
     
-    // 3. Auto-Recovery Banners: Gabungkan banner buatan admin tersimpan
+    // 3. Auto-Recovery Banners
     const existingBanners = getStorage('disperindag_banners', null);
     const resolvedBanners = existingBanners ? mergeBannersWithDefaults(existingBanners) : DEFAULT_BANNERS;
     localStorage.setItem('disperindag_banners', JSON.stringify(resolvedBanners));
     
-    // 4. Auto-Recovery Aduan & Laporan Masyarakat: Pertahankan aduan yang sudah masuk
+    // 4. Auto-Recovery Aduan & Laporan Masyarakat
     const existingReports = getStorage('disperindag_reports', null);
     if (!existingReports || existingReports.length === 0) {
       localStorage.setItem('disperindag_reports', JSON.stringify(DEFAULT_REPORTS));
@@ -1815,10 +1848,13 @@ function initDataStoreMigration() {
       const recovered = mergePricesWithDefaults(storedPrices);
       localStorage.setItem('disperindag_prices', JSON.stringify(recovered));
     }
-    // Validasi liveness data berita pada runtime
+    // Validasi & Auto-Deduplikasi Berita pada runtime
     const storedNews = getStorage('disperindag_news', []);
-    if (!Array.isArray(storedNews) || storedNews.length === 0) {
-      localStorage.setItem('disperindag_news', JSON.stringify(DEFAULT_NEWS));
+    if (Array.isArray(storedNews) && storedNews.length > 0) {
+      const clean = deduplicateNewsList(storedNews);
+      if (clean.length !== storedNews.length) {
+        localStorage.setItem('disperindag_news', JSON.stringify(clean));
+      }
     }
   }
 }

@@ -322,6 +322,85 @@ function resetNewsFilter() {
   renderAdminNews();
 }
 
+// TOGGLE PUBLICATION STATUS (PUBLISHED <-> DRAFT)
+window.toggleNewsStatus = async function(id) {
+  let allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  allNews = deduplicateNewsList(allNews);
+  
+  const idx = allNews.findIndex(n => n.id === id);
+  if (idx === -1) return;
+
+  const currentStatus = allNews[idx].status || 'published';
+  const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+  allNews[idx].status = newStatus;
+  allNews[idx].updated_at = new Date().toISOString();
+
+  setStorage('disperindag_news', allNews);
+  renderAdminNews();
+
+  // Sinkronisasi ke Firestore
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      db.collection('news').doc(id).set(allNews[idx], { merge: true }).catch(() => {});
+    } catch(e) {}
+  }
+
+  const label = newStatus === 'published' ? 'diterbitkan secara publik (Live)' : 'dialihkan ke status Draf (arsip internal)';
+  CustomModal.toast(`Status berita "${allNews[idx].title?.slice(0, 30)}..." berhasil ${label}.`, "success");
+};
+
+// DELETE ADMIN NEWS (HAPUS BERITA PERMANEN)
+window.deleteAdminNews = async function(id) {
+  let allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  allNews = deduplicateNewsList(allNews);
+  
+  const targetNews = allNews.find(n => n.id === id);
+  if (!targetNews) return;
+
+  const confirmed = await CustomModal.confirm({
+    title: "Konfirmasi Hapus Berita",
+    message: `Apakah Anda yakin ingin menghapus rilis berita berikut secara permanen?<br><br><strong>"${targetNews.title}"</strong><br><br><span style="color:#DC2626; font-size:0.8rem; font-weight:700;">⚠️ Tindakan ini akan menghapus berita dari portal publik, database cloud, dan banner sorotan.</span>`,
+    confirmText: "Ya, Hapus Permanen",
+    cancelText: "Batal",
+    type: "danger",
+    icon: "🗑️"
+  });
+
+  if (!confirmed) return;
+
+  // 1. Hapus dari LocalStorage
+  const updatedList = allNews.filter(n => n.id !== id);
+  setStorage('disperindag_news', updatedList);
+
+  // 2. Hapus dari Banner jika artikel ini adalah headline
+  let banners = getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []);
+  const bannerIdx = banners.findIndex(b => b.target_news_id === id || b.title === targetNews.title);
+  if (bannerIdx !== -1) {
+    banners.splice(bannerIdx, 1);
+    setStorage('disperindag_banners', banners);
+    if (typeof renderAdminBanners === 'function') renderAdminBanners();
+    if (typeof db !== 'undefined' && db !== null) {
+      try {
+        db.collection('settings').doc('banners').set({ list: banners }, { merge: true }).catch(() => {});
+      } catch(e) {}
+    }
+  }
+
+  // 3. Hapus dari Cloud Firestore
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      db.collection('news').doc(id).delete()
+        .then(() => console.log("Firestore News Deleted:", id))
+        .catch(err => console.warn("Firestore Delete Warning:", err));
+    } catch(e) {}
+  }
+
+  // 4. Log Aktivitas & Render Ulang
+  logAdminActivity('Berita Kedinasan', `Menghapus rilis berita: ${targetNews.title}`);
+  renderAdminNews();
+  CustomModal.toast(`Berita "${targetNews.title.slice(0, 35)}..." berhasil dihapus secara permanen.`, "success");
+};
+
 // COPY PUBLIC NEWS LINK
 window.copyNewsPublicLink = function(slugOrId, title) {
   const url = `https://disperindagesdm-pinrang.web.app/berita/${slugOrId}`;

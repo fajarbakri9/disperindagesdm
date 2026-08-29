@@ -26,11 +26,11 @@
   <meta name="twitter:title" id="twTitle" content="Rilis Berita Resmi Kedinasan | Disperindag ESDM Kabupaten Pinrang">
   <meta name="twitter:description" id="twDesc" content="Pusat rilis berita faktual dan dokumentasi kegiatan resmi Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.">
   <meta name="twitter:image" id="twImage" content="https://disperindagesdm-pinrang.web.app/assets/banner/cover_disperindag_esdm_pinrang.jpg">
-  <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
-  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/modal-system.css">
+  <link rel="icon" type="image/png" href="/assets/brand/logo_pinrang_opt.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/brand/logo_pinrang_opt.png">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/modal-system.css">
   <style>
     .article-page {
       padding: 40px 0 60px;
@@ -107,11 +107,11 @@
     <div class="container">
       <div class="topbar-left">
         <span class="live-indicator"></span>
-        <span id="currentDate">Portal Berita & Dokumentasi Kedinasan</span>
+        <span id="currentDate">Portal Berita &amp; Dokumentasi Kedinasan</span>
       </div>
 
       <div class="topbar-right-actions">
-        <form class="topbar-search-form" id="globalSearchForm" action="search.html" method="GET">
+        <form class="topbar-search-form" id="globalSearchForm" action="/search.html" method="GET">
           <input type="text" id="globalSearchInput" name="q" class="topbar-search-input" placeholder="Cari berita, rilis..." aria-label="Pencarian Global">
           <button type="submit" class="topbar-search-btn" aria-label="Tombol Cari">🔍</button>
         </form>
@@ -121,17 +121,17 @@
             <span>🔐</span> Portal Pegawai <span class="caret-down">▾</span>
           </button>
           <div class="login-dropdown-menu">
-            <a href="login.html" class="login-drop-item">
+            <a href="/login.html" class="login-drop-item">
               <div class="drop-item-icon" style="background: #FEF3C7; color: #B45309;">🔐</div>
               <div><strong>Masuk Akun Pegawai</strong><small>Autentikasi keamanan ASN</small></div>
             </a>
             <div class="dropdown-divider"></div>
-            <a href="petugas.html" class="login-drop-item">
+            <a href="/petugas.html" class="login-drop-item">
               <div class="drop-item-icon mobile-badge">📱</div>
-              <div><strong>Aplikasi Petugas Lapangan</strong><small>Input harga pasar, sidak LPG & tera</small></div>
+              <div><strong>Aplikasi Petugas Lapangan</strong><small>Input harga pasar, sidak LPG &amp; tera</small></div>
             </a>
             <div class="dropdown-divider"></div>
-            <a href="admin.html" class="login-drop-item">
+            <a href="/admin.html" class="login-drop-item">
               <div class="drop-item-icon desktop-badge">💻</div>
               <div><strong>CMS Administrator</strong><small>Kelola konten</small></div>
             </a>
@@ -141,11 +141,11 @@
     </div>
   </header>
 
-  <!-- 2. NAVBAR UTAMA -->
+  <!-- 2. NAVBAR UTAMA RESMI -->
   <nav class="navbar">
     <div class="container">
-      <a href="index.html" class="brand-logo">
-        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang">
+      <a href="/index.html" class="brand-logo">
+        <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang">
         <div class="brand-text">
           <h1>DISPERINDAG ESDM</h1>
           <p>KABUPATEN PINRANG</p>
@@ -154,11 +154,6 @@
 
       <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Buka Navigasi Menu">☰</button>
 
-            <!-- Desktop Navigation Menu -->
-            <!-- Desktop Navigation Menu -->
-            <!-- Desktop Navigation Menu -->
-            <!-- Desktop Navigation Menu -->
-            <!-- Desktop Navigation Menu -->
       <ul class="nav-menu">
         <li><a href="index.html" class="nav-link ">Beranda</a></li>
 
@@ -369,13 +364,13 @@
     <!-- 13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN) -->
   
 
-  <script src="js/data.js?v=20260829_newsroom_v4"></script>
-  <script src="js/modal-system.js?v=20260829_newsroom_v4"></script>
+  <script src="/js/data.js?v=20260829_dedup_v5"></script>
+  <script src="/js/modal-system.js?v=20260829_dedup_v5"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="js/firebase-config.js?v=20260829_newsroom_v4"></script>
-  <script src="js/app.js?v=20260829_newsroom_v4"></script>
+  <script src="/js/firebase-config.js?v=20260829_dedup_v5"></script>
+  <script src="/js/app.js?v=20260829_dedup_v5"></script>
   <script>
     async function renderSingleArticle() {
       // 1. Ambil ID atau Slug dari URL (Query Param atau Pathname)
@@ -389,12 +384,20 @@
         }
       }
 
-      const newsList = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+      let newsList = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+      if (typeof deduplicateNewsList === 'function') {
+        newsList = deduplicateNewsList(newsList);
+      }
       
-      // 2. Cari artikel berdasarkan ID atau Slug
+      // 2. Cari artikel berdasarkan ID atau Slug di LocalStorage
       let article = null;
       if (queryKey) {
-        article = newsList.find(n => n.id === queryKey || n.slug === queryKey);
+        article = newsList.find(n => 
+          n.id === queryKey || 
+          n.slug === queryKey || 
+          (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
+          (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
+        );
       }
 
       // Jika belum ditemukan di local storage, coba fetch dari Firestore
@@ -402,25 +405,44 @@
         try {
           const docSnap = await db.collection('news').doc(queryKey).get();
           if (docSnap.exists) {
-            article = docSnap.data();
+            article = { id: docSnap.id, ...docSnap.data() };
+          } else {
+            const querySnap = await db.collection('news').where('slug', '==', queryKey).limit(1).get();
+            if (!querySnap.empty) {
+              const d = querySnap.docs[0];
+              article = { id: d.id, ...d.data() };
+            }
           }
-        } catch(e) {}
+          if (article) {
+            newsList = typeof mergeNewsWithDefaults === 'function' ? mergeNewsWithDefaults([article, ...newsList]) : [article, ...newsList];
+            setStorage('disperindag_news', newsList);
+          }
+        } catch(e) {
+          console.warn("Firestore fetch single news error:", e);
+        }
       }
 
-      // Fallback ke artikel pertama jika tidak ada query
-      if (!article) {
+      // Fallback ke artikel pertama jika tidak ada query sama sekali
+      if (!article && !queryKey) {
         article = newsList[0];
       }
 
       if (!article) {
         document.getElementById('articleContainer').innerHTML = `
           <div style="text-align:center; padding: 60px 20px;">
-            <div style="font-size: 3rem; margin-bottom: 12px;">📰</div>
-            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 10px;">Artikel Berita Tidak Ditemukan</h2>
-            <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 20px;">Berita yang Anda cari mungkin telah dipindahkan atau dinonaktifkan dari publikasi.</p>
-            <a href="arsip-berita.html" class="btn-primary" style="padding: 10px 20px; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-              <span>📂</span> Lihat Semua Arsip Berita
-            </a>
+            <div style="font-size: 3.5rem; margin-bottom: 16px;">🧭</div>
+            <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 10px;">Artikel Berita Tidak Ditemukan</h2>
+            <p style="color: #64748B; font-size: 0.92rem; margin-bottom: 24px; max-width: 480px; margin-left: auto; margin-right: auto;">
+              Rilis berita yang Anda tuju tidak tersedia atau telah berganti tautan baru yang lebih aman.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+              <a href="/index.html" class="btn-primary" style="padding: 10px 22px; font-size: 0.88rem; text-decoration: none; border-radius: 8px;">
+                <span>🏠</span> Kembali ke Beranda
+              </a>
+              <a href="/arsip-berita.html" class="btn-outline" style="padding: 10px 20px; font-size: 0.88rem; text-decoration: none; border-radius: 8px;">
+                <span>📂</span> Buka Arsip Berita
+              </a>
+            </div>
           </div>
         `;
         return;

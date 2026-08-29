@@ -27,6 +27,10 @@
     ],
     "rewrites": [
       {
+        "source": "/berita/**",
+        "destination": "/berita.html"
+      },
+      {
         "source": "/intel/**",
         "destination": "/intel/index.html"
       }
