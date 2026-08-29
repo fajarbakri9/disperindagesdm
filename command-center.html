@@ -38,7 +38,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800;900&family=JetBrains+Mono:wght@700;800;900&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
   <!-- Command Center Modular Stylesheet -->
-  <link rel="stylesheet" href="css/command-center.css?v=20260829_raf_marquee_v2">
+  <link rel="stylesheet" href="css/command-center.css?v=20260830_cc_integrity_v1">
 </head>
 <body>
 
@@ -49,7 +49,7 @@
       <div class="cc-title-box">
         <h1>
           COMMAND CENTER DISPERINDAG ESDM PINRANG
-          <span class="cc-live-badge status-live" id="systemLiveBadge"><span class="pulse-dot"></span> ● LIVE</span>
+          <span class="cc-live-badge status-loading" id="systemLiveBadge"><span class="pulse-dot"></span> ● MEMUAT DATA</span>
         </h1>
         <p>Pemerintah Kabupaten Pinrang • Sulawesi Selatan</p>
       </div>
@@ -58,8 +58,8 @@
     <div class="cc-header-right">
       <!-- Data Freshness Indicator -->
       <div class="cc-data-freshness" id="ccDataUpdatedAt">
-        <span>DATA TERAKHIR</span>
-        <strong>28 Agustus 2026 09:00 WITA</strong>
+        <span>DATA TERBARU</span>
+        <strong>--</strong>
       </div>
 
       <!-- Live Weather Widget -->
@@ -207,14 +207,14 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; flex-shrink: 0;">
             <div style="background: var(--bg-card-inner); padding: 10px 12px; border-radius: 8px; text-align: center; border: 2px solid var(--border-card);">
               <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 800;">SPBU TERUJI TERA</div>
-              <div style="font-size: 1.95rem; font-weight: 900; color: var(--accent-gold); font-family: 'Chakra Petch', monospace; line-height: 1.1;" id="cc_kpi_spbu_verified_pct">100%</div>
-              <div style="font-size: 0.74rem; color: var(--accent-emerald); font-weight: 800;">Nozzle Presisi &amp; Sah</div>
+              <div style="font-size: 1.95rem; font-weight: 900; color: var(--accent-gold); font-family: 'Chakra Petch', monospace; line-height: 1.1;" id="cc_kpi_spbu_verified_pct">--</div>
+              <div style="font-size: 0.74rem; color: var(--accent-emerald); font-weight: 800;">Data verifikasi resmi</div>
             </div>
 
             <div style="background: var(--bg-card-inner); padding: 10px 12px; border-radius: 8px; text-align: center; border: 2px solid var(--border-card);">
               <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 800;">PENYALURAN LPG 3 KG</div>
-              <div style="font-size: 1.95rem; font-weight: 900; color: var(--accent-cyan); font-family: 'Chakra Petch', monospace; line-height: 1.1;" id="cc_kpi_lpg_distribution_pct">84.5%</div>
-              <div style="font-size: 0.74rem; color: var(--accent-emerald); font-weight: 800;">Stok Daerah Terkendali</div>
+              <div style="font-size: 1.95rem; font-weight: 900; color: var(--accent-cyan); font-family: 'Chakra Petch', monospace; line-height: 1.1;" id="cc_kpi_lpg_distribution_pct">--</div>
+              <div style="font-size: 0.74rem; color: var(--accent-emerald); font-weight: 800;">Realisasi distribusi</div>
             </div>
           </div>
 
@@ -222,7 +222,7 @@
           <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; min-height: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;">
               <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-cyan);">🗺️ STATUS 12 KECAMATAN SE-KABUPATEN PINRANG:</span>
-              <span style="font-size: 0.74rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;">12 WILAYAH TERVERIFIKASI</span>
+              <span style="font-size: 0.74rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;">STATUS BERBASIS DATA</span>
             </div>
             <div class="district-matrix-grid" id="ccDistrictMatrix0" style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; align-content: space-between;">
               <!-- Injected dynamically: 12 kecamatan dalam 4 baris x 3 kolom -->
@@ -254,10 +254,10 @@
 
           <div style="padding-top: 10px; border-top: 2px solid var(--border-card); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
             <div>
-              <span style="font-size: 0.88rem; font-weight: 900; color: var(--text-muted);">SKM TAHUN 2025 (PERIODIK):</span>
-              <div style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: 800;">Hasil SKM Disperindag ESDM Kab. Pinrang 2025</div>
+              <span style="font-size: 0.88rem; font-weight: 900; color: var(--text-muted);" id="cc_kpi_skm_period">PERIODE SKM: --</span>
+              <div style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: 800;">Hasil survei terverifikasi</div>
             </div>
-            <span style="font-size: 1.55rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;" id="cc_kpi_skm_score">88.64 / 100 (A)</span>
+            <span style="font-size: 1.55rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;" id="cc_kpi_skm_score">--</span>
           </div>
         </div>
 
@@ -275,8 +275,9 @@
         <div class="card-box" style="display: flex; flex-direction: column; overflow: hidden;">
           <div class="card-box-header">
             <div class="card-box-title"><span>📊</span> DAFTAR HARGA KOMODITAS PANGAN POKOK (BAPOKTING)</div>
-            <span class="card-badge badge-gold">MONITORING PETUGAS PASAR</span>
+            <span class="card-badge badge-gold" id="ccPriceSource">SUMBER: --</span>
           </div>
+          <div class="cc-module-meta" id="ccPriceUpdatedAt">UPDATE DATA: --</div>
           <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
             <table class="table-price-lg" style="height: 100%;">
               <thead>
@@ -299,8 +300,8 @@
         <div style="display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden;">
           <div class="card-box" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 14px 18px;">
             <div class="card-box-header" style="margin-bottom: 8px; padding-bottom: 8px;">
-              <div class="card-box-title"><span>🏪</span> <span id="cc_s1_markets_header">7 PASAR RAKYAT BEROPERASI AKTIF</span></div>
-              <span class="card-badge badge-blue" id="cc_s1_markets_badge">7 AKTIF • 17 TERDATA</span>
+              <div class="card-box-title"><span>🏪</span> <span id="cc_s1_markets_header">DATA PASAR RAKYAT</span></div>
+              <span class="card-badge badge-blue" id="cc_s1_markets_badge">--</span>
             </div>
             
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; overflow: hidden; min-height: 0;" id="cc_s1_markets_container">
@@ -330,7 +331,7 @@
           <div class="card-box" style="flex: 1;">
             <div class="card-box-header">
               <div class="card-box-title"><span>⚖️</span> KEMETROLOGIAN LEGAL KAB. PINRANG</div>
-              <span class="card-badge badge-green">CAP TERA SAH</span>
+              <span class="card-badge badge-green">DATA TERA TERVERIFIKASI</span>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
@@ -363,30 +364,8 @@
             <span class="card-badge badge-gold">AGENDA 2026</span>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-gold);">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 1rem; color: var(--text-main);">Tera Ulang Pabrik Beras &amp; Penggilingan Padi (RMU)</strong>
-                <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-gold);">Kecamatan Lanrisang &amp; Mattiro Sompe</span>
-              </div>
-              <div style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">Pemeriksaan jembatan timbang kapasitas 30-50 Ton untuk akurasi gabah petani.</div>
-            </div>
-
-            <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-cyan);">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 1rem; color: var(--text-main);">Tera Ulang Timbangan Elektronik &amp; Meja Pasar</strong>
-                <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-cyan);">Pasar Pekkabata &amp; Marawi</span>
-              </div>
-              <div style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">Layanan jemput bola bagi pedagang daging, ikan, dan sembako secara berkala.</div>
-            </div>
-
-            <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border-left: 5px solid var(--accent-purple);">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 1rem; color: var(--text-main);">Sidak Tera Pompa Ukur BBM SPBU Jalur Trans</strong>
-                <span style="font-size: 0.84rem; font-weight: 900; color: var(--accent-purple);">Kec. Suppa, Paleteang &amp; Duampanua</span>
-              </div>
-              <div style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">Uji bejana standar 20 Liter memastikan toleransi batas kesalahan tidak melebihi 0.5%.</div>
-            </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;" id="ccTeraScheduleList">
+            <div class="cc-empty-state">MEMUAT JADWAL TERA...</div>
           </div>
         </div>
 
@@ -439,7 +418,7 @@
         <div class="card-box">
           <div class="card-box-header">
             <div class="card-box-title"><span>🗺️</span> STATUS DISTRIBUSI LPG 12 KECAMATAN</div>
-            <span class="card-badge badge-green">TERKONTROL</span>
+            <span class="card-badge badge-green">STATUS BERBASIS DATA</span>
           </div>
 
           <div class="district-matrix-grid" id="ccDistrictMatrix3" style="grid-template-columns: repeat(3, 1fr); gap: 10px;">
@@ -502,9 +481,9 @@
           <div style="background: var(--bg-card-inner); padding: 14px 18px; border-radius: 10px; border: 2px solid var(--accent-emerald); display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
             <div>
               <div style="font-size: 0.92rem; font-weight: 900; color: var(--text-muted);">SURVEI KEPUASAN MASYARAKAT (SKM) TAHUN 2025:</div>
-              <div style="font-size: 0.82rem; font-weight: 900; color: var(--accent-emerald);" id="cc_s4_skm_grade">Predikat: SANGAT BAIK (A) • Hasil SKM 2025 Resmi</div>
+              <div style="font-size: 0.82rem; font-weight: 900; color: var(--accent-emerald);" id="cc_s4_skm_grade">Predikat: -- • Periode: --</div>
             </div>
-            <div style="font-size: 2rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;" id="cc_s4_skm_score">88.64 / 100</div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;" id="cc_s4_skm_score">--</div>
           </div>
         </div>
 
@@ -524,13 +503,13 @@
   </footer>
 
   <!-- Core Scripts & Firebase Integration -->
-  <script src="js/data.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-engine.js?v=20260829_sync15_v1"></script>
+  <script src="js/data.js?v=20260830_cc_integrity_v1"></script>
+  <script src="js/lpg-data-seed.js?v=20260830_cc_integrity_v1"></script>
+  <script src="js/lpg-engine.js?v=20260830_cc_integrity_v1"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
-  <script src="js/command-center.js?v=20260829_sync15_v1"></script>
+  <script src="js/firebase-config.js?v=20260830_cc_integrity_v1"></script>
+  <script src="js/command-center.js?v=20260830_cc_integrity_v1"></script>
 </body>
 </html>

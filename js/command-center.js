@@ -34,6 +34,45 @@ const STOCK_STATUS_MAP = {
 
 let lastFirestoreSuccess = null;
 let lastServerUpdatedAt = null;
+const sourceStates = new Map();
+const SOURCE_FRESHNESS_MINUTES = {
+  metrics: 15,
+  markets: 24 * 60,
+  districts: 6 * 60,
+  prices: 24 * 60,
+  reports: 30,
+  tera: 24 * 60
+};
+
+function updateSourceState(source, state, updatedAt = null) {
+  sourceStates.set(source, { state, updatedAt: timestampToMillis(updatedAt) });
+  const states = Array.from(sourceStates.values());
+  const newest = Math.max(0, ...states.map(item => item.updatedAt || 0));
+  if (newest > 0) {
+    lastServerUpdatedAt = newest;
+    updateDataFreshnessUI(newest);
+  }
+  if (states.some(item => item.state === 'stale')) setSystemStatus('stale');
+  else if (states.some(item => item.state === 'cached')) setSystemStatus('cached');
+  else if (states.some(item => item.state === 'live')) setSystemStatus('live');
+  else setSystemStatus('unavailable');
+}
+
+function markServerSnapshot(source, metadata, updatedAt, maxAgeMinutes) {
+  lastFirestoreSuccess = Date.now();
+  if (metadata?.fromCache) {
+    updateSourceState(source, 'cached', updatedAt);
+    return;
+  }
+  const freshness = getFreshnessStatus(updatedAt, maxAgeMinutes);
+  updateSourceState(source, freshness === 'fresh' ? 'live' : freshness, updatedAt);
+}
+
+function handleFirestoreError(source, error, cacheKey) {
+  console.error(`Firestore ${source} Error:`, error?.code || '', error?.message || error);
+  const cache = getCachedData(cacheKey);
+  updateSourceState(source, cache?.data ? 'cached' : 'unavailable', cache?.server_updated_at);
+}
 
 // --- 2. FORMATTER ANGKA & MATA UANG ---
 function formatRupiahVal(val) {
@@ -42,8 +81,8 @@ function formatRupiahVal(val) {
 }
 
 function formatPercentVal(val) {
-  if (val === undefined || val === null || val === "" || isNaN(Number(val))) return "--";
-  return Number(val) + "%";
+  const value = safePercentage(val);
+  return value === null ? "--" : `${value}%`;
 }
 
 function safeNumber(val, fallback = null) {
@@ -52,8 +91,28 @@ function safeNumber(val, fallback = null) {
 }
 
 function safeString(val, fallback = "--") {
-  if (val === undefined || val === null || String(val).trim() === "") return fallback;
-  return String(val).trim();
+  if (typeof val !== 'string' || val.trim() === "") return fallback;
+  return val.trim().slice(0, 250);
+}
+
+function safePercentage(val) {
+  const value = safeNumber(val);
+  return value === null ? null : Math.min(Math.max(value, 0), 100);
+}
+
+function timestampToMillis(value) {
+  if (!value) return null;
+  if (typeof value.toMillis === 'function') return value.toMillis();
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (typeof value === 'object' && Number.isFinite(value.seconds)) return value.seconds * 1000;
+  const millis = typeof value === 'number' ? value : new Date(value).getTime();
+  return Number.isFinite(millis) ? millis : null;
+}
+
+function getFreshnessStatus(updatedAt, maxAgeMinutes) {
+  const millis = timestampToMillis(updatedAt);
+  if (!millis) return 'unavailable';
+  return Date.now() - millis > maxAgeMinutes * 60 * 1000 ? 'stale' : 'fresh';
 }
 
 // --- 3. STATUS SYSTEM & BADGE INDICATOR (4 STATE TEGAS) ---
@@ -65,25 +124,33 @@ function setSystemStatus(state, customLabel = null) {
 
   if (badge) {
     badge.className = 'cc-live-badge';
+    badge.replaceChildren();
+    const badgeDot = document.createElement('span');
+    badgeDot.className = 'pulse-dot';
+    const badgeText = document.createElement('span');
     switch (state) {
       case 'live':
         badge.classList.add('status-live');
-        badge.innerHTML = `<span class="pulse-dot"></span> ${customLabel || '● LIVE'}`;
+        badgeText.textContent = customLabel || '● LIVE';
         break;
       case 'cached':
         badge.classList.add('status-cached');
-        badge.innerHTML = `<span class="pulse-dot" style="background:#F59E0B;"></span> ${customLabel || '● OFFLINE / CACHE'}`;
+        badgeDot.style.background = '#F59E0B';
+        badgeText.textContent = customLabel || '● OFFLINE / CACHE';
         break;
       case 'stale':
         badge.classList.add('status-stale');
-        badge.innerHTML = `<span class="pulse-dot" style="background:#EF4444;"></span> ${customLabel || '● DATA STALE'}`;
+        badgeDot.style.background = '#F97316';
+        badgeText.textContent = customLabel || '● DATA STALE';
         break;
       case 'unavailable':
       default:
         badge.classList.add('status-unavailable');
-        badge.innerHTML = `<span class="pulse-dot" style="background:#64748B;"></span> ${customLabel || '● DATA TIDAK TERSEDIA'}`;
+        badgeDot.style.background = '#EF4444';
+        badgeText.textContent = customLabel || '● DATA TIDAK TERSEDIA';
         break;
     }
+    badge.append(badgeDot, badgeText);
   }
 
   if (dot && text) {
@@ -161,55 +228,52 @@ async function syncWeather() {
       else if ([51, 53, 55, 61, 63, 65].includes(code)) { weatherText = "Hujan"; weatherIcon = "🌧️"; }
       else if ([80, 81, 82, 95, 96].includes(code)) { weatherText = "Hujan Petir"; weatherIcon = "⛈️"; }
 
-      if (pillEl) {
-        pillEl.innerHTML = `<span>${weatherIcon}</span> CUACA PINRANG: <strong>${temp}°C (${weatherText})</strong>`;
-      }
+      renderWeatherPill(pillEl, weatherIcon, `${temp}°C`, weatherText);
       if (tempEl) tempEl.textContent = `${temp}°C`;
       if (descEl) descEl.textContent = `Pinrang: ${weatherText}`;
       if (iconEl) iconEl.textContent = weatherIcon;
+      setCachedData('disperindag_cc_weather', { temp, weatherText, weatherIcon }, data.current.time || new Date().toISOString());
     }
   } catch (e) {
-    if (pillEl) {
-      pillEl.innerHTML = `<span>🌤️</span> CUACA PINRANG: <strong>28°C (Cerah Berawan)</strong>`;
+    const cached = getCachedData('disperindag_cc_weather');
+    const age = cached ? Date.now() - safeNumber(cached.cached_at, 0) : Infinity;
+    if (cached?.data && age <= 30 * 60 * 1000) {
+      const weather = cached.data;
+      renderWeatherPill(pillEl, weather.weatherIcon || '🌤️', `${safeNumber(weather.temp) ?? '--'}°C`, 'DATA CUACA TERAKHIR');
+      if (tempEl) tempEl.textContent = `${safeNumber(weather.temp) ?? '--'}°C`;
+      if (descEl) descEl.textContent = 'Data cuaca terakhir';
+      if (iconEl) iconEl.textContent = weather.weatherIcon || '🌤️';
+    } else {
+      renderWeatherPill(pillEl, '⚠️', '--°C', 'CUACA BELUM TERBARUI');
+      if (tempEl) tempEl.textContent = '--°C';
+      if (descEl) descEl.textContent = 'Cuaca belum terbarui';
+      if (iconEl) iconEl.textContent = '⚠️';
     }
-    if (tempEl) tempEl.textContent = "28°C";
-    if (descEl) descEl.textContent = "Pinrang: Cerah Berawan";
-    if (iconEl) iconEl.textContent = "🌤️";
   }
+}
+
+function renderWeatherPill(container, icon, temperature, description) {
+  if (!container) return;
+  const iconEl = document.createElement('span');
+  iconEl.textContent = icon;
+  const label = document.createTextNode(' CUACA PINRANG: ');
+  const strong = document.createElement('strong');
+  strong.textContent = `${temperature} (${description})`;
+  container.replaceChildren(iconEl, label, strong);
 }
 
 // --- 5.1 FRESHNESS DATA RESMI INDICATOR ---
 function updateDataFreshnessUI(timestamp) {
   const el = document.getElementById('ccDataUpdatedAt');
   if (!el) return;
-
-  if (!timestamp) {
-    el.innerHTML = `<span>DATA TERAKHIR</span><strong>28 Agustus 2026 09:00 WITA</strong>`;
-    return;
-  }
-
-  if (typeof timestamp === 'string' && timestamp.includes('WITA')) {
-    el.innerHTML = `<span>DATA TERAKHIR</span><strong>${timestamp}</strong>`;
-    return;
-  }
-
-  try {
-    const date = new Date(timestamp);
-    if (isNaN(date.getTime())) {
-      el.innerHTML = `<span>DATA TERAKHIR</span><strong>28 Agustus 2026 09:00 WITA</strong>`;
-      return;
-    }
-
-    const optDate = { day: 'numeric', month: 'long', year: 'numeric' };
-    const dateStr = date.toLocaleDateString('id-ID', optDate);
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const timeStr = `${hours}:${minutes} WITA`;
-
-    el.innerHTML = `<span>DATA TERAKHIR</span><strong>${dateStr} ${timeStr}</strong>`;
-  } catch (e) {
-    el.innerHTML = `<span>DATA TERAKHIR</span><strong>28 Agustus 2026 09:00 WITA</strong>`;
-  }
+  const label = document.createElement('span');
+  const value = document.createElement('strong');
+  const millis = timestampToMillis(timestamp);
+  label.textContent = 'DATA TERBARU';
+  value.textContent = millis
+    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar', timeZoneName: 'short' }).format(new Date(millis))
+    : 'WAKTU DATA TIDAK TERSEDIA';
+  el.replaceChildren(label, value);
 }
 
 // --- 6. NAVIGASI SLIDE & AUTO-PRESENTATION ENGINE ---
@@ -264,7 +328,7 @@ function resetAutoSlideTimer() {
     const elapsed = Date.now() - slideStartTime;
     const pct = Math.min(100, (elapsed / currentDuration) * 100);
     if (fill) fill.style.width = `${pct}%`;
-  }, 100);
+  }, 400);
 
   CC_CONFIG.autoSlideTimer = setTimeout(() => {
     nextSlide();
@@ -357,11 +421,11 @@ function renderTickerDOM(customText = null) {
   const el = document.getElementById('ccTickerText');
   if (!el) return;
 
-  const text = customText || (typeof DEFAULT_COMMAND_CENTER_CONFIG !== 'undefined' ? DEFAULT_COMMAND_CENTER_CONFIG.ticker_text : null);
+  const text = safeString(customText, '');
   if (text) {
     el.textContent = text;
   } else {
-    el.textContent = "DISPERINDAG ESDM PINRANG: PEMANTAUAN STABILITAS HARGA PANGAN & PENGENDALIAN INFLASI DAERAH BERJALAN RUTIN DI 12 KECAMATAN • KONSUMSI LPG 3 KG TEPAT SASARAN SESUAI HET RESMI RP 18.500 • KEMETROLOGIAN LEGAL MENJAMIN AKURASI TIMBANGAN PASAR & NOZZLE SPBU.";
+    el.textContent = "COMMAND CENTER DISPERINDAG ESDM KABUPATEN PINRANG • MEMUAT INFORMASI TERBARU...";
   }
 }
 
@@ -373,50 +437,50 @@ function renderCommandCenterData(config, isFromCache = false) {
   const inflVal = safeNumber(config.inflation_rate);
   setSafeText('cc_kpi_inflation_rate', inflVal !== null ? `${inflVal}%` : '--');
   setSafeText('cc_overview_inflation_desc', `Indeks Inflasi Bulanan: ${inflVal !== null ? inflVal + '%' : '--'}`);
-  setSafeText('cc_kpi_inflation_status', config.inflation_status || 'Sangat Aman & Terkendali');
+  setSafeText('cc_kpi_inflation_status', safeString(config.inflation_status, 'DATA BELUM TERSEDIA'));
 
   // 2. Ketersediaan Beras SPHP
   const sphpVal = safeNumber(config.sphp_rice_stock_tons);
   setSafeText('cc_kpi_sphp_rice_stock', sphpVal !== null ? `${sphpVal} TON` : '--');
 
   // 3. SPBU Teruji Tera
-  const spbuVal = safeNumber(config.spbu_verified_pct);
+  const spbuVal = safePercentage(config.spbu_verified_pct);
   setSafeText('cc_kpi_spbu_verified_pct', spbuVal !== null ? `${spbuVal}%` : '--');
   setSafeText('cc_s2_spbu_verified_pct', spbuVal !== null ? `${spbuVal}%` : '--');
 
-  // 4. Penyaluran LPG 3 Kg & HET Resmi (Integrasi Data Live Otoritatif)
-  const lpgSummary = (typeof refreshLpgDashboardSummary === 'function') 
-    ? refreshLpgDashboardSummary() 
-    : ((typeof getLpgStore === 'function') ? getLpgStore('disperindag_lpg_dashboard_summary', {}) : {});
-
-  const hetVal = safeNumber(config.het_lpg_price, 18500);
-  const hetStr = hetVal !== null ? formatRupiahVal(hetVal) : 'Rp 18.500';
+  // 4. Penyaluran LPG 3 Kg: hanya data agregat server yang telah dipublikasikan.
+  const hetVal = safeNumber(config.het_lpg_price);
+  const hetStr = hetVal !== null ? formatRupiahVal(hetVal) : '--';
   setSafeText('cc_kpi_het_lpg_price', hetStr);
   setSafeText('cc_s3_het_lpg_price', hetStr);
-  setSafeText('cc_s3_het_lpg_regulation', config.het_lpg_regulation || 'Pergub Sulsel No. 11/2021');
+  setSafeText('cc_s3_het_lpg_regulation', safeString(config.het_lpg_regulation, 'DASAR HUKUM BELUM TERSEDIA'));
 
-  const agentsCount = lpgSummary.activeAgents || 8;
-  const basesCount = lpgSummary.totalPangkalan || 681;
-  const stockAtAgents = lpgSummary.stockAtAgents || 0;
-  const distributedToday = lpgSummary.distributedToday || 0;
+  const agentsCount = safeNumber(config.lpg_official_agents ?? config.official_agents);
+  const basesCount = safeNumber(config.lpg_official_bases ?? config.official_bases);
+  const stockAtAgents = safeNumber(config.lpg_stock_at_agents ?? config.stock_at_agents);
+  const distributedToday = safeNumber(config.lpg_distributed_bottles ?? config.distributed);
+  const monthlyQuota = safeNumber(config.lpg_total_quota ?? config.monthly_quota);
+  const distributionPct = safePercentage(config.lpg_distribution_pct ?? config.distribution_pct);
 
-  setSafeText('cc_s3_lpg_official_agents', `${agentsCount} AGEN`);
-  setSafeText('cc_s3_lpg_official_bases', `${basesCount} Pangkalan`);
-  setSafeText('cc_kpi_lpg_official_bases', `${basesCount} Pangkalan Terdaftar`);
+  setSafeText('cc_s3_lpg_official_agents', agentsCount === null ? '--' : `${agentsCount} AGEN`);
+  setSafeText('cc_s3_lpg_official_bases', basesCount === null ? 'PANGKALAN: --' : `${basesCount} Pangkalan`);
+  setSafeText('cc_kpi_lpg_official_bases', basesCount === null ? 'Pangkalan: --' : `${basesCount} Pangkalan Terdaftar`);
 
   // Progress Distribusi LPG
   const lpgDistPctEl = document.getElementById('cc_kpi_lpg_distribution_pct');
   if (lpgDistPctEl) {
-    lpgDistPctEl.textContent = `${distributedToday.toLocaleString('id-ID')} TBG`;
+    lpgDistPctEl.textContent = distributionPct === null ? '--' : `${distributionPct}%`;
   }
 
   const lpgBar = document.getElementById('cc_s3_lpg_progress_bar');
-  if (lpgBar) lpgBar.style.width = `100%`;
-  setSafeText('cc_s3_lpg_progress_text', `STOK BEREDAR: ${stockAtAgents.toLocaleString('id-ID')} TABUNG`);
-  setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran Hari Ini: ${distributedToday.toLocaleString('id-ID')} Tabung • Alokasi Bulanan Resmi: Data Belum Tersedia`);
+  if (lpgBar) lpgBar.style.width = distributionPct === null ? '0%' : `${distributionPct}%`;
+  setSafeText('cc_s3_lpg_progress_text', stockAtAgents === null ? 'STOK AGEN: --' : `STOK AGEN: ${stockAtAgents.toLocaleString('id-ID')} TABUNG`);
+  setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran: ${distributedToday === null ? '--' : distributedToday.toLocaleString('id-ID')} Tabung • Alokasi Bulanan: ${monthlyQuota === null ? '--' : monthlyQuota.toLocaleString('id-ID')} Tabung`);
 
   // 5. Total UTTP Ditera
-  const uttpVal = safeNumber(config.uttp_verified_count);
+  const uttpVal = safeNumber(config.uttp_verified_count ?? config.uttp_verified);
+  setSafeText('cc_kpi_uttp_verified', uttpVal !== null ? uttpVal.toLocaleString('id-ID') : '--');
+  setSafeText('cc_kpi_uttp_status', safeString(config.uttp_status, 'DATA BELUM TERSEDIA'));
   setSafeText('cc_s2_uttp_verified', uttpVal !== null ? `${uttpVal.toLocaleString('id-ID')} UNIT` : '--');
 
   // 6. IKM Terbina & Sertifikasi
@@ -428,16 +492,17 @@ function renderCommandCenterData(config, isFromCache = false) {
   setSafeText('cc_s4_total_ikm_certified', ikmCertified !== null ? `${ikmCertified}` : '--');
 
   // 7. SURVEI KEPUASAN MASYARAKAT (SKM 2025 RESMI - DATA PERIODIK)
-  const defaultSkm = (typeof DEFAULT_SKM_DATA !== 'undefined') ? DEFAULT_SKM_DATA : { score: 88.64, predicate: "SANGAT BAIK (A)", year: 2025 };
-  const skmScoreVal = config.skm_score !== undefined && config.skm_score !== null && config.skm_score !== "" ? config.skm_score : defaultSkm.score;
-  const skmGradeVal = config.skm_grade || config.skm_predicate || defaultSkm.predicate;
+  const skmScoreVal = safeNumber(config.skm_score);
+  const skmGradeVal = safeString(config.skm_grade || config.skm_predicate, '--');
+  const skmPeriod = safeString(config.skm_period, '--');
   
-  setSafeText('cc_kpi_skm_score', `${skmScoreVal} / 100 (A)`);
-  setSafeText('cc_s4_skm_score', `${skmScoreVal} / 100`);
-  setSafeText('cc_s4_skm_grade', `Predikat: ${skmGradeVal} • Hasil SKM ${defaultSkm.year} Resmi`);
+  setSafeText('cc_kpi_skm_score', skmScoreVal === null ? '--' : `${skmScoreVal} / 100 (${skmGradeVal})`);
+  setSafeText('cc_kpi_skm_period', `PERIODE SKM: ${skmPeriod}`);
+  setSafeText('cc_s4_skm_score', skmScoreVal === null ? '--' : `${skmScoreVal} / 100`);
+  setSafeText('cc_s4_skm_grade', `Predikat: ${skmGradeVal} • Periode: ${skmPeriod}`);
 
   // 8. Ticker Text Otomatis Harga Pasar Real-time
-  renderCommandCenterTicker();
+  renderCommandCenterTicker([], config.ticker_text);
 
   // Timestamp Freshness
   if (config.updated_at || config.last_updated) {
@@ -453,6 +518,25 @@ function setSafeText(id, text) {
   }
 }
 
+function renderEmptyState(container, message, colSpan = null) {
+  if (!container) return;
+  container.replaceChildren();
+  if (container.tagName === 'TBODY') {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = colSpan || 1;
+    cell.textContent = message;
+    cell.className = 'cc-empty-state';
+    row.appendChild(cell);
+    container.appendChild(row);
+    return;
+  }
+  const state = document.createElement('div');
+  state.textContent = message;
+  state.className = 'cc-empty-state';
+  container.appendChild(state);
+}
+
 // --- 10. RENDER MASTER PASAR DINAMIS (SINGLE SOURCE OF TRUTH FIRESTORE MARKETS) ---
 function renderMarketsDOM(marketsList) {
   const container = document.getElementById('cc_s1_markets_container');
@@ -461,9 +545,7 @@ function renderMarketsDOM(marketsList) {
   const kpiActiveEl = document.getElementById('cc_kpi_markets_active_count');
   const kpiSummaryEl = document.getElementById('cc_kpi_markets_summary_sub');
 
-  const list = marketsList && Array.isArray(marketsList) && marketsList.length > 0
-    ? marketsList
-    : (typeof DEFAULT_MARKETS !== 'undefined' ? DEFAULT_MARKETS : []);
+  const list = Array.isArray(marketsList) ? marketsList : [];
 
   // Hitung Status Otomatis Berdasarkan Single Source of Truth
   const activeMarkets = list.filter(m => 
@@ -472,7 +554,7 @@ function renderMarketsDOM(marketsList) {
   );
   
   const inactiveMarkets = list.filter(m => 
-    m.statusOperasional === 'tidak-aktif' || m.status === 'inactive' || m.id === 'pasar-paleteang' || m.id === 'pasar_paleteang'
+    m.statusOperasional === 'tidak-aktif' || m.status === 'inactive'
   );
   
   const verificationMarkets = list.filter(m => 
@@ -506,7 +588,7 @@ function renderMarketsDOM(marketsList) {
   container.replaceChildren();
 
   if (activeMarkets.length === 0) {
-    container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">BELUM ADA DATA PASAR AKTIF TERVERIFIKASI</div>`;
+    renderEmptyState(container, 'BELUM ADA DATA PASAR AKTIF TERVERIFIKASI');
     return;
   }
 
@@ -568,10 +650,11 @@ function renderMarketsDOM(marketsList) {
   summaryStrip.style.justifyContent = 'space-between';
   summaryStrip.style.alignItems = 'center';
   summaryStrip.style.flexShrink = '0';
-  summaryStrip.innerHTML = `
-    <span>⚫ <strong>${inactiveCount}</strong> Tidak Beroperasi (Paleteang)</span>
-    <span>🟠 <strong>${verificationCount}</strong> Perlu Verifikasi Lapangan</span>
-  `;
+  const inactiveText = document.createElement('span');
+  inactiveText.textContent = `⚫ ${inactiveCount} Tidak Beroperasi`;
+  const verificationText = document.createElement('span');
+  verificationText.textContent = `🟠 ${verificationCount} Perlu Verifikasi Lapangan`;
+  summaryStrip.append(inactiveText, verificationText);
   container.appendChild(summaryStrip);
 }
 
@@ -581,14 +664,15 @@ function renderPricesDOM(pricesList) {
   const tradeTbody = document.getElementById('tradeSlidePriceBody');
 
   if (!pricesList || !Array.isArray(pricesList) || pricesList.length === 0) {
-    if (overviewTbody) {
-      overviewTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">BELUM ADA DATA HARGA TERVERIFIKASI</td></tr>`;
-    }
-    if (tradeTbody) {
-      tradeTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">BELUM ADA DATA BURSA HARGA HARI INI</td></tr>`;
-    }
+    renderEmptyState(overviewTbody, 'BELUM ADA DATA HARGA TERVERIFIKASI', 4);
+    renderEmptyState(tradeTbody, 'BELUM ADA DATA BURSA HARGA HARI INI', 5);
     return;
   }
+
+  const newestUpdate = pricesList.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at || item.observed_at) || 0), 0);
+  const source = safeString(pricesList.find(item => item.source || item.source_unit)?.source || pricesList.find(item => item.source_unit)?.source_unit, '--');
+  setSafeText('ccPriceSource', `SUMBER: ${source}`);
+  setSafeText('ccPriceUpdatedAt', `UPDATE DATA: ${newestUpdate ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar', timeZoneName: 'short' }).format(new Date(newestUpdate)) : '--'}`);
 
   // 1. Overview Table (Top 5 Komoditas Pilihan)
   if (overviewTbody) {
@@ -673,8 +757,8 @@ function renderPricesDOM(pricesList) {
 
       // Status Pasokan Dinamis (Bukan Hardcoded)
       const tdStock = document.createElement('td');
-      const stockKey = item.stock_status || (trend === 'up' ? 'limited' : 'abundant');
-      const stockMeta = STOCK_STATUS_MAP[stockKey] || STOCK_STATUS_MAP.normal;
+      const stockKey = safeString(item.stock_status, 'unavailable').toLowerCase();
+      const stockMeta = STOCK_STATUS_MAP[stockKey] || { label: 'Tidak Tersedia', color: 'var(--accent-rose)', icon: '⚪' };
       
       const spanStock = document.createElement('span');
       spanStock.style.fontSize = '0.86rem';
@@ -692,13 +776,49 @@ function renderPricesDOM(pricesList) {
   renderCommandCenterTicker(pricesList);
 }
 
+function renderTeraScheduleDOM(items) {
+  const container = document.getElementById('ccTeraScheduleList');
+  if (!container) return;
+  if (!Array.isArray(items) || items.length === 0) {
+    renderEmptyState(container, 'BELUM ADA JADWAL TERA TERVERIFIKASI');
+    return;
+  }
+  container.replaceChildren();
+  items.slice(0, 4).forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'cc-schedule-card';
+    const heading = document.createElement('div');
+    heading.className = 'cc-schedule-heading';
+    const title = document.createElement('strong');
+    title.textContent = safeString(item.title);
+    const status = document.createElement('span');
+    const allowedStatuses = new Set(['scheduled', 'ongoing', 'completed', 'postponed', 'cancelled']);
+    const statusKey = allowedStatuses.has(item.status) ? item.status : 'scheduled';
+    const labels = { scheduled: 'TERJADWAL', ongoing: 'BERLANGSUNG', completed: 'SELESAI', postponed: 'DITUNDA', cancelled: 'DIBATALKAN' };
+    status.className = `card-badge schedule-${statusKey}`;
+    status.textContent = labels[statusKey];
+    heading.append(title, status);
+    const detail = document.createElement('div');
+    const start = timestampToMillis(item.start_at);
+    detail.textContent = `${safeString(item.location, 'Lokasi belum tersedia')} • ${start ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Makassar' }).format(new Date(start)) : 'Tanggal belum tersedia'}`;
+    card.append(heading, detail);
+    if (statusKey === 'completed') {
+      const result = document.createElement('div');
+      result.className = 'cc-schedule-result';
+      result.textContent = `${safeNumber(item.result_count) ?? '--'} UTTP diperiksa • ${safeNumber(item.valid_count) ?? '--'} sah • ${safeNumber(item.follow_up_count) ?? '--'} tindak lanjut`;
+      card.appendChild(result);
+    }
+    container.appendChild(card);
+  });
+}
+
 // --- 12. RENDER MATRIKS STATUS 12 KECAMATAN (SAFE DOM & AUTO-FIT) ---
 function renderDistrictsDOM(containerId, districtsList, cols = 3) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   if (!districtsList || !Array.isArray(districtsList) || districtsList.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:var(--text-muted); padding:10px;">DATA KECAMATAN BELUM TERSEDIA</div>`;
+    renderEmptyState(container, 'DATA KECAMATAN BELUM TERSEDIA');
     return;
   }
 
@@ -733,8 +853,8 @@ function renderDistrictsDOM(containerId, districtsList, cols = 3) {
     name.textContent = safeString(d.district_name || d.name);
 
     const badge = document.createElement('span');
-    const st = d.status_lpg || d.status || 'NORMAL';
-    badge.className = `badge-indicator ${st === 'AMAN' || st === 'STABIL' || st === 'NORMAL' ? 'badge-ok' : (st === 'PENGAWASAN' ? 'badge-warn' : 'badge-crit')}`;
+    const st = determineDistrictStatus(d);
+    badge.className = `badge-indicator ${st === 'NORMAL' ? 'badge-ok' : (st === 'WASPADA' ? 'badge-warn' : 'badge-crit')}`;
     badge.style.fontSize = isSlide0 ? '0.64rem' : '0.72rem';
     badge.textContent = `● ${st}`;
 
@@ -746,12 +866,28 @@ function renderDistrictsDOM(containerId, districtsList, cols = 3) {
     sub.style.whiteSpace = 'nowrap';
     sub.style.overflow = 'hidden';
     sub.style.textOverflow = 'ellipsis';
-    const pklCount = safeNumber(d.pangkalan_count, 0);
-    sub.textContent = isSlide0 ? `${pklCount} Pkl • SPBU: ${safeString(d.spbu_status, 'OK')}` : `${pklCount} Pangkalan • SPBU: ${safeString(d.spbu_status, 'OK')}`;
+    const pklCount = safeNumber(d.pangkalan_count ?? d.pangkalan);
+    const activeReports = safeNumber(d.active_reports);
+    const coverage = safeNumber(d.stock_coverage_days);
+    const details = [
+      `${pklCount === null ? '--' : pklCount} Pangkalan`,
+      coverage === null ? 'Stok: --' : `Stok: ${coverage.toLocaleString('id-ID')} hari`,
+      activeReports === null ? 'Aduan: --' : `${activeReports} Aduan Aktif`
+    ];
+    sub.textContent = isSlide0 ? details.slice(0, 2).join(' • ') : details.join(' • ');
 
     card.append(header, sub);
     container.appendChild(card);
   });
+}
+
+function determineDistrictStatus(data) {
+  const coverage = safeNumber(data?.stock_coverage_days);
+  const reports = safeNumber(data?.active_reports);
+  if (coverage === null && reports === null) return 'BELUM TERSEDIA';
+  if ((coverage !== null && coverage < 2) || (reports !== null && reports >= 3)) return 'KRITIS';
+  if ((coverage !== null && coverage < 4) || (reports !== null && reports > 0)) return 'WASPADA';
+  return 'NORMAL';
 }
 
 // --- 13. RENDER PENGADUAN PUBLIK TERAKHIR (SAFE DOM & SENSOR PRIVASI) ---
@@ -760,9 +896,8 @@ function renderReportsDOM(reportsList) {
   const container4 = document.getElementById('ccRecentReportsSlide4');
 
   if (!reportsList || !Array.isArray(reportsList) || reportsList.length === 0) {
-    const emptyMsg = `<div style="padding:14px; text-align:center; color:var(--text-muted); background:var(--bg-card-inner); border-radius:8px;">BELUM ADA ADUAN PUBLIK MASUK</div>`;
-    if (container0) container0.innerHTML = emptyMsg;
-    if (container4) container4.innerHTML = emptyMsg;
+    renderEmptyState(container0, 'BELUM ADA ADUAN PUBLIK MASUK');
+    renderEmptyState(container4, 'BELUM ADA ADUAN PUBLIK MASUK');
     return;
   }
 
@@ -798,8 +933,8 @@ function createReportCardElement(r, isCompact = false) {
   title.style.fontSize = isCompact ? '0.88rem' : '0.96rem';
   title.style.color = 'var(--text-main)';
   // Sensor privasi nama pelapor
-  const maskedName = maskCitizenName(r.nama || r.author_name || "Masyarakat Pinrang");
-  title.textContent = `[${safeString(r.kategori || r.classification, 'ADUAN')}] • ${maskedName}`;
+  const district = safeString(r.kecamatan || r.district, 'LOKASI DIRAHASIAKAN');
+  title.textContent = `[${safeString(r.kategori || r.classification, 'ADUAN')}] • ${district}`;
 
   const badge = document.createElement('span');
   badge.className = `card-badge ${r.status === 'SELESAI' ? 'badge-green' : 'badge-gold'}`;
@@ -813,38 +948,13 @@ function createReportCardElement(r, isCompact = false) {
   textP.style.color = 'var(--text-muted)';
   textP.style.lineHeight = '1.4';
   textP.style.margin = '4px 0 0 0';
-  textP.textContent = `"${safeString(r.pesan || r.substance || r.comment_text, 'Laporan sedang dalam tindak lanjut teknis.')}"`;
+  const reportTime = timestampToMillis(r.created_at || r.reported_at);
+  textP.textContent = reportTime
+    ? `Masuk: ${new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Makassar' }).format(new Date(reportTime))}`
+    : 'Waktu laporan belum tersedia';
 
   wrapper.append(topRow, textP);
   return wrapper;
-}
-
-function maskCitizenName(name) {
-  if (!name) return "Warga Pinrang";
-  const parts = name.trim().split(" ");
-  if (parts.length === 1) {
-    return parts[0].length > 3 ? parts[0].substring(0, 3) + "***" : parts[0] + "***";
-  }
-  return parts[0] + " " + parts[1].charAt(0) + ".***";
-}
-
-// --- 14. UPDATE DATA FRESHNESS UI ---
-function updateDataFreshnessUI(timestampStr) {
-  const el = document.getElementById('ccDataFreshnessTime');
-  if (!el || !timestampStr) return;
-
-  try {
-    const d = new Date(timestampStr);
-    if (isNaN(d.getTime())) {
-      el.textContent = String(timestampStr);
-      return;
-    }
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    el.textContent = `Pukul ${hours}:${minutes} WITA`;
-  } catch (e) {
-    el.textContent = String(timestampStr);
-  }
 }
 
 // --- 15. INTEGRASI FIRESTORE & OFFLINE CACHE RESILIENCE DENGAN METADATA CHANGES ---
@@ -852,8 +962,8 @@ function setCachedData(key, data, updated_at = null) {
   try {
     const payload = {
       data: data,
-      saved_at: Date.now(),
-      server_updated_at: updated_at || new Date().toISOString()
+      cached_at: Date.now(),
+      server_updated_at: updated_at || null
     };
     localStorage.setItem(key, JSON.stringify(payload));
   } catch (e) {}
@@ -862,7 +972,8 @@ function setCachedData(key, data, updated_at = null) {
 function getCachedData(key) {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === 'object' && Object.prototype.hasOwnProperty.call(parsed, 'data') ? parsed : null;
   } catch (e) {
     return null;
   }
@@ -872,47 +983,61 @@ function initFirestoreRealtimeService() {
   const isFirestoreAvailable = typeof db !== 'undefined' && db !== null;
 
   // 1. FIRST PAINT DARI CACHE LOKAL / DEFAULT DATA
-  const cachedCC = getCachedData('disperindag_command_center');
-  const cachedMarkets = getCachedData('disperindag_markets');
-  const cachedDistricts = getCachedData('disperindag_districts');
-  const cachedPrices = getCachedData('disperindag_prices');
-  const cachedReports = getCachedData('disperindag_reports');
+  const cachedCC = getCachedData('disperindag_cc_cache_metrics');
+  const cachedMarkets = getCachedData('disperindag_cc_cache_markets');
+  const cachedDistricts = getCachedData('disperindag_cc_cache_districts');
+  const cachedPrices = getCachedData('disperindag_cc_cache_prices');
+  const cachedReports = getCachedData('disperindag_cc_cache_reports');
+  const cachedTera = getCachedData('disperindag_cc_cache_tera');
 
+  let hasUsableCache = false;
   if (cachedCC && cachedCC.data) {
     renderCommandCenterData(cachedCC.data, true);
-  } else if (typeof DEFAULT_COMMAND_CENTER_CONFIG !== 'undefined') {
-    renderCommandCenterData(DEFAULT_COMMAND_CENTER_CONFIG, true);
+    updateSourceState('metrics', 'cached', cachedCC.server_updated_at);
+    hasUsableCache = true;
+  } else {
+    renderCommandCenterData(typeof DEFAULT_COMMAND_CENTER_CONFIG !== 'undefined' ? DEFAULT_COMMAND_CENTER_CONFIG : {}, true);
   }
 
   if (cachedMarkets && cachedMarkets.data) {
     renderMarketsDOM(cachedMarkets.data);
-  } else if (typeof DEFAULT_MARKETS !== 'undefined') {
-    renderMarketsDOM(DEFAULT_MARKETS);
+    hasUsableCache = true;
+  } else {
+    renderMarketsDOM([]);
   }
 
   if (cachedDistricts && cachedDistricts.data) {
     renderDistrictsDOM('ccDistrictMatrix0', cachedDistricts.data, 2);
     renderDistrictsDOM('ccDistrictMatrix3', cachedDistricts.data, 3);
-  } else if (typeof DEFAULT_DISTRICTS_STATUS !== 'undefined') {
-    renderDistrictsDOM('ccDistrictMatrix0', DEFAULT_DISTRICTS_STATUS, 2);
-    renderDistrictsDOM('ccDistrictMatrix3', DEFAULT_DISTRICTS_STATUS, 3);
+    hasUsableCache = true;
+  } else {
+    renderDistrictsDOM('ccDistrictMatrix0', [], 2);
+    renderDistrictsDOM('ccDistrictMatrix3', [], 3);
   }
 
   if (cachedPrices && cachedPrices.data) {
-    const resolvedPrices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(cachedPrices.data) : cachedPrices.data;
-    renderPricesDOM(resolvedPrices);
-  } else if (typeof DEFAULT_COMMODITY_PRICES !== 'undefined') {
-    renderPricesDOM(DEFAULT_COMMODITY_PRICES);
+    renderPricesDOM(cachedPrices.data);
+    hasUsableCache = true;
+  } else {
+    renderPricesDOM([]);
   }
 
   if (cachedReports && cachedReports.data) {
     renderReportsDOM(cachedReports.data);
-  } else if (typeof DEFAULT_REPORTS !== 'undefined') {
-    renderReportsDOM(DEFAULT_REPORTS);
+    hasUsableCache = true;
+  } else {
+    renderReportsDOM([]);
+  }
+
+  if (cachedTera && cachedTera.data) {
+    renderTeraScheduleDOM(cachedTera.data);
+    hasUsableCache = true;
+  } else {
+    renderTeraScheduleDOM([]);
   }
 
   // Set first paint status (sementara)
-  setSystemStatus(navigator.onLine ? "cached" : "cached");
+  setSystemStatus(hasUsableCache ? 'cached' : 'unavailable');
 
   // 2. JIKA FIRESTORE TERSEDIA, PASANG REALTIME LISTENER DENGAN includeMetadataChanges: true
   if (isFirestoreAvailable) {
@@ -923,29 +1048,15 @@ function initFirestoreRealtimeService() {
         (doc) => {
           if (doc.exists) {
             const data = doc.data();
-            lastFirestoreSuccess = Date.now();
-            setCachedData('disperindag_command_center', data, data.updated_at);
+            setCachedData('disperindag_cc_cache_metrics', data, data.updated_at);
             renderCommandCenterData(data, false);
-            
-            // Evaluasi status dari Firestore metadata
-            if (doc.metadata && doc.metadata.fromCache) {
-              setSystemStatus("cached");
-            } else {
-              setSystemStatus("live");
-            }
+            markServerSnapshot('metrics', doc.metadata, data.updated_at, 15);
           } else {
-            console.warn("Doc command_center/metrics not found on server. Auto-seeding default...");
-            if (typeof DEFAULT_COMMAND_CENTER_CONFIG !== 'undefined') {
-              db.collection('command_center').doc('metrics').set(DEFAULT_COMMAND_CENTER_CONFIG, { merge: true })
-                .then(() => setSystemStatus("live"))
-                .catch(e => console.error("Error seeding cc metrics:", e));
-            }
+            renderCommandCenterData(typeof DEFAULT_COMMAND_CENTER_CONFIG !== 'undefined' ? DEFAULT_COMMAND_CENTER_CONFIG : {}, false);
+            updateSourceState('metrics', 'unavailable');
           }
         },
-        (err) => {
-          console.error("Command Center Firestore Metrics Error:", err.code, err.message);
-          setSystemStatus("cached");
-        }
+        (err) => handleFirestoreError('metrics', err, 'disperindag_cc_cache_metrics')
       );
 
       // Listener Master Pasar Dinamis
@@ -955,20 +1066,15 @@ function initFirestoreRealtimeService() {
           const list = [];
           snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
           if (list.length > 0) {
-            lastFirestoreSuccess = Date.now();
-            setCachedData('disperindag_markets', list);
+            setCachedData('disperindag_cc_cache_markets', list, snapshot.docs[0]?.data()?.updated_at || null);
             renderMarketsDOM(list);
-            if (!snapshot.metadata.fromCache) setSystemStatus("live");
+            markServerSnapshot('markets', snapshot.metadata, snapshot.docs[0]?.data()?.updated_at, 24 * 60);
           } else {
-            console.warn("Collection 'markets' empty. Auto-seeding default markets...");
-            if (typeof DEFAULT_MARKETS !== 'undefined') {
-              DEFAULT_MARKETS.forEach(m => {
-                db.collection('markets').doc(m.id).set(m, { merge: true });
-              });
-            }
+            renderMarketsDOM([]);
+            updateSourceState('markets', 'unavailable');
           }
         },
-        (err) => console.error("Firestore Markets Error:", err.code, err.message)
+        (err) => handleFirestoreError('markets', err, 'disperindag_cc_cache_markets')
       );
 
       // Listener Districts
@@ -977,62 +1083,73 @@ function initFirestoreRealtimeService() {
         (doc) => {
           if (doc.exists && doc.data().items) {
             const items = doc.data().items;
-            lastFirestoreSuccess = Date.now();
-            setCachedData('disperindag_districts', items, doc.data().updated_at);
+            setCachedData('disperindag_cc_cache_districts', items, doc.data().updated_at);
             renderDistrictsDOM('ccDistrictMatrix0', items, 2);
             renderDistrictsDOM('ccDistrictMatrix3', items, 3);
-            if (!doc.metadata.fromCache) setSystemStatus("live");
+            markServerSnapshot('districts', doc.metadata, doc.data().updated_at, 6 * 60);
           } else {
-            if (typeof DEFAULT_DISTRICTS_STATUS !== 'undefined') {
-              db.collection('command_center').doc('districts').set({ items: DEFAULT_DISTRICTS_STATUS, updated_at: new Date().toISOString() }, { merge: true });
-            }
+            renderDistrictsDOM('ccDistrictMatrix0', [], 2);
+            renderDistrictsDOM('ccDistrictMatrix3', [], 3);
+            updateSourceState('districts', 'unavailable');
           }
         },
-        (err) => console.error("Firestore Districts Error:", err.code, err.message)
+        (err) => handleFirestoreError('districts', err, 'disperindag_cc_cache_districts')
+      );
+
+      // Listener jadwal dan hasil tera terverifikasi.
+      db.collection('command_center').doc('tera_schedule').onSnapshot(
+        { includeMetadataChanges: true },
+        (doc) => {
+          const data = doc.exists ? doc.data() : null;
+          const items = Array.isArray(data?.items) ? data.items : [];
+          renderTeraScheduleDOM(items);
+          if (!data) {
+            updateSourceState('tera', 'unavailable');
+            return;
+          }
+          setCachedData('disperindag_cc_cache_tera', items, data.updated_at);
+          markServerSnapshot('tera', doc.metadata, data.updated_at, 24 * 60);
+        },
+        (err) => handleFirestoreError('tera', err, 'disperindag_cc_cache_tera')
       );
 
       // Listener Prices (Smart Hybrid Merge: Mencegah Kehilangan Komoditas Default saat Update Parsial)
-      db.collection('prices').limit(50).onSnapshot(
+      db.collection('prices_current').limit(20).onSnapshot(
         { includeMetadataChanges: true },
         (snapshot) => {
           const list = [];
           snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
           
-          const mergedList = typeof mergePricesWithDefaults === 'function'
-            ? mergePricesWithDefaults(list)
-            : (list.length >= (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES.length : 12) ? list : DEFAULT_COMMODITY_PRICES);
-
-          lastFirestoreSuccess = Date.now();
-          setCachedData('disperindag_prices', mergedList);
-          renderPricesDOM(mergedList);
-          if (!snapshot.metadata.fromCache) setSystemStatus("live");
-
-          // Auto-seed dokumen harga yang belum ada di server Firestore
-          if (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' && snapshot.size < DEFAULT_COMMODITY_PRICES.length) {
-            DEFAULT_COMMODITY_PRICES.forEach(item => {
-              if (!snapshot.docs.some(doc => doc.id === item.id)) {
-                db.collection('prices').doc(item.id).set(item, { merge: true }).catch(() => {});
-              }
-            });
+          if (list.length === 0) {
+            renderPricesDOM([]);
+            updateSourceState('prices', 'unavailable');
+            return;
           }
+          const newestUpdate = list.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at || item.observed_at) || 0), 0);
+          setCachedData('disperindag_cc_cache_prices', list, newestUpdate || null);
+          renderPricesDOM(list);
+          markServerSnapshot('prices', snapshot.metadata, newestUpdate || null, 24 * 60);
         },
-        (err) => console.error("Firestore Prices Error:", err.code, err.message)
+        (err) => handleFirestoreError('prices', err, 'disperindag_cc_cache_prices')
       );
 
       // Listener Reports
-      db.collection('reports').orderBy('created_at', 'desc').limit(5).onSnapshot(
+      db.collection('reports_current').orderBy('created_at', 'desc').limit(5).onSnapshot(
         { includeMetadataChanges: true },
         (snapshot) => {
           const list = [];
           snapshot.forEach(d => list.push(d.data()));
           if (list.length > 0) {
-            lastFirestoreSuccess = Date.now();
-            setCachedData('disperindag_reports', list);
+            const newestUpdate = list.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at || item.created_at) || 0), 0);
+            setCachedData('disperindag_cc_cache_reports', list, newestUpdate || null);
             renderReportsDOM(list);
-            if (!snapshot.metadata.fromCache) setSystemStatus("live");
+            markServerSnapshot('reports', snapshot.metadata, newestUpdate || null, 30);
+          } else {
+            renderReportsDOM([]);
+            updateSourceState('reports', 'unavailable');
           }
         },
-        (err) => console.error("Firestore Reports Error:", err.code, err.message)
+        (err) => handleFirestoreError('reports', err, 'disperindag_cc_cache_reports')
       );
 
     } catch (err) {
@@ -1045,30 +1162,30 @@ function initFirestoreRealtimeService() {
 
   // 3. MONITOR FRESHNESS & STALE DATA SETIAP 30 DETIK
   setInterval(() => {
-    if (!lastFirestoreSuccess) return;
-    const age = Date.now() - lastFirestoreSuccess;
-    if (age > CC_CONFIG.maxStaleTimeMs) {
-      setSystemStatus("stale");
-    }
+    sourceStates.forEach((entry, source) => {
+      const maxAge = (SOURCE_FRESHNESS_MINUTES[source] || 15) * 60 * 1000;
+      if (entry.state === 'live' && entry.updatedAt && Date.now() - entry.updatedAt > maxAge) {
+        updateSourceState(source, 'stale', entry.updatedAt);
+      }
+    });
   }, CC_CONFIG.staleCheckInterval);
 }
 
 // Multi-Tab Local Storage Listener
 window.addEventListener('storage', (e) => {
-  if (['disperindag_command_center', 'disperindag_markets', 'disperindag_districts', 'disperindag_prices', 'disperindag_reports'].includes(e.key)) {
+  if (['disperindag_cc_cache_metrics', 'disperindag_cc_cache_markets', 'disperindag_cc_cache_districts', 'disperindag_cc_cache_prices', 'disperindag_cc_cache_reports'].includes(e.key)) {
     const cached = getCachedData(e.key);
     if (cached && cached.data) {
-      if (e.key === 'disperindag_command_center') renderCommandCenterData(cached.data, true);
-      if (e.key === 'disperindag_markets') renderMarketsDOM(cached.data);
-      if (e.key === 'disperindag_districts') {
+      if (e.key === 'disperindag_cc_cache_metrics') renderCommandCenterData(cached.data, true);
+      if (e.key === 'disperindag_cc_cache_markets') renderMarketsDOM(cached.data);
+      if (e.key === 'disperindag_cc_cache_districts') {
         renderDistrictsDOM('ccDistrictMatrix0', cached.data, 2);
         renderDistrictsDOM('ccDistrictMatrix3', cached.data, 3);
       }
-      if (e.key === 'disperindag_prices') {
-        const merged = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(cached.data) : cached.data;
-        renderPricesDOM(merged);
+      if (e.key === 'disperindag_cc_cache_prices') {
+        renderPricesDOM(cached.data);
       }
-      if (e.key === 'disperindag_reports') renderReportsDOM(cached.data);
+      if (e.key === 'disperindag_cc_cache_reports') renderReportsDOM(cached.data);
     }
   }
 });
@@ -1076,11 +1193,7 @@ window.addEventListener('storage', (e) => {
 // Network Online/Offline Handler
 window.addEventListener('online', () => {
   syncWeather();
-  if (typeof db !== 'undefined' && db !== null) {
-    // Biarkan onSnapshot mengembalikan status LIVE saat server respons
-  } else {
-    setSystemStatus("live");
-  }
+  // Listener Firestore menentukan status LIVE setelah snapshot server berhasil.
 });
 
 window.addEventListener('offline', () => {
@@ -1088,10 +1201,12 @@ window.addEventListener('offline', () => {
 });
 
 // Tab Visibility Handler
+let autoSlideWasRunningBeforeHidden = false;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
+    autoSlideWasRunningBeforeHidden = !CC_CONFIG.isPaused;
     pauseAutoSlide();
-  } else {
+  } else if (autoSlideWasRunningBeforeHidden) {
     resumeAutoSlide();
   }
 });
@@ -1101,43 +1216,29 @@ let ccTickerAnimFrameId = null;
 let ccTickerOffset = 0;
 let isCCTickerPaused = false;
 
-function renderCommandCenterTicker(pricesData) {
+function renderCommandCenterTicker(pricesData = [], customText = null) {
   const tickerContainer = document.getElementById('ccTickerText');
   const tickerTrack = document.querySelector('.cc-ticker-track');
   if (!tickerContainer) return;
 
-  let prices = pricesData;
-  if (!prices || prices.length === 0) {
-    if (typeof getStorage === 'function') {
-      prices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-    } else if (typeof getCachedData === 'function') {
-      prices = getCachedData('disperindag_prices')?.data || (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-    } else {
-      try {
-        prices = JSON.parse(localStorage.getItem('disperindag_prices') || 'null') || (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-      } catch(e) {
-        prices = typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : [];
-      }
-    }
-  }
+  const prices = Array.isArray(pricesData) ? pricesData : [];
+  const items = prices.map(item => {
+    const current = safeNumber(item.price);
+    if (current === null) return null;
+    const trend = getPriceTrend(current, item.previous_price);
+    const trendLabel = trend === 'up' ? '▲ Naik' : trend === 'down' ? '▼ Turun' : '— Stabil';
+    return `🌾 ${safeString(item.commodity_name || item.name, 'Komoditas')}: ${formatRupiahVal(current)}/${safeString(item.unit, 'Kg')} (${trendLabel})`;
+  }).filter(Boolean);
+  if (safeString(customText, '') !== '') items.push(safeString(customText, ''));
+  if (items.length === 0) items.push('COMMAND CENTER DISPERINDAG ESDM KABUPATEN PINRANG • MEMUAT INFORMASI TERBARU...');
 
-  const priceParts = (prices && prices.length > 0) ? prices.map(p => {
-    const name = p.commodity_name || p.name || 'Komoditas';
-    const trendIcon = p.trend === 'up' ? '<span style="color:#F43F5E;">▲ Naik</span>' : (p.trend === 'down' ? '<span style="color:#10B981;">▼ Turun</span>' : '<span style="color:#38BDF8;">— Stabil</span>');
-    return `🌾 <strong style="color:#FFFFFF;">${name}:</strong> <span style="color:var(--accent-gold); font-weight:900;">Rp ${Number(p.price || 0).toLocaleString('id-ID')}/${p.unit || 'Kg'}</span> (${trendIcon})`;
-  }) : [];
-
-  const newsParts = [
-    `⛽ <strong style="color:#FFFFFF;">HET LPG 3 Kg Resmi:</strong> <span style="color:var(--accent-gold); font-weight:900;">Rp 18.500/Tabung</span> di 340 Pangkalan Resmi`,
-    `⚖️ <strong style="color:#FFFFFF;">Kemetrologian Pinrang:</strong> <span style="color:var(--accent-cyan); font-weight:900;">100% Nozzle SPBU & Timbangan Pasar Teruji Tera Sah</span>`,
-    `🌟 <strong style="color:#FFFFFF;">Indeks Kepuasan Masyarakat (SKM 2025):</strong> <span style="color:var(--accent-emerald); font-weight:900;">88.64 / 100 (Mutu A - Sangat Baik)</span>`,
-    `📢 <strong style="color:#FFFFFF;">Posko Pengaduan WhatsApp 0823 1600 2226:</strong> <span style="color:var(--accent-cyan); font-weight:900;">Respons Cepat & Penindakan Tegas</span>`
-  ];
-
-  const fullContent = [...priceParts, ...newsParts].map(txt => `<span class="cc-ticker-item" style="display:inline-flex; align-items:center; gap:8px; margin-right:48px; white-space:nowrap;">${txt}</span>`).join('');
-
-  // Gandakan untuk continuous infinite scroll
-  tickerContainer.innerHTML = fullContent + fullContent;
+  tickerContainer.replaceChildren();
+  [...items, ...items].forEach(text => {
+    const item = document.createElement('span');
+    item.className = 'cc-ticker-item';
+    item.textContent = text;
+    tickerContainer.appendChild(item);
+  });
 
   if (ccTickerAnimFrameId) {
     cancelAnimationFrame(ccTickerAnimFrameId);
@@ -1181,10 +1282,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateClock, 1000);
   
   syncWeather();
-  CC_CONFIG.weatherInterval = setInterval(syncWeather, 10 * 60 * 1000);
+  CC_CONFIG.weatherInterval = setInterval(syncWeather, 15 * 60 * 1000);
 
   // Inisialisasi Freshness UI Default
-  updateDataFreshnessUI(new Date().toISOString());
+  updateDataFreshnessUI(null);
 
   // Inisialisasi Service Firestore & Cache
   initFirestoreRealtimeService();

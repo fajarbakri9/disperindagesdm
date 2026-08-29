@@ -19,14 +19,14 @@ const PINRANG_KECAMATAN_COORDS = {
 };
 
 const LPG_AGENT_LOCATIONS = {
-  "AG-001": { name: "PT. Gasifa Pinrang Mandiri", lat: -3.7845, lng: 119.6482, kec: "Watang Sawitto" },
-  "AG-002": { name: "PT. Hamisa Harapan Mandiri", lat: -3.7912, lng: 119.6543, kec: "Watang Sawitto" },
-  "AG-003": { name: "PT. H. Abd Rahman Hasyim", lat: -3.7812, lng: 119.6421, kec: "Watang Sawitto" },
-  "AG-004": { name: "PT. Nurcahaya Berkah Abadi", lat: -3.7745, lng: 119.6612, kec: "Paleteang" },
-  "AG-005": { name: "PT. Wahyu Putra Mas", lat: -3.8389, lng: 119.6345, kec: "Mattiro Bulu" },
-  "AG-006": { name: "PT. Nasman Gas Pinrang", lat: -3.5821, lng: 119.5689, kec: "Duampanua" },
-  "AG-007": { name: "PT. Amiruddin Berkah Gas", lat: -3.9689, lng: 119.5912, kec: "Suppa" },
-  "AG-008": { name: "PT. Kaka Putri Gas", lat: -3.6621, lng: 119.6745, kec: "Patampanua" }
+  "AG-001": { name: "PT. GASIFA MULYA PERSADA", verified: false },
+  "AG-002": { name: "PT. HAMISA SUKRAH MULYA", verified: false },
+  "AG-003": { name: "PT. H. ABD RAHMAN HASYIM", verified: false },
+  "AG-004": { name: "PT. NURCAHAYA ENERGI ABADI", verified: false },
+  "AG-005": { name: "PT. WAHYU DWI KENCANA MANDIRI", verified: false },
+  "AG-006": { name: "PT. NASMAN HAFID MANDIRI", verified: false },
+  "AG-007": { name: "PT. H. AMIRUDDIN RAHMAN", verified: false },
+  "AG-008": { name: "PT. KAKA MIGAS UTAMA", verified: false }
 };
 
 let lpgGisMapInstance = null;
@@ -89,6 +89,8 @@ window.renderLpgGisMarkers = function() {
     if (filterAgent && filterAgent !== agId) return;
 
     const ag = LPG_AGENT_LOCATIONS[agId];
+    // Jangan plot koordinat perkiraan sebagai lokasi resmi agen.
+    if (!ag.verified || !Number.isFinite(ag.lat) || !Number.isFinite(ag.lng)) return;
     const agPangkalan = pangkalanList.filter(p => p.agentId === agId && !p.isDeleted);
 
     const agentIcon = L.divIcon({
@@ -146,7 +148,7 @@ window.renderLpgGisMarkers = function() {
     lpgGisLayers.districts.addLayer(marker);
 
     // Garis Jalur Distribusi Agen ke Kecamatan (Jika agen dipilih)
-    if (filterAgent && LPG_AGENT_LOCATIONS[filterAgent]) {
+    if (filterAgent && LPG_AGENT_LOCATIONS[filterAgent]?.verified) {
       const ag = LPG_AGENT_LOCATIONS[filterAgent];
       const hasDistribution = kecPangkalan.some(p => p.agentId === filterAgent);
       if (hasDistribution) {

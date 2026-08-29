@@ -1785,43 +1785,32 @@ const DEFAULT_REPORTS = [
 
 // 13. DATA KONFIGURASI METRIK COMMAND CENTER & TV WALLBOARD
 const DEFAULT_COMMAND_CENTER_CONFIG = {
-  inflation_rate: "2.1%",
-  inflation_status: "Sangat Aman & Terkendali",
-  pasar_sentral_stalls: "786",
-  pasar_sentral_status: "100% Zonasi Aktif",
-  uttp_verified: "2.450+",
-  uttp_status: "Cap Tera Sah Aktif",
-  spbu_verified_pct: "100%",
-  het_lpg_price: "Rp 20.000",
-  het_lpg_regulation: "Perbup Pinrang No. 12/2024",
-  lpg_distribution_pct: "84.5%",
-  lpg_distributed_bottles: "24.800 Tabung",
-  lpg_total_quota: "29.350 Tabung",
-  lpg_official_agents: "11 Agen",
-  lpg_official_bases: "340+ Pangkalan Aktif",
-  total_ikm_trained: "1.248",
-  total_ikm_certified: "320+",
-  skm_score: "89.4 / 100",
-  skm_grade: "SANGAT BAIK (A)",
-  ticker_text: "🌾 Beras Medium SPHP: Rp 12.500/Kg (Stabil) • 🌾 Beras Premium Lokal Lasinrang: Rp 14.500/Kg (Turun Rp 500) • 🛢️ Minyakita: Rp 15.700/Liter (Terkendali) • 🌶️ Cabai Rawit Merah: Rp 42.000/Kg (Pasokan Terjaga) • ⚡ HET Gas LPG 3 Kg Pinrang: Rp 20.000/Tabung (Perbup No. 12/2024) • ⚖️ Posko Layanan Tera UTTP: Senin – Jumat 08.00–15.30 WITA • 🏭 Klinik Fasilitasi IKM: Pendaftaran Akun SIINas & Sertifikasi TKDN Gratis",
-  last_updated: "27 Agustus 2026 00:45 WITA"
+  inflation_rate: null,
+  inflation_status: null,
+  pasar_sentral_stalls: null,
+  pasar_sentral_status: null,
+  uttp_verified: null,
+  uttp_verified_count: null,
+  uttp_status: null,
+  spbu_verified_pct: null,
+  het_lpg_price: null,
+  het_lpg_regulation: null,
+  lpg_distribution_pct: null,
+  lpg_distributed_bottles: null,
+  lpg_total_quota: null,
+  lpg_official_agents: null,
+  lpg_official_bases: null,
+  total_ikm_trained: null,
+  total_ikm_certified: null,
+  skm_score: null,
+  skm_grade: null,
+  skm_period: null,
+  ticker_text: null,
+  updated_at: null
 };
 
 // 14. DATA STATUS PENGAWASAN 12 KECAMATAN SE-KABUPATEN PINRANG
-const DEFAULT_DISTRICTS_STATUS = [
-  { id: "dist_01", name: "Watang Sawitto", status: "NORMAL", pangkalan: 62, icon: "🟢", note: "Pusat Induk Pasar Sentral & Tera Aman" },
-  { id: "dist_02", name: "Paleteang", status: "NORMAL", pangkalan: 48, icon: "🟢", note: "SPBU Jalur Poros Terverifikasi" },
-  { id: "dist_03", name: "Tiroang", status: "NORMAL", pangkalan: 26, icon: "🟢", note: "Pasar Marawi & Sentra Hortikultura" },
-  { id: "dist_04", name: "Patampanua", status: "NORMAL", pangkalan: 34, icon: "🟢", note: "Distribusi LPG & Timbangan Sawit Aman" },
-  { id: "dist_05", name: "Duampanua", status: "NORMAL", pangkalan: 42, icon: "🟢", note: "Pasar Pekkabata & Poros Trans Aman" },
-  { id: "dist_06", name: "Lembang", status: "NORMAL", pangkalan: 31, icon: "🟢", note: "Sentra Kopi Robusta & Serat Alam" },
-  { id: "dist_07", name: "Mattiro Sompe", status: "NORMAL", pangkalan: 28, icon: "🟢", note: "Sentra RMU Penggilingan Padi" },
-  { id: "dist_08", name: "Suppa", status: "NORMAL", pangkalan: 27, icon: "🟢", note: "Pesisir, Tambak & SPBU Jalur Trans" },
-  { id: "dist_09", name: "Lanrisang", status: "NORMAL", pangkalan: 20, icon: "🟢", note: "Sentra Padi & Jembatan Timbang Teruji" },
-  { id: "dist_10", name: "Mattiro Bulu", status: "NORMAL", pangkalan: 22, icon: "🟢", note: "Stok Pangkalan Terkendali" },
-  { id: "dist_11", name: "Cempa", status: "NORMAL", pangkalan: 18, icon: "🟢", note: "Penyaluran LPG Tepat Sasaran" },
-  { id: "dist_12", name: "Batulappa", status: "NORMAL", pangkalan: 14, icon: "🟢", note: "Wilayah Perbukitan Terlayani" }
-];
+const DEFAULT_DISTRICTS_STATUS = [];
 
 // 17. DATASET MEDIA & SOCIAL INTELLIGENCE HUB (REAL-TIME MONITORING)
 const DEFAULT_MEDIA_INTELLIGENCE = {

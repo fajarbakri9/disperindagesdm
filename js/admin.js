@@ -2363,7 +2363,7 @@ function renderDistrictsTable() {
   }).join('');
 }
 
-window.saveCommandCenterMetrics = function(e) {
+window.saveCommandCenterMetrics = async function(e) {
   e.preventDefault();
   const config = getStorage('disperindag_command_center', DEFAULT_COMMAND_CENTER_CONFIG);
 
@@ -2374,22 +2374,47 @@ window.saveCommandCenterMetrics = function(e) {
     'total_ikm_trained', 'total_ikm_certified', 'skm_score', 'skm_grade'
   ];
 
+  const numericFields = new Set([
+    'inflation_rate', 'pasar_sentral_stalls', 'uttp_verified', 'spbu_verified_pct',
+    'het_lpg_price', 'lpg_distribution_pct', 'lpg_distributed_bottles', 'lpg_total_quota',
+    'total_ikm_trained', 'total_ikm_certified', 'skm_score'
+  ]);
+
   fields.forEach(f => {
     const el = document.getElementById(`cc_${f}`);
     if (el) {
-      config[f] = el.value.trim();
+      const rawValue = el.value.trim().replace(/[^0-9,.-]/g, '').replace(',', '.');
+      config[f] = numericFields.has(f)
+        ? (rawValue === '' || !Number.isFinite(Number(rawValue)) ? null : Number(rawValue))
+        : (el.value.trim() || null);
     }
   });
 
-  config.last_updated = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) + ' WITA';
+  const localUpdatedAt = new Date().toISOString();
+  config.updated_at = localUpdatedAt;
+  delete config.last_updated;
 
   setStorage('disperindag_command_center', config);
 
   // Sync to Cloud Firestore if initialized
   if (typeof db !== 'undefined' && db) {
-    db.collection('command_center').doc('metrics').set(config, { merge: true })
-      .then(() => console.log('Command Center metrics synced to Firestore'))
-      .catch(err => console.warn('Firestore sync note:', err));
+    try {
+      const cloudConfig = {
+        ...config,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await db.collection('command_center').doc('metrics').set(cloudConfig, { merge: true });
+      console.log('Command Center metrics synced to Firestore');
+    } catch (err) {
+      console.warn('Firestore sync note:', err);
+      CustomModal.alert({
+        title: 'Sinkronisasi Cloud Gagal',
+        message: 'Data tersimpan sebagai cache lokal, tetapi belum menjadi data LIVE karena gagal memperoleh timestamp server.',
+        icon: '⚠️',
+        type: 'warning'
+      });
+      return;
+    }
   }
 
   logAdminActivity('Command Center', 'Memperbarui metrik operasional TV Wallboard');
@@ -2411,15 +2436,16 @@ window.editDistrictStatus = function(index) {
     icon: "📍",
     fields: [
       {
-        name: "status",
-        label: "Status Pasokan / Keamanan",
-        type: "select",
-        options: [
-          { value: "NORMAL", label: "🟢 NORMAL (Stok & Tera Aman)" },
-          { value: "WASPADA", label: "🟡 WASPADA (Pengawasan Ketat)" },
-          { value: "KRITIS", label: "🔴 KRITIS (Perlu Intervensi Lapangan)" }
-        ],
-        value: d.status
+        name: "stock_coverage_days",
+        label: "Cakupan Stok (hari)",
+        type: "number",
+        value: d.stock_coverage_days ?? ''
+      },
+      {
+        name: "active_reports",
+        label: "Jumlah Aduan Aktif",
+        type: "number",
+        value: d.active_reports ?? 0
       },
       {
         name: "pangkalan",
@@ -2435,8 +2461,12 @@ window.editDistrictStatus = function(index) {
       }
     ],
     onSubmit: (vals) => {
-      d.status = vals.status;
-      d.icon = vals.status === 'NORMAL' ? '🟢' : (vals.status === 'WASPADA' ? '🟡' : '🔴');
+      d.stock_coverage_days = Number.isFinite(Number(vals.stock_coverage_days)) ? Number(vals.stock_coverage_days) : null;
+      d.active_reports = Number.isFinite(Number(vals.active_reports)) ? Math.max(0, Number(vals.active_reports)) : 0;
+      d.status = d.stock_coverage_days !== null && d.stock_coverage_days < 2 || d.active_reports >= 3
+        ? 'KRITIS'
+        : (d.stock_coverage_days !== null && d.stock_coverage_days < 4 || d.active_reports > 0 ? 'WASPADA' : 'NORMAL');
+      d.icon = d.status === 'NORMAL' ? '🟢' : (d.status === 'WASPADA' ? '🟡' : '🔴');
       d.pangkalan = parseInt(vals.pangkalan, 10) || d.pangkalan;
       d.note = vals.note;
 
@@ -2444,7 +2474,10 @@ window.editDistrictStatus = function(index) {
       setStorage('disperindag_districts', districts);
 
       if (typeof db !== 'undefined' && db) {
-        db.collection('command_center').doc('districts').set({ items: districts }, { merge: true })
+        db.collection('command_center').doc('districts').set({
+          items: districts,
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true })
           .catch(err => console.warn(err));
       }
 

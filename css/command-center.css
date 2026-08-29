@@ -158,6 +158,13 @@ body {
   border: 2px solid #FB923C;
 }
 
+.cc-live-badge.status-loading,
+.cc-live-badge.status-unavailable {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: #EF4444;
+  color: #FCA5A5;
+}
+
 .cc-live-badge.status-offline {
   background: rgba(239, 68, 68, 0.2);
   color: var(--accent-rose);
@@ -174,6 +181,62 @@ body {
 .status-live .pulse-dot { background: #10B981; box-shadow: 0 0 10px #10B981; }
 .status-cached .pulse-dot { background: #F59E0B; box-shadow: 0 0 10px #F59E0B; }
 .status-stale .pulse-dot { background: #F97316; box-shadow: 0 0 10px #F97316; }
+.status-loading .pulse-dot,
+.status-unavailable .pulse-dot { background: #EF4444; box-shadow: 0 0 10px #EF4444; }
+
+.cc-empty-state {
+  width: 100%;
+  padding: 18px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-card-inner);
+  border: 1px dashed var(--border-card);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+td.cc-empty-state {
+  display: table-cell;
+  border-radius: 0;
+}
+
+.cc-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 48px;
+  white-space: nowrap;
+}
+
+.cc-module-meta {
+  margin: -6px 0 8px;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.cc-schedule-card {
+  padding: 14px 18px;
+  background: var(--bg-card-inner);
+  border-left: 5px solid var(--accent-cyan);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.cc-schedule-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 5px;
+  color: var(--text-main);
+}
+
+.cc-schedule-result {
+  margin-top: 6px;
+  color: var(--accent-emerald);
+  font-weight: 800;
+}
 .status-offline .pulse-dot { background: #EF4444; box-shadow: 0 0 10px #EF4444; }
 
 @keyframes pulseAnim {
@@ -631,6 +694,55 @@ body {
    .overview-main-grid {
      grid-template-columns: 1fr 1fr;
    }
+}
+
+@media (min-width: 1025px) and (max-width: 1400px) {
+  .cc-header {
+    padding: 0 10px;
+  }
+
+  .cc-header-left,
+  .cc-header-right {
+    gap: 7px;
+  }
+
+  .cc-logo {
+    height: 38px;
+  }
+
+  .cc-title-box h1 {
+    font-size: 0.88rem;
+    gap: 7px;
+  }
+
+  .cc-title-box p {
+    font-size: 0.66rem;
+  }
+
+  .cc-data-freshness,
+  .cc-weather-badge,
+  .cc-clock-box {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .cc-clock-time {
+    font-size: 1rem;
+  }
+
+  .cc-tab-btn {
+    font-size: 0.72rem;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .district-card-item strong {
+    font-size: 0.66rem !important;
+  }
+
+  .district-card-item .badge-indicator {
+    font-size: 0.52rem !important;
+  }
 }
 
 @media (max-width: 768px) {
