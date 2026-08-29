@@ -26,83 +26,180 @@
   <meta name="twitter:title" id="twTitle" content="Rilis Berita Resmi Kedinasan | Disperindag ESDM Kabupaten Pinrang">
   <meta name="twitter:description" id="twDesc" content="Pusat rilis berita faktual dan dokumentasi kegiatan resmi Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.">
   <meta name="twitter:image" id="twImage" content="https://disperindagesdm-pinrang.web.app/assets/banner/cover_disperindag_esdm_pinrang.jpg">
+  
+  <!-- ICONS & BRANDING -->
   <link rel="icon" type="image/png" href="/assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/brand/logo_pinrang_opt.png">
+  
+  <!-- STYLESHEETS -->
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/modal-system.css">
+  
   <style>
-    .article-page {
-      padding: 40px 0 60px;
+    .article-page-wrapper {
+      padding: 36px 0 60px;
+      background: #F8FAFC;
+      min-height: 80vh;
     }
-    .breadcrumb {
+    .breadcrumb-nav {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 0.84rem;
-      color: var(--text-muted);
+      color: #64748B;
       margin-bottom: 24px;
       flex-wrap: wrap;
     }
-    .breadcrumb a {
-      color: var(--primary);
+    .breadcrumb-nav a {
+      color: var(--primary, #1E40AF);
       font-weight: 700;
       text-decoration: none;
     }
-    .breadcrumb a:hover {
-      color: var(--accent-gold-dark);
+    .breadcrumb-nav a:hover {
+      color: var(--accent-gold-dark, #B45309);
       text-decoration: underline;
     }
-    .article-layout {
+    .article-grid-layout {
       display: grid;
-      grid-template-columns: 1.8fr 1fr;
-      gap: 36px;
+      grid-template-columns: 1fr 340px;
+      gap: 32px;
       align-items: start;
     }
-    .article-main {
+    .article-main-card {
       background: #FFFFFF;
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-lg, 12px);
       padding: 36px;
-      border: 1.5px solid var(--border-subtle);
-      box-shadow: var(--shadow-sm);
+      border: 1.5px solid var(--border-subtle, #E2E8F0);
+      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
     }
-    .article-title {
-      font-size: 1.85rem;
+    .article-heading {
+      font-size: 1.95rem;
       font-weight: 900;
-      color: var(--primary-deep);
-      line-height: 1.3;
-      margin: 14px 0 16px;
+      color: var(--primary-deep, #0F2C59);
+      line-height: 1.35;
+      margin: 14px 0 18px;
+      letter-spacing: -0.01em;
     }
-    .article-cover {
+    .article-hero-cover {
       width: 100%;
-      height: 380px;
-      border-radius: var(--radius-md);
+      height: 440px;
+      border-radius: var(--radius-md, 10px);
       overflow: hidden;
-      margin: 20px 0;
+      margin: 22px 0 10px;
+      background: #030D1B;
+      border: 1px solid #E2E8F0;
     }
-    .article-cover img {
+    .article-hero-cover img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
-    .article-body-text {
-      font-size: 0.95rem;
-      line-height: 1.8;
+    .article-caption {
+      font-size: 0.8rem;
+      color: #64748B;
+      font-style: italic;
+      margin-bottom: 24px;
+      padding: 4px 6px;
+      border-left: 3px solid var(--accent-gold, #FACC15);
+      background: #F8FAFC;
+    }
+    .article-body-content {
+      font-size: 1rem;
+      line-height: 1.85;
       color: #334155;
     }
-    .article-body-text p {
-      margin-bottom: 18px;
+    .article-body-content p {
+      margin-bottom: 20px;
     }
-    @media (max-width: 900px) {
-      .article-layout { grid-template-columns: 1fr; }
-      .article-main { padding: 24px; }
-      .article-cover { height: 240px; }
+    .article-dinas-quote {
+      border-left: 4px solid var(--accent-gold, #D97706);
+      background: linear-gradient(135deg, #FEFCE8, #FFFDF0);
+      padding: 18px 22px;
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      margin: 24px 0;
+      color: #78350F;
+      line-height: 1.7;
+    }
+    .article-sidebar-sticky {
+      position: sticky;
+      top: 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .sidebar-widget {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg, 12px);
+      padding: 24px;
+      border: 1.5px solid var(--border-subtle, #E2E8F0);
+      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+    }
+    .widget-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary-deep, #0F2C59);
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--accent-gold, #FACC15);
+      padding-bottom: 8px;
+    }
+    .related-news-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .related-news-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .related-thumb {
+      width: 76px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 6px;
+      flex-shrink: 0;
+      background: #030D1B;
+      border: 1px solid #E2E8F0;
+    }
+    .related-title {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--primary-deep, #0F2C59);
+      text-decoration: none;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .related-title:hover {
+      color: var(--accent-gold-dark, #B45309);
+    }
+    @media (max-width: 960px) {
+      .article-grid-layout {
+        grid-template-columns: 1fr;
+      }
+      .article-main-card {
+        padding: 24px;
+      }
+      .article-hero-cover {
+        height: 260px;
+      }
+      .article-heading {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. TOPBAR -->
+  <!-- 1. TOPBAR RESMI KEDINASAN -->
   <header class="topbar">
     <div class="container">
       <div class="topbar-left">
@@ -133,7 +230,7 @@
             <div class="dropdown-divider"></div>
             <a href="/admin.html" class="login-drop-item">
               <div class="drop-item-icon desktop-badge">💻</div>
-              <div><strong>CMS Administrator</strong><small>Kelola konten</small></div>
+              <div><strong>CMS Administrator</strong><small>Kelola konten portal</small></div>
             </a>
           </div>
         </div>
@@ -155,29 +252,29 @@
       <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Buka Navigasi Menu">☰</button>
 
       <ul class="nav-menu">
-        <li><a href="index.html" class="nav-link ">Beranda</a></li>
+        <li><a href="/index.html" class="nav-link">Beranda</a></li>
 
-        <!-- Dropdown 1: Profil & Organisasi -->
+        <!-- Dropdown 1: Profil -->
         <li class="nav-dropdown">
-          <a href="profil.html" class="nav-link nav-dropdown-toggle ">
+          <a href="/profil.html" class="nav-link nav-dropdown-toggle">
             Profil <span class="dropdown-arrow">▾</span>
           </a>
           <div class="nav-dropdown-menu">
-            <a href="profil.html" class="dropdown-item">
+            <a href="/profil.html" class="dropdown-item">
               <div class="dropdown-icon">🏛️</div>
               <div class="dropdown-text">
-                <span class="dropdown-title">Profil & Organisasi Resmi</span>
-                <span class="dropdown-desc">Visi, misi, struktur & tupoksi Perbup 35/2023</span>
+                <span class="dropdown-title">Profil &amp; Organisasi Resmi</span>
+                <span class="dropdown-desc">Visi, misi, struktur &amp; tupoksi Perbup 35/2023</span>
               </div>
             </a>
-            <a href="maklumat-pelayanan.html" class="dropdown-item">
+            <a href="/maklumat-pelayanan.html" class="dropdown-item">
               <div class="dropdown-icon">📜</div>
               <div class="dropdown-text">
                 <span class="dropdown-title">Maklumat Pelayanan</span>
                 <span class="dropdown-desc">Piagam komitmen moral aparatur dinas</span>
               </div>
             </a>
-            <a href="profil.html#berakhlak" class="dropdown-item">
+            <a href="/profil.html#berakhlak" class="dropdown-item">
               <div class="dropdown-icon">🎯</div>
               <div class="dropdown-text">
                 <span class="dropdown-title">Core Values ASN BerAKHLAK</span>
@@ -189,191 +286,212 @@
 
         <!-- Dropdown 2: Layanan Publik -->
         <li class="nav-dropdown">
-          <a href="layanan.html" class="nav-link nav-dropdown-toggle ">
+          <a href="/layanan.html" class="nav-link nav-dropdown-toggle">
             Layanan Publik <span class="dropdown-arrow">▾</span>
           </a>
           <div class="nav-dropdown-menu">
-            <a href="layanan.html" class="dropdown-item">
+            <a href="/layanan.html" class="dropdown-item">
               <div class="dropdown-icon">⚡</div>
               <div class="dropdown-text">
-                <span class="dropdown-title">Standar Pelayanan & SOP</span>
+                <span class="dropdown-title">Standar Pelayanan &amp; SOP</span>
                 <span class="dropdown-desc">9 standar layanan publik resmi</span>
               </div>
             </a>
-            <a href="index.html#pengaduan" class="dropdown-item">
+            <a href="/index.html#pengaduan" class="dropdown-item">
               <div class="dropdown-icon">📨</div>
               <div class="dropdown-text">
-                <span class="dropdown-title">Pengaduan Online</span>
-                <span class="dropdown-desc">8 kanal resmi & SP4N-LAPOR!</span>
-              </div>
-            </a>
-            <a href="kontak.html" class="dropdown-item">
-              <div class="dropdown-icon">📞</div>
-              <div class="dropdown-text">
-                <span class="dropdown-title">Kontak & Lokasi Kantor</span>
-                <span class="dropdown-desc">Alamat, peta & WhatsApp dinas</span>
+                <span class="dropdown-title">Pengaduan Masyarakat</span>
+                <span class="dropdown-desc">Layanan aspirasi &amp; pengaduan terpadu</span>
               </div>
             </a>
           </div>
         </li>
 
-        <!-- Dropdown 3: Transparansi & Data -->
-        <li class="nav-dropdown">
-          <a href="index.html#transparansi-pelayanan" class="nav-link nav-dropdown-toggle ">
-            Transparansi <span class="dropdown-arrow">▾</span>
-          </a>
-          <div class="nav-dropdown-menu">
-            <a href="index.html#transparansi-pelayanan" class="dropdown-item">
-              <div class="dropdown-icon">📊</div>
-              <div class="dropdown-text">
-                <span class="dropdown-title">Transparansi Pelayanan</span>
-                <span class="dropdown-desc">SKM, IKM & Rekapitulasi 2025</span>
-              </div>
-            </a>
-            <a href="pasar.html" class="dropdown-item">
-              <div class="dropdown-icon">🏬</div>
-              <div class="dropdown-text">
-                <span class="dropdown-title">Direktori Pasar Daerah</span>
-                <span class="dropdown-desc">17 sarana pasar & status operasional</span>
-              </div>
-            </a>
-            <a href="index.html#sembako" class="dropdown-item">
-              <div class="dropdown-icon">🛒</div>
-              <div class="dropdown-text">
-                <span class="dropdown-title">Harga Pasar & Bapokting</span>
-                <span class="dropdown-desc">Pantauan komoditas harian</span>
-              </div>
-            </a>
-            <a href="katalog-ikm.html" class="dropdown-item">
-              <div class="dropdown-icon">🏭</div>
-              <div class="dropdown-text">
-                <span class="dropdown-title">Katalog Produk IKM</span>
-                <span class="dropdown-desc">Produk unggulan Pinrang</span>
-              </div>
-            </a>
-            <a href="ppid.html" class="dropdown-item">
-              <div class="dropdown-icon">📋</div>
-              <div class="dropdown-text">
-                <span class="dropdown-title">PPID Pelaksana</span>
-                <span class="dropdown-desc">Informasi publik berkala</span>
-              </div>
-            </a>
-            <a href="dokumen.html" class="dropdown-item">
-              <div class="dropdown-icon">📁</div>
-              <div class="dropdown-text">
-                <span class="dropdown-title">Dokumen & Regulasi</span>
-                <span class="dropdown-desc">Perbup & Renja kedinasan</span>
-              </div>
-            </a>
-          </div>
-        </li>
-
-        <li><a href="arsip-berita.html" class="nav-link active">Berita</a></li>
+        <li><a href="/index.html#transparansi-pelayanan" class="nav-link">Transparansi</a></li>
+        <li><a href="/arsip-berita.html" class="nav-link active">Berita</a></li>
+        <li><a href="/kontak.html" class="nav-link">Kontak</a></li>
       </ul>
     </div>
   </nav>
 
-  <!-- MOBILE DRAWER -->
-  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
-  <div class="mobile-drawer" id="mobileDrawer">
-    <div class="drawer-header">
-      <div class="drawer-brand">
-        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pinrang">
-        <div class="drawer-brand-text">
-          <h4>DISPERINDAG ESDM</h4>
-          <p>KABUPATEN PINRANG</p>
-        </div>
-      </div>
-      <button class="drawer-close-btn" id="drawerCloseBtn">✕</button>
-    </div>
-    <div class="drawer-nav">
-      <a href="index.html" class="drawer-link"><span>🏠</span> Beranda</a>
-      <a href="profil.html" class="drawer-link"><span>🏛️</span> Profil & Tupoksi</a>
-      <a href="layanan.html" class="drawer-link"><span>⚡</span> Layanan Publik</a>
-      <a href="ppid.html" class="drawer-link"><span>📂</span> PPID & Dokumen</a>
-      <a href="index.html#sembako" class="drawer-link"><span>📊</span> Harga & Pasar</a>
-      <a href="katalog-ikm.html" class="drawer-link"><span>🏭</span> Industri & IKM</a>
-      <a href="arsip-berita.html" class="drawer-link active"><span>📰</span> Berita & Rilis</a>
-      <a href="index.html#pengaduan" class="drawer-link"><span>📨</span> Pengaduan</a>
-      <div class="drawer-divider"></div>
-      <a href="login.html" class="drawer-link drawer-portal-btn"><span>🔐</span> Portal Pegawai ASN</a>
-    </div>
-  </div>
-
-  <!-- 3. ARTICLE CONTENT -->
-  <main class="article-page container">
-    
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb" aria-label="Breadcrumb">
-      <a href="index.html">Beranda</a>
-      <span>&rsaquo;</span>
-      <a href="arsip-berita.html">Berita & Rilis</a>
-      <span>&rsaquo;</span>
-      <span id="breadcrumbCategory" style="color: var(--primary-deep); font-weight: 600;">Detail Berita</span>
-    </nav>
-
-    <div class="article-layout">
+  <!-- 3. MAIN ARTICLE PAGE -->
+  <main class="article-page-wrapper">
+    <div class="container">
       
-      <!-- Konten Utama Berita -->
-      <article class="article-main" id="articleContainer">
-        <!-- Injected via JavaScript -->
-      </article>
+      <!-- Breadcrumb Navigasi -->
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <a href="/index.html">Beranda</a>
+        <span>&rsaquo;</span>
+        <a href="/arsip-berita.html">Berita &amp; Rilis</a>
+        <span>&rsaquo;</span>
+        <span id="breadcrumbCategory" style="color: var(--primary-deep, #0F2C59); font-weight: 700;">Detail Berita</span>
+      </nav>
 
-      <!-- Sidebar Berita Terkait -->
-      <aside>
-        <div class="admin-card" style="margin-bottom: 24px;">
-          <div class="admin-card-header">
-            <h4>Berita Lainnya</h4>
+      <div class="article-grid-layout">
+        
+        <!-- KOLOM KIRI: DETAIL ARTIKEL RESMI -->
+        <article class="article-main-card" id="articleMainCard">
+          <div id="articleLoadingSpinner" style="text-align: center; padding: 60px 0;">
+            <div class="spinner" style="margin: 0 auto 16px; border: 4px solid #E2E8F0; border-top: 4px solid var(--primary-deep, #0F2C59); border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite;"></div>
+            <p style="color: #64748B; font-weight: 700;">Memuat rilis berita resmi kedinasan...</p>
           </div>
-          <div id="relatedNewsList" style="display: flex; flex-direction: column; gap: 14px;">
-            <!-- Injected via JavaScript -->
+          <div id="articleContentArea" style="display: none;">
+            <!-- Konten di-inject oleh JavaScript -->
           </div>
-        </div>
+        </article>
 
-        <div class="admin-card" style="background: #F8FAFC; border: 1.5px solid var(--border-subtle);">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 8px;">Portal PPID</h4>
-          <p style="font-size: 0.82rem; color: #64748B; line-height: 1.5; margin-bottom: 12px;">
-            Akses dokumen regulasi, renstra, dan standar pelayanan resmi.
-          </p>
-          <a href="ppid.html" class="btn-outline" style="width: 100%; justify-content: center; font-size: 0.82rem; padding: 8px;">
-            Buka Portal PPID &rarr;
-          </a>
-        </div>
-      </aside>
+        <!-- KOLOM KANAN: SIDEBAR WIDGETS -->
+        <aside class="article-sidebar-sticky">
+          
+          <!-- Widget 1: Berita Kedinasan Terkini -->
+          <div class="sidebar-widget">
+            <h3 class="widget-title">Berita Terkini Lainnya</h3>
+            <div id="sidebarRelatedNews">
+              <!-- Injected via JS -->
+            </div>
+          </div>
 
+          <!-- Widget 2: Kanal Pengaduan Cepat -->
+          <div class="sidebar-widget" style="background: linear-gradient(135deg, #0F2C59, #081A3A); color: #FFFFFF; border-color: #1E3A8A;">
+            <h4 style="font-size: 1rem; font-weight: 800; color: var(--accent-gold, #FACC15); margin-bottom: 8px;">Kanal Pengaduan Resmi</h4>
+            <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.55; margin-bottom: 16px;">
+              Laporkan kecurangan takaran timbangan atau pangkalan elpiji 3 kg yang menjual di atas HET resmi:
+            </p>
+            <a href="https://wa.me/6282316002226" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #25D366; color: #FFFFFF; font-weight: 800; font-size: 0.85rem; padding: 10px 14px; border-radius: 8px; text-decoration: none;">
+              <span>💬</span> WhatsApp: 0823 1600 2226
+            </a>
+          </div>
+
+          <!-- Widget 3: Portal Dokumen & PPID -->
+          <div class="sidebar-widget">
+            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin-bottom: 10px;">Akses Informasi Publik</h4>
+            <p style="font-size: 0.8rem; color: #64748B; line-height: 1.5; margin-bottom: 14px;">
+              Akses dokumen perencanaan renstra, perbup, dan standar operasional kedinasan resmi.
+            </p>
+            <a href="/ppid.html" class="btn-outline" style="display: block; text-align: center; padding: 8px 14px; font-size: 0.82rem; text-decoration: none; border-radius: 6px; font-weight: 700; color: #1E40AF; border-color: #BFDBFE; background: #EFF6FF;">
+              Buka Portal PPID Pelaksana &rarr;
+            </a>
+          </div>
+
+        </aside>
+
+      </div>
     </div>
   </main>
 
-  <!-- ==========================================================================
-       13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
-       ========================================================================== -->
-  
+  <style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 
+  <!-- 4. MASTER FOOTER RESMI KEDINASAN -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="footer-grid">
+        
+        <!-- Kolom 1: Profil Kedinasan -->
+        <div class="footer-col">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+            <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" style="width: 44px; height: auto;">
+            <div>
+              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.03em;">DISPERINDAG ESDM</h4>
+              <span style="font-size: 0.76rem; color: #94A3B8; font-weight: 700;">KABUPATEN PINRANG</span>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.6; margin-bottom: 16px;">
+            Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen menyelenggarakan pelayanan publik prima, tertib metrologi, pengawasan distribusi pangan, dan pembinaan sentra IKM di Bumi Lasinrang.
+          </p>
+          
+          <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(250, 204, 21, 0.35); border-left: 4px solid var(--accent-gold, #FACC15); padding: 12px 14px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-top: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(250, 204, 21, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+              🎯
+            </div>
+            <div>
+              <div style="font-size: 0.68rem; font-weight: 800; color: #FDE047; text-transform: uppercase; letter-spacing: 0.5px;">Motto Pelayanan</div>
+              <div style="font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin: 1px 0;">MANTAP</div>
+              <div style="font-size: 0.72rem; color: #CBD5E1; line-height: 1.35;">Melayani Anda dengan Transparan, Adil &amp; Profesional</div>
+            </div>
+          </div>
+        </div>
 
+        <!-- Kolom 2: Standar Pelayanan -->
+        <div class="footer-col">
+          <h4>Standar Pelayanan</h4>
+          <ul class="footer-links">
+            <li><a href="/layanan.html">Standar Pelayanan &amp; SOP</a></li>
+            <li><a href="/layanan.html#srv_oss_industri">Verifikasi Perizinan OSS Industri</a></li>
+            <li><a href="/layanan.html#srv_oss_perdagangan">Fasilitasi Perizinan OSS Perdagangan</a></li>
+            <li><a href="/layanan.html#srv_pupuk_subsidi">Keterangan Distributor Pupuk</a></li>
+            <li><a href="/layanan.html#srv_tera">Pelayanan Tera &amp; Tera Ulang UTTP</a></li>
+            <li><a href="/index.html#pengaduan">Formulir Pengaduan Online</a></li>
+          </ul>
+        </div>
 
-  <!-- ==========================================================================
-       FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
-       ========================================================================== -->
-  
+        <!-- Kolom 3: Transparansi & Dokumen -->
+        <div class="footer-col">
+          <h4>Transparansi &amp; Dokumen</h4>
+          <ul class="footer-links">
+            <li><a href="/pasar.html">Direktori Pasar Daerah</a></li>
+            <li><a href="/index.html#transparansi-pelayanan">Transparansi Pelayanan Publik</a></li>
+            <li><a href="/profil.html">Profil &amp; Organisasi Resmi</a></li>
+            <li><a href="/maklumat-pelayanan.html">Maklumat Pelayanan</a></li>
+            <li><a href="/ppid.html">Portal PPID Pelaksana</a></li>
+            <li><a href="/dokumen.html">Dokumen &amp; Regulasi Daerah</a></li>
+            <li><a href="/katalog-ikm.html">Katalog Produk IKM Binaan</a></li>
+          </ul>
+        </div>
 
+        <!-- Kolom 4: Kontak & Lokasi -->
+        <div class="footer-col">
+          <h4>Kontak &amp; Lokasi</h4>
+          <div style="font-size: 0.84rem; color: #CBD5E1; line-height: 1.65; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <span>📍</span>
+              <span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span>
+            </div>
+            <a href="https://wa.me/6282316002226" style="color: #FDE047; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700;" target="_blank" rel="noopener noreferrer">
+              <span>📞</span>
+              <span>0823 1600 2226</span>
+            </a>
+            <a href="mailto:dinasperindagem.pinrang@gmail.com" style="color: #93C5FD; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 600;">
+              <span>✉️</span>
+              <span>dinasperindagem.pinrang@gmail.com</span>
+            </a>
+          </div>
+        </div>
 
+      </div>
 
-  <!-- 4. FOOTER TERPADU CANONICAL (SESUAI ARAHAN V3) -->
-    <!-- FOOTER RESMI KEDINASAN -->
-    <!-- FOOTER RESMI KEDINASAN -->
-    <!-- 13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN) -->
-  
+      <div class="footer-bottom">
+        <div>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.</div>
+        <div style="color: var(--accent-gold, #FACC15); font-size: 0.8rem; font-weight: 700;">#BanggaMelayaniBangsa</div>
+      </div>
+    </div>
+  </footer>
 
-  <script src="/js/data.js?v=20260829_dedup_v5"></script>
-  <script src="/js/modal-system.js?v=20260829_dedup_v5"></script>
+  <!-- SCRIPT ENGINE ABSOLUT -->
+  <script src="/js/data.js?v=20260829_clean_v6"></script>
+  <script src="/js/modal-system.js?v=20260829_clean_v6"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="/js/firebase-config.js?v=20260829_dedup_v5"></script>
-  <script src="/js/app.js?v=20260829_dedup_v5"></script>
+  <script src="/js/firebase-config.js?v=20260829_clean_v6"></script>
+  <script src="/js/app.js?v=20260829_clean_v6"></script>
+
   <script>
+    // UNIVERSAL MEDIA URL RESOLVER (Mencegah Broken Image dari Sub-Path manapun)
+    function resolveMediaUrl(path) {
+      if (!path) return '/assets/banner/cover_disperindag_esdm_pinrang.jpg';
+      if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+        return path;
+      }
+      return path.startsWith('/') ? path : `/${path}`;
+    }
+
     async function renderSingleArticle() {
-      // 1. Ambil ID atau Slug dari URL (Query Param atau Pathname)
+      const spinner = document.getElementById('articleLoadingSpinner');
+      const contentArea = document.getElementById('articleContentArea');
+
+      // 1. Ekstrak Query Key (Slug atau ID) dari URL
       const urlParams = new URLSearchParams(window.location.search);
       let queryKey = urlParams.get('id') || urlParams.get('slug');
 
@@ -388,8 +506,8 @@
       if (typeof deduplicateNewsList === 'function') {
         newsList = deduplicateNewsList(newsList);
       }
-      
-      // 2. Cari artikel berdasarkan ID atau Slug di LocalStorage
+
+      // 2. Cari artikel di LocalStorage
       let article = null;
       if (queryKey) {
         article = newsList.find(n => 
@@ -400,7 +518,7 @@
         );
       }
 
-      // Jika belum ditemukan di local storage, coba fetch dari Firestore
+      // 3. Fallback Firestore jika artikel baru dibuat di perangkat lain
       if (!article && queryKey && typeof db !== 'undefined' && db !== null) {
         try {
           const docSnap = await db.collection('news').doc(queryKey).get();
@@ -418,169 +536,193 @@
             setStorage('disperindag_news', newsList);
           }
         } catch(e) {
-          console.warn("Firestore fetch single news error:", e);
+          console.warn("Firestore resolver warning:", e);
         }
       }
 
-      // Fallback ke artikel pertama jika tidak ada query sama sekali
+      // Fallback ke artikel pertama jika tanpa query
       if (!article && !queryKey) {
         article = newsList[0];
       }
 
+      if (spinner) spinner.style.display = 'none';
+      if (contentArea) contentArea.style.display = 'block';
+
       if (!article) {
-        document.getElementById('articleContainer').innerHTML = `
-          <div style="text-align:center; padding: 60px 20px;">
-            <div style="font-size: 3.5rem; margin-bottom: 16px;">🧭</div>
-            <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 10px;">Artikel Berita Tidak Ditemukan</h2>
-            <p style="color: #64748B; font-size: 0.92rem; margin-bottom: 24px; max-width: 480px; margin-left: auto; margin-right: auto;">
-              Rilis berita yang Anda tuju tidak tersedia atau telah berganti tautan baru yang lebih aman.
-            </p>
-            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-              <a href="/index.html" class="btn-primary" style="padding: 10px 22px; font-size: 0.88rem; text-decoration: none; border-radius: 8px;">
-                <span>🏠</span> Kembali ke Beranda
-              </a>
-              <a href="/arsip-berita.html" class="btn-outline" style="padding: 10px 20px; font-size: 0.88rem; text-decoration: none; border-radius: 8px;">
-                <span>📂</span> Buka Arsip Berita
-              </a>
+        if (contentArea) {
+          contentArea.innerHTML = `
+            <div style="text-align: center; padding: 40px 10px;">
+              <div style="font-size: 3.5rem; margin-bottom: 14px;">🧭</div>
+              <h2 style="font-size: 1.4rem; font-weight: 800; color: #0F2C59; margin-bottom: 8px;">Rilis Berita Tidak Ditemukan</h2>
+              <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 22px; max-width: 460px; margin-left: auto; margin-right: auto;">
+                Artikel yang Anda cari tidak tersedia atau telah dipindahkan ke alamat rilis baru yang lebih aman.
+              </p>
+              <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <a href="/index.html" class="btn-primary" style="padding: 9px 20px; font-size: 0.86rem; text-decoration: none; border-radius: 6px;">
+                  <span>🏠</span> Kembali ke Beranda
+                </a>
+                <a href="/arsip-berita.html" class="btn-outline" style="padding: 9px 18px; font-size: 0.86rem; text-decoration: none; border-radius: 6px;">
+                  <span>📂</span> Buka Arsip Berita
+                </a>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        }
         return;
       }
 
-      // 3. UPDATE ADDRESS BAR URL & CANONICAL LINK
+      // 4. Update Meta, Judul & Canonical URL
       const cleanNewsUrl = `${window.location.origin}/berita/${article.slug || article.id}`;
       try {
         window.history.replaceState({ newsId: article.id }, article.title, cleanNewsUrl);
       } catch(e) {}
 
-      // 4. UPDATE DYNAMIC TITLE & META DESCRIPTION
       document.getElementById('pageTitle').textContent = `${article.title} | Disperindag ESDM Pinrang`;
       if (document.getElementById('breadcrumbCategory')) {
-        document.getElementById('breadcrumbCategory').textContent = article.category || 'Berita';
+        document.getElementById('breadcrumbCategory').textContent = article.category || 'Berita Kedinasan';
       }
-      
-      const snippet = article.excerpt || (article.content ? article.content.replace(/\n/g, ' ').substring(0, 160) + '...' : 'Rilis berita resmi Dinas Perindag ESDM Pinrang.');
-      const fullImgUrl = article.img ? (article.img.startsWith('http') || article.img.startsWith('data:') ? article.img : `${window.location.origin}/${article.img}`) : `${window.location.origin}/assets/brand/cover_arsip_berita.png`;
 
-      // UPDATE OPEN GRAPH & TWITTER CARD TAGS
+      const coverSrc = resolveMediaUrl(article.img);
+      const snippet = article.excerpt || (article.content ? article.content.replace(/\n/g, ' ').substring(0, 160) + '...' : 'Rilis berita resmi Disperindag ESDM Pinrang.');
+
+      // Update Open Graph Tags
       const setMeta = (id, val) => { const el = document.getElementById(id); if (el) el.setAttribute('content', val); };
       setMeta('pageMetaDesc', snippet);
       setMeta('ogTitle', `${article.title} | Disperindag ESDM Pinrang`);
       setMeta('ogDesc', snippet);
-      setMeta('ogImage', fullImgUrl);
+      setMeta('ogImage', coverSrc.startsWith('http') ? coverSrc : `${window.location.origin}${coverSrc}`);
       setMeta('ogUrl', cleanNewsUrl);
       setMeta('twTitle', `${article.title} | Disperindag ESDM Pinrang`);
       setMeta('twDesc', snippet);
-      setMeta('twImage', fullImgUrl);
+      setMeta('twImage', coverSrc.startsWith('http') ? coverSrc : `${window.location.origin}${coverSrc}`);
 
-      // 5. PARSE MARKDOWN CONTENT
+      // 5. Format Konten Markdown & Visual
       const rawContent = article.content || '';
-      const formattedContent = rawContent
-        .replace(/^## (.*$)/gim, '<h2 style="font-size:1.35rem; font-weight:800; color:#0F2C59; margin:28px 0 14px; line-height:1.35;">$1</h2>')
-        .replace(/^### (.*$)/gim, '<h3 style="font-size:1.15rem; font-weight:800; color:#0F2C59; margin:22px 0 12px; line-height:1.35;">$1</h3>')
-        .replace(/^\> (.*$)/gim, '<blockquote style="border-left:4px solid #D4AF37; background:#F8FAFC; padding:16px 20px; border-radius:8px; font-style:italic; margin:22px 0; color:#1E293B; line-height:1.65; box-shadow:inset 0 1px 3px rgba(0,0,0,0.03);">$1</blockquote>')
-        .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#0284C7; font-weight:700; text-decoration:underline;">$1</a>')
-        .replace(/^• (.*$)/gim, '<li style="margin-bottom:6px;">$1</li>')
-        .replace(/\n\n/gim, '</p><p style="margin-bottom:18px; line-height:1.8; color:#334155; font-size:0.96rem;">');
+      let formattedContent = rawContent;
+      if (!rawContent.includes('<p>') && !rawContent.includes('<div>')) {
+        formattedContent = rawContent
+          .replace(/^## (.*$)/gim, '<h2 style="font-size:1.35rem; font-weight:800; color:#0F2C59; margin:28px 0 14px; line-height:1.35;">$1</h2>')
+          .replace(/^### (.*$)/gim, '<h3 style="font-size:1.15rem; font-weight:800; color:#0F2C59; margin:22px 0 12px; line-height:1.35;">$1</h3>')
+          .replace(/^\> (.*$)/gim, '<div class="article-dinas-quote">📌 $1</div>')
+          .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+          .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#0284C7; font-weight:700; text-decoration:underline;">$1</a>')
+          .replace(/^• (.*$)/gim, '<li style="margin-bottom:6px;">$1</li>')
+          .split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+      }
 
+      // 6. Galeri Tambahan
       let galleryHtml = '';
       if (Array.isArray(article.gallery) && article.gallery.length > 0) {
         galleryHtml = `
-          <div style="margin-top: 28px;">
-            <h4 style="font-size: 1rem; font-weight: 800; color: #0F2C59; margin-bottom: 12px;">Galeri Dokumentasi Kegiatan:</h4>
+          <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
+            <h4 style="font-size: 1.05rem; font-weight: 800; color: #0F2C59; margin-bottom: 14px;">📷 Dokumentasi Foto Kegiatan:</h4>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;">
-              ${article.gallery.map((g, idx) => `
-                <div style="border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: #030D1B;">
-                  <img src="${g.img || g}" style="width: 100%; height: 130px; object-fit: cover;" alt="Galeri ${idx + 1}" loading="lazy">
-                  ${g.caption ? `<div style="font-size: 0.72rem; color: #64748B; padding: 6px; background: #F8FAFC;">${g.caption}</div>` : ''}
-                </div>
-              `).join('')}
+              ${article.gallery.map((g, idx) => {
+                const gSrc = resolveMediaUrl(g.img || g);
+                const cap = g.caption || '';
+                return `
+                  <div style="border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: #030D1B;">
+                    <img src="${gSrc}" style="width: 100%; height: 130px; object-fit: cover;" alt="Galeri ${idx + 1}" loading="lazy" onerror="this.onerror=null; this.src='/assets/banner/cover_disperindag_esdm_pinrang.jpg';">
+                    ${cap ? `<div style="font-size: 0.72rem; color: #64748B; padding: 6px; background: #F8FAFC;">${cap}</div>` : ''}
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
         `;
       }
 
-      const tagsList = Array.isArray(article.tags) && article.tags.length > 0 ? article.tags : (article.topic_tag ? [article.topic_tag] : ['DisperindagPinrang']);
+      // 7. Tags HTML
+      const tagsList = Array.isArray(article.tags) && article.tags.length > 0 ? article.tags : (article.topic_tag ? [article.topic_tag] : ['Dinas']);
       const tagsHtml = tagsList.map(t => `<span style="background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:700;">#${t.replace(/^#/, '')}</span>`).join(' ');
 
-      const mainContainer = document.getElementById('articleContainer');
-      mainContainer.innerHTML = `
-        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
-          <span class="badge-cat" style="background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 0.82rem; padding: 4px 12px; border-radius: 6px;">
-            ${article.category || 'Berita Kedinasan'}
-          </span>
-          <span class="verified-badge">✓ Rilis Resmi Kedinasan</span>
-        </div>
+      // 8. Render Kolom Utama
+      if (contentArea) {
+        contentArea.innerHTML = `
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+            <span style="background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 0.82rem; padding: 4px 12px; border-radius: 6px;">
+              ${article.category || 'Perindustrian, Energi & SDM'}
+            </span>
+            <span style="background: #ECFDF5; color: #059669; font-weight: 800; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; border: 1px solid #A7F3D0;">
+              ✓ Rilis Resmi Kedinasan
+            </span>
+          </div>
 
-        <h1 class="article-title">${article.title}</h1>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #E2E8F0; font-size: 0.84rem; color: #64748B; flex-wrap: wrap; gap: 10px;">
-          <div>📅 ${article.date} &bull; ✍️ Oleh: <strong>${article.author || 'Humas Disperindag ESDM Pinrang'}</strong></div>
-          <div style="font-size: 0.78rem; color: #94A3B8;">Unit: ${article.category || 'Disperindag ESDM'}</div>
-        </div>
+          <h1 class="article-heading">${article.title}</h1>
 
-        <div class="article-cover">
-          <img src="${article.img || 'assets/brand/cover_arsip_berita.png'}" alt="${article.title}" onerror="this.src='assets/brand/cover_arsip_berita.png'">
-        </div>
-        ${article.image_caption ? `<div style="font-size: 0.76rem; color: #64748B; font-style: italic; margin-top: -12px; margin-bottom: 20px; padding: 0 4px;">📷 ${article.image_caption}</div>` : ''}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #E2E8F0; font-size: 0.84rem; color: #64748B; flex-wrap: wrap; gap: 10px; margin-bottom: 18px;">
+            <div>📅 <strong>${article.date || '—'}</strong> &bull; ✍️ Oleh: <strong>${article.author || 'Humas Disperindag ESDM Pinrang'}</strong></div>
+            <div style="font-size: 0.78rem; color: #94A3B8;">Unit: ${article.category || 'Disperindag ESDM'}</div>
+          </div>
 
-        <div class="article-body-text">
-          <p style="margin-bottom: 18px; line-height: 1.8; color: #334155; font-size: 0.96rem;">
+          <div class="article-hero-cover">
+            <img src="${coverSrc}" alt="${article.title}" onerror="this.onerror=null; this.src='/assets/banner/cover_disperindag_esdm_pinrang.jpg';">
+          </div>
+          <div class="article-caption">
+            📷 ${article.image_caption || 'Dokumentasi resmi liputan kegiatan Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.'}
+          </div>
+
+          <div class="article-body-content">
             ${formattedContent}
-          </p>
-        </div>
+          </div>
 
-        ${galleryHtml}
+          ${galleryHtml}
 
-        <div style="margin-top: 32px; padding-top: 18px; border-top: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <span style="font-size: 0.82rem; font-weight: 800; color: #475569;">Topik Terkait:</span>
-          ${tagsHtml}
-        </div>
+          <div style="margin-top: 32px; padding-top: 18px; border-top: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span style="font-size: 0.82rem; font-weight: 800; color: #475569;">Topik Terkait:</span>
+            ${tagsHtml}
+          </div>
 
-        <div style="margin-top: 36px; padding-top: 20px; border-top: 2px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-          <a href="arsip-berita.html" class="btn-outline" style="padding: 9px 18px; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-            <span>📂</span> Kembali ke Arsip Berita
-          </a>
-          <button onclick="shareArticle('${cleanNewsUrl}', '${(article.title || '').replace(/'/g, "\\'")}')" class="btn-primary" style="padding: 9px 20px; font-size: 0.85rem; background: var(--accent-gold); color: #030D1B; border: none; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
-            <span>🔗</span> Bagikan Rilis Berita
-          </button>
-        </div>
-      `;
-
-      // Related News
-      const relatedContainer = document.getElementById('relatedNewsList');
-      if (relatedContainer) {
-        const others = newsList.filter(n => n.id !== article.id && (n.status || 'published') === 'published').slice(0, 4);
-        relatedContainer.innerHTML = others.map(item => `
-          <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #F1F5F9;">
-            <img src="${item.img || 'assets/brand/cover_arsip_berita.png'}" style="width: 64px; height: 50px; object-fit: cover; border-radius: 6px; flex-shrink: 0;" alt="Thumb" onerror="this.src='assets/brand/cover_arsip_berita.png'">
-            <div>
-              <a href="berita/${item.slug || item.id}" style="font-size: 0.84rem; font-weight: 800; color: var(--primary-deep); text-decoration: none; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                ${item.title}
+          <div style="margin-top: 36px; padding-top: 20px; border-top: 2px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <a href="/arsip-berita.html" class="btn-outline" style="padding: 9px 18px; font-size: 0.85rem; text-decoration: none; border-radius: 6px; font-weight: 700; color: #0F2C59; border-color: #CBD5E1; display: inline-flex; align-items: center; gap: 6px;">
+              <span>📂</span> Kembali ke Arsip Berita
+            </a>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(article.title + ' ' + cleanNewsUrl)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #25D366; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <span>💬</span> WhatsApp
               </a>
-              <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 3px;">📅 ${item.date}</div>
+              <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(cleanNewsUrl)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #1877F2; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <span>📘</span> Facebook
+              </a>
+              <button onclick="shareArticle('${cleanNewsUrl}', '${(article.title || '').replace(/'/g, "\\'")}')" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; background: var(--accent-gold, #FACC15); color: #030D1B; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">
+                <span>🔗</span> Salin Tautan
+              </button>
             </div>
           </div>
-        `).join('');
+        `;
+      }
+
+      // 9. Render Sidebar Related News dengan Thumbnail Pasti Muncul
+      const relatedContainer = document.getElementById('sidebarRelatedNews');
+      if (relatedContainer) {
+        const others = newsList.filter(n => n.id !== article.id && (n.status || 'published') === 'published').slice(0, 4);
+        relatedContainer.innerHTML = others.map(item => {
+          const itemThumb = resolveMediaUrl(item.img);
+          const itemSlug = item.slug || item.id;
+          return `
+            <div class="related-news-item">
+              <img src="${itemThumb}" class="related-thumb" alt="${item.title}" onerror="this.onerror=null; this.src='/assets/banner/cover_disperindag_esdm_pinrang.jpg';">
+              <div>
+                <a href="/berita/${itemSlug}" class="related-title">
+                  ${item.title}
+                </a>
+                <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 3px;">📅 ${item.date || '—'}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
       }
     }
 
     window.shareArticle = function(explicitUrl, explicitTitle) {
       const shareUrl = explicitUrl || window.location.href;
       const shareTitle = explicitTitle || document.title;
-      if (navigator.share) {
-        navigator.share({
-          title: shareTitle,
-          url: shareUrl
-        }).catch(() => {});
-      } else {
+      if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl);
         CustomModal.alert({
           title: "Tautan Berhasil Disalin",
-          message: `Tautan rilis berita resmi telah disalin ke papan klip (*clipboard*):<br><br><code style="background:#F1F5F9; padding:4px 8px; border-radius:4px; font-size:0.85rem; word-break:break-all;">${shareUrl}</code>`,
+          message: `Tautan publik untuk rilis berita telah disalin ke papan klip:<br><br><code style="background:#F1F5F9; padding:6px 10px; border-radius:6px; font-size:0.85rem; word-break:break-all; display:block; border:1px solid #CBD5E1; color:#0F2C59;">${shareUrl}</code><br><small style="color:#059669; font-weight:700;">✓ Siap dibagikan ke WhatsApp, Facebook, dan media sosial.</small>`,
           icon: "📋",
           type: "info"
         });
@@ -589,119 +731,5 @@
 
     document.addEventListener('DOMContentLoaded', renderSingleArticle);
   </script>
-
-
-  <!-- ==========================================================================
-       FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
-       ========================================================================== -->
-  
-
-
-  <!-- FOOTER RESMI KEDINASAN KABUPATEN PINRANG -->
-    <!-- FOOTER RESMI KEDINASAN -->
-    <!-- FOOTER RESMI KEDINASAN -->
-    <!-- FOOTER RESMI KEDINASAN -->
-    <!-- FOOTER RESMI KEDINASAN -->
-  <footer class="main-footer">
-    <div class="container">
-      <div class="footer-grid">
-        
-        <!-- Kolom 1: Profil Kedinasan -->
-        <div class="footer-col">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
-            <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" style="width: 44px; height: auto;">
-            <div>
-              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.03em;">DISPERINDAG ESDM</h4>
-              <span style="font-size: 0.76rem; color: #94A3B8; font-weight: 700;">KABUPATEN PINRANG</span>
-            </div>
-          </div>
-          <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.6; margin-bottom: 16px;">
-            Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen menyelenggarakan pelayanan publik prima, tertib metrologi, pengawasan distribusi pangan, dan pembinaan sentra IKM.
-          </p>
-          
-          <!-- Motto MANTAP Profesional Card -->
-          <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(250, 204, 21, 0.35); border-left: 4px solid var(--accent-gold); padding: 12px 14px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-top: 14px;">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(250, 204, 21, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
-              🎯
-            </div>
-            <div>
-              <div style="font-size: 0.68rem; font-weight: 800; color: #FDE047; text-transform: uppercase; letter-spacing: 0.5px;">Motto Pelayanan</div>
-              <div style="font-size: 0.95rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin: 1px 0;">MANTAP</div>
-              <div style="font-size: 0.72rem; color: #CBD5E1; line-height: 1.35;">Melayani Anda dengan Transparan, Adil &amp; Profesional</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Kolom 2: Layanan Publik & Pengaduan -->
-        <div class="footer-col">
-          <h4>Standar Pelayanan</h4>
-          <ul class="footer-links">
-            <li><a href="layanan.html">Standar Pelayanan &amp; SOP</a></li>
-            <li><a href="layanan.html#srv_oss_industri">Verifikasi Perizinan OSS Industri</a></li>
-            <li><a href="layanan.html#srv_oss_perdagangan">Fasilitasi Perizinan OSS Perdagangan</a></li>
-            <li><a href="layanan.html#srv_pupuk_subsidi">Keterangan Distributor Pupuk</a></li>
-            <li><a href="layanan.html#srv_tera">Pelayanan Tera &amp; Tera Ulang UTTP</a></li>
-            <li><a href="index.html#pengaduan">Formulir Pengaduan Online</a></li>
-          </ul>
-        </div>
-
-        <!-- Kolom 3: Transparansi & Dokumen -->
-        <div class="footer-col">
-          <h4>Transparansi &amp; Dokumen</h4>
-          <ul class="footer-links">
-            <li><a href="pasar.html">Direktori Pasar Daerah</a></li>
-            <li><a href="index.html#transparansi-pelayanan">Transparansi Pelayanan Publik</a></li>
-            <li><a href="profil.html">Profil &amp; Organisasi Resmi</a></li>
-            <li><a href="maklumat-pelayanan.html">Maklumat Pelayanan</a></li>
-            <li><a href="ppid.html">Portal PPID Pelaksana</a></li>
-            <li><a href="dokumen.html">Dokumen &amp; Regulasi Daerah</a></li>
-            <li><a href="katalog-ikm.html">Katalog Produk IKM Binaan</a></li>
-          </ul>
-        </div>
-
-        <!-- Kolom 4: Kontak & Jam Layanan Resmi -->
-        <div class="footer-col">
-          <h4>Kontak &amp; Jam Layanan</h4>
-          <div style="font-size: 0.84rem; color: #CBD5E1; line-height: 1.65; display: flex; flex-direction: column; gap: 10px;">
-            
-            <!-- Alamat Google Maps -->
-            <a href="https://maps.google.com/?q=Jalan+Bintang+No.+1+Pinrang+Sulawesi+Selatan" target="_blank" rel="noopener noreferrer" style="color: #CBD5E1; text-decoration: none; display: flex; align-items: flex-start; gap: 10px; transition: color 0.2s ease;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#EA4335" style="flex-shrink: 0; margin-top: 3px;"><path d="M12 0C7.58 0 4 3.58 4 8c0 5.25 7.15 15.35 7.45 15.78.3.42.8.42 1.1 0 .3-.43 7.45-10.53 7.45-15.78 0-4.42-3.58-8-8-8zm0 11.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
-              <span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span>
-            </a>
-
-            <!-- WhatsApp -->
-            <a href="https://wa.me/6282316002226" style="color: #FDE047; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700; transition: opacity 0.2s ease;" target="_blank" rel="noopener noreferrer">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink: 0;"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c4.54 0 8.24 3.7 8.24 8.24 0 2.2-.86 4.27-2.42 5.82a8.19 8.19 0 0 1-5.82 2.42c-1.47 0-2.92-.39-4.19-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.212 8.212 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.64c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.07-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.34-.76-1.84-.2-.49-.4-.42-.56-.43l-.47-.01c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.31 3.8 2.53 1.09 2.53.73 2.99.69.46-.04 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.07-.1-.23-.17-.48-.29z"/></svg>
-              <span>0823 1600 2226</span>
-            </a>
-
-            <!-- Email -->
-            <a href="mailto:dinasperindagem.pinrang@gmail.com" style="color: #93C5FD; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 600; transition: opacity 0.2s ease;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#60A5FA" style="flex-shrink: 0;"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-              <span>dinasperindagem.pinrang@gmail.com</span>
-            </a>
-
-            <!-- Jam Layanan -->
-            <div style="margin-top: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 0.78rem; display: flex; align-items: flex-start; gap: 10px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#FACC15" style="flex-shrink: 0; margin-top: 2px;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-              <div>
-                <strong style="color: #FFFFFF;">Jam Pelayanan Tatap Muka:</strong><br>
-                <span style="color: #CBD5E1;">Senin–Kamis: 08.00–16.00 WITA<br>Jumat: 08.00–16.30 WITA</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-
-      <div class="footer-bottom">
-        <div>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang - <a href="https://www.instagram.com/maroaproject/" target="_blank" rel="noopener noreferrer" style="color: #FACC15; font-weight: 800; text-decoration: none;">MAROA Project</a></div>
-        <div style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 700;">#BanggaMelayaniBangsa</div>
-      </div>
-    </div>
-  </footer>
-
 </body>
 </html>
