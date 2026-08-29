@@ -208,7 +208,8 @@ service cloud.firestore {
     // 4. PENGGUNA & RBAC (Hanya dapat diakses melalui autentikasi resmi)
     match /users/{userId} {
       allow read: if signedIn() && (request.auth.uid == userId || isLpgAdmin());
-      allow create, update: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin();
       allow delete: if false;
     }
   }
