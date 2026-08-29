@@ -715,6 +715,92 @@ window.openAdminAddAgentModal = async function() {
   }
 };
 
+async function commitAdminLedgerEvent(documentId, eventPayload, auditPayload) {
+  if (!auth?.currentUser || !db) throw new Error('Sesi Firebase Admin tidak tersedia.');
+  const eventRef = db.collection('lpg_events').doc(documentId);
+  const auditRef = db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`);
+  const batch = db.batch();
+  batch.set(eventRef, {
+    ...eventPayload,
+    clientEventId: documentId,
+    createdBy: auth.currentUser.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  batch.set(auditRef, {
+    ...auditPayload,
+    entityType: 'LPG_EVENT', entityId: documentId,
+    actorUid: auth.currentUser.uid,
+    actorRole: getCurrentSession()?.role || 'LPG_ADMIN',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await batch.commit();
+}
+
+window.openAdminOpeningBalanceModal = function() {
+  const agents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).filter(agent => agent.status === 'ACTIVE');
+  CustomModal.form({
+    title: 'Bukukan Saldo Awal Agen', icon: '📦', submitText: 'Bukukan Saldo Awal',
+    fields: [
+      { name: 'agentId', label: 'Agen Penyalur', type: 'select', required: true, options: agents.map(agent => ({ value: agent.id, label: `${agent.id} — ${agent.name}` })) },
+      { name: 'quantity', label: 'Jumlah Tabung Isi', type: 'number', required: true, placeholder: 'Contoh: 560' },
+      { name: 'reason', label: 'Dasar / Catatan Saldo Awal', type: 'textarea', required: true, rows: 3, placeholder: 'Nomor berita acara atau hasil rekonsiliasi stok' }
+    ],
+    onSubmit: async values => {
+      const agent = agents.find(item => item.id === values.agentId);
+      const quantity = Number(values.quantity);
+      if (!agent || !Number.isSafeInteger(quantity) || quantity <= 0) {
+        CustomModal.alert({ title: 'Data Tidak Valid', message: 'Pilih agen dan masukkan jumlah bulat lebih dari nol.', icon: '!', type: 'warning' });
+        return;
+      }
+      const eventId = `OPENING-${agent.id}`;
+      try {
+        await commitAdminLedgerEvent(eventId, {
+          agentId: agent.id, type: 'OPENING_BALANCE', quantity, delta: quantity,
+          pangkalanId: null, pangkalanSnapshot: null, effectiveAt: new Date().toISOString(),
+          doNumber: null, vehicleNumber: null, note: values.reason.trim(), correctionOfEventId: null
+        }, {
+          action: 'OPENING_BALANCE_CREATE', agentId: agent.id, before: null,
+          after: { quantity }, reason: values.reason.trim()
+        });
+        CustomModal.alert({ title: 'Saldo Awal Dibukukan', message: `${quantity.toLocaleString('id-ID')} tabung untuk <strong>${agent.name}</strong> tercatat sebagai event immutable.`, icon: '✓', type: 'info' });
+      } catch (error) {
+        const message = error.code === 'permission-denied' || error.code === 'already-exists'
+          ? 'Saldo awal agen ini sudah pernah dibukukan atau Anda tidak memiliki izin.'
+          : (error.message || 'Firestore menolak saldo awal.');
+        CustomModal.alert({ title: 'Gagal Membukukan', message, icon: '!', type: 'error' });
+      }
+    }
+  });
+};
+
+window.adminCorrectLpgEvent = async function(eventId) {
+  const event = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []).find(item => item.id === eventId);
+  if (!event || event.type === 'CORRECTION') return;
+  const reason = await CustomModal.prompt({
+    title: 'Koreksi / Batalkan Transaksi',
+    message: `Event <strong>${eventId}</strong> tidak akan diubah. Sistem akan membuat event koreksi sebesar <strong>${Math.abs(Number(event.delta)).toLocaleString('id-ID')} tabung</strong> dengan arah berlawanan. Masukkan alasan resmi:`,
+    defaultValue: '', inputType: 'text', icon: '↩', confirmText: 'Buat Event Koreksi'
+  });
+  if (!reason?.trim()) return;
+  const quantity = Math.abs(Number(event.delta));
+  const correctionId = `CORRECTION-${eventId}`;
+  try {
+    await commitAdminLedgerEvent(correctionId, {
+      agentId: event.agentId, type: 'CORRECTION', quantity, delta: 0 - Number(event.delta),
+      pangkalanId: null, pangkalanSnapshot: event.pangkalanSnapshot || null,
+      effectiveAt: new Date().toISOString(), doNumber: null, vehicleNumber: null,
+      note: reason.trim(), correctionOfEventId: eventId
+    }, {
+      action: 'LEDGER_CORRECTION_CREATE', agentId: event.agentId,
+      before: { eventId, delta: Number(event.delta) },
+      after: { eventId: correctionId, delta: 0 - Number(event.delta) }, reason: reason.trim()
+    });
+    CustomModal.alert({ title: 'Koreksi Dibukukan', message: 'Event lama tetap utuh dan saldo dikoreksi melalui event baru.', icon: '✓', type: 'info' });
+  } catch (error) {
+    CustomModal.alert({ title: 'Gagal Membuat Koreksi', message: error.code === 'permission-denied' ? 'Transaksi ini sudah dikoreksi atau akses ditolak.' : (error.message || 'Firestore menolak koreksi.'), icon: '!', type: 'error' });
+  }
+};
+
 // 6. TABEL BUKU BESAR LEDGER TRANSAKSI
 function renderAdminLpgLedgerTable() {
   const tbody = document.getElementById('adminLpgLedgerTableBody');
@@ -723,31 +809,34 @@ function renderAdminLpgLedgerTable() {
   const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
 
   if (events.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#94A3B8;">Buku besar ledger transaksi masih kosong.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#94A3B8;">Buku besar ledger transaksi masih kosong.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = events.slice(0, 50).map(e => {
-    const isStockIn = e.type === 'STOCK_IN';
+    const isStockIn = e.type === 'STOCK_IN' || e.type === 'OPENING_BALANCE';
+    const isCorrection = e.type === 'CORRECTION';
     const isRejected = e.status === 'REJECTED';
     const dateFormatted = new Date(e.effectiveAt || e.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const color = isRejected ? '#DC2626' : (isStockIn ? '#059669' : '#1D4ED8');
-    const badgeType = isStockIn ? 'STOK_MASUK' : 'DISTRIBUSI';
-    const targetName = isStockIn ? (e.doNumber ? 'DO: ' + e.doNumber : 'DO Pertamina') : (e.pangkalanSnapshot ? e.pangkalanSnapshot.name : 'Pangkalan');
+    const isPositive = Number(e.delta) > 0;
+    const color = isRejected ? '#DC2626' : (isCorrection ? '#7C3AED' : (isPositive ? '#059669' : '#1D4ED8'));
+    const badgeType = e.type === 'OPENING_BALANCE' ? 'SALDO_AWAL' : (isCorrection ? 'KOREKSI' : (isStockIn ? 'STOK_MASUK' : 'DISTRIBUSI'));
+    const targetName = isCorrection ? `Koreksi: ${e.correctionOfEventId}` : (isStockIn ? (e.doNumber ? 'DO: ' + e.doNumber : 'DO Pertamina') : (e.pangkalanSnapshot ? e.pangkalanSnapshot.name : 'Pangkalan'));
 
     return `
       <tr>
         <td style="font-size: 0.78rem; color: #64748B;">${dateFormatted} WITA</td>
         <td>
-          <span style="background:${isStockIn ? '#ECFDF5' : '#EFF6FF'}; color:${color}; font-weight:800; font-size:0.72rem; padding:3px 6px; border-radius:4px;">${badgeType}</span>
+          <span style="background:${isCorrection ? '#F3E8FF' : (isPositive ? '#ECFDF5' : '#EFF6FF')}; color:${color}; font-weight:800; font-size:0.72rem; padding:3px 6px; border-radius:4px;">${badgeType}</span>
         </td>
         <td style="font-size: 0.82rem; font-weight:700; color: #334155;">${e.agentName || e.agentId}</td>
         <td style="font-size: 0.82rem; font-weight:800; color: #0F172A;">${targetName}</td>
-        <td style="font-weight: 900; font-size: 0.92rem; color: ${color};">${isStockIn ? '+' : '-'}${e.quantity.toLocaleString('id-ID')} Tabung</td>
+        <td style="font-weight: 900; font-size: 0.92rem; color: ${color};">${isPositive ? '+' : '-'}${Number(e.quantity).toLocaleString('id-ID')} Tabung</td>
         <td>
           <span style="font-size:0.72rem; font-weight:800; padding:2px 6px; border-radius:4px; ${isRejected ? 'background:#FEE2E2; color:#DC2626;' : 'background:#ECFDF5; color:#059669;'}">${e.status}</span>
         </td>
         <td style="font-size: 0.76rem; color: #475569;">${e.createdByName || e.createdBy}</td>
+        <td style="text-align:center;">${!isCorrection && !isRejected ? `<button type="button" class="btn-outline" onclick="adminCorrectLpgEvent('${e.id}')" style="padding:4px 8px;font-size:.7rem;color:#7C3AED;border-color:#C4B5FD;">↩ Koreksi</button>` : '-'}</td>
       </tr>
     `;
   }).join('');

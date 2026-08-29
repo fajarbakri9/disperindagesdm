@@ -1003,6 +1003,10 @@
 
         <!-- 3. SUBVIEW: BUKU BESAR LEDGER TRANSAKSI -->
         <div id="subViewLpgLedger" style="display: none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <div style="font-size:.8rem;color:#64748B;">Saldo berasal dari total <code>delta</code>; event lama tidak dapat diedit atau dihapus.</div>
+            <button type="button" class="btn-primary" onclick="openAdminOpeningBalanceModal()" style="padding:8px 14px;font-size:.8rem;background:#059669;">+ Bukukan Saldo Awal</button>
+          </div>
           <div style="overflow-x: auto;">
             <table class="admin-table">
               <thead>
@@ -1014,6 +1018,7 @@
                   <th>Jumlah (Tabung)</th>
                   <th>Status Ledger</th>
                   <th>Petugas / Pelapor</th>
+                  <th style="text-align:center;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="adminLpgLedgerTableBody">
@@ -1569,6 +1574,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_master_admin_v6"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_correction_v7"></script>
 </body>
 </html>

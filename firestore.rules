@@ -174,12 +174,16 @@ service cloud.firestore {
             get(/databases/$(database)/documents/lpg_pangkalan/$(request.resource.data.pangkalanId)).data.status == 'ACTIVE' &&
             get(/databases/$(database)/documents/lpg_pangkalan/$(request.resource.data.pangkalanId)).data.isDeleted == false) ||
           (request.resource.data.type == 'CORRECTION' &&
+            isLpgAdmin() &&
+            eventId == 'CORRECTION-' + request.resource.data.correctionOfEventId &&
             request.resource.data.correctionOfEventId is string &&
             (request.resource.data.delta == request.resource.data.quantity ||
              request.resource.data.delta == (0 - request.resource.data.quantity)) &&
             get(/databases/$(database)/documents/lpg_events/$(request.resource.data.correctionOfEventId)).data.agentId == request.resource.data.agentId) ||
           (request.resource.data.type == 'OPENING_BALANCE' &&
-            isLpgAdmin() && request.resource.data.delta == request.resource.data.quantity)
+            isLpgAdmin() &&
+            eventId == 'OPENING-' + request.resource.data.agentId &&
+            request.resource.data.delta == request.resource.data.quantity)
         );
       allow update, delete: if false;
     }
