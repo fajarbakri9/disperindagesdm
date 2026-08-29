@@ -155,12 +155,17 @@ window.renderAdminLpgPangkalanTable = function() {
         </td>
         <td style="text-align: center;">
           <div style="display: flex; gap: 4px; justify-content: center;">
-            ${isPending ? `
+            ${isDeleted ? `
+              <button onclick="adminRestorePangkalan('${p.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.72rem; background: #0284C7;" title="Pulihkan / Aktifkan Kembali Pangkalan">
+                ♻️ Pulihkan
+              </button>
+            ` : ''}
+            ${isPending && !isDeleted ? `
               <button onclick="adminVerifyPangkalan('${p.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.72rem; background: #059669;" title="Verifikasi Pangkalan">
                 ✓ Verif
               </button>
             ` : ''}
-            ${hasPhuFlag ? `
+            ${hasPhuFlag && !isDeleted ? `
               <button onclick="adminResolvePhuFlag('${p.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.72rem; background: #D97706;" title="Tindak Lanjut Kasus Bungi">
                 ⚖️ Kasus
               </button>
@@ -185,6 +190,52 @@ window.renderAdminLpgPangkalanTable = function() {
       </div>
     `;
   }
+};
+
+// 4. AKSI RESTORE PANGKALAN OLEH DISPERINDAG
+window.adminRestorePangkalan = function(pangkalanId) {
+  const pangkalanList = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
+  const idx = pangkalanList.findIndex(p => p.id === pangkalanId);
+  if (idx === -1) return;
+
+  CustomModal.confirm({
+    title: "Pulihkan Pangkalan?",
+    message: `Pangkalan <strong>${pangkalanList[idx].name}</strong> akan diaktifkan kembali ke status <strong>ACTIVE</strong> dan dapat dipilih kembali dalam distribusi agen.<br><br>Apakah Anda yakin ingin memulihkan pangkalan ini?`,
+    confirmText: "Pulihkan Pangkalan",
+    cancelText: "Batal",
+    type: "info",
+    onConfirm: () => {
+      pangkalanList[idx].status = "ACTIVE";
+      pangkalanList[idx].isDeleted = false;
+      pangkalanList[idx].deletedAt = null;
+      pangkalanList[idx].deleteReason = null;
+      pangkalanList[idx].updatedAt = new Date().toISOString();
+
+      setLpgStore(LPG_STORAGE_KEYS.PANGKALAN, pangkalanList);
+
+      recordLpgAuditLog({
+        action: "PANGKALAN_RESTORE",
+        entityType: "PANGKALAN",
+        entityId: pangkalanId,
+        agentId: pangkalanList[idx].agentId,
+        actorUid: "admin_disperindag",
+        actorRole: "DISPERINDAG_ADMIN",
+        before: { status: "DELETED", isDeleted: true },
+        after: { status: "ACTIVE", isDeleted: false },
+        reason: "Pangkalan dipulihkan kembali oleh Admin Disperindag ESDM Pinrang"
+      });
+
+      CustomModal.alert({
+        title: "Pangkalan Dipulihkan",
+        message: `Pangkalan <strong>${pangkalanList[idx].name}</strong> telah berhasil dipulihkan ke status aktif.`,
+        icon: "♻️",
+        type: "info"
+      });
+
+      refreshAdminLpgStats();
+      renderAdminLpgPangkalanTable();
+    }
+  });
 };
 
 window.adminLpgChangePage = function(newPage) {
@@ -274,7 +325,7 @@ window.adminDetailPangkalan = function(pangkalanId) {
   });
 };
 
-// 5. TABEL SALDO 8 AGEN RESMI
+// 5. TABEL SALDO 8 AGEN RESMI & REKONSILIASI AGEN BARU
 function renderAdminLpgAgentsTable() {
   const tbody = document.getElementById('adminLpgAgentsTableBody');
   if (!tbody) return;
@@ -291,7 +342,6 @@ function renderAdminLpgAgentsTable() {
 
     let inToday = 0;
     let outToday = 0;
-    let lastReportAt = null;
 
     events.forEach(e => {
       if (e.agentId === ag.id && e.status === 'POSTED') {
@@ -299,7 +349,6 @@ function renderAdminLpgAgentsTable() {
         if (eDate === todayStr) {
           if (e.type === 'STOCK_IN') inToday += e.quantity;
           if (e.type === 'DISTRIBUTION') outToday += e.quantity;
-          lastReportAt = e.effectiveAt || e.createdAt;
         }
       }
     });
@@ -325,6 +374,74 @@ function renderAdminLpgAgentsTable() {
     `;
   }).join('');
 }
+
+// 5.1 REGISTRASI AGEN KE-9 / REKONSILIASI AGEN BARU
+window.openAdminAddAgentModal = async function() {
+  const name = await CustomModal.prompt({
+    title: "Registrasi Agen Resmi Baru (Rekonsiliasi Agen ke-9)",
+    message: "Masukkan <strong>Nama Perusahaan PT Agen Penyalur LPG 3 Kg</strong> resmi yang telah terverifikasi oleh Pertamina dan Disperindag Pinrang:",
+    defaultValue: "PT. ",
+    inputType: "text",
+    icon: "🏢",
+    confirmText: "Lanjutkan Registrasi"
+  });
+
+  if (!name || !name.trim() || name.trim() === "PT.") return;
+
+  const agents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []);
+  const newId = `AG-${(agents.length + 1).toString().padStart(3, '0')}`;
+  const nowIso = new Date().toISOString();
+
+  const newAgent = {
+    id: newId,
+    name: name.trim(),
+    normalizedName: name.trim().toUpperCase(),
+    status: "ACTIVE",
+    phone: "0812 4292 1215",
+    address: "Kabupaten Pinrang",
+    initialCylinderQuota: 40000,
+    sourceType: "DISPERINDAG_RECONCILED",
+    sourceDate: nowIso.slice(0, 10),
+    verificationStatus: "VERIFIED",
+    createdAt: nowIso
+  };
+
+  agents.push(newAgent);
+  setLpgStore(LPG_STORAGE_KEYS.AGENTS, agents);
+
+  // Inisialisasi Saldo Awal Agen Baru
+  const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
+  balances[newId] = {
+    agentId: newId,
+    agentName: newAgent.name,
+    filledCylinderBalance: 0,
+    lastPostedEventAt: nowIso,
+    updatedAt: nowIso
+  };
+  setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
+
+  recordLpgAuditLog({
+    action: "AGENT_CREATE",
+    entityType: "AGENT",
+    entityId: newId,
+    agentId: newId,
+    actorUid: "admin_disperindag",
+    actorRole: "DISPERINDAG_ADMIN",
+    before: null,
+    after: newAgent,
+    reason: `Registrasi resmi agen penyalur baru ${newAgent.name} oleh Disperindag ESDM Pinrang`
+  });
+
+  CustomModal.alert({
+    title: "Agen Baru Terdaftar",
+    message: `Agen resmi <strong>${newAgent.name}</strong> dengan Kode <strong>${newId}</strong> berhasil didaftarkan ke dalam sistem pengawasan.`,
+    icon: "✓",
+    type: "info"
+  });
+
+  refreshAdminLpgStats();
+  renderAdminLpgAgentsTable();
+};
 
 // 6. TABEL BUKU BESAR LEDGER TRANSAKSI
 function renderAdminLpgLedgerTable() {
