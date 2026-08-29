@@ -426,7 +426,7 @@ async function authenticateFirebaseUser(email, password) {
     const adminRoles = [
       'SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'SECRETARIAT_ADMIN',
       'TRADE_EDITOR', 'INDUSTRY_ESDM_EDITOR', 'METROLOGY_EDITOR',
-      'DISTRIBUTION_EDITOR', 'LPG_ADMIN'
+      'DISTRIBUTION_EDITOR', 'PUBLIC_RELATIONS_EDITOR', 'LPG_ADMIN'
     ];
     const lpgAgentRoles = ['LPG_AGENT_ADMIN', 'LPG_AGENT_OPERATOR'];
     const sessionUser = {
