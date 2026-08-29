@@ -549,61 +549,159 @@ function renderHomeProductsIKM() {
   `).join('');
 }
 
-// 10. FORMULIR PENGADUAN DENGAN NOMOR TIKET & CONSENT
+// 10. FORMULIR PENGADUAN DENGAN NOMOR TIKET RESMI & MODAL KONFIRMASI
+function handlePublicComplaintSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  
+  const getName = () => document.getElementById('complaintName') || document.getElementById('reportName');
+  const getPhone = () => document.getElementById('complaintPhone') || document.getElementById('reportPhone');
+  const getCat = () => document.getElementById('complaintCategory') || document.getElementById('reportCategory');
+  const getLoc = () => document.getElementById('complaintLocation') || document.getElementById('reportLocation');
+  const getTitle = () => document.getElementById('complaintTitle') || { value: '' };
+  const getDetail = () => document.getElementById('complaintDetail') || document.getElementById('reportMsg');
+  const getConsent = () => document.getElementById('complaintConsent');
+
+  const consentEl = getConsent();
+  if (consentEl && !consentEl.checked) {
+    CustomModal.alert({
+      title: "Persetujuan Diperlukan",
+      message: "Mohon centang persetujuan penggunaan data pribadi untuk keperluan verifikasi dan tindak lanjut laporan Anda.",
+      icon: "⚠️",
+      type: "warning"
+    });
+    return false;
+  }
+
+  const nameEl = getName();
+  const phoneEl = getPhone();
+  const catEl = getCat();
+  const locEl = getLoc();
+  const titleEl = getTitle();
+  const detailEl = getDetail();
+
+  const nama = nameEl ? nameEl.value.trim() : 'Masyarakat Pelapor';
+  const kontak = phoneEl ? phoneEl.value.trim() : '-';
+  const kategori = catEl ? catEl.value : 'Pengaduan Umum';
+  const lokasi = locEl ? locEl.value.trim() : 'Kabupaten Pinrang';
+  const judul = titleEl ? titleEl.value.trim() : '';
+  const detailText = detailEl ? detailEl.value.trim() : '';
+  const pesan = judul ? (judul + ' - ' + detailText) : detailText;
+
+  if (!nama || !kontak || !pesan) {
+    CustomModal.alert({
+      title: "Formulir Belum Lengkap",
+      message: "Mohon lengkapi Nama, Nomor Kontak WhatsApp/HP, dan Isi Uraian Laporan Anda sebelum mengirimkan aduan.",
+      icon: "⚠️",
+      type: "warning"
+    });
+    return false;
+  }
+
+  const randomTicketNum = Math.floor(100000 + Math.random() * 900000);
+  const ticketNumber = `DPE-2026-${randomTicketNum}`;
+
+  let assignedUnit = "Bidang Pengembangan Perdagangan";
+  const catLower = kategori.toLowerCase();
+  if (catLower.includes('lpg') || catLower.includes('esdm') || catLower.includes('energi')) {
+    assignedUnit = "Bidang Perindustrian, ESDM";
+  } else if (catLower.includes('tera') || catLower.includes('metrologi') || catLower.includes('timbangan')) {
+    assignedUnit = "Bidang Kemetrologian";
+  } else if (catLower.includes('ikm') || catLower.includes('halal') || catLower.includes('industri')) {
+    assignedUnit = "Bidang Perindustrian, ESDM";
+  }
+
+  const newReport = {
+    id: "rep_" + Date.now(),
+    ticket_number: ticketNumber,
+    submitted_at: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ' • ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA',
+    nama: nama,
+    kontak: kontak,
+    kategori: kategori,
+    lokasi: lokasi,
+    judul: judul || kategori,
+    pesan: pesan,
+    assigned_unit: assignedUnit,
+    status: "Diterima & Sedang Diverifikasi",
+    resolution: "Laporan masuk dalam antrean verifikasi dan penugasan tim pengawas dinas."
+  };
+
+  const reports = getStorage('disperindag_reports', typeof DEFAULT_REPORTS !== 'undefined' ? DEFAULT_REPORTS : []);
+  reports.unshift(newReport);
+  setStorage('disperindag_reports', reports);
+
+  const formEl = document.getElementById('publicComplaintForm');
+  if (formEl) formEl.reset();
+
+  CustomModal.init();
+  const backdrop = CustomModal.backdropEl;
+  backdrop.innerHTML = `
+    <div class="custom-modal-card" style="max-width: 580px; border-top: 4px solid #10B981; box-shadow: var(--shadow-xl); text-align: left;">
+      <div class="custom-modal-header" style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%); color: #FFFFFF; padding: 20px 24px; border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 14px;">
+        <div style="background: rgba(255,255,255,0.2); font-size: 1.8rem; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">📨</div>
+        <div>
+          <h3 style="color: #FFFFFF; font-size: 1.2rem; font-weight: 800; margin: 0;">Laporan Pengaduan Berhasil Terkirim</h3>
+          <p style="color: #A7F3D0; font-size: 0.78rem; margin: 3px 0 0;">Nomor Tiket Resmi Pelayanan Disperindag ESDM Pinrang</p>
+        </div>
+      </div>
+      
+      <div class="custom-modal-body" style="padding: 24px;">
+        <div style="background: #ECFDF5; border: 2px dashed #059669; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 20px;">
+          <span style="font-size: 0.76rem; font-weight: 800; color: #047857; letter-spacing: 0.05em; text-transform: uppercase;">Kode Tiket Registrasi Aduan</span>
+          <div style="font-size: 1.6rem; font-weight: 900; color: #065F46; letter-spacing: 1px; margin: 6px 0;" id="modalTicketCode">${ticketNumber}</div>
+          <p style="font-size: 0.78rem; color: #047857; margin: 0;">Simpan kode tiket ini untuk memantau status tindak lanjut aduan Anda.</p>
+        </div>
+
+        <div style="background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; font-size: 0.84rem; line-height: 1.6; margin-bottom: 18px;">
+          <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px; margin-bottom: 6px;">
+            <strong style="color: #64748B;">Pelapor:</strong>
+            <span style="color: #0F172A; font-weight: 700;">${nama} (${kontak})</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px; margin-bottom: 6px;">
+            <strong style="color: #64748B;">Kategori:</strong>
+            <span style="color: #1E40AF; font-weight: 700;">${kategori}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px; margin-bottom: 6px;">
+            <strong style="color: #64748B;">Lokasi:</strong>
+            <span style="color: #0F172A;">${lokasi}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px;">
+            <strong style="color: #64748B;">Unit Teknis:</strong>
+            <span style="color: #059669; font-weight: 700;">${assignedUnit}</span>
+          </div>
+        </div>
+
+        <div style="font-size: 0.8rem; color: #475569; line-height: 1.5; background: #FFFBEB; border: 1px solid #FDE68A; padding: 10px 14px; border-radius: 8px;">
+          ⏱️ <strong>Estimasi Tindak Lanjut:</strong> Petugas pengawas teknis akan melakukan telaah administrasi &amp; verifikasi lapangan dalam waktu maksimal 1x24 jam kerja.
+        </div>
+      </div>
+
+      <div class="custom-modal-footer" style="padding: 14px 24px; background: #F8FAFC; border-top: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn-outline" onclick="navigator.clipboard.writeText('${ticketNumber}'); CustomModal.toast('Nomor tiket berhasil disalin ke clipboard!', 'success');" style="font-size: 0.82rem; padding: 8px 16px; border-radius: 6px; background: #FFFFFF; font-weight: 700; cursor: pointer;">
+          📋 Salin Tiket
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-primary" onclick="CustomModal.backdropEl.classList.remove('active'); openCheckTicketModal('${ticketNumber}');" style="font-size: 0.82rem; padding: 8px 16px; border-radius: 6px; background: #1D4ED8; font-weight: 700; cursor: pointer;">
+            🔍 Lacak Tiket
+          </button>
+          <button type="button" class="btn-modal-action btn-modal-primary" onclick="CustomModal.backdropEl.classList.remove('active');" style="font-size: 0.82rem; padding: 8px 20px; border-radius: 6px; cursor: pointer;">
+            Selesai
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  backdrop.classList.add('active');
+
+  return false;
+}
+
 function initComplaintForm() {
   const form = document.getElementById('publicComplaintForm');
   if (!form) return;
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const consent = document.getElementById('complaintConsent');
-    if (consent && !consent.checked) {
-      CustomModal.alert({
-        title: "Persetujuan Diperlukan",
-        message: "Mohon centang persetujuan penggunaan data pribadi untuk keperluan verifikasi dan tindak lanjut laporan Anda.",
-        icon: "⚠️",
-        type: "warning"
-      });
-      return;
-    }
-
-    const nama = document.getElementById('reportName').value.trim();
-    const kontak = document.getElementById('reportPhone').value.trim();
-    const kategori = document.getElementById('reportCategory').value;
-    const lokasi = document.getElementById('reportLocation').value.trim();
-    const pesan = document.getElementById('reportMsg').value.trim();
-
-    const randomTicketNum = Math.floor(100000 + Math.random() * 900000);
-    const ticketNumber = `DPE-2026-${randomTicketNum}`;
-
-    const newReport = {
-      id: "rep_" + Date.now(),
-      ticket_number: ticketNumber,
-      submitted_at: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ' • ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA',
-      nama,
-      kontak,
-      kategori,
-      lokasi,
-      pesan,
-      assigned_unit: kategori.includes('LPG') ? 'Bidang Perindustrian, ESDM' : kategori.includes('Tera') ? 'Bidang Kemetrologian' : 'Bidang Pengembangan Perdagangan',
-      status: "Diterima & Sedang Diverifikasi",
-      resolution: "Laporan masuk dalam antrean penugasan tim pengawas lapangan."
-    };
-
-    const reports = getStorage('disperindag_reports', DEFAULT_REPORTS);
-    reports.unshift(newReport);
-    setStorage('disperindag_reports', reports);
-
-    form.reset();
-
-    CustomModal.alert({
-      title: "Laporan Pengaduan Terkirim",
-      message: `Terima kasih <strong>${nama}</strong>. Laporan Anda berhasil kami terima dengan <strong>Nomor Tiket: ${ticketNumber}</strong>.<br><br>Petugas kami akan segera melakukan verifikasi lapangan dan menghubungi Anda via WhatsApp/Telepon.`,
-      icon: "📨",
-      type: "info"
-    });
-  });
+  form.addEventListener('submit', handlePublicComplaintSubmit);
 }
+
+window.handlePublicComplaintSubmit = handlePublicComplaintSubmit;
 
 // 11. TAB SYSTEM UNTUK PORTAL & APLIKASI
 function initTabsSystem() {
