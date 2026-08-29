@@ -81,12 +81,29 @@ function deduplicateNewsList(list) {
 }
 window.deduplicateNewsList = deduplicateNewsList;
 
-// Universal Helper Merge Data Berita (Mencegah Duplikasi & Kehilangan Berita Buatan Admin)
+// Universal Helper Merge Data Berita (Mencegah Duplikasi & Menghormati Penghapusan Berita Admin)
 function mergeNewsWithDefaults(incomingList) {
-  const baseList = JSON.parse(JSON.stringify(typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []));
-  if (!Array.isArray(incomingList) || incomingList.length === 0) return deduplicateNewsList(baseList);
+  // 1. Ambil daftar ID berita yang pernah dihapus oleh Admin (Tombstone Tracking)
+  let deletedIds = [];
+  try {
+    const rawDeleted = localStorage.getItem('disperindag_deleted_news_ids');
+    if (rawDeleted) deletedIds = JSON.parse(rawDeleted);
+  } catch(e) {}
+  const deletedSet = new Set(Array.isArray(deletedIds) ? deletedIds : []);
 
-  const cleanIncoming = deduplicateNewsList(incomingList);
+  // 2. Filter base default news agar tidak memunculkan kembali berita yang sengaja dihapus admin
+  const rawBaseList = JSON.parse(JSON.stringify(typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []));
+  const baseList = rawBaseList.filter(item => !deletedSet.has(item.id) && !deletedSet.has(item.slug));
+
+  if (!Array.isArray(incomingList) || incomingList.length === 0) {
+    return deduplicateNewsList(baseList);
+  }
+
+  // 3. Filter incoming list dari ID terhapus
+  const cleanIncoming = deduplicateNewsList(incomingList).filter(item => 
+    item && !deletedSet.has(item.id) && !deletedSet.has(item.slug)
+  );
+
   const baseMap = new Map();
   baseList.forEach(item => baseMap.set(item.id, item));
 

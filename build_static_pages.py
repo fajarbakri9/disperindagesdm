@@ -302,7 +302,7 @@ def generate_article_html(art, canonical_url):
   <!-- OPEN GRAPH & MEDSOS SHARING RESMI (STATIC PRERENDERED) -->
   <meta property="fb:app_id" content="966242223397117">
   <meta property="og:type" content="article">
-  <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:site_name" content="Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang">
   <meta property="og:title" content="{art['title']}">
   <meta property="og:description" content="{art['excerpt']}">
   <meta property="og:image" content="{img_abs}">

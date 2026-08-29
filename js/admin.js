@@ -368,11 +368,26 @@ window.deleteAdminNews = async function(id) {
 
   if (!confirmed) return;
 
-  // 1. Hapus dari LocalStorage
-  const updatedList = allNews.filter(n => n.id !== id);
+  // 1. Simpan ke daftar ID Terhapus (Tombstone Tracking)
+  let deletedIds = [];
+  try {
+    const rawDeleted = localStorage.getItem('disperindag_deleted_news_ids');
+    if (rawDeleted) deletedIds = JSON.parse(rawDeleted);
+  } catch(e) {}
+  if (!deletedIds.includes(id)) {
+    deletedIds.push(id);
+    localStorage.setItem('disperindag_deleted_news_ids', JSON.stringify(deletedIds));
+  }
+  if (targetNews.slug && !deletedIds.includes(targetNews.slug)) {
+    deletedIds.push(targetNews.slug);
+    localStorage.setItem('disperindag_deleted_news_ids', JSON.stringify(deletedIds));
+  }
+
+  // 2. Hapus dari LocalStorage Berita
+  const updatedList = allNews.filter(n => n.id !== id && n.slug !== targetNews.slug);
   setStorage('disperindag_news', updatedList);
 
-  // 2. Hapus dari Banner jika artikel ini adalah headline
+  // 3. Hapus dari Banner jika artikel ini adalah headline
   let banners = getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []);
   const bannerIdx = banners.findIndex(b => b.target_news_id === id || b.title === targetNews.title);
   if (bannerIdx !== -1) {
@@ -386,16 +401,18 @@ window.deleteAdminNews = async function(id) {
     }
   }
 
-  // 3. Hapus dari Cloud Firestore
+  // 4. Hapus Dokumen dan Sinkronkan Deleted Ids ke Cloud Firestore
   if (typeof db !== 'undefined' && db !== null) {
     try {
       db.collection('news').doc(id).delete()
         .then(() => console.log("Firestore News Deleted:", id))
         .catch(err => console.warn("Firestore Delete Warning:", err));
+      
+      db.collection('settings').doc('deleted_news').set({ list: deletedIds }, { merge: true }).catch(() => {});
     } catch(e) {}
   }
 
-  // 4. Log Aktivitas & Render Ulang
+  // 5. Log Aktivitas & Render Ulang
   logAdminActivity('Berita Kedinasan', `Menghapus rilis berita: ${targetNews.title}`);
   renderAdminNews();
   CustomModal.toast(`Berita "${targetNews.title.slice(0, 35)}..." berhasil dihapus secara permanen.`, "success");
