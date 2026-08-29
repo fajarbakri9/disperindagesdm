@@ -195,7 +195,7 @@
 
           <div>
             <label class="form-label" style="font-size: 0.8rem;">Kata Sandi Baru</label>
-            <input type="password" id="inputNewPassword" required class="form-input" placeholder="Minimal 6 karakter...">
+            <input type="password" id="inputNewPassword" required minlength="12" class="form-input" placeholder="Minimal 12 karakter...">
           </div>
 
           <div>
@@ -221,16 +221,23 @@
     <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260830_firebase_auth_v1"></script>
   <script src="js/data.js?v=20260829_sync15_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
-  <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
+  <script src="js/auth.js?v=20260830_firebase_password_v1"></script>
   <script>
     let activeSession = null;
     let newAvatarData = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      activeSession = requireAuth(['admin', 'petugas']);
-      if (!activeSession) return;
+      activeSession = getCurrentSession();
+      if (!activeSession) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
 
       loadProfileFields();
       initAvatarUpload();
@@ -267,16 +274,19 @@
       });
     }
 
-    document.getElementById('formEditProfile')?.addEventListener('submit', (e) => {
+    document.getElementById('formEditProfile')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const phone = document.getElementById('inputPhone').value.trim();
       const bio = document.getElementById('inputBio').value.trim();
 
-      const res = updateSelfProfile({
+      const updatePayload = {
         phone,
         bio,
         avatar: newAvatarData || activeSession.avatar
-      });
+      };
+      const res = activeSession.authProvider === 'FIREBASE'
+        ? await updateFirebaseSelfProfile(updatePayload)
+        : updateSelfProfile(updatePayload);
 
       if (res.success) {
         CustomModal.alert({
@@ -288,7 +298,7 @@
       }
     });
 
-    document.getElementById('formChangePassword')?.addEventListener('submit', (e) => {
+    document.getElementById('formChangePassword')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const oldP = document.getElementById('inputOldPassword').value;
       const newP = document.getElementById('inputNewPassword').value;
@@ -299,15 +309,14 @@
         return;
       }
 
-      if (newP.length < 6) {
-        CustomModal.alert({ title: "Sandi Terlalu Pendek", message: "Kata sandi minimal 6 karakter.", icon: "⚠️", type: "warning" });
+      if (newP.length < 12) {
+        CustomModal.alert({ title: "Sandi Terlalu Pendek", message: "Kata sandi minimal 12 karakter.", icon: "⚠️", type: "warning" });
         return;
       }
 
-      const res = updateSelfProfile({
-        currentPassword: oldP,
-        newPassword: newP
-      });
+      const res = activeSession.authProvider === 'FIREBASE'
+        ? await updateFirebasePassword(oldP, newP)
+        : updateSelfProfile({ currentPassword: oldP, newPassword: newP });
 
       if (res.success) {
         CustomModal.alert({

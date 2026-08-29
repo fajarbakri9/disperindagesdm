@@ -564,3 +564,47 @@ function updateSelfProfile(updateData) {
 
   return { success: true, message: "Profil dan kredensial Anda berhasil diperbarui." };
 }
+
+async function updateFirebaseSelfProfile(updateData) {
+  const session = getCurrentSession();
+  if (!session || session.authProvider !== 'FIREBASE' || !session.uid || typeof db === 'undefined' || !db) {
+    return { success: false, message: 'Sesi Firebase tidak tersedia.' };
+  }
+  try {
+    const safeUpdate = {
+      phone: (updateData.phone || '').trim(),
+      bio: (updateData.bio || '').trim(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('users').doc(session.uid).update(safeUpdate);
+    session.phone = safeUpdate.phone;
+    session.bio = safeUpdate.bio;
+    if (updateData.avatar) session.avatar = updateData.avatar;
+    localStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(session));
+    return { success: true, message: 'Profil Firebase berhasil diperbarui.' };
+  } catch (error) {
+    return { success: false, message: 'Profil Firebase gagal diperbarui.' };
+  }
+}
+
+async function updateFirebasePassword(currentPassword, newPassword) {
+  const session = getCurrentSession();
+  const user = typeof auth !== 'undefined' && auth ? auth.currentUser : null;
+  if (!session || session.authProvider !== 'FIREBASE' || !user || !user.email) {
+    return { success: false, message: 'Sesi Firebase tidak tersedia. Silakan login ulang.' };
+  }
+  try {
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+    await user.reauthenticateWithCredential(credential);
+    await user.updatePassword(newPassword);
+    return { success: true, message: 'Kata sandi Firebase berhasil diperbarui.' };
+  } catch (error) {
+    const messages = {
+      'auth/invalid-credential': 'Kata sandi lama tidak sesuai.',
+      'auth/wrong-password': 'Kata sandi lama tidak sesuai.',
+      'auth/weak-password': 'Kata sandi baru belum memenuhi persyaratan keamanan.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan. Silakan coba beberapa saat lagi.'
+    };
+    return { success: false, message: messages[error.code] || 'Kata sandi Firebase gagal diperbarui.' };
+  }
+}
