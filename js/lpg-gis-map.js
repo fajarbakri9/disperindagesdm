@@ -47,9 +47,28 @@ function escapeLpgMapText(value) {
     .replace(/'/g, '&#039;');
 }
 
+function ensureLpgMapStyles() {
+  if (document.getElementById('lpgMapRuntimeStyles')) return;
+  const style = document.createElement('style');
+  style.id = 'lpgMapRuntimeStyles';
+  style.textContent = `
+    .custom-gis-agent-icon,.custom-gis-district-icon,.custom-gis-pkl-icon{background:transparent!important;border:0!important}
+    .lpg-agent-pin{position:relative;width:34px;height:42px;filter:drop-shadow(0 5px 5px rgba(15,23,42,.32))}
+    .lpg-agent-pin__head{display:grid;place-items:center;width:34px;height:34px;border:3px solid #FACC15;border-radius:50% 50% 50% 8px;background:#0F2C59;color:#FFF;font:900 12px/1 sans-serif;transform:rotate(-45deg)}
+    .lpg-agent-pin__head span{transform:rotate(45deg)}
+    .lpg-district-pin{display:grid;place-items:center;width:34px;height:34px;border:3px solid #FFF;border-radius:50%;background:#334155;color:#FFF;font:900 11px/1 sans-serif;box-shadow:0 4px 10px rgba(15,23,42,.32)}
+    .lpg-pangkalan-pin{width:17px;height:17px;border:3px solid #FFF;border-radius:50%;background:#059669;box-shadow:0 3px 7px rgba(5,150,105,.45)}
+    .lpg-map-tooltip{padding:6px 9px!important;border:0!important;border-radius:7px!important;background:#0F172A!important;color:#FFF!important;font:800 11px/1.25 sans-serif!important;box-shadow:0 4px 12px rgba(15,23,42,.28)!important}
+    .lpg-map-tooltip:before{display:none!important}
+    .leaflet-popup-content-wrapper{border-radius:11px!important;box-shadow:0 12px 30px rgba(15,23,42,.2)!important}
+  `;
+  document.head.appendChild(style);
+}
+
 window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
   const container = document.getElementById(containerId);
   if (!container || typeof L === 'undefined') return;
+  ensureLpgMapStyles();
 
   if (lpgGisMapInstance) {
     lpgGisMapInstance.remove();
@@ -77,7 +96,7 @@ window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
 
   populateLpgGisFilters();
   renderLpgGisMarkers();
-  setTimeout(() => lpgGisMapInstance?.invalidateSize({ pan: false }), 80);
+  setTimeout(() => { lpgGisMapInstance?.invalidateSize({ pan: false }); homeLpgGisMap(); }, 100);
 };
 
 function getLpgMapData() {
@@ -121,6 +140,7 @@ window.renderLpgGisMarkers = function() {
   const visibleBounds = [];
   let gpsCount = 0;
   let awaitingGpsCount = 0;
+  let visibleAgentCount = 0;
   const matchesFilters = p => {
     const isGps = p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED';
     const haystack = [p.id,p.name,p.address,p.desaKelurahan,p.kecamatan,p.agentName,p.agentId].join(' ').toLocaleLowerCase('id');
@@ -141,12 +161,14 @@ window.renderLpgGisMarkers = function() {
 
     const agentIcon = L.divIcon({
       className: 'custom-gis-agent-icon',
-      html: `<div style="background:#1E3A8A;color:#FFF;border:2px solid #FACC15;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;font-size:.72rem;font-weight:900;box-shadow:0 3px 8px rgba(0,0,0,.35);">AGEN</div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      html: '<div class="lpg-agent-pin"><div class="lpg-agent-pin__head"><span>A</span></div></div>',
+      iconSize: [34, 42],
+      iconAnchor: [17, 40],
+      popupAnchor: [0, -36]
     });
 
     const marker = L.marker([ag.lat, ag.lng], { icon: agentIcon })
+      .bindTooltip(`${escapeLpgMapText(ag.name)} • ${agId}`, { className: 'lpg-map-tooltip', direction: 'top', offset: [0, -32] })
       .bindPopup(`
         <div style="font-size:0.84rem; line-height:1.5;">
           <strong style="color:#1E3A8A; font-size:0.92rem;">${escapeLpgMapText(ag.name)}</strong><br>
@@ -159,6 +181,7 @@ window.renderLpgGisMarkers = function() {
       `);
 
     lpgGisLayers.agents.addLayer(marker);
+    visibleAgentCount += 1;
     visibleBounds.push([ag.lat, ag.lng]);
   });
 
@@ -173,14 +196,14 @@ window.renderLpgGisMarkers = function() {
 
     const districtIcon = L.divIcon({
       className: 'custom-gis-district-icon',
-      html: `<div style="background:#475569;color:#FFF;border:2px solid #FFF;border-radius:20px;padding:4px 10px;font-weight:900;font-size:.75rem;white-space:nowrap;box-shadow:0 3px 8px rgba(0,0,0,.25);display:flex;align-items:center;gap:4px;">
-        <span>${kecName}</span>
-        <span style="background:#FACC15; color:#0F172A; padding:1px 6px; border-radius:10px; font-size:0.7rem;">${count}</span>
-      </div>`,
-      iconAnchor: [40, 15]
+      html: `<div class="lpg-district-pin">${count}</div>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+      popupAnchor: [0, -14]
     });
 
     const marker = L.marker([kecMeta.lat, kecMeta.lng], { icon: districtIcon })
+      .bindTooltip(`Kecamatan ${escapeLpgMapText(kecName)} • ${count} pangkalan`, { className: 'lpg-map-tooltip', direction: 'top', offset: [0, -14] })
       .bindPopup(`
         <div style="font-size:0.84rem; line-height:1.5;">
           <strong style="color:#0F172A; font-size:0.95rem;">Kecamatan ${kecName}</strong><br>
@@ -226,12 +249,13 @@ window.renderLpgGisMarkers = function() {
 
       const pklIcon = L.divIcon({
         className: 'custom-gis-pkl-icon',
-        html: `<div style="background:${markerColor};border:2px solid #FFF;border-radius:50%;width:16px;height:16px;box-shadow:0 2px 5px rgba(0,0,0,.32);"></div>`,
+        html: '<div class="lpg-pangkalan-pin"></div>',
         iconSize: [18, 18],
         iconAnchor: [9, 9]
       });
 
       const pMarker = L.marker([latitude, longitude], { icon: pklIcon })
+        .bindTooltip(escapeLpgMapText(p.name), { className: 'lpg-map-tooltip', direction: 'top', offset: [0, -8] })
         .bindPopup(`
           <div style="font-size:0.82rem; line-height:1.45;">
             <strong style="color:#0F2C59;">${escapeLpgMapText(p.name)}</strong><br>
@@ -249,7 +273,7 @@ window.renderLpgGisMarkers = function() {
   });
 
   const summary = document.getElementById('gisMapResultSummary');
-  if (summary) summary.textContent = `${matchedPangkalan.length} pangkalan sesuai filter • ${gpsCount} marker GPS • ${awaitingGpsCount} menunggu verifikasi lokasi`;
+  if (summary) summary.textContent = `${matchedPangkalan.length} pangkalan • ${visibleAgentCount} agen GPS • ${gpsCount} pangkalan GPS • ${awaitingGpsCount} menunggu validasi`;
   if (!filterKec && !filterAgent && !search && !filterStatus && visibleBounds.length) lpgGisHomeBounds = L.latLngBounds(visibleBounds);
 };
 

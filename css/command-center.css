@@ -958,18 +958,20 @@ td.cc-empty-state {
 }
 
 /* PETA DISTRIBUSI LPG */
-.cc-map-layout { width:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; border:2px solid var(--border-card); border-radius:12px; background:var(--bg-card); }
+.cc-map-layout { flex:1; width:100%; height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; border:1px solid rgba(56,189,248,.5); border-radius:14px; background:var(--bg-card); box-shadow:0 14px 35px rgba(0,0,0,.24); }
 .cc-map-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:11px 15px; border-bottom:1px solid var(--border-card); }
 .cc-map-heading strong { display:block; color:var(--text-main); font-size:1rem; }
 .cc-map-heading span { display:block; margin-top:3px; color:var(--text-muted); font-size:.7rem; }
-.cc-map-quality { color:var(--accent-cyan); font-size:.72rem; font-weight:900; white-space:nowrap; }
+.cc-map-quality { padding:6px 10px; border:1px solid rgba(56,189,248,.3); border-radius:999px; background:rgba(56,189,248,.08); color:var(--accent-cyan); font-size:.69rem; font-weight:900; white-space:nowrap; }
 .cc-map-toolbar { display:grid; grid-template-columns:minmax(220px,1.2fr) repeat(3,minmax(150px,.7fr)) 42px 42px; gap:8px; padding:9px 12px; background:var(--bg-card-inner); }
 .cc-map-toolbar input,.cc-map-toolbar select,.cc-map-toolbar button { min-width:0; height:36px; padding:0 10px; border:1px solid var(--border-card); border-radius:7px; background:var(--bg-card); color:var(--text-main); font:700 .72rem "Plus Jakarta Sans",sans-serif; }
 .cc-map-toolbar button { padding:0; cursor:pointer; font-size:1rem; }
-.cc-map-stage { flex:1; min-height:0; padding:8px; }
-#adminLpgGisMapContainer { width:100%; height:100%; min-height:390px; border-radius:8px; background:#CBD5E1; }
+.cc-map-stage { position:relative; flex:1; min-height:0; padding:8px; }
+#adminLpgGisMapContainer { position:absolute; inset:8px; width:auto; height:auto; min-height:0; border-radius:9px; background:#CBD5E1; }
 #adminLpgGisMapContainer:fullscreen { width:100vw;height:100vh;min-height:100vh;border-radius:0; }
 .cc-map-legend { display:flex; align-items:center; gap:16px; padding:7px 13px; border-top:1px solid var(--border-card); color:var(--text-sub); font-size:.68rem; }
 .cc-map-legend i { display:inline-block; width:9px; height:9px; margin-right:5px; border-radius:50%; }
 .cc-map-legend small { margin-left:auto; color:var(--text-muted); }
+.cc-map-layout .leaflet-control-zoom a { background:#0F2C59;color:#FFF;border-color:#1E4C80; }
+.cc-map-layout .leaflet-control-attribution { background:rgba(255,255,255,.88);font-size:9px; }
 @media(max-width:900px){.cc-map-toolbar{grid-template-columns:repeat(2,minmax(0,1fr));}.cc-map-heading{align-items:flex-start;flex-direction:column}.cc-map-quality{white-space:normal}.cc-map-legend{flex-wrap:wrap}.cc-map-legend small{width:100%;margin-left:0}}

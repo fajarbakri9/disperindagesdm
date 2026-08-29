@@ -11,6 +11,8 @@
       "firebase.json",
       "firestore.rules",
       ".firebaserc",
+      ".git/**",
+      ".firebase/**",
       "engine/**",
       "**/.*",
       "**/node_modules/**",
