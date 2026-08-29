@@ -725,24 +725,106 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
 .news-status-pill {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 .status-published {
   background: #DCFCE7;
   color: #166534;
+  border: 1px solid #86EFAC;
 }
 
 .status-draft {
   background: #FEF3C7;
   color: #92400E;
+  border: 1px solid #FDE68A;
 }
+
+/* Action Group Horizontal Buttons (All Tables) */
+.btn-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.btn-action-item {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1.5px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn-action-item:hover {
+  transform: translateY(-1px);
+}
+
+.btn-action-edit {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border-color: #BFDBFE;
+}
+
+.btn-action-edit:hover {
+  background: #1E40AF;
+  color: #FFFFFF;
+  border-color: #1E40AF;
+}
+
+.btn-action-view {
+  background: #F8FAFC;
+  color: #334155;
+  border-color: #CBD5E1;
+}
+
+.btn-action-view:hover {
+  background: #0F2C59;
+  color: #FFFFFF;
+  border-color: #0F2C59;
+}
+
+.btn-action-delete {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+.btn-action-delete:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: #DC2626;
+}
+
+.btn-action-followup {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #A7F3D0;
+  font-weight: 800;
+}
+
+.btn-action-followup:hover {
+  background: #059669;
+  color: #FFFFFF;
+  border-color: #059669;
+}
+
 
 

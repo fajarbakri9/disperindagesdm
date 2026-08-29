@@ -80,10 +80,17 @@ window.switchAdminTab = function(tabId) {
 
 // 1. STATISTIK DASHBOARD
 function renderDashboardStats() {
-  const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
-  const news = getStorage('disperindag_news', DEFAULT_NEWS);
-  const docs = getStorage('disperindag_documents', DEFAULT_DOCUMENTS);
-  const ikm = getStorage('disperindag_products_ikm', DEFAULT_PRODUCTS_IKM);
+  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const prices = Array.isArray(rawPrices) ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  
+  const rawNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const news = Array.isArray(rawNews) ? rawNews : [];
+
+  const rawDocs = getStorage('disperindag_documents', typeof DEFAULT_DOCUMENTS !== 'undefined' ? DEFAULT_DOCUMENTS : []);
+  const docs = Array.isArray(rawDocs) ? rawDocs : [];
+
+  const rawIkm = getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []);
+  const ikm = Array.isArray(rawIkm) ? rawIkm : [];
 
   if (document.getElementById('statPriceCount')) document.getElementById('statPriceCount').textContent = prices.length;
   if (document.getElementById('statNewsCount')) document.getElementById('statNewsCount').textContent = news.length;
@@ -96,21 +103,23 @@ function renderAdminPrices() {
   const tbody = document.getElementById('adminPriceTableBody');
   if (!tbody) return;
 
-  const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
+  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const prices = Array.isArray(rawPrices) ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+
   tbody.innerHTML = prices.map(item => `
     <tr>
       <td><strong>${item.commodity_name}</strong><br><small style="color: #64748B;">Satuan: 1 ${item.unit}</small></td>
       <td>${item.market_name}</td>
-      <td><strong style="color: #1E40AF; font-size: 1rem;">Rp ${item.price.toLocaleString('id-ID')}</strong></td>
+      <td><strong style="color: #1E40AF; font-size: 1rem;">Rp ${Number(item.price || 0).toLocaleString('id-ID')}</strong></td>
       <td>
         <span class="trend-badge ${item.trend}">
-          ${item.trend === 'up' ? `▲ +${item.diff}` : item.trend === 'down' ? `▼ ${item.diff}` : '— Tetap'}
+          ${item.trend === 'up' ? `▲ +${item.diff || 0}` : item.trend === 'down' ? `▼ ${item.diff || 0}` : '— Tetap'}
         </span>
       </td>
-      <td>${item.observed_date}<br><small style="color: #94A3B8;">${item.observed_time}</small></td>
-      <td><span class="verified-badge">✓ ${item.verification_status}</span></td>
-      <td>
-        <button onclick="editPriceModal('${item.id}')" class="btn-primary" style="padding: 5px 12px; font-size: 0.78rem;">
+      <td>${item.observed_date || 'Hari Ini'}<br><small style="color: #94A3B8;">${item.observed_time || '09:00 WITA'}</small></td>
+      <td><span class="verified-badge">✓ ${item.verification_status || 'Terverifikasi'}</span></td>
+      <td style="text-align: center;">
+        <button onclick="editPriceModal('${item.id}')" class="btn-action-item btn-action-edit" style="font-size: 0.78rem;">
           ✏️ Edit Harga
         </button>
       </td>
@@ -118,41 +127,48 @@ function renderAdminPrices() {
   `).join('');
 }
 
-window.editPriceModal = function(priceId) {
-  const prices = getStorage('disperindag_prices', DEFAULT_COMMODITY_PRICES);
+window.editPriceModal = async function(priceId) {
+  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const prices = Array.isArray(rawPrices) ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
   const item = prices.find(p => p.id === priceId);
   if (!item) return;
 
-  CustomModal.prompt({
+  const newVal = await CustomModal.prompt({
     title: `Perbarui Harga: ${item.commodity_name}`,
-    message: `Masukkan harga baru untuk <strong>${item.commodity_name}</strong> di ${item.market_name} (Harga saat ini: Rp ${item.price.toLocaleString('id-ID')} / ${item.unit}):`,
+    message: `Masukkan harga baru untuk <strong>${item.commodity_name}</strong> di ${item.market_name} (Harga saat ini: Rp ${Number(item.price).toLocaleString('id-ID')} / ${item.unit}):`,
     defaultValue: item.price.toString(),
     inputType: "number",
-    onConfirm: (newVal) => {
-      const parsed = parseInt(newVal);
-      if (isNaN(parsed) || parsed <= 0) {
-        CustomModal.alert({ title: "Input Tidak Valid", message: "Nominal harga harus berupa angka positif.", icon: "⚠️", type: "warning" });
-        return;
-      }
-
-      item.previous_price = item.price;
-      item.price = parsed;
-      item.diff = item.price - item.previous_price;
-      item.trend = item.diff > 0 ? 'up' : item.diff < 0 ? 'down' : 'stable';
-      item.observed_date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-      item.observed_time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
-
-      setStorage('disperindag_prices', prices);
-      renderAdminPrices();
-
-      CustomModal.alert({
-        title: "Harga Berhasil Diperbarui",
-        message: `Harga <strong>${item.commodity_name}</strong> kini tercatat: <strong>Rp ${item.price.toLocaleString('id-ID')}/${item.unit}</strong>.`,
-        icon: "✅",
-        type: "info"
-      });
-    }
+    confirmText: "Simpan & Sinkronkan"
   });
+
+  if (newVal === null || newVal === undefined || newVal.toString().trim() === '') return;
+
+  const parsed = parseInt(newVal.toString().replace(/[^0-9]/g, ''), 10);
+  if (isNaN(parsed) || parsed <= 0) {
+    CustomModal.alert({ title: "Input Tidak Valid", message: "Nominal harga harus berupa angka positif.", icon: "⚠️", type: "warning" });
+    return;
+  }
+
+  const prevPrice = item.price;
+  item.previous_price = prevPrice;
+  item.price = parsed;
+  item.diff = parsed - prevPrice;
+  item.trend = item.diff > 0 ? 'up' : (item.diff < 0 ? 'down' : 'stable');
+  item.observed_date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  item.observed_time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
+
+  setStorage('disperindag_prices', prices);
+  renderAdminPrices();
+  renderDashboardStats();
+
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      db.collection('prices').doc(item.id).set(item, { merge: true });
+    } catch(e) {}
+  }
+
+  logAdminActivity('Harga Pangan', `Perbarui harga ${item.commodity_name} menjadi Rp ${parsed.toLocaleString('id-ID')}`);
+  CustomModal.toast(`Harga ${item.commodity_name} berhasil diperbarui menjadi Rp ${parsed.toLocaleString('id-ID')}/${item.unit}!`, "success");
 };
 
 // ==============================================================================
@@ -248,18 +264,18 @@ function renderAdminNews(filterSearch = '', filterCat = '') {
             ${isDraft ? '📝 Draf' : '● Live'}
           </span>
         </td>
-        <td>
-          <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="openNewsEditor('${item.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.74rem; background: var(--accent-gold); color: #030D1B; border: none;" title="Sunting Berita">
+        <td style="text-align: center;">
+          <div class="btn-action-group" style="justify-content: center;">
+            <button onclick="openNewsEditor('${item.id}')" class="btn-action-item btn-action-edit" title="Sunting Berita">
               ✏️ Edit
             </button>
-            <a href="berita.html?id=${item.id}" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.74rem;" title="Lihat Tampilan Publik">
-              👁️
+            <a href="berita.html?id=${item.id}" target="_blank" class="btn-action-item btn-action-view" title="Lihat Tampilan Publik">
+              👁️ Lihat
             </a>
-            <button onclick="toggleNewsStatus('${item.id}')" class="btn-outline" style="padding: 4px 6px; font-size: 0.74rem;" title="${isDraft ? 'Publikasikan Berita Ini' : 'Tarik ke Draf'}">
-              ${isDraft ? '🚀' : '📦'}
+            <button onclick="toggleNewsStatus('${item.id}')" class="btn-action-item btn-action-view" title="${isDraft ? 'Publikasikan Berita Ini' : 'Tarik ke Draf'}">
+              ${isDraft ? '🚀 Terbitkan' : '📦 Draf'}
             </button>
-            <button onclick="deleteAdminNews('${item.id}')" class="btn-danger" style="padding: 4px 7px; font-size: 0.74rem;" title="Hapus Berita">
+            <button onclick="deleteAdminNews('${item.id}')" class="btn-action-item btn-action-delete" title="Hapus Berita">
               🗑️
             </button>
           </div>
@@ -995,22 +1011,292 @@ window.toggleDocStatus = function(docId) {
   renderAdminDocs();
 };
 
-// 6. TABEL IKM
+// 6. TABEL IKM & CRUD ETALASE
 function renderAdminIkm() {
   const tbody = document.getElementById('adminIkmTableBody');
   if (!tbody) return;
 
-  const ikm = getStorage('disperindag_products_ikm', DEFAULT_PRODUCTS_IKM);
+  const rawIkm = getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []);
+  const ikm = Array.isArray(rawIkm) ? rawIkm : (typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []);
+
   tbody.innerHTML = ikm.map(p => `
     <tr>
-      <td><img src="${p.img}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px;" alt="Thumb"></td>
-      <td><strong>${p.name}</strong><br><small style="color: #64748B;">${p.category_label}</small></td>
-      <td>${p.artisan}<br><small style="color: #94A3B8;">${p.location}</small></td>
-      <td>${p.certifications.map(c => `<span style="font-size: 0.7rem; background: #ECFDF5; color: #059669; padding: 2px 6px; border-radius: 4px; margin-right: 4px;">✓ ${c.cert_type}</span>`).join('')}</td>
-      <td><a href="katalog-ikm.html" target="_blank" class="btn-outline" style="padding: 4px 10px; font-size: 0.76rem;">Lihat</a></td>
+      <td>
+        <img src="${p.img || 'assets/brand/cover_ikm.png'}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #E2E8F0;" alt="Thumb" onerror="this.src='assets/brand/cover_ikm.png'">
+      </td>
+      <td>
+        <strong style="color: #0F2C59; font-size: 0.88rem;">${p.name}</strong><br>
+        <span class="badge-cat" style="font-size: 0.72rem;">${p.category_label || p.category}</span>
+      </td>
+      <td>
+        <strong>${p.artisan}</strong><br>
+        <small style="color: #64748B;">📍 ${p.location}</small>
+      </td>
+      <td>
+        ${(p.certifications || []).map(c => `
+          <span style="font-size: 0.7rem; background: #ECFDF5; color: #059669; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 4px; display: inline-block; margin-bottom: 2px; border: 1px solid #A7F3D0;">
+            ✓ ${c.cert_type || c}
+          </span>
+        `).join('')}
+      </td>
+      <td style="text-align: center;">
+        <div class="btn-action-group" style="justify-content: center;">
+          <a href="katalog-ikm.html" target="_blank" class="btn-action-item btn-action-view" title="Lihat di Katalog Publik">
+            🌐 Lihat
+          </a>
+          <button onclick="openEditIkmModal('${p.id}')" class="btn-action-item btn-action-edit" title="Ubah Data IKM">
+            ✏️ Edit
+          </button>
+          <button onclick="deleteIkmProduct('${p.id}')" class="btn-action-item btn-action-delete" title="Hapus Produk IKM">
+            🗑️ Hapus
+          </button>
+        </div>
+      </td>
     </tr>
   `).join('');
 }
+
+window.openAddIkmModal = function() {
+  CustomModal.form({
+    title: "Tambah Produk IKM Binaan Baru",
+    icon: "🏭",
+    fields: [
+      {
+        name: "name",
+        label: "Nama Produk IKM",
+        type: "text",
+        required: true,
+        placeholder: "Contoh: Keripik Pisang Tanduk Lasinrang"
+      },
+      {
+        name: "category",
+        label: "Kategori Komoditas",
+        type: "select",
+        required: true,
+        options: [
+          { value: "tenun", label: "Kain & Tenun Sutra" },
+          { value: "anyaman", label: "Kerajinan Serat Alam & Anyaman" },
+          { value: "kuliner", label: "Kuliner Pangan / Minuman Olahan" },
+          { value: "olahan", label: "Olahan Hasil Perikanan & Tambak" },
+          { value: "kerajinan", label: "Kriya Kayu, Bambu & Seni" }
+        ]
+      },
+      {
+        name: "artisan",
+        label: "Nama Sentra / Pelaku Usaha / Pengrajin",
+        type: "text",
+        required: true,
+        placeholder: "Contoh: Kelompok Tani Mandiri Suppa"
+      },
+      {
+        name: "location",
+        label: "Lokasi Sentra / Kecamatan",
+        type: "text",
+        required: true,
+        placeholder: "Contoh: Kec. Suppa, Kab. Pinrang"
+      },
+      {
+        name: "description",
+        label: "Deskripsi Produk & Keunggulan Mutu",
+        type: "textarea",
+        rows: 3,
+        required: true,
+        placeholder: "Tuliskan deskripsi cita rasa, bahan baku lokal, atau keistimewaan produk..."
+      },
+      {
+        name: "img",
+        label: "Tautan Foto Produk (URL atau Path Asset)",
+        type: "text",
+        required: true,
+        placeholder: "Contoh: assets/news/kopi_robusta_pinrang_murni_hd.jpg"
+      },
+      {
+        name: "certs",
+        label: "Sertifikasi (Pisahkan dengan koma)",
+        type: "text",
+        placeholder: "Contoh: Sertifikat Halal, Izin P-IRT, TKDN-IKM"
+      },
+      {
+        name: "admin_contact_wa",
+        label: "Nomor WhatsApp Pemesanan",
+        type: "text",
+        required: true,
+        value: "6282316002226",
+        placeholder: "Contoh: 6282316002226"
+      }
+    ],
+    onSubmit: (vals) => {
+      const rawIkm = getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []);
+      const ikm = Array.isArray(rawIkm) ? rawIkm : [];
+      
+      const catLabels = {
+        tenun: "Kain & Tenun",
+        anyaman: "Kerajinan Serat",
+        kuliner: "Kuliner Pangan",
+        olahan: "Olahan Perikanan",
+        kerajinan: "Kriya Seni"
+      };
+
+      const certArray = (vals.certs || "Binaan Disperindag").split(',').map(c => ({
+        cert_type: c.trim(),
+        status: "verified"
+      })).filter(c => c.cert_type);
+
+      const newProd = {
+        id: "ikm_" + Date.now(),
+        name: vals.name,
+        category: vals.category,
+        category_label: catLabels[vals.category] || vals.category,
+        artisan: vals.artisan,
+        location: vals.location,
+        description: vals.description,
+        img: vals.img || "assets/brand/cover_ikm.png",
+        certifications: certArray.length > 0 ? certArray : [{ cert_type: "Binaan Dinas", status: "verified" }],
+        admin_contact_wa: vals.admin_contact_wa.replace(/\D/g, ''),
+        verified_at: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+      };
+
+      ikm.unshift(newProd);
+      setStorage('disperindag_products_ikm', ikm);
+      renderAdminIkm();
+      renderDashboardStats();
+      logAdminActivity('Produk IKM', `Menambahkan produk IKM baru: ${vals.name}`);
+      CustomModal.toast(`Produk IKM "${vals.name}" berhasil ditambahkan ke etalase!`, "success");
+    }
+  });
+};
+
+window.openEditIkmModal = function(ikmId) {
+  const rawIkm = getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []);
+  const ikm = Array.isArray(rawIkm) ? rawIkm : [];
+  const p = ikm.find(item => item.id === ikmId);
+  if (!p) return;
+
+  const currentCerts = (p.certifications || []).map(c => c.cert_type || c).join(', ');
+
+  CustomModal.form({
+    title: `Ubah Produk IKM: ${p.name}`,
+    icon: "✏️",
+    fields: [
+      {
+        name: "name",
+        label: "Nama Produk IKM",
+        type: "text",
+        required: true,
+        value: p.name
+      },
+      {
+        name: "category",
+        label: "Kategori Komoditas",
+        type: "select",
+        required: true,
+        value: p.category,
+        options: [
+          { value: "tenun", label: "Kain & Tenun Sutra" },
+          { value: "anyaman", label: "Kerajinan Serat Alam & Anyaman" },
+          { value: "kuliner", label: "Kuliner Pangan / Minuman Olahan" },
+          { value: "olahan", label: "Olahan Hasil Perikanan & Tambak" },
+          { value: "kerajinan", label: "Kriya Kayu, Bambu & Seni" }
+        ]
+      },
+      {
+        name: "artisan",
+        label: "Nama Sentra / Pelaku Usaha / Pengrajin",
+        type: "text",
+        required: true,
+        value: p.artisan
+      },
+      {
+        name: "location",
+        label: "Lokasi Sentra / Kecamatan",
+        type: "text",
+        required: true,
+        value: p.location
+      },
+      {
+        name: "description",
+        label: "Deskripsi Produk & Keunggulan Mutu",
+        type: "textarea",
+        rows: 3,
+        required: true,
+        value: p.description
+      },
+      {
+        name: "img",
+        label: "Tautan Foto Produk (URL atau Path Asset)",
+        type: "text",
+        required: true,
+        value: p.img
+      },
+      {
+        name: "certs",
+        label: "Sertifikasi (Pisahkan dengan koma)",
+        type: "text",
+        value: currentCerts
+      },
+      {
+        name: "admin_contact_wa",
+        label: "Nomor WhatsApp Pemesanan",
+        type: "text",
+        required: true,
+        value: p.admin_contact_wa || "6282316002226"
+      }
+    ],
+    onSubmit: (vals) => {
+      const catLabels = {
+        tenun: "Kain & Tenun",
+        anyaman: "Kerajinan Serat",
+        kuliner: "Kuliner Pangan",
+        olahan: "Olahan Perikanan",
+        kerajinan: "Kriya Seni"
+      };
+
+      p.name = vals.name;
+      p.category = vals.category;
+      p.category_label = catLabels[vals.category] || vals.category;
+      p.artisan = vals.artisan;
+      p.location = vals.location;
+      p.description = vals.description;
+      p.img = vals.img;
+      p.admin_contact_wa = vals.admin_contact_wa.replace(/\D/g, '');
+
+      if (vals.certs) {
+        p.certifications = vals.certs.split(',').map(c => ({
+          cert_type: c.trim(),
+          status: "verified"
+        })).filter(c => c.cert_type);
+      }
+
+      setStorage('disperindag_products_ikm', ikm);
+      renderAdminIkm();
+      logAdminActivity('Produk IKM', `Memperbarui data produk IKM: ${p.name}`);
+      CustomModal.toast(`Data produk "${p.name}" berhasil diperbarui!`, "success");
+    }
+  });
+};
+
+window.deleteIkmProduct = function(ikmId) {
+  const rawIkm = getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []);
+  const ikm = Array.isArray(rawIkm) ? rawIkm : [];
+  const p = ikm.find(item => item.id === ikmId);
+  if (!p) return;
+
+  CustomModal.confirm({
+    title: "Hapus Produk IKM?",
+    message: `Apakah Anda yakin ingin menghapus produk <strong>${p.name}</strong> dari etalase IKM daerah?`,
+    icon: "🗑️",
+    confirmText: "Ya, Hapus Produk",
+    isDanger: true,
+    onSubmit: () => {
+      const updated = ikm.filter(item => item.id !== ikmId);
+      setStorage('disperindag_products_ikm', updated);
+      renderAdminIkm();
+      renderDashboardStats();
+      logAdminActivity('Produk IKM', `Menghapus produk IKM: ${p.name}`);
+      CustomModal.toast(`Produk "${p.name}" berhasil dihapus dari etalase.`, "info");
+    }
+  });
+};
 
 // 7. TABEL PENGADUAN DENGAN NOMOR TIKET & MULTI-CHANNEL CANONICAL
 function renderAdminReports() {
@@ -1036,13 +1322,13 @@ function renderAdminReports() {
         <td><strong>${r.kategori}</strong><br><small style="color: #64748B;">${r.lokasi}</small></td>
         <td><span style="font-size: 0.8rem; font-weight: 700; color: #0F2C59;">${r.assigned_unit || 'Bidang Teknis'}</span></td>
         <td><span class="verified-badge ${statusClass}">${r.status}</span></td>
-        <td>
-          <div style="display: flex; gap: 6px;">
-            <button onclick="viewReportDetail('${r.id}')" class="btn-outline" style="padding: 5px 8px; font-size: 0.75rem;" title="Lihat Detail Lengkap">
-              Detail
+        <td style="text-align: center;">
+          <div class="btn-action-group" style="justify-content: center;">
+            <button onclick="viewReportDetail('${r.id}')" class="btn-action-item btn-action-view" title="Lihat Detail Lengkap">
+              🔍 Detail
             </button>
-            <button onclick="openEditReportModal('${r.id}')" class="btn-primary" style="padding: 5px 8px; font-size: 0.75rem; background: #059669;" title="Tindak Lanjuti & Ubah Status Alur">
-              Tindak Lanjut
+            <button onclick="openEditReportModal('${r.id}')" class="btn-action-item btn-action-followup" title="Tindak Lanjuti & Ubah Status Alur">
+              ⚡ Tindak Lanjut
             </button>
           </div>
         </td>
@@ -1078,7 +1364,7 @@ window.viewReportDetail = function(repId) {
         </div>
 
         <div style="margin-bottom: 8px;">
-          <strong>Status Alur Saat Ini:</strong> <span class="verified-badge">${r.status}</span> (Langkah ${r.step || 1} dari 7)
+          <strong>Status Alur Saat Ini:</strong> <span class="verified-badge">${r.status}</span>
         </div>
         <div style="margin-bottom: 8px;">
           <strong>Unit Disposisi:</strong> ${r.assigned_unit || 'Bidang Teknis'}
@@ -1102,42 +1388,45 @@ window.openEditReportModal = function(repId) {
   if (!r) return;
 
   CustomModal.form({
-    title: `Disposisi & Update Tiket: ${r.ticket_number || 'DPE-2026'}`,
-    icon: "⚖️",
+    title: `Tindak Lanjut Tiket: ${r.ticket_number || 'DPE-2026'}`,
+    icon: "⚡",
     fields: [
       {
         name: "status",
-        label: "Status Tahapan Alur",
+        label: "Status Tahapan Penanganan",
         type: "select",
         value: r.status || "Diterima & Registrasi",
         options: [
           { value: "Diterima & Registrasi", label: "1. Diterima & Registrasi Tiket" },
           { value: "Verifikasi & Analisis", label: "2. Verifikasi & Analisis Substansi" },
-          { value: "Penugasan Unit", label: "3. Penugasan Unit Teknis Lapangan" },
-          { value: "Tindak Lanjut Lapangan", label: "4. Tindak Lanjut / Sidak Lapangan" },
-          { value: "Respon Pelapor", label: "5. Penyusunan Respon ke Pelapor" },
-          { value: "Selesai Ditindaklanjuti", label: "6. Selesai Ditindaklanjuti & Publikasi" }
+          { value: "Penugasan Unit Lapangan", label: "3. Penugasan Unit Teknis Lapangan" },
+          { value: "Sedang Ditindaklanjuti Tim", label: "4. Sedang Sidak / Ditindaklanjuti Lapangan" },
+          { value: "Penyusunan Respon Pelapor", label: "5. Penyusunan Jawaban Resmi ke Pelapor" },
+          { value: "Selesai Ditindaklanjuti", label: "6. Selesai Ditindaklanjuti (Tuntas)" },
+          { value: "Ditolak / Tidak Sesuai Kewenangan", label: "❌ Ditolak / Di Luar Kewenangan Dinas" }
         ]
       },
       {
         name: "assigned_unit",
         label: "Unit Teknis Penangan (Disposisi)",
         type: "select",
-        value: r.assigned_unit || "Bidang Perdagangan",
+        value: r.assigned_unit || "Bidang Pengembangan Perdagangan",
         options: [
-          { value: "Bidang Perdagangan & Perlindungan Konsumen", label: "Bidang Perdagangan & Perlindungan Konsumen" },
-          { value: "Bidang ESDM & Pengawasan Migas", label: "Bidang ESDM & Pengawasan Migas" },
-          { value: "Bidang Kemetrologian (UPTD Metrologi Legal)", label: "Bidang Kemetrologian (UPTD Metrologi Legal)" },
-          { value: "Bidang Perindustrian & IKM", label: "Bidang Perindustrian & IKM" },
-          { value: "Sekretariat & Tim Pengelola Pengaduan", label: "Sekretariat & Tim Pengelola Pengaduan" }
+          { value: "Bidang Pengembangan Perdagangan & TPID", label: "Bidang Pengembangan Perdagangan & TPID" },
+          { value: "Bidang Perindustrian, Energi dan SDM (Pengawas LPG)", label: "Bidang Perindustrian, ESDM & Pengawas LPG" },
+          { value: "Bidang Kemetrologian (UPTD Metrologi Legal / Tera)", label: "Bidang Kemetrologian (UPTD Metrologi Legal)" },
+          { value: "Bidang Sarana dan Pelaku Distribusi (Pasar Rakyat)", label: "Bidang Sarana dan Pelaku Distribusi" },
+          { value: "Sekretariat & Tim Pengelola PPID", label: "Sekretariat & Tim Pengelola PPID" }
         ]
       },
       {
         name: "resolution",
-        label: "Uraian Hasil Tindak Lanjut / Berita Acara",
+        label: "Catatan Hasil Tindak Lanjut / Berita Acara Lapangan",
         type: "textarea",
         value: r.resolution || "",
-        required: true
+        placeholder: "Tuliskan hasil sidak, mediasi, atau tindakan teknis yang telah dilakukan...",
+        required: true,
+        rows: 4
       }
     ],
     onSubmit: (vals) => {
@@ -1150,9 +1439,10 @@ window.openEditReportModal = function(repId) {
       if (vals.status.includes('Diterima')) r.step = 1;
       else if (vals.status.includes('Verifikasi')) r.step = 2;
       else if (vals.status.includes('Penugasan')) r.step = 3;
-      else if (vals.status.includes('Lapangan')) r.step = 4;
+      else if (vals.status.includes('Ditindaklanjuti') || vals.status.includes('Sidak')) r.step = 4;
       else if (vals.status.includes('Respon')) r.step = 5;
       else if (vals.status.includes('Selesai')) r.step = 6;
+      else r.step = 1;
 
       setStorage('disperindag_reports', reports);
 
@@ -1161,6 +1451,7 @@ window.openEditReportModal = function(repId) {
       }
 
       renderAdminReports();
+      logAdminActivity('Pengaduan', `Tindak lanjut tiket ${r.ticket_number} (${r.status})`);
       CustomModal.toast(`Tiket ${r.ticket_number} berhasil diperbarui menjadi '${r.status}'!`, "success");
     }
   });
@@ -1172,16 +1463,235 @@ function renderAdminUsers() {
   if (!tbody) return;
 
   const users = getAllUsers();
-  tbody.innerHTML = users.map(u => `
-    <tr>
-      <td><strong>${u.name}</strong><br><small style="color: #64748B;">@${u.username}</small></td>
-      <td>${u.nip}</td>
-      <td>${u.position}<br><small style="color: #64748B;">${u.unit}</small></td>
-      <td><span class="badge-cat" style="background: #FEF3C7; color: #B45309;">${u.roleIcon} ${u.roleLabel}</span></td>
-      <td><span class="verified-badge">${u.canAccessAdmin ? '✓ CMS Admin' : '📱 Hanya Petugas HP'}</span></td>
-    </tr>
-  `).join('');
+  const session = getCurrentSession();
+
+  tbody.innerHTML = users.map(u => {
+    const isCurrent = session && session.username === u.username;
+    return `
+      <tr>
+        <td>
+          <strong>${u.name}</strong> ${isCurrent ? '<span style="font-size:0.68rem; background:#DCFCE7; color:#166534; padding:2px 6px; border-radius:4px; font-weight:800;">(Anda)</span>' : ''}<br>
+          <small style="color: #64748B;">@${u.username}</small>
+        </td>
+        <td><code>${u.nip || '-'}</code></td>
+        <td><strong>${u.position}</strong><br><small style="color: #64748B;">${u.unit}</small></td>
+        <td><span class="badge-cat" style="background: #FEF3C7; color: #B45309;">${u.roleIcon || '👤'} ${u.roleLabel}</span></td>
+        <td><span class="verified-badge">${u.canAccessAdmin ? '✓ CMS Admin' : '📱 Hanya Petugas HP'}</span></td>
+        <td style="text-align: center;">
+          <div class="btn-action-group" style="justify-content: center;">
+            <button onclick="openEditUserModal('${u.username}')" class="btn-action-item btn-action-edit" title="Sunting Akun ASN">
+              ✏️ Edit
+            </button>
+            ${!isCurrent ? `
+              <button onclick="deleteUserRecord('${u.username}')" class="btn-action-item btn-action-delete" title="Hapus Pengguna">
+                🗑️
+              </button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
+
+window.openAddUserModal = function() {
+  CustomModal.form({
+    title: "Tambah Pengguna ASN Baru",
+    icon: "👤",
+    fields: [
+      { name: "name", label: "Nama Lengkap ASN Beserta Gelar", type: "text", required: true, placeholder: "Contoh: Ir. H. Ahmad Dahlan, M.Si" },
+      { name: "nip", label: "Nomor Induk Pegawai (NIP)", type: "text", required: true, placeholder: "19850101 201001 1 001" },
+      { name: "position", label: "Jabatan Struktural / Fungsional", type: "text", required: true, placeholder: "Contoh: Pengawas Energi Ahli Pertama" },
+      { name: "unit", label: "Unit Kerja / Bidang", type: "text", required: true, placeholder: "Contoh: Bidang Perindustrian, Energi dan SDM" },
+      { name: "username", label: "Nama Pengguna (Username Login)", type: "text", required: true, placeholder: "Contoh: pengawas_esdm_01" },
+      { name: "password", label: "Kata Sandi Awal", type: "password", required: true, placeholder: "Minimal 6 karakter" },
+      {
+        name: "role",
+        label: "Penetapan Peran (Role Access)",
+        type: "select",
+        options: [
+          { value: "super_admin", label: "👑 Kepala Dinas (Super Admin)" },
+          { value: "sekretariat_admin", label: "📋 Sekretaris Dinas (Admin PPID & Organisasi)" },
+          { value: "perdagangan_editor", label: "🛒 Kabid Perdagangan & Tim TPID" },
+          { value: "industri_esdm_editor", label: "⚡ Kabid Perindustrian, ESDM & Pengawas LPG" },
+          { value: "kemetrologian_editor", label: "⚖️ Kabid Kemetrologian (Metrologi Legal)" },
+          { value: "distribusi_editor", label: "🏪 Kabid Sarana Pasar & Distribusi" },
+          { value: "pasar_petugas", label: "🏬 Kepala UPTD Pasar / Petugas Sembako" }
+        ]
+      },
+      {
+        name: "panel_access",
+        label: "Hak Akses Panel",
+        type: "select",
+        options: [
+          { value: "both", label: "🖥️ CMS Admin Panel & 📱 Petugas HP" },
+          { value: "petugas_only", label: "📱 Hanya Aplikasi Petugas HP (Mobile Only)" }
+        ]
+      }
+    ],
+    onSubmit: (vals) => {
+      const users = getAllUsers();
+      const cleanUsername = vals.username.toLowerCase().trim();
+
+      if (users.some(u => u.username.toLowerCase() === cleanUsername)) {
+        CustomModal.alert({ title: "Username Telah Terdaftar", message: `Username <strong>@${cleanUsername}</strong> sudah digunakan oleh pengguna lain. Gunakan username lain.`, icon: "⚠️", type: "warning" });
+        return;
+      }
+
+      const roleMap = {
+        super_admin: { label: "Kepala Dinas (Super Admin)", icon: "👑" },
+        sekretariat_admin: { label: "Sekretaris Dinas (Admin PPID & Organisasi)", icon: "📋" },
+        perdagangan_editor: { label: "Kabid Perdagangan & Tim TPID", icon: "🛒" },
+        industri_esdm_editor: { label: "Kabid Perindustrian, ESDM & Pengawas LPG", icon: "⚡" },
+        kemetrologian_editor: { label: "Kabid Kemetrologian (Metrologi Legal)", icon: "⚖️" },
+        distribusi_editor: { label: "Kabid Sarana Pasar & Distribusi", icon: "🏪" },
+        pasar_petugas: { label: "Kepala UPTD Pasar / Petugas Sembako", icon: "🏬" }
+      };
+
+      const roleInfo = roleMap[vals.role] || { label: "Aparatur Dinas", icon: "👤" };
+      const canAccessAdmin = vals.panel_access === "both";
+
+      const newUser = {
+        username: cleanUsername,
+        password: vals.password,
+        name: vals.name,
+        nip: vals.nip,
+        position: vals.position,
+        unit: vals.unit,
+        role: vals.role,
+        roleLabel: roleInfo.label,
+        roleIcon: roleInfo.icon,
+        phone: "0823 1600 2226",
+        avatar: "assets/brand/logo_pinrang_opt.png",
+        bio: `${vals.position} pada ${vals.unit} Disperindag ESDM Pinrang.`,
+        canAccessAdmin: canAccessAdmin,
+        canAccessPetugas: true,
+        canManageUsers: vals.role === 'super_admin' || vals.role === 'sekretariat_admin',
+        canPublishDirectly: true,
+        permissions: ["all"]
+      };
+
+      users.push(newUser);
+      saveAllUsers(users);
+
+      if (typeof db !== 'undefined' && db) {
+        db.collection('users').doc(cleanUsername).set(newUser, { merge: true }).catch(e => console.warn(e));
+      }
+
+      renderAdminUsers();
+      logAdminActivity('Pengguna & RBAC', `Mendaftarkan pengguna baru @${cleanUsername} (${newUser.name})`);
+      CustomModal.toast(`Pengguna @${cleanUsername} (${newUser.name}) berhasil didaftarkan!`, "success");
+    }
+  });
+};
+
+window.openEditUserModal = function(targetUsername) {
+  const users = getAllUsers();
+  const u = users.find(x => x.username === targetUsername);
+  if (!u) return;
+
+  CustomModal.form({
+    title: `Sunting Pengguna: @${u.username}`,
+    icon: "✏️",
+    fields: [
+      { name: "name", label: "Nama Lengkap Beserta Gelar", type: "text", value: u.name, required: true },
+      { name: "nip", label: "NIP", type: "text", value: u.nip || "", required: true },
+      { name: "position", label: "Jabatan", type: "text", value: u.position, required: true },
+      { name: "unit", label: "Unit Kerja", type: "text", value: u.unit, required: true },
+      {
+        name: "role",
+        label: "Peran Akses (Role)",
+        type: "select",
+        value: u.role,
+        options: [
+          { value: "super_admin", label: "👑 Kepala Dinas (Super Admin)" },
+          { value: "sekretariat_admin", label: "📋 Sekretaris Dinas (Admin PPID & Organisasi)" },
+          { value: "perdagangan_editor", label: "🛒 Kabid Perdagangan & Tim TPID" },
+          { value: "industri_esdm_editor", label: "⚡ Kabid Perindustrian, ESDM & Pengawas LPG" },
+          { value: "kemetrologian_editor", label: "⚖️ Kabid Kemetrologian (Metrologi Legal)" },
+          { value: "distribusi_editor", label: "🏪 Kabid Sarana Pasar & Distribusi" },
+          { value: "pasar_petugas", label: "🏬 Kepala UPTD Pasar / Petugas Sembako" }
+        ]
+      },
+      {
+        name: "panel_access",
+        label: "Hak Akses Panel",
+        type: "select",
+        value: u.canAccessAdmin ? "both" : "petugas_only",
+        options: [
+          { value: "both", label: "🖥️ CMS Admin Panel & 📱 Petugas HP" },
+          { value: "petugas_only", label: "📱 Hanya Aplikasi Petugas HP (Mobile Only)" }
+        ]
+      },
+      { name: "new_password", label: "Kata Sandi Baru (Kosongkan jika tidak diubah)", type: "password", placeholder: "Isi jika ingin mereset kata sandi" }
+    ],
+    onSubmit: (vals) => {
+      const roleMap = {
+        super_admin: { label: "Kepala Dinas (Super Admin)", icon: "👑" },
+        sekretariat_admin: { label: "Sekretaris Dinas (Admin PPID & Organisasi)", icon: "📋" },
+        perdagangan_editor: { label: "Kabid Perdagangan & Tim TPID", icon: "🛒" },
+        industri_esdm_editor: { label: "Kabid Perindustrian, ESDM & Pengawas LPG", icon: "⚡" },
+        kemetrologian_editor: { label: "Kabid Kemetrologian (Metrologi Legal)", icon: "⚖️" },
+        distribusi_editor: { label: "Kabid Sarana Pasar & Distribusi", icon: "🏪" },
+        pasar_petugas: { label: "Kepala UPTD Pasar / Petugas Sembako", icon: "🏬" }
+      };
+
+      const roleInfo = roleMap[vals.role] || { label: "Aparatur Dinas", icon: "👤" };
+      u.name = vals.name;
+      u.nip = vals.nip;
+      u.position = vals.position;
+      u.unit = vals.unit;
+      u.role = vals.role;
+      u.roleLabel = roleInfo.label;
+      u.roleIcon = roleInfo.icon;
+      u.canAccessAdmin = vals.panel_access === "both";
+      u.canManageUsers = vals.role === 'super_admin' || vals.role === 'sekretariat_admin';
+
+      if (vals.new_password && vals.new_password.trim().length >= 4) {
+        u.password = vals.new_password.trim();
+      }
+
+      saveAllUsers(users);
+
+      if (typeof db !== 'undefined' && db) {
+        db.collection('users').doc(u.username).set(u, { merge: true }).catch(e => console.warn(e));
+      }
+
+      renderAdminUsers();
+      logAdminActivity('Pengguna & RBAC', `Memperbarui akun @${u.username}`);
+      CustomModal.toast(`Data pengguna @${u.username} berhasil diperbarui!`, "success");
+    }
+  });
+};
+
+window.deleteUserRecord = function(targetUsername) {
+  const session = getCurrentSession();
+  if (session && session.username === targetUsername) {
+    CustomModal.alert({ title: "Tindakan Ditolak", message: "Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif digunakan.", icon: "🚫", type: "warning" });
+    return;
+  }
+
+  CustomModal.confirm({
+    title: "Hapus Akun Pengguna?",
+    message: `Apakah Anda yakin ingin menghapus akun aparatur <strong>@${targetUsername}</strong>?<br><br><span style="color:#DC2626; font-size:0.8rem;">Pengguna ini tidak akan dapat login lagi ke sistem.</span>`,
+    icon: "🗑️",
+    confirmText: "Ya, Hapus Pengguna",
+    isDanger: true,
+    onSubmit: () => {
+      let users = getAllUsers();
+      users = users.filter(x => x.username !== targetUsername);
+      saveAllUsers(users);
+
+      if (typeof db !== 'undefined' && db) {
+        db.collection('users').doc(targetUsername).delete().catch(e => console.warn(e));
+      }
+
+      renderAdminUsers();
+      logAdminActivity('Pengguna & RBAC', `Menghapus akun @${targetUsername}`);
+      CustomModal.toast(`Pengguna @${targetUsername} berhasil dihapus dari sistem.`, "info");
+    }
+  });
+};
 
 // 9. MANAJEMEN COMMAND CENTER & TV WALLBOARD CONTROLLER
 function renderAdminCommandCenter() {
@@ -1223,8 +1733,8 @@ function renderDistrictsTable() {
         </td>
         <td><strong>${d.pangkalan || 0}</strong> Pangkalan</td>
         <td><span style="font-size: 0.8rem; color: #475569;">${d.note || '-'}</span></td>
-        <td>
-          <button onclick="editDistrictStatus(${index})" class="btn-outline" style="padding: 4px 10px; font-size: 0.76rem;">
+        <td style="text-align: center;">
+          <button onclick="editDistrictStatus(${index})" class="btn-action-item btn-action-edit" style="font-size: 0.76rem; padding: 5px 10px;">
             ✏️ Ubah Status
           </button>
         </td>
@@ -1262,6 +1772,7 @@ window.saveCommandCenterMetrics = function(e) {
       .catch(err => console.warn('Firestore sync note:', err));
   }
 
+  logAdminActivity('Command Center', 'Memperbarui metrik operasional TV Wallboard');
   CustomModal.alert({
     title: "Sinkronisasi Berhasil! 🎉",
     message: "Seluruh metrik operasional Command Center berhasil diperbarui. Layar TV Wallboard pimpinan akan langsung menampilkan data terbaru beserta live running ticker harga pasar terpadu.",
@@ -1318,6 +1829,7 @@ window.editDistrictStatus = function(index) {
       }
 
       renderDistrictsTable();
+      logAdminActivity('Command Center', `Ubah status pengawasan Kec. ${d.name} (${d.status})`);
       CustomModal.toast(`Status Kec. ${d.name} berhasil disinkronkan ke Command Center!`, 'success');
     }
   });
@@ -1377,14 +1889,14 @@ function renderMediaNewsTable() {
         </a>
       </td>
       <td>
-        <span class="status-pill ${n.is_critical ? 'status-draft' : 'status-published'}" style="${n.is_critical ? 'background: #FFE4E6; color: #9F1239;' : 'background: #DCFCE7; color: #166534;'} font-size: 0.7rem; font-weight: 800;">
-          ${n.is_critical ? '🔴 Isu Kritis / Evaluasi' : '🟢 Positif ' + (n.sentiment_score || 90) + '%'}
+        <span class="news-status-pill ${n.is_critical ? 'status-draft' : 'status-published'}" style="${n.is_critical ? 'background: #FFE4E6; color: #9F1239; border-color: #FECDD3;' : 'background: #DCFCE7; color: #166534; border-color: #86EFAC;'} font-size: 0.72rem; font-weight: 800;">
+          ${n.is_critical ? '🔴 Isu Kritis' : '🟢 Positif ' + (n.sentiment_score || 90) + '%'}
         </span>
       </td>
-      <td>
-        <div style="display: flex; gap: 6px;">
-          <button onclick="editMediaNews(${idx})" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;">✏️ Edit</button>
-          <button onclick="deleteMediaNews(${idx})" class="btn-danger" style="padding: 4px 8px; font-size: 0.75rem;">🗑️ Hapus</button>
+      <td style="text-align: center;">
+        <div class="btn-action-group" style="justify-content: center;">
+          <button onclick="editMediaNews(${idx})" class="btn-action-item btn-action-edit">✏️ Edit</button>
+          <button onclick="deleteMediaNews(${idx})" class="btn-action-item btn-action-delete">🗑️</button>
         </div>
       </td>
     </tr>
@@ -1413,18 +1925,18 @@ function renderCitizenCommentsTable() {
         <div style="font-size: 0.8rem; color: #1E293B; line-height: 1.35;">"${c.comment_text}"</div>
       </td>
       <td>
-        <span class="status-pill" style="${c.sentiment === 'negative' ? 'background: #FFE4E6; color: #9F1239;' : (c.sentiment === 'positive' ? 'background: #DCFCE7; color: #166534;' : 'background: #F1F5F9; color: #475569;')} font-size: 0.7rem; font-weight: 800;">
-          ${c.sentiment_label || (c.sentiment === 'negative' ? '🔴 Keluhan / Evaluasi' : '🟢 Positif')}
+        <span class="news-status-pill" style="${c.sentiment === 'negative' ? 'background: #FFE4E6; color: #9F1239; border: 1px solid #FECDD3;' : (c.sentiment === 'positive' ? 'background: #DCFCE7; color: #166534; border: 1px solid #86EFAC;' : 'background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1;')} font-size: 0.72rem; font-weight: 800;">
+          ${c.sentiment_label || (c.sentiment === 'negative' ? '🔴 Keluhan' : '🟢 Positif')}
         </span>
       </td>
-      <td style="font-size: 0.75rem;">
-        ${c.disposition ? `<div style="font-weight: 800; color: #92400E; margin-bottom: 2px;">🚨 ${c.disposition}</div>` : ''}
+      <td style="font-size: 0.78rem;">
+        ${c.disposition ? `<div style="font-weight: 800; color: #92400E; margin-bottom: 2px;">⚠️ ${c.disposition.replace(/^⚠️\s*/, '')}</div>` : ''}
         <div style="color: #0369A1;">${c.official_response || 'Belum ada tanggapan.'}</div>
       </td>
-      <td>
-        <div style="display: flex; gap: 6px;">
-          <button onclick="editCitizenComment(${idx})" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;">✏️ Edit</button>
-          <button onclick="deleteCitizenComment(${idx})" class="btn-danger" style="padding: 4px 8px; font-size: 0.75rem;">🗑️ Hapus</button>
+      <td style="text-align: center;">
+        <div class="btn-action-group" style="justify-content: center;">
+          <button onclick="editCitizenComment(${idx})" class="btn-action-item btn-action-edit">✏️ Edit</button>
+          <button onclick="deleteCitizenComment(${idx})" class="btn-action-item btn-action-delete">🗑️</button>
         </div>
       </td>
     </tr>
@@ -1450,6 +1962,7 @@ window.saveMediaIntelligenceSummary = function(event) {
       .catch(err => console.warn(err));
   }
 
+  logAdminActivity('Media Intelligence', 'Menyimpan metrik ringkasan intelijen media');
   CustomModal.toast("Ringkasan Metrik Intelijen Media berhasil disimpan dan disinkronkan!", "success");
 };
 
@@ -1501,6 +2014,7 @@ window.openAddMediaNewsModal = function() {
       }
 
       renderMediaNewsTable();
+      logAdminActivity('Media Intelligence', `Tambah pantauan berita: ${newNews.media_name}`);
       CustomModal.toast("Berita media online berhasil ditambahkan!", "success");
     }
   });
@@ -1557,7 +2071,8 @@ window.deleteMediaNews = function(index) {
     message: "Apakah Anda yakin ingin menghapus pantauan berita ini dari layar intelijen?",
     icon: "🗑️",
     confirmText: "Ya, Hapus",
-    onConfirm: () => {
+    isDanger: true,
+    onSubmit: () => {
       const data = getStorage('disperindag_media_intelligence', DEFAULT_MEDIA_INTELLIGENCE || {});
       data.mainstream_news.splice(index, 1);
       setStorage('disperindag_media_intelligence', data);
@@ -1600,7 +2115,7 @@ window.openAddCitizenCommentModal = function() {
           { value: "negative", label: "🔴 Keluhan / Kritik Butuh Evaluasi" }
         ]
       },
-      { name: "disposition", label: "Status Disposisi (cth: DISPOSISI: Bidang ESDM)", type: "text", placeholder: "Opsional jika butuh tindak lanjut" },
+      { name: "disposition", label: "Status Disposisi (cth: Bidang ESDM)", type: "text", placeholder: "Opsional jika butuh tindak lanjut" },
       { name: "official_response", label: "Tanggapan / Tindak Lanjut Dinas", type: "textarea", placeholder: "Rencana aksi atau jawaban resmi dinas..." }
     ],
     onSubmit: (vals) => {
@@ -1634,6 +2149,7 @@ window.openAddCitizenCommentModal = function() {
       }
 
       renderCitizenCommentsTable();
+      logAdminActivity('Media Intelligence', `Tambah suara warga dari ${newComment.author_name}`);
       CustomModal.toast("Suara warga berhasil ditambahkan dan disinkronkan!", "success");
     }
   });
@@ -1691,7 +2207,8 @@ window.deleteCitizenComment = function(index) {
     message: "Apakah Anda yakin ingin menghapus data aspirasi/komentar ini?",
     icon: "🗑️",
     confirmText: "Ya, Hapus",
-    onConfirm: () => {
+    isDanger: true,
+    onSubmit: () => {
       const data = getStorage('disperindag_media_intelligence', DEFAULT_MEDIA_INTELLIGENCE || {});
       data.citizen_comments.splice(index, 1);
       setStorage('disperindag_media_intelligence', data);
@@ -1706,73 +2223,39 @@ window.deleteCitizenComment = function(index) {
   });
 };
 
-// 11. MANAJEMEN KONFIGURASI SITUS, KONTAK & JAM PELAYANAN (CANONICAL V3)
+// 11. MANAJEMEN KONFIGURASI SITUS, KONTAK & JAM PELAYANAN
 function renderAdminSettings() {
   const settings = getStorage('disperindag_site_settings', DEFAULT_SITE_SETTINGS || {});
   const hours = getStorage('disperindag_service_hours', DEFAULT_SERVICE_HOURS || {});
-  const channels = getStorage('disperindag_contact_channels', DEFAULT_CONTACT_CHANNELS || []);
 
   // Isi form site settings
-  if (document.getElementById('cfg_office_name')) document.getElementById('cfg_office_name').value = settings.office_name || "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang";
-  if (document.getElementById('cfg_service_motto')) document.getElementById('cfg_service_motto').value = settings.service_motto || "Melayani Anda dengan Transparan, Adil & Profesional (MANTAP)";
-  if (document.getElementById('cfg_address')) document.getElementById('cfg_address').value = settings.address || "Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan";
-  if (document.getElementById('cfg_whatsapp')) document.getElementById('cfg_whatsapp').value = settings.whatsapp || "0823 1600 2226";
-  if (document.getElementById('cfg_email')) document.getElementById('cfg_email').value = settings.email || "dinasperindagem.pinrang@gmail.com";
-  if (document.getElementById('cfg_website_domain')) document.getElementById('cfg_website_domain').value = settings.website_domain || "disperindagesdm-pinrang.web.app";
-  if (document.getElementById('cfg_instagram_handle')) document.getElementById('cfg_instagram_handle').value = settings.instagram_handle || "@perindagempinrang";
-  if (document.getElementById('cfg_facebook_title')) document.getElementById('cfg_facebook_title').value = settings.facebook_title || "Disperindag-ESDM Pinrang";
-  if (document.getElementById('cfg_sp4n_lapor_url')) document.getElementById('cfg_sp4n_lapor_url').value = settings.sp4n_lapor_url || "https://www.lapor.go.id/";
+  if (document.getElementById('set_office_address')) document.getElementById('set_office_address').value = settings.address || "Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan";
+  if (document.getElementById('set_contact_wa')) document.getElementById('set_contact_wa').value = settings.whatsapp || "0823 1600 2226";
+  if (document.getElementById('set_contact_email')) document.getElementById('set_contact_email').value = settings.email || "dinasperindagem.pinrang@gmail.com";
+  if (document.getElementById('set_hours_weekday')) document.getElementById('set_hours_weekday').value = hours.regular || "07.30 - 16.00 WITA";
+  if (document.getElementById('set_hours_friday')) document.getElementById('set_hours_friday').value = hours.friday || "07.30 - 16.30 WITA";
+  if (document.getElementById('set_social_ig')) document.getElementById('set_social_ig').value = settings.instagram_handle || "@perindagempinrang";
+  if (document.getElementById('set_social_fb')) document.getElementById('set_social_fb').value = settings.facebook_title || "Disperindag-ESDM Pinrang";
+  if (document.getElementById('set_social_yt')) document.getElementById('set_social_yt').value = settings.youtube_channel || "Disperindag ESDM Pinrang Official";
 
-  // Isi jam pelayanan
-  if (document.getElementById('cfg_hours_reg')) document.getElementById('cfg_hours_reg').value = hours.regular || "Senin – Kamis: 08.00 – 16.00 WITA";
-  if (document.getElementById('cfg_hours_fri')) document.getElementById('cfg_hours_fri').value = hours.friday || "Jumat: 08.00 – 16.30 WITA";
-
-  // Render tabel saluran kontak
-  const tbody = document.getElementById('adminChannelsTableBody');
-  if (tbody) {
-    tbody.innerHTML = channels.map(c => `
-      <tr>
-        <td>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 1.3rem;">${c.icon}</span>
-            <strong>${c.platform}</strong>
-          </div>
-        </td>
-        <td><span style="font-size: 0.8rem; font-weight: 700; color: #1E40AF;">${c.title}</span></td>
-        <td><code>${c.value}</code></td>
-        <td>
-          <a href="${c.url}" target="_blank" rel="noopener noreferrer" style="font-size: 0.78rem; color: #0284C7; text-decoration: none;">
-            Buka Tautan &rarr;
-          </a>
-        </td>
-        <td>
-          <span style="background: #ECFDF5; color: #059669; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
-            ✓ Canonical Aktif
-          </span>
-        </td>
-      </tr>
-    `).join('');
-  }
+  renderAuditLogs();
 }
 
-window.saveSiteSettingsConfig = function(e) {
+window.saveSiteSettings = function(e) {
   if (e) e.preventDefault();
 
   const settings = getStorage('disperindag_site_settings', DEFAULT_SITE_SETTINGS || {});
   const hours = getStorage('disperindag_service_hours', DEFAULT_SERVICE_HOURS || {});
 
-  settings.office_name = document.getElementById('cfg_office_name').value;
-  settings.service_motto = document.getElementById('cfg_service_motto').value;
-  settings.address = document.getElementById('cfg_address').value;
-  settings.whatsapp = document.getElementById('cfg_whatsapp').value;
-  settings.email = document.getElementById('cfg_email').value;
-  settings.website_domain = document.getElementById('cfg_website_domain').value;
-  settings.instagram_handle = document.getElementById('cfg_instagram_handle').value;
-  settings.facebook_title = document.getElementById('cfg_facebook_title').value;
-  settings.sp4n_lapor_url = document.getElementById('cfg_sp4n_lapor_url').value;
+  settings.address = document.getElementById('set_office_address').value.trim();
+  settings.whatsapp = document.getElementById('set_contact_wa').value.trim();
+  settings.email = document.getElementById('set_contact_email').value.trim();
+  settings.instagram_handle = document.getElementById('set_social_ig').value.trim();
+  settings.facebook_title = document.getElementById('set_social_fb').value.trim();
+  settings.youtube_channel = document.getElementById('set_social_yt').value.trim();
 
-  hours.regular = document.getElementById('cfg_hours_reg').value;
-  hours.friday = document.getElementById('cfg_hours_fri').value;
+  hours.regular = document.getElementById('set_hours_weekday').value.trim();
+  hours.friday = document.getElementById('set_hours_friday').value.trim();
 
   setStorage('disperindag_site_settings', settings);
   setStorage('disperindag_service_hours', hours);
@@ -1782,7 +2265,204 @@ window.saveSiteSettingsConfig = function(e) {
     db.collection('system_config').doc('service_hours').set(hours, { merge: true }).catch(e => console.warn(e));
   }
 
-  CustomModal.toast("Pengaturan identitas kedinasan & jam pelayanan berhasil disimpan!", "success");
+  logAdminActivity('Konfigurasi Portal', 'Memperbarui data identitas dinas, kontak hotline, dan jam pelayanan');
+  CustomModal.alert({
+    title: "Konfigurasi Disimpan! 🎉",
+    message: "Pengaturan identitas dinas, kontak hotline resmi, dan jam pelayanan telah berhasil disimpan dan disinkronkan ke seluruh halaman portal publik.",
+    icon: "⚙️",
+    type: "success"
+  });
+};
+
+// PUSAT BACKUP & RESTORE DATA JSON
+window.exportAllDataJSON = function() {
+  const backupData = {
+    exported_at: new Date().toISOString(),
+    version: "2026.08_prod",
+    disperindag_prices: getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []),
+    disperindag_news: getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []),
+    disperindag_banners: getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []),
+    disperindag_documents: getStorage('disperindag_documents', typeof DEFAULT_DOCUMENTS !== 'undefined' ? DEFAULT_DOCUMENTS : []),
+    disperindag_products_ikm: getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []),
+    disperindag_reports: getStorage('disperindag_reports', typeof DEFAULT_REPORTS !== 'undefined' ? DEFAULT_REPORTS : []),
+    disperindag_districts: getStorage('disperindag_districts', DEFAULT_DISTRICTS_STATUS),
+    disperindag_command_center: getStorage('disperindag_command_center', DEFAULT_COMMAND_CENTER_CONFIG),
+    disperindag_media_intelligence: getStorage('disperindag_media_intelligence', DEFAULT_MEDIA_INTELLIGENCE),
+    disperindag_site_settings: getStorage('disperindag_site_settings', DEFAULT_SITE_SETTINGS),
+    disperindag_service_hours: getStorage('disperindag_service_hours', DEFAULT_SERVICE_HOURS),
+    disperindag_users: getAllUsers()
+  };
+
+  const jsonStr = JSON.stringify(backupData, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `backup_disperindagesdm_pinrang_${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  logAdminActivity('Pusat Data', 'Mengunduh snapshot berkas backup master data JSON');
+  CustomModal.toast("Berkas cadangan JSON berhasil diunduh ke komputer Anda!", "success");
+};
+
+window.importDataJSON = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || typeof data !== 'object') throw new Error("Format JSON tidak valid");
+
+      CustomModal.confirm({
+        title: "Konfirmasi Pemulihan Data",
+        message: `Apakah Anda yakin ingin memulihkan master data dari berkas <strong>${file.name}</strong>?<br><br>Data lokal saat ini akan ditimpa dengan data cadangan ini.`,
+        icon: "📤",
+        confirmText: "Ya, Pulihkan Sekarang",
+        isDanger: true,
+        onSubmit: () => {
+          if (data.disperindag_prices) setStorage('disperindag_prices', data.disperindag_prices);
+          if (data.disperindag_news) setStorage('disperindag_news', data.disperindag_news);
+          if (data.disperindag_banners) setStorage('disperindag_banners', data.disperindag_banners);
+          if (data.disperindag_documents) setStorage('disperindag_documents', data.disperindag_documents);
+          if (data.disperindag_products_ikm) setStorage('disperindag_products_ikm', data.disperindag_products_ikm);
+          if (data.disperindag_reports) setStorage('disperindag_reports', data.disperindag_reports);
+          if (data.disperindag_districts) setStorage('disperindag_districts', data.disperindag_districts);
+          if (data.disperindag_command_center) setStorage('disperindag_command_center', data.disperindag_command_center);
+          if (data.disperindag_media_intelligence) setStorage('disperindag_media_intelligence', data.disperindag_media_intelligence);
+          if (data.disperindag_site_settings) setStorage('disperindag_site_settings', data.disperindag_site_settings);
+          if (data.disperindag_service_hours) setStorage('disperindag_service_hours', data.disperindag_service_hours);
+          if (data.disperindag_users) saveAllUsers(data.disperindag_users);
+
+          logAdminActivity('Pusat Data', `Memulihkan master data dari berkas ${file.name}`);
+          CustomModal.alert({
+            title: "Pemulihan Berhasil! 🎉",
+            message: "Seluruh basis data telah berhasil dipulihkan dari berkas cadangan JSON. Halaman akan dimuat ulang untuk merefleksikan seluruh perubahan.",
+            icon: "✅",
+            type: "success",
+            buttonText: "Muat Ulang CMS",
+            onClose: () => {
+              window.location.reload();
+            }
+          });
+        }
+      });
+    } catch(err) {
+      CustomModal.alert({ title: "Gagal Membaca Berkas", message: "Berkas yang dipilih bukan berkas JSON cadangan yang valid.", icon: "⚠️", type: "error" });
+    }
+  };
+  reader.readAsText(file);
+};
+
+window.resetMasterDataToDefault = function() {
+  CustomModal.confirm({
+    title: "Reset ke Data Standar Resmi?",
+    message: "Tindakan ini akan mengembalikan seluruh dataset harga komoditas, berita kedinasan, banner, dokumen regulasi, etalase IKM, dan pengaturan ke setelan pabrik resmi Disperindag ESDM Pinrang.<br><br><span style=\"color:#DC2626;\">Lakukan ekspor cadangan terlebih dahulu jika ingin menyimpan perubahan Anda.</span>",
+    icon: "🔄",
+    confirmText: "Ya, Reset ke Standar",
+    isDanger: true,
+    onSubmit: () => {
+      localStorage.removeItem('disperindag_prices');
+      localStorage.removeItem('disperindag_news');
+      localStorage.removeItem('disperindag_banners');
+      localStorage.removeItem('disperindag_documents');
+      localStorage.removeItem('disperindag_products_ikm');
+      localStorage.removeItem('disperindag_reports');
+      localStorage.removeItem('disperindag_districts');
+      localStorage.removeItem('disperindag_command_center');
+      localStorage.removeItem('disperindag_media_intelligence');
+      localStorage.removeItem('disperindag_site_settings');
+      localStorage.removeItem('disperindag_service_hours');
+      localStorage.removeItem('disperindag_users_version');
+      localStorage.removeItem(AUTH_STORE_KEY);
+
+      logAdminActivity('Pusat Data', 'Reset basis data ke setelan standar resmi dinas');
+      CustomModal.alert({
+        title: "Reset Berhasil",
+        message: "Seluruh data telah dikembalikan ke standar awal kedinasan.",
+        icon: "✅",
+        type: "success",
+        buttonText: "Muat Ulang Halaman",
+        onClose: () => {
+          window.location.reload();
+        }
+      });
+    }
+  });
+};
+
+// AUDIT LOG SYSTEM
+function logAdminActivity(module, action) {
+  const logs = getStorage('disperindag_audit_logs', [
+    {
+      time: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WITA',
+      user: getCurrentSession()?.name || "Muhammad Yusuf Nur, S.STP",
+      module: "Sistem",
+      action: "Inisialisasi sesi administrator",
+      status: "Sukses"
+    }
+  ]);
+
+  logs.unshift({
+    time: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WITA',
+    user: getCurrentSession()?.name || "Muhammad Yusuf Nur, S.STP",
+    module: module,
+    action: action,
+    status: "Sukses"
+  });
+
+  if (logs.length > 50) logs.pop();
+  setStorage('disperindag_audit_logs', logs);
+}
+
+function renderAuditLogs() {
+  const tbody = document.getElementById('adminAuditLogsTableBody');
+  if (!tbody) return;
+
+  const logs = getStorage('disperindag_audit_logs', [
+    {
+      time: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WITA',
+      user: getCurrentSession()?.name || "Muhammad Yusuf Nur, S.STP",
+      module: "Autentikasi",
+      action: "Login sesi administrator aktif",
+      status: "Sukses"
+    },
+    {
+      time: "28 Agustus 2026 09:00 WITA",
+      user: "Andi Tenri Sose, S.E.",
+      module: "Harga Pasar",
+      action: "Pembaruan survei 12 komoditas pangan Pasar Sentral",
+      status: "Sukses"
+    },
+    {
+      time: "27 Agustus 2026 14:15 WITA",
+      user: "Hj. Ratnah, ST, M.Si",
+      module: "Pengaduan",
+      action: "Registrasi tiket pengaduan DPE-2026-000101",
+      status: "Sukses"
+    }
+  ]);
+
+  tbody.innerHTML = logs.map(l => `
+    <tr>
+      <td><small style="color: #475569; font-weight: 600;">${l.time}</small></td>
+      <td><strong>${l.user}</strong></td>
+      <td><span class="badge-cat" style="font-size: 0.75rem;">${l.module}</span></td>
+      <td><span style="font-size: 0.82rem; color: #1E293B;">${l.action}</span></td>
+      <td><span class="verified-badge">✓ ${l.status || 'Sukses'}</span></td>
+    </tr>
+  `).join('');
+}
+
+window.clearAuditLogs = function() {
+  setStorage('disperindag_audit_logs', []);
+  renderAuditLogs();
+  CustomModal.toast("Catatan riwayat audit log berhasil dibersihkan.", "info");
 };
 
 

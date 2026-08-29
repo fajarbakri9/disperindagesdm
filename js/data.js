@@ -3,6 +3,30 @@
 // Sesuai Regulasi Kelembagaan & Standar Pelayanan Publik (SPBE)
 // ==============================================================================
 
+// Universal Robust Storage Helper
+if (typeof window.getStorage !== 'function') {
+  window.getStorage = function(key, defaultVal) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return defaultVal;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(defaultVal) && parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Array.isArray(parsed.data)) {
+        return parsed.data;
+      }
+      return parsed !== null && parsed !== undefined ? parsed : defaultVal;
+    } catch (e) {
+      return defaultVal;
+    }
+  };
+}
+if (typeof window.setStorage !== 'function') {
+  window.setStorage = function(key, val) {
+    try {
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) {}
+  };
+}
+
 const NEWS_DATA_VERSION = "2026_08_26_v9_prod";
 
 // 1. PENGATURAN SITUS & KONTAK TERPADU (SITE SETTINGS)

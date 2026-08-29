@@ -480,38 +480,45 @@ function renderFeaturedDocuments() {
   }).join('');
 }
 
-// 8. BERITA TERBARU KEDINASAN HOMEPAGE (3 BERITA UTAMA UNGGULAN AGAR RINGKAS DI MOBILE)
+// 8. BERITA TERBARU KEDINASAN HOMEPAGE (3 BERITA UTAMA UNGGULAN DENGAN DESAIN PROFESIONAL TANPA DESKRIPSI)
 function renderHomeNews() {
   const container = document.getElementById('homeNewsGrid') || document.getElementById('newsGrid');
   if (!container) return;
 
-  const news = getStorage('disperindag_news', DEFAULT_NEWS).slice(0, 3);
-  container.innerHTML = news.map(item => `
-    <article class="news-card">
-      <div class="news-thumb">
-        <img src="${item.img}" alt="${item.title}" loading="lazy" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
-        <span class="news-cat-badge">${item.category}</span>
-      </div>
-      <div class="news-body">
-        <div class="news-meta">
-          <span>📅 ${item.date}</span>
-          <span>✍️ ${item.author}</span>
+  const rawNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const news = (Array.isArray(rawNews) ? rawNews : []).slice(0, 3);
+  
+  container.innerHTML = news.map(item => {
+    const rawTag = Array.isArray(item.tags) && item.tags.length > 0 
+      ? item.tags[0].replace(/^#/, '') 
+      : (item.topic_tag || 'Kedinasan');
+
+    return `
+      <article class="news-card">
+        <div class="news-thumb">
+          <img src="${item.img}" alt="${item.title}" loading="lazy" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
+          <span class="news-cat-badge">${item.category}</span>
         </div>
-        <h3 class="news-title">
-          <a href="berita.html?id=${item.id}" style="color: inherit; text-decoration: none;">
-            ${item.title}
-          </a>
-        </h3>
-        <p class="news-excerpt">${item.excerpt}</p>
-        <div style="margin-top: auto; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-          <a href="berita.html?id=${item.id}" class="news-read-more">
-            Baca Selengkapnya &rarr;
-          </a>
-          <span style="font-size: 0.74rem; color: #94A3B8;">${item.topic_tag || 'Dinas'}</span>
+        <div class="news-body">
+          <div class="news-meta">
+            <span class="news-meta-item">📅 ${item.date}</span>
+            <span class="news-meta-item">✍️ ${item.author}</span>
+          </div>
+          <h3 class="news-title">
+            <a href="berita.html?id=${item.id}" title="${item.title}">
+              ${item.title}
+            </a>
+          </h3>
+          <div class="news-footer">
+            <span class="news-topic-tag">#${rawTag}</span>
+            <a href="berita.html?id=${item.id}" class="news-action-link" title="Baca rilis berita resmi">
+              Baca Rilis <span class="action-arrow">&rarr;</span>
+            </a>
+          </div>
         </div>
-      </div>
-    </article>
-  `).join('');
+      </article>
+    `;
+  }).join('');
 }
 
 // 9. ETALASE PRODUK IKM BINAAN HOMEPAGE

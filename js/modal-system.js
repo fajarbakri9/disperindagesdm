@@ -197,6 +197,116 @@ const CustomModal = {
         }
       };
     });
+  },
+
+  form({ title = "Formulir Input", icon = "📝", fields = [], onSubmit = null, submitText = "Simpan Data", cancelText = "Batal", width = "580px" }) {
+    this.init();
+    return new Promise((resolve) => {
+      const renderField = (f) => {
+        const reqAttr = f.required ? 'required' : '';
+        const val = f.value !== undefined && f.value !== null ? f.value : '';
+        const ph = f.placeholder || '';
+
+        if (f.type === 'select') {
+          const opts = (f.options || []).map(opt => {
+            const optVal = typeof opt === 'object' ? opt.value : opt;
+            const optLbl = typeof opt === 'object' ? opt.label : opt;
+            const selected = String(optVal) === String(val) ? 'selected' : '';
+            return `<option value="${optVal}" ${selected}>${optLbl}</option>`;
+          }).join('');
+          return `
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: #0F2C59; margin-bottom: 4px; display: block;">
+                ${f.label} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
+              </label>
+              <select name="${f.name}" class="form-select" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF;" ${reqAttr}>
+                ${opts}
+              </select>
+            </div>
+          `;
+        }
+
+        if (f.type === 'textarea') {
+          return `
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: #0F2C59; margin-bottom: 4px; display: block;">
+                ${f.label} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
+              </label>
+              <textarea name="${f.name}" rows="${f.rows || 3}" class="form-textarea" placeholder="${ph}" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF; resize: vertical;" ${reqAttr}>${val}</textarea>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: #0F2C59; margin-bottom: 4px; display: block;">
+              ${f.label} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
+            </label>
+            <input type="${f.type || 'text'}" name="${f.name}" value="${val}" placeholder="${ph}" class="form-input" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF;" ${reqAttr}>
+          </div>
+        `;
+      };
+
+      this.backdropEl.innerHTML = `
+        <div class="custom-modal-card" style="max-width: ${width}; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(15, 44, 89, 0.35);">
+          <div class="custom-modal-header" style="background: linear-gradient(135deg, #0F2C59 0%, #1E3A8A 100%); color: #FFFFFF; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="background: rgba(255,255,255,0.15); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">${icon}</div>
+              <div>
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin: 0;">${title}</h3>
+                <span style="font-size: 0.72rem; color: #CBD5E1;">Disperindag ESDM Kabupaten Pinrang</span>
+              </div>
+            </div>
+            <button type="button" id="btnModalFormHeaderClose" style="background: transparent; border: none; color: #FFFFFF; font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 0 4px;">&times;</button>
+          </div>
+          <form id="customModalDynamicForm" style="margin: 0;">
+            <div class="custom-modal-body" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+              ${fields.map(renderField).join('')}
+            </div>
+            <div class="custom-modal-footer" style="padding: 14px 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0; display: flex; justify-content: flex-end; gap: 10px;">
+              <button type="button" class="btn-modal-action btn-modal-secondary" id="btnModalFormCancel" style="padding: 8px 16px; font-size: 0.84rem; cursor: pointer;">
+                ${cancelText}
+              </button>
+              <button type="submit" class="btn-modal-action btn-modal-primary" id="btnModalFormSubmit" style="padding: 8px 20px; font-size: 0.84rem; cursor: pointer; background: #0F2C59; color: #FFFFFF; font-weight: 800;">
+                ✓ ${submitText}
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+
+      this.backdropEl.classList.add('active');
+
+      const closeFormModal = () => {
+        this.backdropEl.classList.remove('active');
+        resolve(null);
+      };
+
+      document.getElementById('btnModalFormHeaderClose').onclick = closeFormModal;
+      document.getElementById('btnModalFormCancel').onclick = closeFormModal;
+
+      const formEl = document.getElementById('customModalDynamicForm');
+      formEl.onsubmit = (e) => {
+        e.preventDefault();
+        const formData = new FormData(formEl);
+        const values = {};
+        for (const [key, value] of formData.entries()) {
+          values[key] = value;
+        }
+
+        this.backdropEl.classList.remove('active');
+        if (typeof onSubmit === 'function') {
+          onSubmit(values);
+        }
+        resolve(values);
+      };
+    });
+  },
+
+  toast(message = "", type = "success", title = "Informasi") {
+    if (typeof CustomToast !== 'undefined' && CustomToast.show) {
+      CustomToast.show({ title, message, type });
+    }
   }
 };
 

@@ -667,9 +667,12 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>Daftar Produk IKM Binaan Daerah</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Binaan Disperindag ESDM dan Dekranasda Pinrang.</p>
+            <h3>🏭 Daftar & Etalase Produk IKM Binaan Daerah</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Kelola etalase komoditas unggulan IKM binaan Disperindag ESDM dan Dekranasda Pinrang.</p>
           </div>
+          <button onclick="openAddIkmModal()" class="btn-primary" style="padding: 9px 16px; font-size: 0.82rem;">
+            <span>➕</span> Tambah Produk IKM Baru
+          </button>
         </div>
 
         <div style="overflow-x: auto;">
@@ -727,9 +730,12 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>Manajemen Akun Pengguna ASN & Pembagian Hak Akses (RBAC)</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Hanya Super Admin & Sekretariat yang dapat mengelola hak akses akun.</p>
+            <h3>👥 Manajemen Akun Pengguna ASN & Pembagian Hak Akses (RBAC)</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Kelola data aparatur, penetapan peran jabatan, hak akses CMS panel, dan reset kata sandi.</p>
           </div>
+          <button onclick="openAddUserModal()" class="btn-primary" style="padding: 9px 16px; font-size: 0.82rem;">
+            <span>➕</span> Tambah Pengguna ASN Baru
+          </button>
         </div>
 
         <div style="overflow-x: auto;">
@@ -738,9 +744,10 @@
               <tr>
                 <th>Pengguna</th>
                 <th>NIP</th>
-                <th>Jabatan / Unit</th>
+                <th>Jabatan / Unit Kerja</th>
                 <th>Peran Akses (Role)</th>
-                <th>Akses Panel</th>
+                <th>Hak Akses Panel</th>
+                <th style="text-align: center;">Aksi</th>
               </tr>
             </thead>
             <tbody id="adminUsersTableBody">
@@ -898,7 +905,7 @@
                 <th>Status Pantauan</th>
                 <th>Pangkalan LPG</th>
                 <th>Catatan Kondisi Lapangan</th>
-                <th>Aksi Cepat</th>
+                <th style="text-align: center;">Aksi</th>
               </tr>
             </thead>
             <tbody id="ccDistrictsTableBody">
@@ -919,7 +926,7 @@
           </div>
           <div style="display: flex; gap: 8px;">
             <a href="media-intelligence.html" target="_blank" class="btn-primary" style="background: #0284C7; text-decoration: none; font-size: 0.8rem; padding: 7px 14px;">
-              <span>👁️</span> Buka Layar Intelijen Live
+              <span>👁️</span> Buka Layar Radar Live ↗
             </a>
           </div>
         </div>
@@ -930,7 +937,7 @@
             <span>📊</span> Ringkasan Metrik Intelijen & Status Pengawasan (24 Jam)
           </h4>
 
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px;">
             <div class="form-group">
               <label class="form-label" style="font-size: 0.78rem;">Total Sebutan (Mentions):</label>
               <input type="number" id="mi_total_mentions" class="form-input" required placeholder="Contoh: 1482">
@@ -949,21 +956,21 @@
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <span style="font-size: 0.75rem; color: #64748B;">* Data ini mengontrol angka pada 5 kartu indikator di bagian atas layar intelijen.</span>
-            <button type="submit" class="btn-primary" style="font-size: 0.82rem; padding: 8px 18px;">
+            <button type="submit" class="btn-primary" style="font-size: 0.82rem; padding: 8px 20px;">
               <span>💾</span> Simpan Ringkasan Metrik
             </button>
           </div>
         </form>
 
         <!-- KELOLA DAFTAR BERITA MAINSTREAM -->
-        <div style="margin-bottom: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59;">
+        <div style="margin-bottom: 28px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0;">
               📰 Pantauan Berita Online & Rilis Media Terverifikasi
             </h4>
-            <button onclick="openAddMediaNewsModal()" class="btn-primary" style="font-size: 0.8rem; padding: 6px 12px;">
+            <button onclick="openAddMediaNewsModal()" class="btn-primary" style="font-size: 0.8rem; padding: 7px 14px;">
               <span>➕</span> Tambah Berita Baru
             </button>
           </div>
@@ -974,9 +981,9 @@
                 <tr>
                   <th>Media & Kategori</th>
                   <th>Judul Artikel Berita</th>
-                  <th>Tautan Spesifik Asli</th>
-                  <th>Sentimen / Sifat</th>
-                  <th>Aksi</th>
+                  <th>Tautan Berita Asli</th>
+                  <th>Sentimen</th>
+                  <th style="text-align: center;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="miNewsTableBody">
@@ -987,12 +994,12 @@
         </div>
 
         <!-- KELOLA SUARA & KOMENTAR WARGA -->
-        <div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59;">
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0;">
               💬 Suara Warga, Aspirasi & Disposisi Isu Kritis
             </h4>
-            <button onclick="openAddCitizenCommentModal()" class="btn-primary" style="font-size: 0.8rem; padding: 6px 12px; background: #059669;">
+            <button onclick="openAddCitizenCommentModal()" class="btn-primary" style="font-size: 0.8rem; padding: 7px 14px; background: #059669;">
               <span>➕</span> Tambah Komentar Warga
             </button>
           </div>
@@ -1005,7 +1012,7 @@
                   <th>Isi Aspirasi / Keluhan</th>
                   <th>Status Sentimen</th>
                   <th>Disposisi & Respon Dinas</th>
-                  <th>Aksi</th>
+                  <th style="text-align: center;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="miCommentsTableBody">
@@ -1018,51 +1025,171 @@
       </div>
     </div>
 
-    <!-- 10. TAB: KONFIGURASI & AUDIT -->
+    <!-- 10. TAB: KONFIGURASI & AUDIT SISTEM TERPADU -->
     <div class="admin-panel admin-tab-content" id="tabSettings">
+      
+      <!-- 1. Form Konfigurasi Identitas & Kontak Portal -->
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>Pengaturan Portal & Riwayat Audit Log</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Konfigurasi identitas kedinasan, kontak resmi, dan catatan integritas data.</p>
+            <h3>⚙️ Konfigurasi Identitas, Kontak & Jam Pelayanan Portal</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Perbarui data kontak dinas, nomor hotline aduan, jam kerja pelayanan publik, dan akun media sosial yang tampil di seluruh portal.</p>
           </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div style="background: #F8FAFC; padding: 18px; border-radius: 12px; border: 1px solid #E2E8F0;">
-            <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 10px;">
-              🛡️ Integritas Lingkungan Produksi (Production Mode)
-            </h4>
-            <p style="font-size: 0.84rem; color: #475569; line-height: 1.55; margin-bottom: 12px;">
-              Sistem berjalan pada mode <strong>Production Aman</strong>. Seluruh kredensial demo, role switcher terbuka, dan tombol pembersihan destruktif dikunci secara otomatis.
-            </p>
-            <span class="verified-badge">✓ Production Guard Active</span>
+        <form id="formSiteSettings" onsubmit="saveSiteSettings(event)">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-bottom: 20px;">
+            
+            <div class="form-group">
+              <label class="form-label">📍 Alamat Kantor Dinas:</label>
+              <input type="text" id="set_office_address" class="form-input" required placeholder="Contoh: Jl. Bintang No. 1, Kab. Pinrang">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📞 Hotline / WhatsApp Resmi:</label>
+              <input type="text" id="set_contact_wa" class="form-input" required placeholder="Contoh: 0823 1600 2226">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">✉️ Email Resmi Dinas:</label>
+              <input type="email" id="set_contact_email" class="form-input" required placeholder="Contoh: dinasperindagesdm.pinrang@gmail.com">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🕒 Jam Layanan Tatap Muka (Senin - Kamis):</label>
+              <input type="text" id="set_hours_weekday" class="form-input" required placeholder="Contoh: 07.30 - 16.00 WITA">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🕒 Jam Layanan Tatap Muka (Jumat):</label>
+              <input type="text" id="set_hours_friday" class="form-input" required placeholder="Contoh: 07.30 - 16.30 WITA">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📸 Akun Instagram Resmi:</label>
+              <input type="text" id="set_social_ig" class="form-input" placeholder="Contoh: @disperindagesdm_pinrang">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📘 Akun Facebook Resmi:</label>
+              <input type="text" id="set_social_fb" class="form-input" placeholder="Contoh: Disperindag ESDM Pinrang">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📺 Saluran YouTube Resmi:</label>
+              <input type="text" id="set_social_yt" class="form-input" placeholder="Contoh: Disperindag ESDM Pinrang Official">
+            </div>
+
           </div>
 
-          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; padding: 18px; border-radius: 12px;">
-            <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 10px;">
-              📋 Kontak Resmi Terpadu (Site Settings)
-            </h4>
-            <div style="font-size: 0.84rem; color: #334155; line-height: 1.6;">
-              <div>📍 <strong>Alamat Kantor:</strong> Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</div>
-              <div>📞 <strong>Hotline / WhatsApp:</strong> 0823 1600 2226</div>
-              <div>✉️ <strong>Email Resmi:</strong> dinasperindagem.pinrang@gmail.com</div>
-              <div>🌐 <strong>Portal Resmi:</strong> https://disperindagesdm-pinrang.web.app / disperindagesdm.pinrangkab.go.id</div>
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn-primary" style="padding: 10px 24px; font-size: 0.88rem;">
+              <span>💾</span> Simpan & Terapkan Konfigurasi Portal
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 2. Pusat Backup & Pemulihan Data Master -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h3>💾 Pusat Ekspor, Cadangan (Backup) & Pemulihan Master Data</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Unduh seluruh basis data dinas (harga, berita, banner, aduan, dokumen, pengguna) atau pulihkan dari berkas cadangan JSON.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h4 style="font-size: 0.92rem; font-weight: 800; color: #0F2C59; margin-bottom: 6px;">
+                📥 Cadangkan Master Data (Export JSON)
+              </h4>
+              <p style="font-size: 0.8rem; color: #475569; line-height: 1.5; margin-bottom: 14px;">
+                Unduh snapshot lengkap seluruh data portal ke komputer lokal dalam format JSON terenkripsi aman.
+              </p>
+            </div>
+            <button onclick="exportAllDataJSON()" class="btn-primary" style="font-size: 0.82rem; padding: 9px 14px; background: #0284C7;">
+              <span>📥</span> Unduh Berkas Backup (.json)
+            </button>
+          </div>
+
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h4 style="font-size: 0.92rem; font-weight: 800; color: #059669; margin-bottom: 6px;">
+                📤 Pulihkan Master Data (Import JSON)
+              </h4>
+              <p style="font-size: 0.8rem; color: #475569; line-height: 1.5; margin-bottom: 14px;">
+                Unggah berkas JSON cadangan yang pernah diunduh untuk memulihkan seluruh data sistem seketika.
+              </p>
+            </div>
+            <div>
+              <input type="file" id="importBackupFileInput" accept=".json" style="display: none;" onchange="importDataJSON(event)">
+              <button onclick="document.getElementById('importBackupFileInput').click()" class="btn-primary" style="font-size: 0.82rem; padding: 9px 14px; background: #059669; width: 100%;">
+                <span>📤</span> Unggah & Pulihkan Data
+              </button>
             </div>
           </div>
+
+          <div style="background: #FFFBEB; border: 1px solid #FDE68A; padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h4 style="font-size: 0.92rem; font-weight: 800; color: #B45309; margin-bottom: 6px;">
+                🔄 Reset ke Master Data Resmi Standar
+              </h4>
+              <p style="font-size: 0.8rem; color: #92400E; line-height: 1.5; margin-bottom: 14px;">
+                Kembalikan seluruh basis data ke setelan pabrik kedinasan resmi (*Default Dataset Pinrang*).
+              </p>
+            </div>
+            <button onclick="resetMasterDataToDefault()" class="btn-outline" style="font-size: 0.82rem; padding: 9px 14px; color: #B45309; border-color: #F59E0B;">
+              <span>🔄</span> Reset ke Data Standar Resmi
+            </button>
+          </div>
+
         </div>
       </div>
+
+      <!-- 3. Riwayat Audit Log & Aktivitas Administrator -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h3>📋 Catatan Audit Integritas & Riwayat Aktivitas Sistem</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Log transparansi riwayat pembaruan harga, publikasi berita, pengaduan, dan aktivitas sesi aparatur.</p>
+          </div>
+          <button onclick="clearAuditLogs()" class="btn-outline" style="font-size: 0.78rem; padding: 6px 12px;">
+            <span>🧹</span> Bersihkan Log Riwayat
+          </button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Waktu (WITA)</th>
+                <th>Pengguna ASN</th>
+                <th>Kategori Modul</th>
+                <th>Aksi Aktivitas</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminAuditLogsTableBody">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </main>
 
-  <script src="js/data.js?v=20260829_newsroom_v6"></script>
-  <script src="js/modal-system.js?v=20260829_newsroom_v6"></script>
-  <script src="js/auth.js?v=20260829_newsroom_v6"></script>
+  <script src="js/data.js?v=20260829_admin_v8"></script>
+  <script src="js/modal-system.js?v=20260829_admin_v8"></script>
+  <script src="js/auth.js?v=20260829_admin_v8"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="js/firebase-config.js?v=20260829_newsroom_v6"></script>
-  <script src="js/admin.js?v=20260829_newsroom_v6"></script>
+  <script src="js/firebase-config.js?v=20260829_admin_v8"></script>
+  <script src="js/admin.js?v=20260829_admin_v8"></script>
 </body>
 </html>
