@@ -2507,7 +2507,11 @@ window.openEditUserModal = function(targetUsername) {
       u.canAccessAdmin = vals.panel_access === "both";
       u.canManageUsers = vals.role === 'super_admin' || vals.role === 'sekretariat_admin';
 
-      if (vals.new_password && vals.new_password.trim().length >= 4) {
+      if (vals.new_password && vals.new_password.trim().length > 0 && vals.new_password.trim().length < 12) {
+        CustomModal.alert({ title: 'Kata Sandi Terlalu Pendek', message: 'Kata sandi baru harus memiliki sedikitnya 12 karakter.', type: 'warning', icon: '!' });
+        return;
+      }
+      if (vals.new_password && vals.new_password.trim().length >= 12) {
         u.password = vals.new_password.trim();
       }
 
