@@ -31,6 +31,10 @@
     ],
     "rewrites": [
       {
+        "source": "/berita",
+        "destination": "/berita.html"
+      },
+      {
         "source": "/berita/**",
         "destination": "/berita.html"
       },
