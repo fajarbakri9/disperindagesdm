@@ -125,14 +125,14 @@ function refreshAgentDashboardUI() {
 
   // Rekap Hari Ini
   const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLpgWitaDateKey();
   let todayIn = 0;
   let todayOut = 0;
 
   const agentEvents = events.filter(e => e.agentId === currentAgentId && isLocallyAppliedLpgEvent(e));
   
   agentEvents.forEach(e => {
-    const eDate = (e.effectiveAt || e.createdAt || '').slice(0, 10);
+    const eDate = getLpgWitaDateKey(e.effectiveAt || e.createdAt);
     if (eDate === todayStr) {
       if (e.type === 'STOCK_IN') todayIn += e.quantity;
       if (e.type === 'DISTRIBUTION') todayOut += e.quantity;

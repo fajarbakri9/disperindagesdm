@@ -102,6 +102,7 @@ function publishLpgDashboardSnapshot() {
   clearTimeout(lpgSnapshotWriteTimer);
   lpgSnapshotWriteTimer = setTimeout(async () => {
     const summary = refreshLpgDashboardSummary();
+    const alerts = getAdminLpgAlertSummary();
     try {
       await db.collection('lpg_dashboard').doc('summary').set({
         officialAgents: summary.activeAgents,
@@ -109,6 +110,10 @@ function publishLpgDashboardSnapshot() {
         stockAtAgents: summary.stockAtAgents,
         distributedToday: summary.distributedToday,
         distributedThisMonth: summary.distributedThisMonth,
+        negativeStockAgents: alerts.negativeStockAgents.length,
+        inactiveAgentsToday: alerts.inactiveAgentsToday.length,
+        pendingPangkalanVerification: alerts.pendingVerification.length,
+        pendingPhuReview: alerts.pendingPhuReview.length,
         monthlyAllocation: null,
         allocationStatus: 'UNAVAILABLE',
         source: 'IMMUTABLE_LPG_EVENTS_SUM_DELTA',
@@ -161,6 +166,42 @@ function refreshAdminLpgStats() {
   if (pangkalanEl) pangkalanEl.textContent = `${summary.totalPangkalan} Pangkalan`;
   if (stockEl) stockEl.textContent = `${summary.stockAtAgents.toLocaleString('id-ID')} Tabung`;
   if (distEl) distEl.textContent = `${summary.distributedToday.toLocaleString('id-ID')} Tabung`;
+  renderAdminLpgAlerts();
+}
+
+function getAdminLpgAlertSummary() {
+  const agents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).filter(agent => agent.status === 'ACTIVE');
+  const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
+  const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
+  const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
+  const today = getLpgWitaDateKey();
+  const reportingAgents = new Set(events.filter(event =>
+    getLpgWitaDateKey(event.effectiveAt || event.createdAt) === today
+  ).map(event => event.agentId));
+  return {
+    negativeStockAgents: agents.filter(agent => Number(balances[agent.id]?.filledCylinderBalance || 0) < 0),
+    inactiveAgentsToday: agents.filter(agent => !reportingAgents.has(agent.id)),
+    pendingVerification: pangkalan.filter(item => !item.isDeleted && item.verificationStatus === 'PENDING_ADMIN_VERIFICATION'),
+    pendingPhuReview: pangkalan.filter(item => !item.isDeleted && item.reviewFlag === 'POSSIBLE_PHU_AUG_2026')
+  };
+}
+
+function renderAdminLpgAlerts() {
+  const container = document.getElementById('adminLpgAlertsPanel');
+  if (!container) return;
+  const alerts = getAdminLpgAlertSummary();
+  const cards = [
+    { label: 'Saldo Negatif', count: alerts.negativeStockAgents.length, color: '#B91C1C', bg: '#FEF2F2', detail: 'Perlu rekonsiliasi stok', action: "switchAdminLpgSubView('agen')" },
+    { label: 'Belum Melapor Hari Ini', count: alerts.inactiveAgentsToday.length, color: '#B45309', bg: '#FFFBEB', detail: 'Dari agen aktif', action: "switchAdminLpgSubView('agen')" },
+    { label: 'Menunggu Verifikasi', count: alerts.pendingVerification.length, color: '#1D4ED8', bg: '#EFF6FF', detail: 'Pangkalan baru', action: "document.getElementById('adminLpgFilterStatus').value='PENDING';switchAdminLpgSubView('pangkalan')" },
+    { label: 'Review PHU', count: alerts.pendingPhuReview.length, color: '#7C3AED', bg: '#F5F3FF', detail: 'Perlu keputusan admin', action: "document.getElementById('adminLpgFilterStatus').value='PHU_FLAG';switchAdminLpgSubView('pangkalan')" }
+  ];
+  container.innerHTML = cards.map(card => `
+    <button type="button" onclick="${card.action}" style="text-align:left;border:1px solid ${card.color}33;background:${card.bg};border-radius:12px;padding:14px 16px;cursor:pointer;">
+      <div style="font-size:.7rem;text-transform:uppercase;font-weight:900;color:${card.color};">${card.label}</div>
+      <div style="font-size:1.55rem;font-weight:900;color:${card.color};margin:2px 0;">${card.count}</div>
+      <div style="font-size:.72rem;color:#64748B;">${card.detail}</div>
+    </button>`).join('');
 }
 
 // 2. SUBVIEW SWITCHER
@@ -529,7 +570,7 @@ function renderAdminLpgAgentsTable() {
   const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
   const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
   const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLpgWitaDateKey();
 
   tbody.innerHTML = agents.map(ag => {
     const agPangkalan = pangkalan.filter(p => p.agentId === ag.id && !p.isDeleted);
@@ -540,7 +581,7 @@ function renderAdminLpgAgentsTable() {
 
     events.forEach(e => {
       if (e.agentId === ag.id && isLocallyAppliedLpgEvent(e)) {
-        const eDate = (e.effectiveAt || e.createdAt || '').slice(0, 10);
+        const eDate = getLpgWitaDateKey(e.effectiveAt || e.createdAt);
         if (eDate === todayStr) {
           if (e.type === 'STOCK_IN') inToday += e.quantity;
           if (e.type === 'DISTRIBUTION') outToday += e.quantity;

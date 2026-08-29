@@ -438,6 +438,9 @@ function renderLpgDashboardSnapshot(data) {
   const bases = safeNumber(data.activePangkalan);
   const stock = safeNumber(data.stockAtAgents);
   const distributed = safeNumber(data.distributedToday);
+  const negative = safeNumber(data.negativeStockAgents) || 0;
+  const inactive = safeNumber(data.inactiveAgentsToday) || 0;
+  const pending = safeNumber(data.pendingPangkalanVerification) || 0;
   setSafeText('cc_s3_lpg_official_agents', agents === null ? '--' : `${agents} AGEN`);
   setSafeText('cc_s3_lpg_official_bases', bases === null ? 'PANGKALAN: --' : `${bases} Pangkalan`);
   setSafeText('cc_kpi_lpg_official_bases', bases === null ? 'Pangkalan: --' : `${bases} Pangkalan Terdaftar`);
@@ -446,6 +449,15 @@ function renderLpgDashboardSnapshot(data) {
     ? 'Alokasi bulanan: data belum tersedia'
     : `Alokasi Bulanan: ${(safeNumber(data.monthlyAllocation) || 0).toLocaleString('id-ID')} Tabung`;
   setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran hari ini: ${distributed === null ? '--' : distributed.toLocaleString('id-ID')} Tabung • ${allocationText}`);
+  const alertEl = document.getElementById('cc_s3_lpg_alert_status');
+  if (alertEl) {
+    const hasAlert = negative > 0 || inactive > 0 || pending > 0;
+    alertEl.style.background = hasAlert ? 'rgba(245,158,11,.14)' : 'rgba(16,185,129,.12)';
+    alertEl.style.color = hasAlert ? 'var(--accent-gold)' : 'var(--accent-emerald)';
+    alertEl.textContent = hasAlert
+      ? `PERLU PERHATIAN: ${negative} agen saldo negatif • ${inactive} agen belum melapor hari ini • ${pending} pangkalan menunggu verifikasi`
+      : 'STATUS TERKENDALI: tidak ada anomali saldo atau verifikasi tertunda';
+  }
 }
 
 function renderCommandCenterData(config, isFromCache = false) {

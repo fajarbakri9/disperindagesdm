@@ -90,6 +90,15 @@ function generateUUID() {
   return 'evt_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
 }
 
+function getLpgWitaDateKey(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(date).reduce((result, part) => ({ ...result, [part.type]: part.value }), {});
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
 async function submitLpgLedgerEvent(eventData, userSession) {
   const firebaseUser = typeof auth !== 'undefined' && auth ? auth.currentUser : null;
   if (!firebaseUser || typeof db === 'undefined' || !db) {
@@ -606,7 +615,7 @@ function refreshLpgDashboardSummary() {
   });
 
   // Rekap Distribusi & Stok Masuk Hari Ini
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLpgWitaDateKey();
   let stockInToday = 0;
   let distributedToday = 0;
   let distributedThisMonth = 0;
@@ -616,7 +625,7 @@ function refreshLpgDashboardSummary() {
 
   events.forEach(e => {
     if (isLocallyAppliedLpgEvent(e)) {
-      const eDate = (e.effectiveAt || e.createdAt || '').slice(0, 10);
+      const eDate = getLpgWitaDateKey(e.effectiveAt || e.createdAt);
       if (eDate === todayStr) {
         if (e.type === 'STOCK_IN') stockInToday += e.quantity;
         if (e.type === 'DISTRIBUTION') distributedToday += e.quantity;
@@ -642,7 +651,7 @@ function refreshLpgDashboardSummary() {
       e.type === 'DISTRIBUTION' && 
       e.pangkalanSnapshot && 
       e.pangkalanSnapshot.kecamatan === kec &&
-      (e.effectiveAt || '').slice(0, 10) === todayStr
+      getLpgWitaDateKey(e.effectiveAt || e.createdAt) === todayStr
     );
 
     kecamatanStatus[kec] = {
