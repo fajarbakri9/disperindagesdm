@@ -8,6 +8,7 @@ const ADMIN_LPG_PER_PAGE = 20;
 let unsubscribeAdminLpgPangkalan = null;
 let unsubscribeAdminLpgAudit = null;
 let unsubscribeAdminLpgEvents = null;
+let unsubscribeAdminLpgAgents = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdminLpgMonitoring();
@@ -41,6 +42,14 @@ function subscribeAdminLpgFirestore() {
     renderAdminLpgAgentsTable();
     publishLpgDashboardSnapshot();
   }, error => console.error('[-] Sinkron master pangkalan admin gagal:', error.code));
+
+  unsubscribeAdminLpgAgents = db.collection('lpg_agents').onSnapshot(snapshot => {
+    const agents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setLpgStore(LPG_STORAGE_KEYS.AGENTS, agents);
+    refreshAdminLpgStats();
+    renderAdminLpgAgentsTable();
+    publishLpgDashboardSnapshot();
+  }, error => console.error('[-] Sinkron master agen admin gagal:', error.code));
 
   unsubscribeAdminLpgAudit = db.collection('lpg_audit_logs')
     .orderBy('createdAt', 'desc').limit(100).onSnapshot(snapshot => {
@@ -404,7 +413,7 @@ function adminVerifyPangkalanLocalLegacy(pangkalanId) {
   renderAdminLpgPangkalanTable();
 };
 
-window.adminResolvePhuFlag = function(pangkalanId) {
+function adminResolvePhuFlagLocalLegacy(pangkalanId) {
   const pangkalanList = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
   const p = pangkalanList.find(item => item.id === pangkalanId);
   if (!p) return;
@@ -541,7 +550,7 @@ function renderAdminLpgAgentsTable() {
 
     const isReported = inToday > 0 || outToday > 0;
     const statusReportBadge = isReported 
-      ? `<span style="background:#FFFBEB; color:#92400E; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Catatan Lokal Hari Ini</span>`
+      ? `<span style="background:#ECFDF5; color:#065F46; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Ledger Firestore Hari Ini</span>`
       : `<span style="background:#F1F5F9; color:#64748B; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Belum Ada Catatan</span>`;
 
     return `
@@ -562,7 +571,7 @@ function renderAdminLpgAgentsTable() {
 }
 
 // 5.1 REGISTRASI AGEN KE-9 / REKONSILIASI AGEN BARU
-window.openAdminAddAgentModal = async function() {
+async function openAdminAddAgentModalLocalLegacy() {
   const name = await CustomModal.prompt({
     title: "Registrasi Agen Resmi Baru (Rekonsiliasi Agen ke-9)",
     message: "Masukkan <strong>Nama Perusahaan PT Agen Penyalur LPG 3 Kg</strong> resmi yang telah terverifikasi oleh Pertamina dan Disperindag Pinrang:",
@@ -626,6 +635,84 @@ window.openAdminAddAgentModal = async function() {
 
   refreshAdminLpgStats();
   renderAdminLpgAgentsTable();
+};
+
+window.adminResolvePhuFlag = function(pangkalanId) {
+  const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []).find(item => item.id === pangkalanId);
+  if (!pangkalan) return;
+  CustomModal.confirm({
+    title: 'Tetapkan PHU / Nonaktif?',
+    message: `Pangkalan <strong>${pangkalan.name}</strong> akan berstatus PHU dan tidak dapat dipilih untuk distribusi baru. Histori lama tetap dipertahankan.`,
+    confirmText: 'Tetapkan PHU', cancelText: 'Batal', type: 'warning',
+    onConfirm: async () => {
+      try {
+        const result = await commitAdminPangkalanAction(pangkalan, {
+          status: 'PHU', isDeleted: true, reviewFlag: null,
+          deleteReason: 'Pemutusan Hubungan Usaha (PHU) setelah verifikasi Disperindag',
+          deletedBy: auth.currentUser.uid,
+          deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, {
+          action: 'PANGKALAN_PHU',
+          before: { status: pangkalan.status, reviewFlag: pangkalan.reviewFlag || null },
+          after: { status: 'PHU', isDeleted: true, reviewFlag: null },
+          reason: 'PHU ditetapkan setelah verifikasi manual Disperindag ESDM Pinrang'
+        });
+        if (!result.success) throw new Error(result.message);
+        CustomModal.alert({ title: 'Status PHU Tersimpan', message: 'Status tersimpan di Firestore dan histori distribusi tetap utuh.', icon: '✓', type: 'info' });
+      } catch (error) {
+        CustomModal.alert({ title: 'Gagal Menetapkan PHU', message: error.message || 'Write Firestore ditolak.', icon: '!', type: 'error' });
+      }
+    }
+  });
+};
+
+window.openAdminAddAgentModal = async function() {
+  if (!auth?.currentUser || !db) {
+    CustomModal.alert({ title: 'Sesi Firebase Diperlukan', message: 'Silakan login ulang sebagai administrator.', icon: '!', type: 'warning' });
+    return;
+  }
+  const name = await CustomModal.prompt({
+    title: 'Registrasi Agen Resmi Baru',
+    message: 'Masukkan nama perusahaan sesuai dokumen resmi Pertamina/Disperindag. Data ini akan menjadi master Firestore.',
+    defaultValue: 'PT. ', inputType: 'text', icon: '🏢', confirmText: 'Simpan Agen'
+  });
+  const cleanName = (name || '').trim();
+  if (!cleanName || cleanName === 'PT.') return;
+  const agents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []);
+  if (agents.some(agent => String(agent.name).trim().toUpperCase() === cleanName.toUpperCase())) {
+    CustomModal.alert({ title: 'Agen Sudah Ada', message: 'Nama perusahaan yang sama sudah terdaftar.', icon: '!', type: 'warning' });
+    return;
+  }
+  const usedNumbers = agents.map(agent => Number(String(agent.id).replace('AG-', ''))).filter(Number.isInteger);
+  const nextNumber = Math.max(0, ...usedNumbers) + 1;
+  const newId = `AG-${String(nextNumber).padStart(3, '0')}`;
+  const ref = db.collection('lpg_agents').doc(newId);
+  const auditRef = db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`);
+  const payload = {
+    id: newId, name: cleanName, normalizedName: cleanName.toUpperCase(),
+    status: 'ACTIVE', phone: null, address: null, initialCylinderQuota: null,
+    sourceType: 'DISPERINDAG_RECONCILED', sourceDate: new Date().toISOString().slice(0, 10),
+    verificationStatus: 'VERIFIED', createdBy: auth.currentUser.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    await db.runTransaction(async transaction => {
+      const existing = await transaction.get(ref);
+      if (existing.exists) throw new Error(`Kode ${newId} sudah digunakan. Muat ulang halaman.`);
+      transaction.set(ref, payload);
+      transaction.set(auditRef, {
+        action: 'AGENT_CREATE', entityType: 'AGENT', entityId: newId, agentId: newId,
+        actorUid: auth.currentUser.uid, actorRole: getCurrentSession()?.role || 'DISPERINDAG_ADMIN',
+        before: null, after: { name: cleanName, status: 'ACTIVE' },
+        reason: 'Registrasi agen resmi berdasarkan hasil rekonsiliasi Disperindag/Pertamina',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+    CustomModal.alert({ title: 'Agen Baru Terdaftar', message: `<strong>${cleanName}</strong> tersimpan sebagai ${newId} di Firestore.`, icon: '✓', type: 'info' });
+  } catch (error) {
+    CustomModal.alert({ title: 'Gagal Menambah Agen', message: error.message || `Firestore menolak registrasi (${error.code || 'unknown'}).`, icon: '!', type: 'error' });
+  }
 };
 
 // 6. TABEL BUKU BESAR LEDGER TRANSAKSI
