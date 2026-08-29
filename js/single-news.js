@@ -87,7 +87,7 @@ function loadSidebarWidgets() {
     const otherNews = newsList.filter(n => n.id !== currentId).slice(0, 4);
 
     recentEl.innerHTML = otherNews.map(n => `
-      <a href="berita.html?id=${n.id}" class="recent-news-item">
+      <a href="berita/${n.slug || n.id}" class="recent-news-item">
         <div class="recent-news-thumb">
           <img src="${n.img}" alt="${n.title}" onerror="this.src='assets/banner/1741917868_c77d822a24b99f45347f.png'">
         </div>

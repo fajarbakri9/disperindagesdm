@@ -180,7 +180,7 @@ function renderHeroCarousel() {
         img: fn.img || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg',
         title: fn.title,
         caption: fn.excerpt || (fn.content ? fn.content.slice(0, 140) + '...' : 'Dokumentasi liputan kedinasan Disperindag ESDM Pinrang.'),
-        link: `berita.html?id=${fn.id}`,
+        link: `berita/${fn.slug || fn.id}`,
         active: true,
         is_news_headline: true
       });
@@ -506,13 +506,13 @@ function renderHomeNews() {
             <span class="news-meta-item">✍️ ${item.author}</span>
           </div>
           <h3 class="news-title">
-            <a href="berita.html?id=${item.id}" title="${item.title}">
+            <a href="berita/${item.slug || item.id}" title="${item.title}">
               ${item.title}
             </a>
           </h3>
           <div class="news-footer">
             <span class="news-topic-tag">#${rawTag}</span>
-            <a href="berita.html?id=${item.id}" class="news-action-link" title="Baca rilis berita resmi">
+            <a href="berita/${item.slug || item.id}" class="news-action-link" title="Baca rilis berita resmi">
               Baca Rilis <span class="action-arrow">&rarr;</span>
             </a>
           </div>

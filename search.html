@@ -358,7 +358,7 @@
             badgeColor: "#059669",
             title: n.title,
             desc: `Tanggal: ${n.date} &bull; Kategori: ${n.category} &bull; ${n.excerpt.substring(0, 120)}...`,
-            link: `berita.html?id=${n.id}`,
+            link: `berita/${n.slug || n.id}`,
             cta: "Baca Berita"
           });
         }

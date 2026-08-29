@@ -949,7 +949,7 @@ window.handleSaveNews = function(overrideStatus = null) {
       img: articleObj.img,
       title: articleObj.title,
       caption: articleObj.excerpt || (articleObj.content ? articleObj.content.slice(0, 140) + '...' : ''),
-      link: `berita.html?id=${articleObj.id}`,
+      link: `berita/${articleObj.slug || articleObj.id}`,
       active: true,
       is_news_headline: true
     };

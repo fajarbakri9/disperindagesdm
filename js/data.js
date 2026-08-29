@@ -1718,7 +1718,7 @@ const DEFAULT_MEDIA_INTELLIGENCE = {
 
 function initDataStoreMigration() {
   const currentVer = localStorage.getItem('disperindag_data_version');
-  const targetVer = "2026_08_29_harga_lengkap_v2";
+  const targetVer = "2026_08_29_seo_slug_v3";
   if (currentVer !== targetVer) {
     localStorage.setItem('disperindag_site_settings', JSON.stringify(DEFAULT_SITE_SETTINGS));
     localStorage.setItem('disperindag_contact_channels', JSON.stringify(DEFAULT_CONTACT_CHANNELS));
