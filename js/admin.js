@@ -293,7 +293,7 @@ function renderAdminNews(filterSearch = '', filterCat = '') {
             <button onclick="openNewsEditor('${item.id}')" class="btn-action-item btn-action-edit" title="Sunting Berita (WYSIWYG)">
               ✏️ Edit
             </button>
-            <a href="berita/${item.slug || item.id}" target="_blank" class="btn-action-item btn-action-view" title="Buka Halaman Rilis SEO Statis">
+            <a href="berita.html?id=${encodeURIComponent(item.id)}" target="_blank" class="btn-action-item btn-action-view" title="Buka Pratinjau Rilis Berita Real-Time">
               👁️ Lihat
             </a>
             <button onclick="copyNewsPublicLink('${item.slug || item.id}', '${(item.title || '').replace(/'/g, "\\'")}')" class="btn-action-item" style="background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE;" title="Salin Tautan Medsos (WhatsApp/FB)">
