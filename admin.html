@@ -1105,6 +1105,13 @@
           </button>
         </div>
 
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 16px;">
+          <button type="button" class="btn-primary admin-user-filter" data-user-filter="all" onclick="setAdminUserFilter('all')">Semua Akun</button>
+          <button type="button" class="btn-outline admin-user-filter" data-user-filter="employee" onclick="setAdminUserFilter('employee')">Pegawai Dinas</button>
+          <button type="button" class="btn-outline admin-user-filter" data-user-filter="agent" onclick="setAdminUserFilter('agent')">Agen LPG</button>
+          <div id="adminUsersSummary" style="margin-left:auto;font-size:.78rem;color:#64748B;font-weight:700;"></div>
+        </div>
+
         <div style="overflow-x: auto;">
           <table class="admin-table">
             <thead>
@@ -1561,7 +1568,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
-  <script src="js/admin.js?v=20260830_functional_rbac_v2"></script>
+  <script src="js/admin.js?v=20260830_user_groups_v3"></script>
   <script src="js/admin-lpg.js?v=20260830_lpg_dashboard_v5"></script>
 </body>
 </html>

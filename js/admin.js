@@ -2113,6 +2113,42 @@ window.openEditReportModal = function(repId) {
 // 8. TABEL PENGGUNA ASN & RBAC
 let firebaseManagedUsers = null;
 let firebaseUsersAuthWaitRegistered = false;
+let adminUserTypeFilter = 'all';
+
+const FIREBASE_ROLE_META = {
+  SUPER_ADMIN: { label: 'Super Administrator', icon: '👑', type: 'employee', permissions: ['all'] },
+  SECRETARIAT_ADMIN: { label: 'Sekretaris Dinas', icon: '📋', type: 'employee', permissions: ['dashboard','news','banners','documents','reports','command_center','settings'] },
+  TRADE_EDITOR: { label: 'Kabid Perdagangan & TPID', icon: '🛒', type: 'employee', permissions: ['dashboard','prices','news','reports','command_center'] },
+  INDUSTRY_ESDM_EDITOR: { label: 'Kabid Perindustrian, ESDM & Pengawas LPG', icon: '⚡', type: 'employee', permissions: ['dashboard','ikm','lpg','news','reports','command_center'] },
+  METROLOGY_EDITOR: { label: 'Kabid Kemetrologian', icon: '⚖', type: 'employee', permissions: ['dashboard','news','reports','command_center'] },
+  DISTRIBUTION_EDITOR: { label: 'Kabid Sarana Pasar & Distribusi', icon: '🏪', type: 'employee', permissions: ['dashboard','prices','news','reports','command_center'] },
+  PUBLIC_RELATIONS_EDITOR: { label: 'Editor Humas & Komunikasi Publik', icon: '📣', type: 'employee', permissions: ['dashboard','news','banners','reports','command_center','media'] },
+  LPG_ADMIN: { label: 'Administrator LPG Dinas', icon: '🔥', type: 'employee', permissions: ['dashboard','lpg','reports','command_center'] },
+  MARKET_OFFICER: { label: 'Petugas Operasional Pasar', icon: '🏬', type: 'employee', permissions: ['prices','reports'] },
+  LPG_AGENT_ADMIN: { label: 'Admin Agen LPG', icon: '⛽', type: 'agent', permissions: ['lpg_agent'] },
+  LPG_AGENT_OPERATOR: { label: 'Operator Agen LPG', icon: '🚚', type: 'agent', permissions: ['lpg_agent'] },
+  LPG_MONITOR: { label: 'Monitor LPG', icon: '👁', type: 'employee', permissions: ['lpg'] }
+};
+
+function getFirebaseRoleMeta(userOrRole) {
+  const role = typeof userOrRole === 'string' ? userOrRole : userOrRole?.role;
+  const fallbackType = userOrRole?.agentId ? 'agent' : 'employee';
+  return FIREBASE_ROLE_META[role] || { label: role || 'Tanpa Role', icon: '👤', type: fallbackType, permissions: [] };
+}
+
+function escapeAdminUserText(value, fallback = '-') {
+  const text = value === undefined || value === null || value === '' ? fallback : String(value);
+  return text.replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+}
+
+window.setAdminUserFilter = function(type) {
+  adminUserTypeFilter = ['all', 'employee', 'agent'].includes(type) ? type : 'all';
+  document.querySelectorAll('.admin-user-filter').forEach(button => {
+    button.className = button.dataset.userFilter === adminUserTypeFilter
+      ? 'btn-primary admin-user-filter' : 'btn-outline admin-user-filter';
+  });
+  renderAdminUsers();
+};
 
 async function loadFirebaseManagedUsers() {
   const session = getCurrentSession();
@@ -2140,7 +2176,7 @@ async function loadFirebaseManagedUsers() {
   }
 }
 
-function renderAdminUsers() {
+function renderAdminUsersLegacy() {
   const tbody = document.getElementById('adminUsersTableBody');
   if (!tbody) return;
 
@@ -2181,6 +2217,52 @@ function renderAdminUsers() {
       </tr>
     `;
   }).join('');
+}
+
+function renderAdminUsers() {
+  const tbody = document.getElementById('adminUsersTableBody');
+  if (!tbody) return;
+  const session = getCurrentSession();
+  if (session?.authProvider === 'FIREBASE' && firebaseManagedUsers === null) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748B;padding:28px;">Memuat akun Firebase...</td></tr>';
+    loadFirebaseManagedUsers();
+    return;
+  }
+  const sourceUsers = session?.authProvider === 'FIREBASE' ? firebaseManagedUsers : getAllUsers();
+  const users = (sourceUsers || []).map(user => ({ ...user, _meta: getFirebaseRoleMeta(user) }));
+  const employees = users.filter(user => user._meta.type === 'employee');
+  const agents = users.filter(user => user._meta.type === 'agent');
+  const groups = adminUserTypeFilter === 'employee' ? [['Pegawai Dinas', employees]]
+    : adminUserTypeFilter === 'agent' ? [['Agen Penyalur LPG 3 Kg', agents]]
+    : [['Pegawai Dinas', employees], ['Agen Penyalur LPG 3 Kg', agents]];
+  const summary = document.getElementById('adminUsersSummary');
+  if (summary) summary.textContent = `${employees.length} pegawai • ${agents.length} akun agen`;
+
+  tbody.innerHTML = groups.map(([label, groupUsers]) => {
+    if (!groupUsers.length) return '';
+    const isAgentGroup = label.startsWith('Agen');
+    const rows = groupUsers.map(user => {
+      const meta = user._meta;
+      const isCurrent = session && ((user.uid && session.uid === user.uid) || session.username === user.username);
+      const accessLabel = meta.type === 'agent' ? 'Portal Agen LPG'
+        : (user.role === 'MARKET_OFFICER' ? 'Aplikasi Petugas' : 'CMS Sesuai Fungsi');
+      const identityCode = meta.type === 'agent' ? user.agentId : user.nip;
+      const primaryPosition = meta.type === 'agent' ? user.agentName : user.position;
+      const secondaryPosition = meta.type === 'agent' ? 'Agen LPG 3 Kg' : user.unit;
+      return `<tr>
+        <td><strong>${escapeAdminUserText(user.name, 'Nama belum dilengkapi')}</strong> ${isCurrent ? '<span style="font-size:.68rem;background:#DCFCE7;color:#166534;padding:2px 6px;border-radius:4px;font-weight:800;">(Anda)</span>' : ''}<br><small style="color:#64748B;">${escapeAdminUserText(user.email || (user.username ? '@' + user.username : null))}</small></td>
+        <td><code>${escapeAdminUserText(identityCode)}</code></td>
+        <td><strong>${escapeAdminUserText(primaryPosition, meta.type === 'agent' ? 'Nama agen belum diisi' : 'Jabatan belum diisi')}</strong><br><small style="color:#64748B;">${escapeAdminUserText(secondaryPosition, 'Unit belum diisi')}</small></td>
+        <td><span class="badge-cat" style="background:${meta.type === 'agent' ? '#DCFCE7' : '#FEF3C7'};color:${meta.type === 'agent' ? '#166534' : '#92400E'};">${meta.icon} ${escapeAdminUserText(meta.label)}</span></td>
+        <td><span class="verified-badge">${accessLabel}</span></td>
+        <td style="text-align:center;"><div class="btn-action-group" style="justify-content:center;">
+          <button onclick="openEditUserModal('${escapeAdminUserText(user.uid || user.username)}')" class="btn-action-item btn-action-edit" title="Sunting profil dan hak akses">✏ Edit</button>
+          ${!isCurrent ? `<button onclick="deleteUserRecord('${escapeAdminUserText(user.uid || user.username)}')" class="btn-action-item btn-action-delete" title="Nonaktifkan akun">🗑</button>` : ''}
+        </div></td>
+      </tr>`;
+    }).join('');
+    return `<tr><td colspan="6" style="background:${isAgentGroup ? '#065F46' : '#1E3A8A'};color:#fff;font-weight:800;padding:10px 16px;">${label} <span style="opacity:.75;font-weight:600;">(${groupUsers.length})</span></td></tr>${rows}`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:28px;color:#64748B;">Tidak ada akun pada kategori ini.</td></tr>';
 }
 
 window.openAddUserModal = function() {
@@ -2442,7 +2524,7 @@ window.openEditUserModal = function(targetUsername) {
   });
 };
 
-function openEditFirebaseUserModal(uid) {
+function openEditFirebaseUserModalLegacy(uid) {
   const user = (firebaseManagedUsers || []).find(item => item.uid === uid);
   if (!user) return;
   CustomModal.form({
@@ -2487,6 +2569,73 @@ function openEditFirebaseUserModal(uid) {
       firebaseManagedUsers = null;
       await loadFirebaseManagedUsers();
       CustomModal.toast(`Profil ${user.email} berhasil diperbarui.`, 'success');
+    }
+  });
+}
+
+function openEditFirebaseUserModal(uid) {
+  const user = (firebaseManagedUsers || []).find(item => item.uid === uid);
+  if (!user) return;
+  const currentMeta = getFirebaseRoleMeta(user);
+  const isAgent = currentMeta.type === 'agent';
+  const roleOptions = Object.entries(FIREBASE_ROLE_META)
+    .filter(([, meta]) => meta.type === currentMeta.type)
+    .map(([value, meta]) => ({ value, label: `${meta.icon} ${meta.label}` }));
+  const fields = [
+    { name: 'name', label: isAgent ? 'Nama Operator Agen' : 'Nama Lengkap Pegawai', type: 'text', required: true, value: user.name || '' },
+    { name: 'role', label: 'Peran dan Hak Akses', type: 'select', required: true, value: user.role, options: roleOptions }
+  ];
+  if (isAgent) {
+    fields.push(
+      { name: 'agentId', label: 'Kode Agen', type: 'text', required: true, value: user.agentId || '', placeholder: 'AG-001' },
+      { name: 'agentName', label: 'Nama Perusahaan Agen', type: 'text', required: true, value: user.agentName || '' }
+    );
+  } else {
+    fields.push(
+      { name: 'nip', label: 'NIP (opsional)', type: 'text', value: user.nip || '' },
+      { name: 'position', label: 'Jabatan / Fungsi', type: 'text', required: true, value: user.position || '' },
+      { name: 'unit', label: 'Unit Kerja', type: 'text', required: true, value: user.unit || '' }
+    );
+  }
+  fields.push({
+    name: 'status', label: 'Status Akun', type: 'select', value: user.status || 'ACTIVE',
+    options: [{ value: 'ACTIVE', label: 'Aktif' }, { value: 'DISABLED', label: 'Dinonaktifkan' }]
+  });
+
+  CustomModal.form({
+    title: `${isAgent ? 'Sunting Akun Agen' : 'Sunting Akun Pegawai'}: ${user.email}`,
+    icon: isAgent ? '⛽' : '✏', fields,
+    onSubmit: async vals => {
+      const meta = getFirebaseRoleMeta(vals.role);
+      const update = {
+        name: vals.name.trim(), role: vals.role, roleLabel: meta.label, roleIcon: meta.icon,
+        permissions: meta.permissions, status: vals.status,
+        canAccessPetugas: vals.role === 'MARKET_OFFICER' || meta.type === 'agent',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: getCurrentSession().uid
+      };
+      if (isAgent) {
+        const agentId = (vals.agentId || '').trim().toUpperCase();
+        if (!/^AG-\d{3}$/.test(agentId)) {
+          CustomModal.alert({ title: 'Kode Agen Tidak Valid', message: 'Gunakan format AG-001.', type: 'warning', icon: '!' });
+          return;
+        }
+        update.agentId = agentId;
+        update.agentName = (vals.agentName || '').trim();
+      } else {
+        update.nip = (vals.nip || '').trim() || null;
+        update.position = (vals.position || '').trim();
+        update.unit = (vals.unit || '').trim();
+        update.agentId = null;
+        update.agentName = null;
+      }
+      try {
+        await db.collection('users').doc(uid).update(update);
+        firebaseManagedUsers = null;
+        await loadFirebaseManagedUsers();
+        CustomModal.toast(`Profil ${user.email} berhasil diperbarui.`, 'success');
+      } catch (error) {
+        CustomModal.alert({ title: 'Gagal Menyimpan', message: `Perubahan profil ditolak (${error.code || 'unknown'}).`, type: 'error', icon: '!' });
+      }
     }
   });
 }
