@@ -12,7 +12,9 @@ service cloud.firestore {
 
     function isLpgAdmin() {
       return signedIn() && currentUserProfile().status == 'ACTIVE' &&
-        currentUserProfile().role in ['SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'LPG_ADMIN'];
+        currentUserProfile().role in [
+          'SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'LPG_ADMIN', 'INDUSTRY_ESDM_EDITOR'
+        ];
     }
 
     function isSuperAdmin() {

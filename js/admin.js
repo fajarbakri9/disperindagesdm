@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   displayUserInfo(currentSession);
   initAdminTabs();
+  applyAdminPermissionVisibility(currentSession);
   renderDashboardStats();
   renderAdminPrices();
   renderAdminNews();
@@ -70,8 +71,40 @@ function initAdminTabs() {
   });
 }
 
+const ADMIN_TAB_PERMISSIONS = {
+  tabDashboard: 'dashboard', tabPrices: 'prices', tabNews: 'news',
+  tabBanners: 'banners', tabDocs: 'documents', tabIkm: 'ikm',
+  tabLpgMonitoring: 'lpg', tabReports: 'reports', tabUsers: 'users',
+  tabCommandCenter: 'command_center', tabMediaIntelligence: 'media',
+  tabSettings: 'settings'
+};
+
+function hasAdminTabPermission(session, tabId) {
+  if (!session) return false;
+  const permissions = Array.isArray(session.permissions) ? session.permissions : [];
+  return session.role === 'SUPER_ADMIN' || permissions.includes('all') ||
+    permissions.includes(ADMIN_TAB_PERMISSIONS[tabId]);
+}
+
+function applyAdminPermissionVisibility(session) {
+  document.querySelectorAll('.admin-tab-btn[data-tab]').forEach(button => {
+    const allowed = hasAdminTabPermission(session, button.dataset.tab);
+    button.hidden = !allowed;
+    button.setAttribute('aria-hidden', String(!allowed));
+  });
+}
+
 window.switchAdminTab = function(tabId) {
   if (!tabId) return;
+  const session = getCurrentSession();
+  if (!hasAdminTabPermission(session, tabId)) {
+    CustomModal.alert({
+      title: 'Akses Tidak Diizinkan',
+      message: 'Akun Anda tidak memiliki kewenangan untuk membuka modul ini.',
+      icon: '!', type: 'warning'
+    });
+    return;
+  }
 
   // 1. Reset status aktif semua tombol tab
   document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
