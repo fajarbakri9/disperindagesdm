@@ -118,7 +118,7 @@
 
   <script src="js/data.js?v=20260829_sync15_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
-  <script src="js/auth.js?v=20260829_sync15_v1"></script>
+  <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // Periksa apakah sudah ada sesi login aktif
@@ -152,7 +152,7 @@
 
           setTimeout(() => {
             const urlParams = new URLSearchParams(window.location.search);
-            const redirect = urlParams.get('redirect');
+            const redirect = getSafeInternalRedirect(urlParams.get('redirect'));
             if (redirect) {
               window.location.href = redirect;
             } else if (authResult.user.canAccessAdmin) {
@@ -172,6 +172,18 @@
         }
       });
     });
+
+    function getSafeInternalRedirect(value) {
+      if (!value || typeof value !== 'string') return null;
+      try {
+        const target = new URL(value, window.location.origin);
+        if (target.origin !== window.location.origin) return null;
+        if (!target.pathname.startsWith('/')) return null;
+        return `${target.pathname}${target.search}${target.hash}`;
+      } catch (error) {
+        return null;
+      }
+    }
 
     function showForgotPwdModal() {
       CustomModal.alert({

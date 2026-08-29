@@ -75,6 +75,11 @@ function processLpgEvent(eventData, userSession) {
     return { success: false, message: "Payload event tidak lengkap." };
   }
 
+  const supportedEventTypes = ['STOCK_IN', 'DISTRIBUTION'];
+  if (!supportedEventTypes.includes(eventData.type)) {
+    return { success: false, message: "Jenis transaksi tidak didukung oleh client. Adjustment dan opening balance harus diproses melalui backend/admin." };
+  }
+
   const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
   const clientEventId = eventData.clientEventId || generateUUID();
 

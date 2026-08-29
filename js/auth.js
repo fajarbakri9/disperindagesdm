@@ -8,6 +8,11 @@ const APP_ENV_KEY = "disperindag_app_env";
 
 // Environment Mode: 'production' (default) | 'development'
 function getAppEnv() {
+  // Hosting publik selalu production. Nilai localStorage tidak boleh dapat
+  // mengaktifkan mode developer pada origin produksi.
+  if (window.location.hostname === 'disperindagesdm-pinrang.web.app' || window.location.hostname === 'disperindagesdm-pinrang.firebaseapp.com') {
+    return 'production';
+  }
   return localStorage.getItem(APP_ENV_KEY) || 'production';
 }
 
@@ -328,10 +333,14 @@ const DEFAULT_SYSTEM_USERS = [
 
 // Inisialisasi Database Pengguna (Versi Terkini 2026)
 function initAuthStore() {
-  const targetAuthVer = "2026_08_29_lpg_agents_v1";
+  const targetAuthVer = "2026_08_30_auth_nondestructive_v2";
   const currentVer = localStorage.getItem("disperindag_users_version");
   if (currentVer !== targetAuthVer) {
-    localStorage.setItem(AUTH_STORE_KEY, JSON.stringify(DEFAULT_SYSTEM_USERS));
+    // Jangan reset akun/perubahan profil setiap deploy. Default hanya untuk
+    // instalasi kosong sampai migrasi Firebase Authentication diselesaikan.
+    if (!localStorage.getItem(AUTH_STORE_KEY)) {
+      localStorage.setItem(AUTH_STORE_KEY, JSON.stringify(DEFAULT_SYSTEM_USERS));
+    }
     localStorage.setItem("disperindag_users_version", targetAuthVer);
   }
 
@@ -442,10 +451,25 @@ function requireAuth(allowedTypes = ['admin', 'petugas', 'lpg_agen']) {
     });
     return null;
   }
+  /* Legacy orphaned modal fragment disabled.
       icon: "🚫",
       type: "error",
       onClose: () => {
         window.location.href = "petugas.html";
+      }
+    });
+    return null;
+  }
+  */
+
+  if (allowedTypes.includes('petugas') && allowedTypes.length === 1 && !session.canAccessPetugas && !session.canAccessAdmin) {
+    CustomModal.alert({
+      title: "Akses Terbatas",
+      message: "Akun Anda tidak memiliki izin mengakses Portal Petugas.",
+      icon: "🚫",
+      type: "error",
+      onClose: () => {
+        window.location.href = session.canAccessLpgAgen ? "lpg-agen.html" : "login.html";
       }
     });
     return null;
