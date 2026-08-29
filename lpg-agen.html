@@ -339,7 +339,7 @@
       <span class="lpg-agent-code" id="lpgAgentHeaderCode">AG-000</span>
     </div>
 
-    <div style="margin:0 16px 12px;padding:10px 12px;border:1px solid #F59E0B;background:#FFFBEB;color:#92400E;border-radius:9px;font-size:0.76rem;line-height:1.45;">
+    <div id="lpgPersistenceNotice" style="margin:0 16px 12px;padding:10px 12px;border:1px solid #F59E0B;background:#FFFBEB;color:#92400E;border-radius:9px;font-size:0.76rem;line-height:1.45;">
       <strong>Mode penyimpanan lokal.</strong> Catatan pada perangkat ini belum merupakan ledger server dan tidak ikut indikator resmi Command Center.
     </div>
 
@@ -581,10 +581,14 @@
   </div>
 
   <!-- SCRIPTS -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260830_spark_ledger_v1"></script>
   <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-engine.js?v=20260830_lpg_status_v3"></script>
+  <script src="js/lpg-engine.js?v=20260830_spark_ledger_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
-  <script src="js/lpg-agen.js?v=20260830_lpg_status_v3"></script>
+  <script src="js/lpg-agen.js?v=20260830_spark_ledger_v1"></script>
 </body>
 </html>

@@ -135,12 +135,33 @@ service cloud.firestore {
 
     match /lpg_events/{eventId} {
       allow read: if isLpgAdmin() || ownsLpgAgent(resource.data.agentId);
-      allow create: if ownsLpgAgent(request.resource.data.agentId) &&
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly([
+          'agentId', 'clientEventId', 'type', 'quantity', 'delta',
+          'pangkalanId', 'pangkalanSnapshot', 'effectiveAt', 'doNumber',
+          'vehicleNumber', 'note', 'correctionOfEventId', 'createdBy', 'createdAt'
+        ]) &&
+        (ownsLpgAgent(request.resource.data.agentId) || isLpgAdmin()) &&
         request.resource.data.createdBy == request.auth.uid &&
-        request.resource.data.status == 'PENDING' &&
-        request.resource.data.type in ['STOCK_IN', 'DISTRIBUTION'] &&
         request.resource.data.quantity is int &&
-        request.resource.data.quantity > 0;
+        request.resource.data.quantity > 0 &&
+        request.resource.data.createdAt == request.time &&
+        (
+          (request.resource.data.type == 'STOCK_IN' && request.resource.data.delta == request.resource.data.quantity) ||
+          (request.resource.data.type == 'DISTRIBUTION' &&
+            request.resource.data.delta == (0 - request.resource.data.quantity) &&
+            request.resource.data.pangkalanId is string &&
+            get(/databases/$(database)/documents/lpg_pangkalan/$(request.resource.data.pangkalanId)).data.agentId == request.resource.data.agentId &&
+            get(/databases/$(database)/documents/lpg_pangkalan/$(request.resource.data.pangkalanId)).data.status == 'ACTIVE' &&
+            get(/databases/$(database)/documents/lpg_pangkalan/$(request.resource.data.pangkalanId)).data.isDeleted == false) ||
+          (request.resource.data.type == 'CORRECTION' &&
+            request.resource.data.correctionOfEventId is string &&
+            (request.resource.data.delta == request.resource.data.quantity ||
+             request.resource.data.delta == (0 - request.resource.data.quantity)) &&
+            get(/databases/$(database)/documents/lpg_events/$(request.resource.data.correctionOfEventId)).data.agentId == request.resource.data.agentId) ||
+          (request.resource.data.type == 'OPENING_BALANCE' &&
+            isLpgAdmin() && request.resource.data.delta == request.resource.data.quantity)
+        );
       allow update, delete: if false;
     }
 
@@ -151,7 +172,11 @@ service cloud.firestore {
 
     match /lpg_audit_logs/{auditId} {
       allow read: if isLpgAdmin();
-      allow write: if false;
+      allow create: if signedIn() &&
+        request.resource.data.actorUid == request.auth.uid &&
+        (isLpgAdmin() || ownsLpgAgent(request.resource.data.agentId)) &&
+        request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
     }
 
     match /lpg_dashboard/{documentId} {

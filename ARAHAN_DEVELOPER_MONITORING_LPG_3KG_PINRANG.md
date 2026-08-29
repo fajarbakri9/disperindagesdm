@@ -5,7 +5,9 @@
 **Production URL sementara:** https://disperindagesdm-pinrang.web.app/  
 **Command Center:** https://disperindagesdm-pinrang.web.app/command-center  
 **Tanggal spesifikasi:** 29 Agustus 2026  
-**Status dokumen:** Baseline implementasi / developer handoff
+**Status dokumen:** Baseline implementasi / developer handoff — revisi Spark-only 30 Agustus 2026
+
+> **KEPUTUSAN ARSITEKTUR FINAL:** MVP wajib berjalan pada Firebase Spark tanpa billing account. Gunakan Firebase Hosting, Firebase Authentication email/password, Cloud Firestore, Security Rules, App Check, dan persistence IndexedDB. Jangan gunakan Cloud Functions, Cloud Run, Firebase Storage, Phone/SMS Auth, BigQuery, atau backend Google Cloud. Jika bagian lama dokumen bertentangan dengan keputusan ini, keputusan Spark-only ini yang berlaku.
 
 ---
 
@@ -24,7 +26,7 @@ Modul harus memenuhi kebutuhan pengawasan Disperindag ESDM Kabupaten Pinrang, de
 7. Data operasional LPG harus otomatis memasok indikator pada **Command Center**; jangan mempertahankan angka LPG yang diinput manual atau hard-coded setelah modul aktif.
 8. Gunakan temuan data resmi ESDM per 31 Maret 2026 sebagai **seed/master awal**, lalu biarkan data berkembang melalui verifikasi Disperindag dan pemutakhiran agen.
 9. Jangan menghapus histori distribusi walaupun sebuah pangkalan kemudian dihapus, PHU, pindah agen, atau tidak aktif.
-10. Setiap kalkulasi saldo stok otoritatif harus dilakukan oleh backend/server, bukan dipercayakan kepada nilai stok yang diketik atau dihitung browser pengguna.
+10. Saldo tidak boleh menjadi field yang dapat diedit agen. Saldo dihitung dari agregasi `sum(delta)` pada immutable ledger Firestore; Security Rules memvalidasi bentuk dan kepemilikan setiap event.
 
 ---
 
@@ -84,7 +86,7 @@ Setelah modul LPG aktif:
 - **HET** tetap dapat berasal dari `settings` yang dikelola admin.
 - **Pangkalan terdaftar** harus dihitung dari master pangkalan aktif.
 - **Stok agen** harus berasal dari ledger stok.
-- **Distribusi hari ini/bulan ini** harus berasal dari transaksi berstatus `POSTED`.
+- **Distribusi hari ini/bulan ini** harus berasal dari agregasi immutable ledger yang sudah diakui Firestore.
 - **Realisasi kuota** hanya dihitung jika data alokasi resmi sudah tersedia.
 - **Status kecamatan** dihitung dari aktivitas distribusi dan alert, bukan diisi manual sebagai sumber utama.
 - Form manual lama dapat dipertahankan hanya sebagai `administrative override` dengan alasan, masa berlaku, dan audit log; default-nya tidak digunakan.
@@ -373,7 +375,7 @@ Tidak boleh:
 - melihat stok internal agen lain;
 - mengedit pangkalan agen lain;
 - memindahkan pangkalan ke agen lain;
-- mengubah transaksi yang sudah `POSTED`;
+- mengubah atau menghapus transaksi ledger yang sudah tersinkron;
 - memodifikasi saldo langsung.
 
 ## 6.6 LPG_AGENT_OPERATOR
@@ -600,7 +602,6 @@ Jam diterima *           default sekarang
 Jumlah tabung isi *
 Sumber stok
 Nomor DO
-Foto bukti DO
 Catatan
 ```
 
@@ -628,8 +629,9 @@ Jam *
 Nomor DO/nota
 Armada/nomor kendaraan
 Catatan
-Foto bukti opsional
 ```
+
+Foto bukti tidak termasuk MVP Spark. Jangan menyimpan Base64 di Firestore. Evaluasi penyimpanan eksternal atau Blaze hanya melalui keputusan proyek terpisah.
 
 ### Pangkalan harus berasal dari master agen
 
@@ -669,13 +671,15 @@ Jangan menjadikan `currentStock` hasil input manual.
 Formula:
 
 ```text
-STOK AGEN = OPENING_BALANCE
-           + TOTAL STOCK_IN POSTED
-           - TOTAL DISTRIBUTION POSTED
-           + TOTAL ADJUSTMENT POSTED
+STOK AGEN = SUM(delta) pada immutable ledger agen
+
+OPENING_BALANCE  delta positif
+STOCK_IN         delta positif
+DISTRIBUTION     delta negatif
+CORRECTION       delta positif/negatif
 ```
 
-## 11.2 Transaksi posted tidak boleh diedit/hapus
+## 11.2 Transaksi tersinkron tidak boleh diedit/hapus
 
 Jika salah input:
 
@@ -723,7 +727,7 @@ lpg_agents/{agentId}.currentStock
 
 secara langsung.
 
-## Gunakan event/outbox
+## Gunakan dokumen ledger immutable
 
 Client membuat event baru:
 
@@ -731,25 +735,9 @@ Client membuat event baru:
 /lpg_events/{eventId}
 ```
 
-Status awal:
-
-```text
-PENDING
-```
-
 Jika offline, Firestore menyimpan event di local cache dan sync saat jaringan tersedia.
 
-Backend memproses event setelah event masuk server.
-
-### Status event
-
-```text
-PENDING
-PROCESSING
-POSTED
-REJECTED
-CANCELLED
-```
+Dokumen dianggap tersinkron setelah server Firestore mengakui write. Tidak ada workflow `PENDING → POSTED` dan tidak ada processor Cloud Functions.
 
 ### UX offline
 
@@ -758,7 +746,7 @@ CANCELLED
 ☁ Menunggu sinkronisasi
 ```
 
-setelah server menerima:
+setelah Firestore menerima:
 
 ```text
 ✓ Tersinkron
@@ -773,7 +761,7 @@ Setiap submit membuat UUID di client:
 clientEventId
 ```
 
-Backend wajib mencegah event sama diproses dua kali.
+Gunakan `clientEventId` sebagai document ID agar pengiriman ulang menghasilkan write idempoten pada dokumen yang sama. Rules melarang update, sehingga payload berbeda dengan ID sama akan ditolak.
 
 ---
 
@@ -785,7 +773,6 @@ Gunakan namespace prefix `lpg_` agar tidak bertabrakan dengan collection existin
 /lpg_agents
 /lpg_pangkalan
 /lpg_events
-/lpg_balances
 /lpg_daily_agent_summaries
 /lpg_daily_kecamatan_summaries
 /lpg_alerts
@@ -899,15 +886,12 @@ Semua pergerakan stok gunakan satu ledger event.
   "agentId": "AG-001",
   "pangkalanId": null,
   "quantity": 560,
+  "delta": 560,
   "effectiveAt": "timestamp",
   "doNumber": "...",
-  "proofPath": "...",
   "note": null,
-  "status": "PENDING",
   "createdBy": "uid",
-  "createdAt": "serverTimestamp",
-  "postedAt": null,
-  "rejectionReason": null
+  "createdAt": "serverTimestamp"
 }
 ```
 
@@ -921,10 +905,10 @@ Semua pergerakan stok gunakan satu ledger event.
   "agentId": "AG-001",
   "pangkalanId": "PG-000182",
   "quantity": 120,
+  "delta": -120,
   "effectiveAt": "timestamp",
   "doNumber": "...",
   "vehicleNumber": "...",
-  "status": "PENDING",
   "createdBy": "uid",
   "createdAt": "serverTimestamp"
 }
@@ -932,7 +916,7 @@ Semua pergerakan stok gunakan satu ledger event.
 
 ## 16.3 Snapshot pangkalan pada transaksi
 
-Saat backend mem-posting distribusi, tambahkan snapshot:
+Client mengambil snapshot dari master pangkalan yang sudah dibaca sesuai hak akses dan menyertakannya ketika membuat transaksi. Security Rules tetap memvalidasi `pangkalanId` dan `agentId`; snapshot hanya untuk tampilan historis.
 
 ```json
 {
@@ -949,71 +933,23 @@ Tujuannya agar laporan historis tidak berubah ketika master pangkalan diedit.
 
 ---
 
-# 17. SCHEMA `lpg_balances`
+# 17. SALDO HASIL AGREGASI
 
-```json
-{
-  "agentId": "AG-001",
-  "filledCylinderBalance": 1240,
-  "lastPostedEventAt": "timestamp",
-  "lastStockInAt": "timestamp",
-  "lastDistributionAt": "timestamp",
-  "updatedAt": "serverTimestamp"
-}
-```
-
-Agen tidak boleh write collection ini.
-
-Hanya backend/Admin SDK.
+Jangan menggunakan collection `lpg_balances` sebagai sumber kebenaran MVP. Hitung saldo dengan aggregation query Firestore `sum(delta)` yang dibatasi `agentId` dan periode bila diperlukan. Client tidak pernah mengirim atau mengedit `currentStock`.
 
 ---
 
-# 18. EVENT PROCESSOR / CLOUD FUNCTIONS
+# 18. VALIDASI SPARK-ONLY TANPA SERVER RUNTIME
 
-Gunakan server-side transaction untuk posting event.
-
-Firebase transaction memberikan atomic read/write dan retry pada concurrent edit.
-
-Referensi:
-https://firebase.google.com/docs/firestore/manage-data/transactions
-
-## 18.1 `processLpgEvent`
-
-Pseudo-flow:
+Tidak ada Cloud Functions atau server runtime pada MVP. Alurnya:
 
 ```text
-onCreate lpg_events/{eventId}
-
-1. Abaikan jika status != PENDING
-2. Validasi actor/user
-3. Validasi agent masih aktif
-4. Validasi quantity integer > 0
-5. Validasi idempotency clientEventId
-6. Jika DISTRIBUTION:
-   - pangkalan exists
-   - pangkalan ACTIVE
-   - pangkalan.isDeleted == false
-   - pangkalan.agentId == event.agentId
-7. Run server transaction:
-   - baca lpg_balances/{agentId}
-   - STOCK_IN: balance += quantity
-   - DISTRIBUTION: pastikan balance >= quantity
-   - DISTRIBUTION: balance -= quantity
-   - write event status POSTED
-   - update balance
-   - update lastDelivery pangkalan jika distribusi
-8. Update aggregation summary
-9. Generate alert bila perlu
+Firebase Auth → Firestore Security Rules → immutable lpg_events → sum(delta)
 ```
 
-Jika stok tidak cukup:
+Security Rules wajib memvalidasi UID, role/agentId, tipe transaksi, integer `quantity`, hubungan `delta`, kepemilikan pangkalan, `createdAt == request.time`, serta melarang update/delete ledger.
 
-```text
-status: REJECTED
-rejectionReason: INSUFFICIENT_STOCK
-```
-
-Jangan biarkan saldo negatif.
+Saldo negatif tidak ditolak. Transaksi tetap diterima sebagai laporan pengawasan dan UI/Command Center menampilkan anomali stok agar Disperindag dapat menindaklanjuti data yang belum lengkap atau tidak konsisten.
 
 ---
 
@@ -1071,7 +1007,7 @@ Prinsip:
 ```text
 Agen hanya read data dengan agentId miliknya.
 Agen hanya create event dengan agentId miliknya.
-Agen tidak dapat membuat event POSTED.
+Agen hanya dapat membuat event immutable miliknya dengan `delta` yang valid.
 Agen tidak dapat update balance.
 Agen tidak dapat update audit log.
 Agen hanya mengelola pangkalan agentId miliknya.
@@ -1139,7 +1075,7 @@ Portal agen harus menjadi PWA ringan.
 - lazy-load kamera/map;
 - initial JS route agen idealnya <= 250 KB gzip;
 - CSS seperlunya;
-- foto bukti dikompresi WebP;
+- tidak memuat atau mengunggah foto bukti pada MVP Spark;
 - thumbnail kecil;
 - pagination/virtual list untuk pangkalan;
 - hindari animasi berat/backdrop blur masif;
@@ -1204,19 +1140,11 @@ Desktop admin boleh memakai tabel lengkap.
 
 # 24. COMMAND CENTER - JANGAN QUERY 681 PANGKALAN SETIAP REFRESH
 
-Command Center adalah wallboard. Jangan menghitung seluruh transaksi dan seluruh pangkalan di browser pada setiap refresh.
+Command Center adalah wallboard. Jangan memasang listener seluruh histori. Gunakan aggregation query `count()`/`sum()` dengan filter tanggal, agen, atau kecamatan dan refresh maksimal setiap 5 menit plus tombol **Refresh Sekarang**.
 
-Gunakan materialized summary:
+Dokumen ringkasan materialized tidak menjadi kewajiban MVP karena tidak ada backend/scheduled Functions. Jika admin membuat snapshot administratif, snapshot harus memiliki waktu, aktor, sumber, dan tidak boleh menggantikan ledger sebagai sumber kebenaran.
 
-```text
-/lpg_dashboard/current
-/lpg_agent_summaries/{agentId}
-/lpg_kecamatan_summaries/{kecamatanId}
-```
-
-Backend memperbarui summary setiap event `POSTED` atau melalui scheduled reconciliation.
-
-## `lpg_dashboard/current`
+## Bentuk hasil agregasi untuk renderer Command Center
 
 ```json
 {
@@ -1725,7 +1653,7 @@ Status kecamatan: terkendali
 HET -> lpg_settings
 Pangkalan -> count ACTIVE
 Agen -> count ACTIVE
-Stok -> sum lpg_balances
+Stok -> aggregation query `sum(delta)` pada `lpg_events`
 Masuk hari ini -> summary
 Distribusi hari ini -> summary
 Realisasi -> allocation data bila ada
@@ -2173,10 +2101,10 @@ Jangan langsung mengganti production KPI sebelum data agen berjalan stabil.
 
 - [ ] halaman production tidak menampilkan username/password default;
 - [ ] agent A tidak dapat read/write private data agent B;
-- [ ] agent tidak dapat mengubah balance;
-- [ ] agent tidak dapat membuat event `POSTED`;
+- [ ] agent tidak dapat mengedit field saldo karena saldo bukan dokumen input;
+- [ ] agent tidak dapat update/delete immutable ledger;
 - [ ] App Check tested;
-- [ ] Storage rules tested.
+- [ ] tidak ada Firebase Storage/Cloud Functions pada MVP Spark.
 
 ## Seed
 
@@ -2202,10 +2130,9 @@ Jangan langsung mengganti production KPI sebelum data agen berjalan stabil.
 
 - [ ] stock in menambah saldo;
 - [ ] distribution mengurangi saldo;
-- [ ] tidak ada saldo negatif;
-- [ ] duplicate submit tidak double-post;
-- [ ] event rejected tidak mengubah saldo;
-- [ ] posted event tidak dapat diedit agent;
+- [ ] saldo negatif ditandai sebagai anomali, bukan ditolak/disembunyikan;
+- [ ] `clientEventId` sebagai document ID mencegah duplicate submit;
+- [ ] event tersinkron tidak dapat diedit agent;
 - [ ] correction memakai event baru.
 
 ## Offline
@@ -2213,14 +2140,14 @@ Jangan langsung mengganti production KPI sebelum data agen berjalan stabil.
 - [ ] form dapat disimpan saat offline;
 - [ ] UI menunjukkan pending sync;
 - [ ] reconnect melakukan sync;
-- [ ] server memvalidasi setelah sync;
+- [ ] Firestore Security Rules memvalidasi write setelah sync;
 - [ ] tidak terjadi double submit.
 
 ## Command Center
 
 - [ ] jumlah pangkalan berasal dari data live;
-- [ ] stok berasal dari balance;
-- [ ] distribusi berasal dari posted events;
+- [ ] stok berasal dari `sum(delta)` immutable ledger;
+- [ ] distribusi berasal dari agregasi event `DISTRIBUTION`;
 - [ ] timestamp update aktual;
 - [ ] tidak ada angka contoh/hard-coded dianggap fakta;
 - [ ] allocation menampilkan unavailable bila data belum ada.
@@ -2254,9 +2181,9 @@ Operator B kirim 100.
 Expected:
 
 ```text
-hanya satu transaksi yang dapat POSTED jika total akan membuat saldo negatif
-transaksi lain REJECTED
-saldo tidak negatif
+kedua laporan tersimpan sebagai ledger immutable
+saldo hasil agregasi menjadi -50
+Command Center menampilkan ANOMALI STOK / DATA TIDAK KONSISTEN
 ```
 
 ## Case 3 - Offline double tap

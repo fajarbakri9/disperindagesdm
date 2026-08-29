@@ -84,7 +84,51 @@ function setLpgStore(key, data) {
 }
 
 function generateUUID() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
   return 'evt_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+async function submitLpgLedgerEvent(eventData, userSession) {
+  const firebaseUser = typeof auth !== 'undefined' && auth ? auth.currentUser : null;
+  if (!firebaseUser || typeof db === 'undefined' || !db) {
+    return { ...processLpgEvent(eventData, userSession), persistence: 'LOCAL_ONLY' };
+  }
+
+  const token = await firebaseUser.getIdTokenResult();
+  const claimedAgentId = token.claims.agentId || null;
+  const adminRoles = ['SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'LPG_ADMIN'];
+  if (claimedAgentId !== eventData.agentId && !adminRoles.includes(token.claims.role)) {
+    return { success: false, message: 'Klaim akun Firebase tidak sesuai dengan agen transaksi.' };
+  }
+
+  const quantity = Number(eventData.quantity);
+  const delta = eventData.type === 'DISTRIBUTION' ? -quantity : quantity;
+  const clientEventId = eventData.clientEventId || generateUUID();
+  const payload = {
+    agentId: eventData.agentId,
+    clientEventId,
+    type: eventData.type,
+    quantity,
+    delta,
+    pangkalanId: eventData.pangkalanId || null,
+    pangkalanSnapshot: eventData.pangkalanSnapshot || null,
+    effectiveAt: eventData.effectiveAt || new Date().toISOString(),
+    doNumber: eventData.doNumber || null,
+    vehicleNumber: eventData.vehicleNumber || null,
+    note: eventData.note || null,
+    correctionOfEventId: eventData.correctionOfEventId || null,
+    createdBy: firebaseUser.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  // Document ID = clientEventId. Rules melarang update sehingga submit ulang
+  // tidak dapat membuat transaksi kedua atau diam-diam mengganti payload.
+  db.collection('lpg_events').doc(clientEventId).set(payload).catch(error => {
+    console.error('[-] Sinkronisasi ledger LPG ditolak Firestore:', error.code);
+  });
+  return { success: true, event: payload, persistence: 'FIRESTORE_QUEUED' };
 }
 
 // 3. LEDGER TRANSACTION PROCESSOR & IDEMPOTENCY
@@ -177,20 +221,10 @@ function processLpgEvent(eventData, userSession) {
       return { success: false, message: "Pangkalan yang dipilih sudah tidak aktif atau telah dihapus." };
     }
 
-    // Validasi Anti Saldo Negatif
-    if (agentBalance.filledCylinderBalance < qty) {
-      newEvent.status = "REJECTED";
-      newEvent.rejectionReason = "INSUFFICIENT_STOCK";
-      events.unshift(newEvent);
-      setLpgStore(LPG_STORAGE_KEYS.EVENTS, events);
-      return { 
-        success: false, 
-        message: `Stok agen tidak mencukupi. Saldo saat ini: ${agentBalance.filledCylinderBalance.toLocaleString('id-ID')} tabung, permintaan: ${qty.toLocaleString('id-ID')} tabung.` 
-      };
-    }
-
-    // Kurangi Saldo
+    // Sistem pengawasan tetap menerima laporan yang menghasilkan saldo negatif.
+    // Nilai negatif adalah anomali yang harus ditindaklanjuti, bukan disembunyikan.
     agentBalance.filledCylinderBalance -= qty;
+    agentBalance.hasStockAnomaly = agentBalance.filledCylinderBalance < 0;
     agentBalance.lastDistributionAt = new Date().toISOString();
     agentBalance.lastPostedEventAt = new Date().toISOString();
     agentBalance.updatedAt = new Date().toISOString();
@@ -504,6 +538,7 @@ initLpgDatabase();
 if (typeof window !== 'undefined') {
   window.initLpgDatabase = initLpgDatabase;
   window.processLpgEvent = processLpgEvent;
+  window.submitLpgLedgerEvent = submitLpgLedgerEvent;
   window.getAgentPangkalanList = getAgentPangkalanList;
   window.addAgentPangkalan = addAgentPangkalan;
   window.editAgentPangkalan = editAgentPangkalan;

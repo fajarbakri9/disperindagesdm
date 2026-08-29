@@ -5,6 +5,8 @@
 
 let currentAgentSession = null;
 let currentAgentId = null;
+let currentStockInEventId = null;
+let currentDistributionEventId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Guard Autentikasi Khusus Agen LPG
@@ -19,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (nameEl) nameEl.textContent = currentAgentSession.agentName || currentAgentSession.name;
   if (codeEl) codeEl.textContent = currentAgentId;
 
+  updateLpgPersistenceNotice();
+  if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(updateLpgPersistenceNotice);
+
   // 3. Set Default Date Picker ke Sekarang
   setDefaultDateTimeInputs();
 
@@ -28,6 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
   populateDistributionPangkalanDropdown();
   renderLedgerHistoryUI();
 });
+
+function updateLpgPersistenceNotice() {
+  const notice = document.getElementById('lpgPersistenceNotice');
+  if (!notice) return;
+  const connected = typeof auth !== 'undefined' && auth && auth.currentUser;
+  if (connected) {
+    notice.style.cssText += 'border-color:#10B981;background:#ECFDF5;color:#065F46;';
+    notice.textContent = 'Firestore online/offline aktif. Transaksi dikirim sebagai immutable ledger dan akan tersinkron otomatis.';
+  } else {
+    notice.textContent = 'Mode penyimpanan lokal. Catatan pada perangkat ini belum merupakan ledger Firestore dan tidak ikut indikator resmi Command Center.';
+  }
+}
 
 function setDefaultDateTimeInputs() {
   const now = new Date();
@@ -122,6 +139,7 @@ function refreshAgentDashboardUI() {
 
 // 2. MODAL CONTROLS
 window.openModalStockIn = function() {
+  currentStockInEventId = generateUUID();
   setDefaultDateTimeInputs();
   document.getElementById('inputStockInQty').value = '';
   document.getElementById('inputStockInDo').value = '';
@@ -129,6 +147,7 @@ window.openModalStockIn = function() {
 };
 
 window.openModalDistribution = function() {
+  currentDistributionEventId = generateUUID();
   populateDistributionPangkalanDropdown();
   setDefaultDateTimeInputs();
   document.getElementById('inputDistQty').value = '';
@@ -142,7 +161,7 @@ window.closeModal = function(modalId) {
 };
 
 // 3. SUBMIT STOK MASUK
-window.handleStockInSubmit = function(e) {
+window.handleStockInSubmit = async function(e) {
   e.preventDefault();
   const qty = parseInt(document.getElementById('inputStockInQty').value, 10);
   const doNum = document.getElementById('inputStockInDo').value.trim();
@@ -154,7 +173,7 @@ window.handleStockInSubmit = function(e) {
     return;
   }
 
-  const res = processLpgEvent({
+  const res = await submitLpgLedgerEvent({
     type: 'STOCK_IN',
     agentId: currentAgentId,
     agentName: currentAgentSession.agentName,
@@ -162,14 +181,17 @@ window.handleStockInSubmit = function(e) {
     doNumber: doNum,
     effectiveAt: dateVal ? new Date(dateVal).toISOString() : new Date().toISOString(),
     note: note,
-    clientEventId: 'in_' + Date.now()
+    clientEventId: currentStockInEventId || generateUUID()
   }, currentAgentSession);
 
   if (res.success) {
+    currentStockInEventId = null;
     closeModal('modalStockIn');
     CustomModal.alert({
-      title: "Tersimpan di Perangkat",
-      message: `Penerimaan <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>. Data ini belum menjadi ledger server sampai Firebase Auth dan processor backend diaktifkan.`,
+      title: res.persistence === 'FIRESTORE_QUEUED' ? "Menunggu Sinkronisasi" : "Tersimpan di Perangkat",
+      message: res.persistence === 'FIRESTORE_QUEUED'
+        ? `Penerimaan <strong>${qty.toLocaleString('id-ID')} tabung</strong> masuk antrean Firestore. Status akan tersinkron otomatis saat koneksi tersedia.`
+        : `Penerimaan <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>. Data ini belum menjadi ledger Firestore.`,
       icon: "📦",
       type: "info"
     });
@@ -181,7 +203,7 @@ window.handleStockInSubmit = function(e) {
 };
 
 // 4. SUBMIT DISTRIBUSI KE PANGKALAN
-window.handleDistributionSubmit = function(e) {
+window.handleDistributionSubmit = async function(e) {
   e.preventDefault();
   const pangkalanId = document.getElementById('selectDistPangkalan').value;
   const qty = parseInt(document.getElementById('inputDistQty').value, 10);
@@ -199,23 +221,33 @@ window.handleDistributionSubmit = function(e) {
     return;
   }
 
-  const res = processLpgEvent({
+  const targetPangkalan = getAgentPangkalanList(currentAgentId).find(item => item.id === pangkalanId);
+  const res = await submitLpgLedgerEvent({
     type: 'DISTRIBUTION',
     agentId: currentAgentId,
     agentName: currentAgentSession.agentName,
     pangkalanId: pangkalanId,
+    pangkalanSnapshot: targetPangkalan ? {
+      name: targetPangkalan.name,
+      kecamatan: targetPangkalan.kecamatan,
+      desaKelurahan: targetPangkalan.desaKelurahan,
+      agentId: targetPangkalan.agentId
+    } : null,
     quantity: qty,
     vehicleNumber: vehicle,
     doNumber: doNum,
     effectiveAt: dateVal ? new Date(dateVal).toISOString() : new Date().toISOString(),
-    clientEventId: 'dist_' + Date.now()
+    clientEventId: currentDistributionEventId || generateUUID()
   }, currentAgentSession);
 
   if (res.success) {
+    currentDistributionEventId = null;
     closeModal('modalDistribution');
     CustomModal.alert({
-      title: "Tersimpan di Perangkat",
-      message: `Penyaluran <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Sisa saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>. Data ini belum berstatus POSTED server.`,
+      title: res.persistence === 'FIRESTORE_QUEUED' ? "Menunggu Sinkronisasi" : "Tersimpan di Perangkat",
+      message: res.persistence === 'FIRESTORE_QUEUED'
+        ? `Penyaluran <strong>${qty.toLocaleString('id-ID')} tabung</strong> masuk antrean immutable ledger Firestore.`
+        : `Penyaluran <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Sisa saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>.`,
       icon: "🚚",
       type: "info"
     });

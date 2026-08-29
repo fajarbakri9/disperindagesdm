@@ -25,6 +25,11 @@ try {
     }
     db = firebase.firestore();
     auth = firebase.auth();
+    db.enablePersistence({ synchronizeTabs: true }).catch(error => {
+      if (error.code !== 'failed-precondition' && error.code !== 'unimplemented') {
+        console.warn('[-] Persistence Firestore tidak dapat diaktifkan:', error.code);
+      }
+    });
     isFirebaseReady = true;
     console.log("[+] Firebase Cloud Firestore disperindagesdm-pinrang BERHASIL TERHUBUNG!");
   } else {
