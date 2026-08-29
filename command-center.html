@@ -37,6 +37,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800;900&family=JetBrains+Mono:wght@700;800;900&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <!-- Command Center Modular Stylesheet -->
   <link rel="stylesheet" href="css/command-center.css?v=20260830_cc_integrity_v1">
 </head>
@@ -103,6 +104,7 @@
       <button class="cc-tab-btn" onclick="showSlide(2)"><span>⚖️</span> 3. Kemetrologian &amp; Tera</button>
       <button class="cc-tab-btn" onclick="showSlide(3)"><span>⚡</span> 4. Gas LPG 3 Kg &amp; ESDM</button>
       <button class="cc-tab-btn" onclick="showSlide(4)"><span>🏭</span> 5. Industri &amp; SP4N-LAPOR!</button>
+      <button class="cc-tab-btn" onclick="showSlide(5)"><span>🗺️</span> 6. Peta Distribusi LPG</button>
     </div>
 
     <div class="cc-autoslide-box">
@@ -491,6 +493,25 @@
       </div>
     </div>
 
+    <div class="slide-panel" id="slidePanel5">
+      <div class="cc-map-layout">
+        <div class="cc-map-heading">
+          <div><strong>PETA MONITORING DISTRIBUSI LPG 3 KG</strong><span>Sumber operasional: Firestore • Peta dasar: OpenStreetMap • Koordinat indikatif ditandai terpisah</span></div>
+          <div class="cc-map-quality" id="gisMapResultSummary">Memuat data lokasi…</div>
+        </div>
+        <div class="cc-map-toolbar">
+          <input id="gisSearch" type="search" placeholder="Cari pangkalan, alamat, desa, atau ID…" oninput="renderLpgGisMarkers()">
+          <select id="gisFilterKecamatan" onchange="renderLpgGisMarkers()"><option value="">Semua kecamatan</option></select>
+          <select id="gisFilterAgen" onchange="renderLpgGisMarkers()"><option value="">Semua agen</option></select>
+          <select id="gisFilterStatus" onchange="renderLpgGisMarkers()"><option value="">Semua kualitas lokasi</option><option value="GPS">GPS lapangan</option><option value="INDICATIVE">Menunggu verifikasi GPS</option></select>
+          <button type="button" onclick="homeLpgGisMap()" title="Kembali ke seluruh Pinrang">⌂</button>
+          <button type="button" onclick="toggleLpgGisFullscreen()" title="Peta layar penuh">⛶</button>
+        </div>
+        <div class="cc-map-stage"><div id="adminLpgGisMapContainer"></div></div>
+        <div class="cc-map-legend"><span><i style="background:#059669"></i>Lokasi GPS tervalidasi</span><span><i style="background:#64748B"></i>Referensi wilayah kecamatan</span><small>Marker pangkalan hanya ditampilkan setelah validasi GPS petugas.</small></div>
+      </div>
+    </div>
+
   </main>
 
   <!-- 4. BOTTOM LIVE RUNNING TICKER -->
@@ -511,6 +532,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260830_cc_integrity_v1"></script>
-  <script src="js/command-center.js?v=20260830_labels_id_v5"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/lpg-gis-map.js?v=20260830_lpg_map_ux_v3"></script>
+  <script src="js/command-center.js?v=20260830_cc_lpg_map_v6"></script>
 </body>
 </html>

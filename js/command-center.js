@@ -8,7 +8,7 @@
 // --- 1. KONFIGURASI ENGINE & SLIDE SHOW ---
 const CC_CONFIG = {
   activeSlideIndex: 0,
-  totalSlides: 5,
+  totalSlides: 6,
   isPaused: false,
   autoSlideTimer: null,
   tickerInterval: null,
@@ -20,7 +20,8 @@ const CC_CONFIG = {
     25000, // Slide 1: Bursa Pasar Penuh & Master Pasar (25 detik)
     18000, // Slide 2: Kemetrologian Legal & Tera UTTP (18 detik)
     18000, // Slide 3: Distribusi LPG 3 Kg & ESDM (18 detik)
-    20000  // Slide 4: Industri IKM & Layanan Publik SKM (20 detik)
+    20000, // Slide 4: Industri IKM & Layanan Publik SKM (20 detik)
+    30000  // Slide 5: Peta Distribusi LPG (30 detik)
   ]
 };
 
@@ -294,6 +295,12 @@ function showSlide(index) {
   tabBtns.forEach((btn, i) => {
     btn.classList.toggle('active', i === index);
   });
+
+  if (index === 5) {
+    setTimeout(() => {
+      if (typeof initLpgGisMap === 'function') initLpgGisMap('adminLpgGisMapContainer');
+    }, 80);
+  }
 
   resetAutoSlideTimer();
 }

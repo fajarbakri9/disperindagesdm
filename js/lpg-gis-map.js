@@ -30,6 +30,7 @@ const LPG_AGENT_LOCATIONS = {
 };
 
 let lpgGisMapInstance = null;
+let lpgGisHomeBounds = null;
 let lpgGisLayers = {
   agents: null,
   districts: null,
@@ -74,8 +75,33 @@ window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
   lpgGisLayers.routes = L.layerGroup().addTo(lpgGisMapInstance);
   lpgGisLayers.verifiedPangkalan = L.layerGroup().addTo(lpgGisMapInstance);
 
+  populateLpgGisFilters();
   renderLpgGisMarkers();
+  setTimeout(() => lpgGisMapInstance?.invalidateSize({ pan: false }), 80);
 };
+
+function getLpgMapData() {
+  return (typeof getLpgStore === 'function')
+    ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, [])
+    : ((typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : []);
+}
+
+function populateLpgGisFilters() {
+  const items = getLpgMapData().filter(item => !item.isDeleted);
+  const districtSelect = document.getElementById('gisFilterKecamatan');
+  const agentSelect = document.getElementById('gisFilterAgen');
+  if (districtSelect && districtSelect.options.length <= 1) {
+    [...new Set(items.map(item => item.kecamatan).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'id')).forEach(name => {
+      const option = document.createElement('option'); option.value = name; option.textContent = name; districtSelect.appendChild(option);
+    });
+  }
+  if (agentSelect && agentSelect.options.length <= 1) {
+    const agents = (typeof getLpgStore === 'function') ? getLpgStore(LPG_STORAGE_KEYS.AGENTS, []) : [];
+    agents.filter(agent => agent.status === 'ACTIVE').forEach(agent => {
+      const option = document.createElement('option'); option.value = agent.id; option.textContent = `${agent.name} (${agent.id})`; agentSelect.appendChild(option);
+    });
+  }
+}
 
 window.renderLpgGisMarkers = function() {
   if (!lpgGisMapInstance) return;
@@ -88,10 +114,21 @@ window.renderLpgGisMarkers = function() {
 
   const filterKec = document.getElementById('gisFilterKecamatan') ? document.getElementById('gisFilterKecamatan').value : '';
   const filterAgent = document.getElementById('gisFilterAgen') ? document.getElementById('gisFilterAgen').value : '';
+  const filterStatus = document.getElementById('gisFilterStatus')?.value || '';
+  const search = (document.getElementById('gisSearch')?.value || '').trim().toLocaleLowerCase('id');
 
-  const pangkalanList = (typeof getLpgStore === 'function')
-    ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, [])
-    : ((typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : []);
+  const pangkalanList = getLpgMapData();
+  const visibleBounds = [];
+  let gpsCount = 0;
+  let awaitingGpsCount = 0;
+  const matchesFilters = p => {
+    const isGps = p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED';
+    const haystack = [p.id,p.name,p.address,p.desaKelurahan,p.kecamatan,p.agentName,p.agentId].join(' ').toLocaleLowerCase('id');
+    return !p.isDeleted && (!filterKec || p.kecamatan === filterKec) && (!filterAgent || p.agentId === filterAgent)
+      && (!filterStatus || (filterStatus === 'GPS' ? isGps : !isGps)) && (!search || haystack.includes(search));
+  };
+  const matchedPangkalan = pangkalanList.filter(matchesFilters);
+  awaitingGpsCount = matchedPangkalan.filter(p => !(p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED')).length;
 
   // 1. Render Titik 8 Agen Resmi
   Object.keys(LPG_AGENT_LOCATIONS).forEach(agId => {
@@ -104,7 +141,7 @@ window.renderLpgGisMarkers = function() {
 
     const agentIcon = L.divIcon({
       className: 'custom-gis-agent-icon',
-      html: `<div style="background:#1E3A8A; color:#FFFFFF; border:2px solid #FACC15; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; box-shadow:0 3px 8px rgba(0,0,0,0.4);">🏢</div>`,
+      html: `<div style="background:#1E3A8A;color:#FFF;border:2px solid #FACC15;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;font-size:.72rem;font-weight:900;box-shadow:0 3px 8px rgba(0,0,0,.35);">AGEN</div>`,
       iconSize: [36, 36],
       iconAnchor: [18, 18]
     });
@@ -122,6 +159,7 @@ window.renderLpgGisMarkers = function() {
       `);
 
     lpgGisLayers.agents.addLayer(marker);
+    visibleBounds.push([ag.lat, ag.lng]);
   });
 
   // 2. Render Cluster / Titik Pusat 12 Kecamatan
@@ -129,13 +167,14 @@ window.renderLpgGisMarkers = function() {
     if (filterKec && filterKec !== kecName) return;
 
     const kecMeta = PINRANG_KECAMATAN_COORDS[kecName];
-    const kecPangkalan = pangkalanList.filter(p => p.kecamatan === kecName && !p.isDeleted);
+    const kecPangkalan = matchedPangkalan.filter(p => p.kecamatan === kecName);
+    if ((search || filterAgent || filterStatus) && !kecPangkalan.length) return;
     const count = kecPangkalan.length;
 
     const districtIcon = L.divIcon({
       className: 'custom-gis-district-icon',
-      html: `<div style="background:#059669; color:#FFFFFF; border:2px solid #FFFFFF; border-radius:20px; padding:4px 10px; font-weight:900; font-size:0.75rem; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.3); display:flex; align-items:center; gap:4px;">
-        <span>📍 ${kecName}</span>
+      html: `<div style="background:#475569;color:#FFF;border:2px solid #FFF;border-radius:20px;padding:4px 10px;font-weight:900;font-size:.75rem;white-space:nowrap;box-shadow:0 3px 8px rgba(0,0,0,.25);display:flex;align-items:center;gap:4px;">
+        <span>${kecName}</span>
         <span style="background:#FACC15; color:#0F172A; padding:1px 6px; border-radius:10px; font-size:0.7rem;">${count}</span>
       </div>`,
       iconAnchor: [40, 15]
@@ -145,7 +184,8 @@ window.renderLpgGisMarkers = function() {
       .bindPopup(`
         <div style="font-size:0.84rem; line-height:1.5;">
           <strong style="color:#0F172A; font-size:0.95rem;">Kecamatan ${kecName}</strong><br>
-          🔥 Total Pangkalan Aktif: <strong>${count} Pangkalan</strong><br>
+          Total pangkalan sesuai filter: <strong>${count}</strong><br>
+          <span style="font-size:.7rem;color:#64748B;">Marker ini adalah referensi wilayah kecamatan, bukan alamat pangkalan.</span><br>
           <hr style="margin:6px 0; border:0; border-top:1px solid #E2E8F0;">
           <button onclick="filterTableByKec('${kecName}')" style="background:#1D4ED8; color:#FFFFFF; border:none; padding:4px 10px; border-radius:4px; font-size:0.74rem; font-weight:800; cursor:pointer; width:100%;">
             Lihat Daftar Pangkalan (${count}) &rarr;
@@ -154,6 +194,7 @@ window.renderLpgGisMarkers = function() {
       `);
 
     lpgGisLayers.districts.addLayer(marker);
+    visibleBounds.push([kecMeta.lat, kecMeta.lng]);
 
     // Garis Jalur Distribusi Agen ke Kecamatan (Jika agen dipilih)
     if (filterAgent && LPG_AGENT_LOCATIONS[filterAgent]?.verified) {
@@ -171,20 +212,21 @@ window.renderLpgGisMarkers = function() {
     }
   });
 
-  // 3. Render Titik GPS Pangkalan yang Telah Terverifikasi Lapangan
-  pangkalanList.forEach(p => {
+  // 3. Marker individual hanya untuk koordinat dengan bukti verifikasi GPS.
+  // Koordinat seed lama tidak ditampilkan karena tidak merepresentasikan alamat usaha.
+  matchedPangkalan.forEach(p => {
     const latitude = Number(p.latitude);
     const longitude = Number(p.longitude);
     const hasValidCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
       && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
-    const isGpsVerified = ['VERIFIED', 'VERIFIED_GPS', 'ADMIN_VERIFIED'].includes(p.verificationStatus);
-    if (hasValidCoordinates && isGpsVerified && !p.isDeleted) {
-      if (filterKec && p.kecamatan !== filterKec) return;
-      if (filterAgent && p.agentId !== filterAgent) return;
+    const isGpsVerified = p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED';
+    if (hasValidCoordinates && isGpsVerified) {
+      gpsCount += 1;
+      const markerColor = '#059669';
 
       const pklIcon = L.divIcon({
         className: 'custom-gis-pkl-icon',
-        html: `<div style="background:#D97706; color:#FFFFFF; border:1px solid #FFFFFF; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; box-shadow:0 2px 4px rgba(0,0,0,0.3);">🟢</div>`,
+        html: `<div style="background:${markerColor};border:2px solid #FFF;border-radius:50%;width:16px;height:16px;box-shadow:0 2px 5px rgba(0,0,0,.32);"></div>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9]
       });
@@ -193,18 +235,36 @@ window.renderLpgGisMarkers = function() {
         .bindPopup(`
           <div style="font-size:0.82rem; line-height:1.45;">
             <strong style="color:#0F2C59;">${escapeLpgMapText(p.name)}</strong><br>
-            <span style="font-size:0.72rem; color:#059669; font-weight:800;">✓ TERVERIFIKASI GPS</span><br>
-            🏢 Agen: ${escapeLpgMapText(p.agentName || p.agentId)}<br>
-            📍 Desa: ${escapeLpgMapText(p.desaKelurahan)}, Kec. ${escapeLpgMapText(p.kecamatan)}<br>
-            📞 Kontak: ${escapeLpgMapText(p.phone || '-')}<br>
-            📍 Titik Koordinat: <code>${latitude.toFixed(5)}, ${longitude.toFixed(5)}</code>
+            <span style="font-size:.7rem;color:${markerColor};font-weight:900;">TERVERIFIKASI GPS LAPANGAN</span><br>
+            <strong>Alamat:</strong> ${escapeLpgMapText(p.address || `${p.desaKelurahan}, Kec. ${p.kecamatan}`)}<br>
+            <strong>Agen:</strong> ${escapeLpgMapText(p.agentName || p.agentId)}<br>
+            <strong>Kontak:</strong> ${escapeLpgMapText(p.phone || '-')}<br>
+            <strong>Koordinat:</strong> <code>${latitude.toFixed(5)}, ${longitude.toFixed(5)}</code>
           </div>
         `);
 
       lpgGisLayers.verifiedPangkalan.addLayer(pMarker);
+      visibleBounds.push([latitude, longitude]);
     }
   });
+
+  const summary = document.getElementById('gisMapResultSummary');
+  if (summary) summary.textContent = `${matchedPangkalan.length} pangkalan sesuai filter • ${gpsCount} marker GPS • ${awaitingGpsCount} menunggu verifikasi lokasi`;
+  if (!filterKec && !filterAgent && !search && !filterStatus && visibleBounds.length) lpgGisHomeBounds = L.latLngBounds(visibleBounds);
 };
+
+window.homeLpgGisMap = function() {
+  if (lpgGisMapInstance && lpgGisHomeBounds?.isValid()) lpgGisMapInstance.fitBounds(lpgGisHomeBounds, { padding: [28, 28], maxZoom: 11 });
+};
+
+window.toggleLpgGisFullscreen = async function() {
+  const container = document.getElementById('adminLpgGisMapContainer');
+  if (!container) return;
+  if (!document.fullscreenElement) await container.requestFullscreen?.(); else await document.exitFullscreen?.();
+  setTimeout(() => lpgGisMapInstance?.invalidateSize({ pan: false }), 100);
+};
+
+document.addEventListener('fullscreenchange', () => setTimeout(() => lpgGisMapInstance?.invalidateSize({ pan: false }), 100));
 
 window.filterTableByKec = function(kecName) {
   const tabSelect = document.getElementById('adminLpgFilterKecamatan');

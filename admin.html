@@ -76,6 +76,15 @@
     .lpg-alert-card__count { display:grid; place-items:center; flex:0 0 46px; width:46px; height:46px; border-radius:12px; background:#FFF; color:var(--accent); font-size:1.35rem; font-weight:900; box-shadow:0 2px 8px rgba(15,23,42,.06); }
     .lpg-alert-card__label { display:block; color:var(--accent); font-size:.69rem; font-weight:900; line-height:1.25; text-transform:uppercase; }
     .lpg-alert-card__detail { display:block; margin-top:3px; color:#64748B; font-size:.71rem; line-height:1.3; }
+    .lpg-map-panel { overflow:hidden; border:1px solid #CBD5E1; border-radius:14px; background:#FFF; box-shadow:0 8px 22px rgba(15,23,42,.07); }
+    .lpg-map-toolbar { display:grid; grid-template-columns:minmax(220px,1.25fr) repeat(3,minmax(150px,.65fr)) auto; gap:9px; padding:12px; border-bottom:1px solid #E2E8F0; background:#F8FAFC; }
+    .lpg-map-toolbar .form-input { max-width:none !important; margin:0; min-width:0; font-size:.78rem !important; padding:8px 10px !important; }
+    .lpg-map-actions { display:flex; gap:7px; }
+    .lpg-map-action { min-width:38px; border:1px solid #CBD5E1; border-radius:9px; background:#FFF; color:#0F2C59; font-weight:900; cursor:pointer; }
+    .lpg-map-meta { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:9px 13px; border-bottom:1px solid #E2E8F0; color:#64748B; font-size:.71rem; }
+    .lpg-map-legend { display:flex; gap:13px; flex-wrap:wrap; }
+    .lpg-map-dot { display:inline-block; width:9px; height:9px; margin-right:4px; border-radius:50%; }
+    #adminLpgGisMapContainer:fullscreen { width:100vw !important; height:100vh !important; border-radius:0 !important; }
     .lpg-workspace-head { display:grid; grid-template-columns:minmax(260px,1fr) auto; gap:18px; align-items:start; padding-bottom:16px; border-bottom:1px solid #E2E8F0; }
     .lpg-workspace-head h3 { margin:0 0 5px; font-size:1.08rem; color:#0F172A; }
     .lpg-workspace-head p { margin:0; max-width:720px; line-height:1.5; }
@@ -94,6 +103,7 @@
     .lpg-table-shell .admin-table td { padding-top:12px; padding-bottom:12px; vertical-align:middle; }
     @media (max-width:1100px) {
       .lpg-summary-grid,.lpg-alert-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .lpg-map-toolbar { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .lpg-workspace-head { grid-template-columns:1fr; }
       .lpg-nav-groups { align-items:stretch; }
       .lpg-module-tabs,.lpg-utility-actions { justify-content:flex-start; }
@@ -1186,48 +1196,18 @@
         </div>
 
         <!-- 8. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
-        <div id="subViewLpgMap" style="display: none;">
-          <!-- FILTER PETA GIS -->
-          <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; flex: 1;">
-              <select id="gisFilterKecamatan" class="form-input" onchange="renderLpgGisMarkers()" style="font-size: 0.82rem; padding: 7px 12px; max-width: 220px;">
-                <option value="">Semua 12 Kecamatan</option>
-                <option value="Watang Sawitto">Watang Sawitto (122)</option>
-                <option value="Paleteang">Paleteang (77)</option>
-                <option value="Patampanua">Patampanua (77)</option>
-                <option value="Mattiro Bulu">Mattiro Bulu (63)</option>
-                <option value="Suppa">Suppa (66)</option>
-                <option value="Duampanua">Duampanua (87)</option>
-                <option value="Mattiro Sompe">Mattiro Sompe (48)</option>
-                <option value="Lembang">Lembang (41)</option>
-                <option value="Lanrisang">Lanrisang (39)</option>
-                <option value="Cempa">Cempa (29)</option>
-                <option value="Tiroang">Tiroang (26)</option>
-                <option value="Batulappa">Batulappa (6)</option>
-              </select>
-
-              <select id="gisFilterAgen" class="form-input" onchange="renderLpgGisMarkers()" style="font-size: 0.82rem; padding: 7px 12px; max-width: 260px;">
-                <option value="">Semua 8 Agen Resmi</option>
-                <option value="AG-001">PT. Gasifa Pinrang Mandiri (AG-001)</option>
-                <option value="AG-002">PT. Hamisa Harapan Mandiri (AG-002)</option>
-                <option value="AG-003">PT. H. Abd Rahman Hasyim (AG-003)</option>
-                <option value="AG-004">PT. Nurcahaya Berkah Abadi (AG-004)</option>
-                <option value="AG-005">PT. Wahyu Putra Mas (AG-005)</option>
-                <option value="AG-006">PT. Nasman Gas Pinrang (AG-006)</option>
-                <option value="AG-007">PT. Amiruddin Berkah Gas (AG-007)</option>
-                <option value="AG-008">PT. Kaka Putri Gas (AG-008)</option>
-              </select>
+        <div id="subViewLpgMap" style="display:none;">
+          <div class="lpg-map-panel">
+            <div class="lpg-map-toolbar">
+              <input id="gisSearch" class="form-input" type="search" placeholder="Cari pangkalan, alamat, desa, atau ID…" oninput="renderLpgGisMarkers()">
+              <select id="gisFilterKecamatan" class="form-input" onchange="renderLpgGisMarkers()"><option value="">Semua kecamatan</option></select>
+              <select id="gisFilterAgen" class="form-input" onchange="renderLpgGisMarkers()"><option value="">Semua agen</option></select>
+              <select id="gisFilterStatus" class="form-input" onchange="renderLpgGisMarkers()"><option value="">Semua kualitas lokasi</option><option value="GPS">GPS lapangan</option><option value="INDICATIVE">Menunggu verifikasi GPS</option></select>
+              <div class="lpg-map-actions"><button class="lpg-map-action" type="button" onclick="homeLpgGisMap()" title="Kembali ke seluruh Pinrang">⌂</button><button class="lpg-map-action" type="button" onclick="toggleLpgGisFullscreen()" title="Peta layar penuh">⛶</button></div>
             </div>
-
-            <div style="font-size: 0.76rem; color: #64748B; display: flex; gap: 14px; align-items: center;">
-              <span>🏢 = Titik Agen</span>
-              <span>📍 = Pusat Kecamatan (681 Pangkalan)</span>
-              <span>🟢 = Pangkalan Terverifikasi GPS</span>
-            </div>
+            <div class="lpg-map-meta"><span id="gisMapResultSummary">Memuat data lokasi…</span><div class="lpg-map-legend"><span><i class="lpg-map-dot" style="background:#059669"></i>Lokasi GPS tervalidasi</span><span><i class="lpg-map-dot" style="background:#64748B"></i>Referensi wilayah kecamatan</span></div></div>
+            <div id="adminLpgGisMapContainer" style="width:100%;height:560px;z-index:1;"></div>
           </div>
-
-          <!-- CONTAINER CANVAS PETA LEAFLET -->
-          <div id="adminLpgGisMapContainer" style="width: 100%; height: 520px; border-radius: 12px; border: 1.5px solid #CBD5E1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); z-index: 1;"></div>
         </div>
 
       </div>
@@ -1702,7 +1682,7 @@
   <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
   <script src="js/lpg-engine.js?v=20260830_lpg_settings_v6"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/lpg-gis-map.js?v=20260830_lpg_integrity_v2"></script>
+  <script src="js/lpg-gis-map.js?v=20260830_lpg_map_ux_v3"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_functional_rbac_v4"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
