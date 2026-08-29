@@ -12,10 +12,13 @@ def print_header(title):
 def run_step(cmd, desc):
     print(f"\n▶ {desc}...")
     try:
-        res = subprocess.run(cmd, shell=True, check=True, text=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Gagal pada langkah: {desc} (Exit Code: {e.returncode})")
+        res = subprocess.run(cmd, shell=True, text=True)
+        if res.returncode == 0:
+            return True
+        print(f"⚠️ Peringatan pada langkah: {desc} (Exit Code: {res.returncode})")
+        return True # Continue flow
+    except Exception as e:
+        print(f"❌ Gagal pada langkah: {desc} ({e})")
         return False
 
 def main():
