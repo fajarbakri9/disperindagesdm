@@ -16,6 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initAdminLpgMonitoring() {
+  const todayWita = getLpgWitaDateKey();
+  const reportDate = document.getElementById('adminLpgReportDate');
+  const distributionDate = document.getElementById('adminLpgDistributionReportDate');
+  const reportMonth = document.getElementById('adminLpgReportMonth');
+  if (reportDate && !reportDate.value) reportDate.value = todayWita;
+  if (distributionDate && !distributionDate.value) distributionDate.value = todayWita;
+  if (reportMonth && !reportMonth.value) reportMonth.value = todayWita.slice(0, 7);
   refreshAdminLpgStats();
   renderAdminLpgPangkalanTable();
   renderAdminLpgAgentsTable();
@@ -312,7 +319,7 @@ window.updateAdminLpgAlert = function(alertId, nextStatus) {
 
 // 2. SUBVIEW SWITCHER
 window.switchAdminLpgSubView = function(viewName) {
-  const views = ['pangkalan', 'map', 'agen', 'ledger', 'audit', 'alerts'];
+  const views = ['pangkalan', 'map', 'agen', 'ledger', 'audit', 'alerts', 'reports'];
   views.forEach(v => {
     const el = document.getElementById(`subViewLpg${v.charAt(0).toUpperCase() + v.slice(1)}`);
     const btn = document.getElementById(`btnSub${v.charAt(0).toUpperCase() + v.slice(1)}`);
@@ -1017,7 +1024,76 @@ function renderAdminLpgAuditTable() {
   }).join('');
 }
 
-// 8. EKSPOR DATA KE CSV RESMI DISPERINDAG
+// 8. LAPORAN OPERASIONAL BERBASIS IMMUTABLE LEDGER
+function lpgCsvCell(value) {
+  let text = value === null || value === undefined ? '' : String(value);
+  if (/^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function downloadLpgCsv(filename, headers, rows) {
+  const content = '\uFEFF' + [headers, ...rows].map(row => row.map(lpgCsvCell).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function getPostedLpgEvents() {
+  return getLpgStore(LPG_STORAGE_KEYS.EVENTS, []).filter(event => isLocallyAppliedLpgEvent(event));
+}
+
+window.exportLpgDailyReportCSV = function() {
+  const date = document.getElementById('adminLpgReportDate')?.value;
+  if (!date) return CustomModal.alert({ title: 'Tanggal Wajib Dipilih', message: 'Pilih tanggal laporan harian.', icon: '!', type: 'warning' });
+  const events = getPostedLpgEvents();
+  const agents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).filter(agent => agent.status === 'ACTIVE');
+  const rows = agents.map(agent => {
+    const agentEvents = events.filter(event => event.agentId === agent.id);
+    const opening = agentEvents.filter(event => getLpgWitaDateKey(event.effectiveAt || event.createdAt) < date).reduce((sum, event) => sum + Number(event.delta || 0), 0);
+    const daily = agentEvents.filter(event => getLpgWitaDateKey(event.effectiveAt || event.createdAt) === date);
+    const stockIn = daily.filter(event => event.type === 'STOCK_IN').reduce((sum, event) => sum + Number(event.quantity || 0), 0);
+    const distribution = daily.filter(event => event.type === 'DISTRIBUTION').reduce((sum, event) => sum + Number(event.quantity || 0), 0);
+    const adjustment = daily.filter(event => event.type === 'CORRECTION' || event.type === 'OPENING_BALANCE').reduce((sum, event) => sum + Number(event.delta || 0), 0);
+    const ending = opening + daily.reduce((sum, event) => sum + Number(event.delta || 0), 0);
+    return [date, agent.id, agent.name, opening, stockIn, distribution, adjustment, ending, daily.length ? 'ADA AKTIVITAS' : 'BELUM ADA AKTIVITAS'];
+  });
+  downloadLpgCsv(`Laporan_Harian_LPG_Pinrang_${date}.csv`, ['Tanggal WITA', 'Kode Agen', 'Nama Agen', 'Stok Awal', 'Stok Masuk', 'Distribusi', 'Adjustment', 'Stok Akhir', 'Status Pelaporan'], rows);
+};
+
+window.exportLpgDistributionReportCSV = function() {
+  const date = document.getElementById('adminLpgDistributionReportDate')?.value;
+  if (!date) return CustomModal.alert({ title: 'Tanggal Wajib Dipilih', message: 'Pilih tanggal laporan distribusi.', icon: '!', type: 'warning' });
+  const events = getPostedLpgEvents().filter(event => event.type === 'DISTRIBUTION' && getLpgWitaDateKey(event.effectiveAt || event.createdAt) === date);
+  const agentNames = new Map(getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).map(agent => [agent.id, agent.name]));
+  const rows = events.map(event => [date, event.effectiveAt || event.createdAt, event.agentId, event.agentName || agentNames.get(event.agentId) || '', event.pangkalanId || '', event.pangkalanSnapshot?.name || '', event.pangkalanSnapshot?.kecamatan || '', event.pangkalanSnapshot?.desaKelurahan || '', event.quantity, event.doNumber || '', event.vehicleNumber || '', event.createdByName || event.createdBy || '', event.status || 'FIRESTORE_SYNCED']);
+  downloadLpgCsv(`Distribusi_Pangkalan_LPG_Pinrang_${date}.csv`, ['Tanggal WITA', 'Waktu Efektif', 'Kode Agen', 'Nama Agen', 'Kode Pangkalan', 'Nama Pangkalan', 'Kecamatan', 'Desa/Kelurahan', 'Jumlah Tabung', 'Nomor DO/Nota', 'Armada', 'Operator', 'Status Ledger'], rows);
+};
+
+window.exportLpgMonthlyReportCSV = function() {
+  const month = document.getElementById('adminLpgReportMonth')?.value;
+  if (!month) return CustomModal.alert({ title: 'Bulan Wajib Dipilih', message: 'Pilih bulan laporan.', icon: '!', type: 'warning' });
+  const events = getPostedLpgEvents().filter(event => getLpgWitaDateKey(event.effectiveAt || event.createdAt).startsWith(month));
+  const agents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).filter(agent => agent.status === 'ACTIVE');
+  const rows = agents.map(agent => {
+    const monthly = events.filter(event => event.agentId === agent.id);
+    const stockIn = monthly.filter(event => event.type === 'STOCK_IN').reduce((sum, event) => sum + Number(event.quantity || 0), 0);
+    const distributionEvents = monthly.filter(event => event.type === 'DISTRIBUTION');
+    const distributed = distributionEvents.reduce((sum, event) => sum + Number(event.quantity || 0), 0);
+    const served = new Set(distributionEvents.map(event => event.pangkalanId).filter(Boolean)).size;
+    const hasAllocation = agent.monthlyAllocation !== null && agent.monthlyAllocation !== undefined && agent.monthlyAllocation !== '' && Number.isFinite(Number(agent.monthlyAllocation));
+    const allocation = hasAllocation ? Number(agent.monthlyAllocation) : null;
+    const realization = allocation > 0 ? `${(distributed / allocation * 100).toFixed(2)}%` : '';
+    return [month, agent.id, agent.name, stockIn, distributed, served, allocation, realization, allocation === null ? 'DATA ALOKASI BELUM TERSEDIA' : 'TERSEDIA'];
+  });
+  downloadLpgCsv(`Rekap_Bulanan_LPG_Pinrang_${month}.csv`, ['Bulan WITA', 'Kode Agen', 'Nama Agen', 'Total Stok Masuk', 'Total Distribusi', 'Pangkalan Terlayani', 'Alokasi Resmi', 'Realisasi', 'Status Alokasi'], rows);
+};
+
+// 9. EKSPOR DATA KE CSV RESMI DISPERINDAG
 window.exportLpgPangkalanCSV = function() {
   const pangkalanList = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
   if (pangkalanList.length === 0) {
@@ -1039,7 +1115,7 @@ window.exportLpgPangkalanCSV = function() {
       `"${(p.address || '').replace(/"/g, '""')}"`,
       `"${(p.ownerName || '').replace(/"/g, '""')}"`,
       `"${p.phone || ''}"`,
-      p.monthlyAllocation || 560,
+      p.monthlyAllocation ?? '',
       `"${p.status || 'ACTIVE'}"`,
       `"${p.verificationStatus || 'VERIFIED'}"`,
       `"${p.sourceType || 'ESDM_PUBLIC_SEED'}"`

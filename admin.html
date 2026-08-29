@@ -911,6 +911,9 @@
             <button onclick="switchAdminLpgSubView('alerts')" class="btn-outline" id="btnSubAlerts" style="padding: 8px 14px; font-size: 0.8rem; border-color:#B45309;color:#B45309;">
               <span>⚠️</span> Tindak Lanjut Alert
             </button>
+            <button onclick="switchAdminLpgSubView('reports')" class="btn-outline" id="btnSubReports" style="padding:8px 14px;font-size:.8rem;border-color:#047857;color:#047857;">
+              <span>📊</span> Laporan Operasional
+            </button>
             <button onclick="exportLpgPangkalanCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #059669; color: #059669;" title="Download Master 681 Pangkalan (Excel / CSV)">
               <span>📥</span> Ekspor CSV Pangkalan
             </button>
@@ -1074,7 +1077,32 @@
           </div>
         </div>
 
-        <!-- 6. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
+        <!-- 6. SUBVIEW: LAPORAN OPERASIONAL -->
+        <div id="subViewLpgReports" style="display:none;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;">
+            <section style="border:1px solid #CBD5E1;border-radius:12px;padding:16px;background:#F8FAFC;">
+              <h4 style="margin:0 0 6px;color:#0F172A;">Laporan Harian per Agen</h4>
+              <p style="font-size:.76rem;color:#64748B;min-height:38px;">Saldo awal, stok masuk, distribusi, koreksi, dan saldo akhir dari agregasi ledger.</p>
+              <input id="adminLpgReportDate" type="date" class="form-input" style="margin-bottom:10px;">
+              <button type="button" class="btn-primary" onclick="exportLpgDailyReportCSV()" style="width:100%;padding:9px;">Unduh CSV Harian</button>
+            </section>
+            <section style="border:1px solid #CBD5E1;border-radius:12px;padding:16px;background:#F8FAFC;">
+              <h4 style="margin:0 0 6px;color:#0F172A;">Distribusi per Pangkalan</h4>
+              <p style="font-size:.76rem;color:#64748B;min-height:38px;">Rincian tujuan, wilayah, jumlah, DO, armada, dan pelapor pada tanggal terpilih.</p>
+              <input id="adminLpgDistributionReportDate" type="date" class="form-input" style="margin-bottom:10px;">
+              <button type="button" class="btn-primary" onclick="exportLpgDistributionReportCSV()" style="width:100%;padding:9px;background:#1D4ED8;">Unduh CSV Distribusi</button>
+            </section>
+            <section style="border:1px solid #CBD5E1;border-radius:12px;padding:16px;background:#F8FAFC;">
+              <h4 style="margin:0 0 6px;color:#0F172A;">Rekap Bulanan</h4>
+              <p style="font-size:.76rem;color:#64748B;min-height:38px;">Stok masuk, distribusi, pangkalan terlayani, serta realisasi hanya jika alokasi resmi tersedia.</p>
+              <input id="adminLpgReportMonth" type="month" class="form-input" style="margin-bottom:10px;">
+              <button type="button" class="btn-primary" onclick="exportLpgMonthlyReportCSV()" style="width:100%;padding:9px;background:#7C3AED;">Unduh CSV Bulanan</button>
+            </section>
+          </div>
+          <div style="margin-top:14px;padding:11px 14px;border-radius:9px;background:#EFF6FF;color:#1E3A8A;font-size:.76rem;">Semua periode memakai zona waktu WITA. Kolom alokasi dan realisasi dikosongkan apabila belum ada master alokasi resmi.</div>
+        </div>
+
+        <!-- 7. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
         <div id="subViewLpgMap" style="display: none;">
           <!-- FILTER PETA GIS -->
           <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
@@ -1599,6 +1627,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_workflow_v9"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_reports_v10"></script>
 </body>
 </html>
