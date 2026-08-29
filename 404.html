@@ -3,158 +3,437 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>404 - Halaman Tidak Ditemukan | Disperindag ESDM Kabupaten Pinrang</title>
-  <meta name="description" content="Halaman yang Anda tuju tidak ditemukan pada portal resmi Disperindag ESDM Kabupaten Pinrang.">
-  <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/modal-system.css">
+  <title>404 — Halaman Tidak Ditemukan | Disperindag ESDM Kabupaten Pinrang</title>
+  <meta name="description" content="Halaman yang Anda tuju tidak ditemukan pada portal resmi Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.">
+  <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/404.html">
+  
+  <link rel="icon" type="image/png" href="/assets/brand/logo_pinrang_opt.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/brand/logo_pinrang_opt.png">
+  
+  <!-- CSS PATH ABSOLUT (MENCEGAH ERROR TAMPILAN DI NESTED ROUTE 404) -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/modal-system.css">
+  
   <style>
-    .error-page-section {
-      min-height: 70vh;
+    .error-page-wrapper {
+      min-height: 75vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 60px 20px;
+      padding: 50px 20px;
+      background: linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 100%);
+    }
+
+    .error-card-premium {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-subtle, #CBD5E1);
+      border-radius: 20px;
+      padding: 50px 40px;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 20px 40px -15px rgba(15, 44, 89, 0.12);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .error-card-premium::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #0F2C59, #D97706, #059669);
+    }
+
+    .error-graphic-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+      border: 2px solid #BFDBFE;
+      border-radius: 50%;
+      font-size: 3.2rem;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+      animation: floatBadge 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatBadge {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-8px) rotate(4deg); }
+    }
+
+    .error-code-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary-deep, #0F2C59);
+      margin-bottom: 12px;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+    }
+
+    .error-code-title span {
+      color: #D97706;
+    }
+
+    .error-desc-text {
+      font-size: 0.98rem;
+      color: #475569;
+      line-height: 1.7;
+      margin-bottom: 28px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .error-search-box {
+      display: flex;
+      max-width: 480px;
+      margin: 0 auto 30px;
+      background: #F8FAFC;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+    }
+
+    .error-search-box:focus-within {
+      border-color: #0F2C59;
+      box-shadow: 0 0 0 3px rgba(15, 44, 89, 0.12);
+      background: #FFFFFF;
+    }
+
+    .error-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 12px 18px;
+      font-size: 0.92rem;
+      color: #0F172A;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .error-search-btn {
+      background: var(--primary-deep, #0F2C59);
+      color: #FFFFFF;
+      border: none;
+      padding: 0 22px;
+      font-weight: 800;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .error-search-btn:hover {
+      background: #1E3A8A;
+    }
+
+    .error-action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .btn-404-primary {
+      background: linear-gradient(135deg, #0F2C59, #081A3A);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 12px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(15, 44, 89, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .btn-404-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(15, 44, 89, 0.35);
+      color: #FACC15;
+    }
+
+    .btn-404-outline {
+      background: #FFFFFF;
+      color: var(--primary-deep, #0F2C59);
+      border: 1.5px solid #CBD5E1;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 12px 22px;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-404-outline:hover {
+      border-color: #0F2C59;
+      background: #F1F5F9;
+      transform: translateY(-2px);
+    }
+
+    .error-quick-services {
+      border-top: 1px solid #E2E8F0;
+      padding-top: 24px;
+      text-align: left;
+    }
+
+    .error-quick-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
       text-align: center;
     }
-    .error-card {
-      background: #FFFFFF;
-      border: 1.5px solid #E2E8F0;
-      border-radius: var(--radius-lg);
-      padding: 48px 36px;
-      max-width: 620px;
-      width: 100%;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    }
-    .error-badge {
-      display: inline-block;
-      font-size: 3.5rem;
-      line-height: 1;
-      margin-bottom: 16px;
-    }
-    .error-code {
-      font-size: 1.85rem;
-      font-weight: 900;
-      color: var(--primary-deep);
-      margin-bottom: 12px;
-    }
-    .error-desc {
-      font-size: 0.95rem;
-      color: #64748B;
-      line-height: 1.6;
-      margin-bottom: 28px;
-    }
-    .error-nav-grid {
+
+    .error-grid-links {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 12px;
-      margin-top: 24px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
     }
-    .error-nav-btn {
+
+    .error-link-card {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 12px;
+      text-align: center;
+      padding: 12px 8px;
       background: #F8FAFC;
       border: 1px solid #E2E8F0;
-      border-radius: 8px;
+      border-radius: 10px;
       text-decoration: none;
-      color: var(--primary-deep);
-      font-size: 0.82rem;
+      color: #1E293B;
+      font-size: 0.8rem;
       font-weight: 700;
       transition: all 0.2s ease;
     }
-    .error-nav-btn:hover {
+
+    .error-link-card span.icon {
+      font-size: 1.4rem;
+      margin-bottom: 6px;
+    }
+
+    .error-link-card:hover {
       background: #EFF6FF;
       border-color: #3B82F6;
+      color: #1D4ED8;
       transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+    }
+
+    @media (max-width: 640px) {
+      .error-card-premium { padding: 36px 20px; }
+      .error-code-title { font-size: 1.7rem; }
+      .error-grid-links { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
 
-  <!-- TOPBAR & NAVBAR RESMI -->
-  <header class="main-header">
-    <div class="top-bar">
-      <div class="container top-bar-content">
-        <div class="top-bar-info">
-          <span>🏛️ Pemerintah Kabupaten Pinrang</span>
-          <span class="top-bar-divider">•</span>
-          <span>📍 Jl. Bintang No. 1</span>
-        </div>
-        <div class="top-bar-contact">
-          <a href="https://wa.me/6282316002226" target="_blank" rel="noopener noreferrer" style="color: #FDE047; text-decoration: none; font-weight: 700;">💬 Hotline: 0823 1600 2226</a>
+  <!-- 1. TOPBAR RESMI -->
+  <header class="topbar">
+    <div class="container">
+      <div class="topbar-left">
+        <span class="live-indicator"></span>
+        <span id="currentDate">Portal Resmi Kedinasan Kabupaten Pinrang</span>
+      </div>
+
+      <div class="topbar-right-actions">
+        <form class="topbar-search-form" id="globalSearchForm" action="/search.html" method="GET">
+          <input type="text" id="globalSearchInput" name="q" class="topbar-search-input" placeholder="Cari layanan, berita, harga..." aria-label="Pencarian Global">
+          <button type="submit" class="topbar-search-btn" aria-label="Tombol Cari">🔍</button>
+        </form>
+
+        <div class="login-gateway-wrapper">
+          <button class="btn-topbar-login" type="button">
+            <span>🔐</span> Portal Pegawai <span class="caret-down">▾</span>
+          </button>
+          <div class="login-dropdown-menu">
+            <a href="/login.html" class="login-drop-item">
+              <div class="drop-item-icon" style="background: #FEF3C7; color: #B45309;">🔐</div>
+              <div><strong>Masuk Akun Pegawai</strong><small>Autentikasi keamanan ASN</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/petugas.html" class="login-drop-item">
+              <div class="drop-item-icon mobile-badge">📱</div>
+              <div><strong>Aplikasi Petugas Lapangan</strong><small>Input harga pasar, sidak LPG & tera</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/admin.html" class="login-drop-item">
+              <div class="drop-item-icon desktop-badge">💻</div>
+              <div><strong>CMS Administrator</strong><small>Kelola konten kedinasan</small></div>
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="container nav-container">
-      <a href="index.html" class="brand">
-        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pinrang" class="brand-logo" style="width: 44px; height: auto;">
-        <div class="brand-text">
-          <div class="brand-title">DISPERINDAG ESDM</div>
-          <div class="brand-subtitle">KABUPATEN PINRANG</div>
-        </div>
-      </a>
-      <nav class="main-nav">
-        <ul class="nav-menu">
-          <li><a href="index.html" class="nav-link">Beranda</a></li>
-          <li><a href="profil.html" class="nav-link">Profil</a></li>
-          <li><a href="layanan.html" class="nav-link">Layanan &amp; SOP</a></li>
-          <li><a href="pasar.html" class="nav-link">Harga &amp; Pasar</a></li>
-          <li><a href="arsip-berita.html" class="nav-link">Berita</a></li>
-          <li><a href="kontak.html" class="nav-link">Kontak</a></li>
-        </ul>
-      </nav>
     </div>
   </header>
 
-  <!-- MAIN ERROR CONTENT -->
-  <main class="error-page-section">
-    <div class="error-card">
-      <div class="error-badge">🧭</div>
-      <h1 class="error-code">404 — Halaman Tidak Ditemukan</h1>
-      <p class="error-desc">
-        Halaman atau rilis artikel yang Anda cari tidak tersedia, telah berganti tautan, atau sedang dalam pembaruan berkala.
+  <!-- 2. NAVBAR UTAMA RESMI -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/index.html" class="brand-logo">
+        <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang">
+        <div class="brand-text">
+          <h1>DISPERINDAG ESDM</h1>
+          <p>KABUPATEN PINRANG</p>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Buka Navigasi Menu">☰</button>
+
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="/index.html" class="nav-link">Beranda</a></li>
+        <li><a href="/profil.html" class="nav-link">Profil</a></li>
+        <li><a href="/layanan.html" class="nav-link">Layanan Publik</a></li>
+        <li><a href="/index.html#transparansi-pelayanan" class="nav-link">Transparansi</a></li>
+        <li><a href="/arsip-berita.html" class="nav-link">Berita</a></li>
+        <li><a href="/kontak.html" class="nav-link">Kontak</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 3. MAIN ERROR SECTION -->
+  <main class="error-page-wrapper">
+    <div class="error-card-premium">
+      
+      <div class="error-graphic-badge">
+        🧭
+      </div>
+
+      <h1 class="error-code-title">
+        <span>404</span> &bull; Halaman Tidak Ditemukan
+      </h1>
+
+      <p class="error-desc-text">
+        Mohon maaf, halaman atau tautan rilis yang Anda tuju tidak tersedia, telah dipindahkan ke tautan baru yang lebih aman, atau alamat URL salah ketik.
       </p>
 
-      <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-        <a href="index.html" class="btn-primary" style="padding: 10px 24px; font-size: 0.88rem; text-decoration: none; border-radius: 8px;">
-          🏠 Kembali ke Beranda
+      <!-- FORM PENCARIAN CEPAT -->
+      <form class="error-search-box" action="/search.html" method="GET">
+        <input type="text" name="q" class="error-search-input" placeholder="Ketik kata kunci yang ingin dicari..." required>
+        <button type="submit" class="error-search-btn">
+          <span>🔍</span> Cari
+        </button>
+      </form>
+
+      <!-- TOMBOL AKSI UTAMA -->
+      <div class="error-action-buttons">
+        <a href="/index.html" class="btn-404-primary">
+          <span>🏠</span> Kembali ke Beranda Utama
         </a>
-        <a href="arsip-berita.html" class="btn-outline" style="padding: 10px 20px; font-size: 0.88rem; text-decoration: none; border-radius: 8px;">
-          📰 Buka Arsip Berita
+        <a href="/arsip-berita.html" class="btn-404-outline">
+          <span>📰</span> Buka Arsip Berita
         </a>
       </div>
 
-      <div class="error-nav-grid">
-        <a href="pasar.html" class="error-nav-btn">
-          <span>📊</span> Harga Pasar
-        </a>
-        <a href="layanan.html" class="error-nav-btn">
-          <span>⚖️</span> Layanan Tera &amp; Izin
-        </a>
-        <a href="index.html#pengaduan" class="error-nav-btn">
-          <span>📢</span> Pengaduan Publik
-        </a>
-        <a href="kontak.html" class="error-nav-btn">
-          <span>📞</span> Kontak Resmi
-        </a>
+      <!-- KARTU LAYANAN CEPAT -->
+      <div class="error-quick-services">
+        <div class="error-quick-title">Pilihan Navigasi Layanan Populer:</div>
+        <div class="error-grid-links">
+          <a href="/index.html#sembako" class="error-link-card">
+            <span class="icon">📊</span>
+            <span>Harga Pasar</span>
+          </a>
+          <a href="/layanan.html" class="error-link-card">
+            <span class="icon">⚖️</span>
+            <span>Standar Layanan</span>
+          </a>
+          <a href="/index.html#pengaduan" class="error-link-card">
+            <span class="icon">📢</span>
+            <span>Pengaduan Publik</span>
+          </a>
+          <a href="/kontak.html" class="error-link-card">
+            <span class="icon">📞</span>
+            <span>Kontak Resmi</span>
+          </a>
+        </div>
       </div>
+
     </div>
   </main>
 
-  <!-- FOOTER RESMI -->
-  <footer class="main-footer">
+  <!-- 4. MASTER FOOTER RESMI -->
+  <footer class="footer">
     <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="footer-brand-header">
+            <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang" class="footer-brand-logo">
+            <div class="footer-brand-title">
+              <h4>DISPERINDAG ESDM</h4>
+              <p>KABUPATEN PINRANG</p>
+            </div>
+          </div>
+          <p class="footer-desc">
+            Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen memberikan pelayanan prima, keterbukaan informasi publik, dan perlindungan konsumen di Bumi Lasinrang.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-heading">Navigasi Utama</h4>
+          <ul class="footer-links">
+            <li><a href="/index.html">Beranda Portal</a></li>
+            <li><a href="/profil.html">Profil Kedinasan</a></li>
+            <li><a href="/layanan.html">Standar Pelayanan Publik</a></li>
+            <li><a href="/arsip-berita.html">Arsip Berita &amp; Publikasi</a></li>
+            <li><a href="/dokumen.html">Dokumen &amp; Regulasi</a></li>
+            <li><a href="/katalog-ikm.html">Katalog Produk IKM</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-heading">Kontak &amp; Lokasi</h4>
+          <div class="footer-contact-item">
+            <span>📍</span>
+            <span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span>
+          </div>
+          <div class="footer-contact-item">
+            <span>📞</span>
+            <span>0823 1600 2226</span>
+          </div>
+          <div class="footer-contact-item">
+            <span>✉️</span>
+            <span>dinasperindagem.pinrang@gmail.com</span>
+          </div>
+        </div>
+      </div>
+
       <div class="footer-bottom">
-        <div>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang</div>
-        <div style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 700;">#BanggaMelayaniBangsa</div>
+        <p>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang. #BanggaMelayaniBangsa</p>
       </div>
     </div>
   </footer>
 
+  <script src="/js/modal-system.js"></script>
+  <script src="/js/pinrang-live.js"></script>
+  <script>
+    // Mobile Drawer Toggle
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const navMenu = document.getElementById('navMenu');
+    if (mobileBtn && navMenu) {
+      mobileBtn.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    }
+  </script>
 </body>
 </html>
