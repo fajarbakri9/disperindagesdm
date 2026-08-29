@@ -1246,77 +1246,7 @@ window.closeNewsPreviewModal = function() {
   if (modal) modal.style.display = 'none';
 };
 
-// TOGGLE STATUS (PUBLISHED <-> DRAFT)
-window.toggleNewsStatus = function(newsId) {
-  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
-  const item = allNews.find(n => n.id === newsId);
-  if (!item) return;
 
-  const newStatus = (item.status === 'draft') ? 'published' : 'draft';
-  item.status = newStatus;
-  item.updated_at = new Date().toISOString();
-
-  setStorage('disperindag_news', allNews);
-
-  // Update banner sync
-  let banners = getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []);
-  const bannerIdx = banners.findIndex(b => b.target_news_id === item.id);
-  if (bannerIdx !== -1) {
-    banners[bannerIdx].active = (newStatus === 'published');
-    setStorage('disperindag_banners', banners);
-    if (typeof renderAdminBanners === 'function') renderAdminBanners();
-  }
-
-  if (typeof db !== 'undefined' && db !== null) {
-    try {
-      db.collection('news').doc(item.id).update({ status: newStatus });
-    } catch(e) {}
-  }
-
-  renderAdminNews();
-
-  CustomModal.alert({
-    title: "Status Berita Diubah",
-    message: `Berita <strong>"${item.title}"</strong> kini berstatus <strong>${newStatus === 'published' ? 'DITERBITKAN (LIVE)' : 'DRAF / ARSIP'}</strong>.`,
-    icon: newStatus === 'published' ? "✅" : "📝",
-    type: "info"
-  });
-};
-
-// DELETE NEWS HANDLER
-window.deleteAdminNews = function(newsId) {
-  const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
-  const item = allNews.find(n => n.id === newsId);
-  if (!item) return;
-
-  CustomModal.confirm({
-    title: "Hapus Publikasi Berita?",
-    message: `Apakah Anda yakin ingin menghapus artikel <strong>"${item.title}"</strong>?<br><br><span style="color:#DC2626; font-size:0.8rem;">Tindakan ini akan menghapus berita dari arsip publik website.</span>`,
-    icon: "🗑️",
-    confirmText: "Ya, Hapus Berita",
-    cancelText: "Batal",
-    type: "danger",
-    onConfirm: () => {
-      const updatedNews = allNews.filter(n => n.id !== newsId);
-      setStorage('disperindag_news', updatedNews);
-
-      if (typeof db !== 'undefined' && db !== null) {
-        try {
-          db.collection('news').doc(newsId).delete();
-        } catch(e) {}
-      }
-
-      renderAdminNews();
-
-      CustomModal.alert({
-        title: "Berita Dihapus",
-        message: `Artikel telah berhasil dihapus dari sistem.`,
-        icon: "✅",
-        type: "info"
-      });
-    }
-  });
-};
 
 // LIVE PREVIEW MODAL
 window.previewCurrentNewsDraft = function() {
