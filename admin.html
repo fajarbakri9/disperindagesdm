@@ -64,6 +64,18 @@
       to { opacity: 1; transform: translateY(0); }
     }
     #lpgAdminWorkspace { border: 1px solid #E2E8F0; box-shadow: 0 12px 30px rgba(15,44,89,.08); overflow: visible; }
+    .lpg-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:12px; }
+    .lpg-summary-card { --accent:#2563EB; --surface:#EFF6FF; position:relative; min-height:112px; padding:16px 17px 14px; overflow:hidden; border:1px solid color-mix(in srgb,var(--accent) 24%,white); border-radius:14px; background:linear-gradient(145deg,#FFF 0%,var(--surface) 100%); box-shadow:0 5px 16px rgba(15,23,42,.045); }
+    .lpg-summary-card::before { content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--accent); }
+    .lpg-summary-card__label { color:#475569; font-size:.69rem; font-weight:900; letter-spacing:.055em; line-height:1.3; text-transform:uppercase; }
+    .lpg-summary-card__value { margin:7px 0 4px; color:var(--accent); font-size:1.65rem; font-weight:900; line-height:1; letter-spacing:-.025em; }
+    .lpg-summary-card__detail { color:#64748B; font-size:.72rem; line-height:1.35; }
+    .lpg-alert-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+    .lpg-alert-card { --accent:#B45309; --surface:#FFFBEB; display:flex; align-items:center; gap:13px; min-height:80px; width:100%; padding:13px 15px; border:1px solid color-mix(in srgb,var(--accent) 22%,white); border-radius:13px; background:var(--surface); text-align:left; cursor:pointer; transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
+    .lpg-alert-card:hover { transform:translateY(-1px); border-color:color-mix(in srgb,var(--accent) 42%,white); box-shadow:0 8px 18px rgba(15,23,42,.07); }
+    .lpg-alert-card__count { display:grid; place-items:center; flex:0 0 46px; width:46px; height:46px; border-radius:12px; background:#FFF; color:var(--accent); font-size:1.35rem; font-weight:900; box-shadow:0 2px 8px rgba(15,23,42,.06); }
+    .lpg-alert-card__label { display:block; color:var(--accent); font-size:.69rem; font-weight:900; line-height:1.25; text-transform:uppercase; }
+    .lpg-alert-card__detail { display:block; margin-top:3px; color:#64748B; font-size:.71rem; line-height:1.3; }
     .lpg-workspace-head { display:grid; grid-template-columns:minmax(260px,1fr) auto; gap:18px; align-items:start; padding-bottom:16px; border-bottom:1px solid #E2E8F0; }
     .lpg-workspace-head h3 { margin:0 0 5px; font-size:1.08rem; color:#0F172A; }
     .lpg-workspace-head p { margin:0; max-width:720px; line-height:1.5; }
@@ -81,10 +93,12 @@
     .lpg-table-shell .admin-table tbody tr.is-selected { background:#EFF6FF; box-shadow:inset 3px 0 #2563EB; }
     .lpg-table-shell .admin-table td { padding-top:12px; padding-bottom:12px; vertical-align:middle; }
     @media (max-width:1100px) {
+      .lpg-summary-grid,.lpg-alert-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .lpg-workspace-head { grid-template-columns:1fr; }
       .lpg-nav-groups { align-items:stretch; }
       .lpg-module-tabs,.lpg-utility-actions { justify-content:flex-start; }
     }
+    @media (max-width:640px) { .lpg-summary-grid,.lpg-alert-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body class="admin-layout">
@@ -879,40 +893,40 @@
     <div class="admin-panel admin-tab-content" id="tabLpgMonitoring">
       
       <!-- STATISTIK RINGKAS PENGAWASAN LPG -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-        <div class="metric-card" style="background: #EFF6FF; border: 1.5px solid #BFDBFE;">
-          <div style="font-size: 0.76rem; font-weight: 800; color: #1E3A8A; text-transform: uppercase;">Agen Penyalur Resmi</div>
-          <div style="font-size: 1.8rem; font-weight: 900; color: #1D4ED8; margin: 4px 0;" id="adminLpgStatAgents">8 Agen</div>
-          <div style="font-size: 0.72rem; color: #64748B;">Aktif Melaporkan di Kab. Pinrang</div>
+      <div class="lpg-summary-grid" aria-label="Ringkasan pengawasan LPG 3 Kg">
+        <div class="lpg-summary-card" style="--accent:#2563EB;--surface:#EFF6FF;">
+          <div class="lpg-summary-card__label">Agen Penyalur Resmi</div>
+          <div class="lpg-summary-card__value" id="adminLpgStatAgents">8 Agen</div>
+          <div class="lpg-summary-card__detail">Agen aktif di Kabupaten Pinrang</div>
         </div>
 
-        <div class="metric-card" style="background: #F0FDF4; border: 1.5px solid #BBF7D0;">
-          <div style="font-size: 0.76rem; font-weight: 800; color: #166534; text-transform: uppercase;">Total Pangkalan Binaan</div>
-          <div style="font-size: 1.8rem; font-weight: 900; color: #15803D; margin: 4px 0;" id="adminLpgStatPangkalan">681 Pangkalan</div>
-          <div style="font-size: 0.72rem; color: #64748B;">Tersebar di 12 Kecamatan</div>
+        <div class="lpg-summary-card" style="--accent:#15803D;--surface:#F0FDF4;">
+          <div class="lpg-summary-card__label">Total Pangkalan Binaan</div>
+          <div class="lpg-summary-card__value" id="adminLpgStatPangkalan">681 Pangkalan</div>
+          <div class="lpg-summary-card__detail">Cakupan pembinaan Kabupaten Pinrang</div>
         </div>
 
-        <div class="metric-card" style="background: #FEF3C7; border: 1.5px solid #FDE68A;">
-          <div style="font-size: 0.76rem; font-weight: 800; color: #92400E; text-transform: uppercase;">Stok Terhitung di Agen</div>
-          <div style="font-size: 1.8rem; font-weight: 900; color: #D97706; margin: 4px 0;" id="adminLpgStatStock">0 Tabung</div>
-          <div style="font-size: 0.72rem; color: #64748B;">Saldo Otoritatif Buku Ledger</div>
+        <div class="lpg-summary-card" style="--accent:#D97706;--surface:#FFFBEB;">
+          <div class="lpg-summary-card__label">Stok Terhitung di Agen</div>
+          <div class="lpg-summary-card__value" id="adminLpgStatStock">0 Tabung</div>
+          <div class="lpg-summary-card__detail">Saldo otoritatif buku ledger</div>
         </div>
 
-        <div class="metric-card" style="background: #FDF2F8; border: 1.5px solid #FBCFE8;">
-          <div style="font-size: 0.76rem; font-weight: 800; color: #9D174D; text-transform: uppercase;">Tersalurkan Hari Ini</div>
-          <div style="font-size: 1.8rem; font-weight: 900; color: #DB2777; margin: 4px 0;" id="adminLpgStatDistributed">0 Tabung</div>
-          <div style="font-size: 0.72rem; color: #64748B;">Penyaluran Berstatus POSTED</div>
+        <div class="lpg-summary-card" style="--accent:#DB2777;--surface:#FDF2F8;">
+          <div class="lpg-summary-card__label">Tersalurkan Hari Ini</div>
+          <div class="lpg-summary-card__value" id="adminLpgStatDistributed">0 Tabung</div>
+          <div class="lpg-summary-card__detail">Transaksi penyaluran yang telah dibukukan</div>
         </div>
       </div>
 
-      <div id="adminLpgAlertsPanel" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;"></div>
+      <div id="adminLpgAlertsPanel" class="lpg-alert-grid" aria-label="Indikator yang memerlukan perhatian"></div>
 
       <!-- KARTU UTAMA PENGAWASAN LPG -->
       <div class="admin-card" id="lpgAdminWorkspace">
         <div class="lpg-workspace-head">
           <div>
-            <h3>🔥 Direktori Master 681 Pangkalan & Pemantauan Distribusi LPG 3 Kg</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Data bersumber resmi dari Ditjen Migas Kementerian ESDM Q1 2026 yang terintegrasi langsung dengan pelaporan agen penyalur.</p>
+            <h3>🔥 Direktori Pangkalan &amp; Pemantauan Distribusi LPG 3 Kg</h3>
+            <p style="font-size: 0.82rem; color: #64748B;"><strong>Sumber data:</strong> Ditjen Migas Kementerian ESDM, posisi data Triwulan I 2026.</p>
           </div>
           <div class="lpg-nav-groups">
             <div class="lpg-module-tabs" aria-label="Navigasi modul pengawasan LPG">
@@ -1696,6 +1710,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_directory_ux_v17"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_cards_v18"></script>
 </body>
 </html>

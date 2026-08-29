@@ -241,10 +241,9 @@ function renderAdminLpgAlerts() {
     { label: 'Review PHU', count: alerts.pendingPhuReview.length, color: '#7C3AED', bg: '#F5F3FF', detail: 'Perlu keputusan admin', action: "document.getElementById('adminLpgFilterStatus').value='PHU_FLAG';switchAdminLpgSubView('pangkalan')" }
   ];
   container.innerHTML = cards.map(card => `
-    <button type="button" onclick="${card.action}" style="text-align:left;border:1px solid ${card.color}33;background:${card.bg};border-radius:12px;padding:14px 16px;cursor:pointer;">
-      <div style="font-size:.7rem;text-transform:uppercase;font-weight:900;color:${card.color};">${card.label}</div>
-      <div style="font-size:1.55rem;font-weight:900;color:${card.color};margin:2px 0;">${card.count}</div>
-      <div style="font-size:.72rem;color:#64748B;">${card.detail}</div>
+    <button type="button" class="lpg-alert-card" onclick="${card.action}" style="--accent:${card.color};--surface:${card.bg};" aria-label="${card.label}: ${card.count}. ${card.detail}">
+      <span class="lpg-alert-card__count">${card.count}</span>
+      <span><span class="lpg-alert-card__label">${card.label}</span><span class="lpg-alert-card__detail">${card.detail}</span></span>
     </button>`).join('');
 }
 
