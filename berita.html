@@ -572,9 +572,12 @@
       }
 
       // 4. Update Meta, Judul & Canonical URL
-      const cleanNewsUrl = `${window.location.origin}/berita/${article.slug || article.id}`;
+      const canonicalUrl = `${window.location.origin}/berita/${article.slug || article.id}`;
       try {
-        window.history.replaceState({ newsId: article.id }, article.title, cleanNewsUrl);
+        // Pertahankan query ?id= saat di halaman dynamic reader berita.html agar reload F5 tetap konsisten
+        if (window.location.pathname.endsWith('berita.html')) {
+          window.history.replaceState({ newsId: article.id }, article.title, `${window.location.origin}/berita.html?id=${encodeURIComponent(article.id)}`);
+        }
       } catch(e) {}
 
       document.getElementById('pageTitle').textContent = `${article.title} | Disperindag ESDM Pinrang`;

@@ -330,7 +330,7 @@
   <script src="https://disperindagesdm-pinrang.web.app/js/pinrang-live.js"></script>
   <script src="https://disperindagesdm-pinrang.web.app/js/app.js"></script>
   <script>
-    // Client-Side Live Hydration: Jika admin baru saja mengedit artikel di CMS (mengganti foto, judul, dsb), sinkronkan seketika di browser!
+    // Client-Side Live Hydration: Sinkronkan seluruh data editan terbaru (foto, judul, isi konten) dari database browser
     document.addEventListener('DOMContentLoaded', () => {
       try {
         const slug = "tindak-lanjuti-aduan-warga-pangkalan-lpg-3-kg-nakal-di-duampanua-dijatuhi-sanksi-tegas-phu";
@@ -356,6 +356,25 @@
             if (current.title) {
               const titleEl = document.querySelector('.article-title');
               if (titleEl) titleEl.textContent = current.title;
+              document.title = current.title + ' | Disperindag ESDM Pinrang';
+            }
+            // 4. Update Isi Konten Berita Lengkap jika diedit di CMS
+            if (current.content) {
+              const bodyEl = document.querySelector('.article-body-text');
+              if (bodyEl) {
+                let html = current.content;
+                if (!html.includes('<p>') && !html.includes('<div>')) {
+                  html = html.split('\n\n').map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+                }
+                bodyEl.innerHTML = html;
+              }
+            }
+            // 5. Update Tanggal & Penulis
+            if (current.date || current.author) {
+              const metaDiv = document.querySelector('.article-main > div:nth-of-type(2) > div:first-child');
+              if (metaDiv) {
+                metaDiv.innerHTML = '📅 ' + (current.date || "21 Agustus 2026") + ' &bull; ✍️ Oleh: <strong>' + (current.author || "Bidang Perindustrian & ESDM") + '</strong>';
+              }
             }
           }
         }
