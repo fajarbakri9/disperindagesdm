@@ -733,7 +733,11 @@
       }
     };
 
-    document.addEventListener('DOMContentLoaded', renderSingleArticle);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderSingleArticle);
+    } else {
+      renderSingleArticle();
+    }
   </script>
 </body>
 </html>
