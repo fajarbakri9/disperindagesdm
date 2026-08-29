@@ -13,7 +13,7 @@ const LPG_STORAGE_KEYS = {
   VERSION: 'disperindag_lpg_db_version'
 };
 
-const LPG_ENGINE_VERSION = "2026_08_29_lpg_v1";
+const LPG_ENGINE_VERSION = "2026_08_30_lpg_nondestructive_v2";
 
 // 1. INISIALISASI DATABASE LPG
 function initLpgDatabase() {
@@ -23,23 +23,21 @@ function initLpgDatabase() {
     const initialAgents = (typeof LPG_SEED_AGENTS !== 'undefined') ? LPG_SEED_AGENTS : [];
     const initialPangkalan = (typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : [];
 
-    localStorage.setItem(LPG_STORAGE_KEYS.AGENTS, JSON.stringify(initialAgents));
-    localStorage.setItem(LPG_STORAGE_KEYS.PANGKALAN, JSON.stringify(initialPangkalan));
+    // Migrasi versi tidak boleh menimpa perubahan operasional yang sudah ada.
+    // Seed hanya dipasang untuk instalasi/browser yang benar-benar masih kosong.
+    if (!localStorage.getItem(LPG_STORAGE_KEYS.AGENTS)) {
+      localStorage.setItem(LPG_STORAGE_KEYS.AGENTS, JSON.stringify(initialAgents));
+    }
+    if (!localStorage.getItem(LPG_STORAGE_KEYS.PANGKALAN)) {
+      localStorage.setItem(LPG_STORAGE_KEYS.PANGKALAN, JSON.stringify(initialPangkalan));
+    }
     
     // Inisialisasi Saldo Awal (Opening Balance) per Agen
-    const initialBalances = {};
-    initialAgents.forEach(ag => {
-      initialBalances[ag.id] = {
-        agentId: ag.id,
-        agentName: ag.name,
-        filledCylinderBalance: 1240, // Saldo pembuka operasional
-        lastPostedEventAt: new Date().toISOString(),
-        lastStockInAt: new Date().toISOString(),
-        lastDistributionAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-    });
-    localStorage.setItem(LPG_STORAGE_KEYS.BALANCES, JSON.stringify(initialBalances));
+    if (!localStorage.getItem(LPG_STORAGE_KEYS.BALANCES)) {
+      // Tidak membuat saldo fiktif. Saldo riil harus lahir dari opening balance/
+      // ledger yang diproses backend, bukan dari angka contoh di browser.
+      localStorage.setItem(LPG_STORAGE_KEYS.BALANCES, JSON.stringify({}));
+    }
 
     if (!localStorage.getItem(LPG_STORAGE_KEYS.EVENTS)) {
       localStorage.setItem(LPG_STORAGE_KEYS.EVENTS, JSON.stringify([]));

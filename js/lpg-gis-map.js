@@ -37,6 +37,15 @@ let lpgGisLayers = {
   verifiedPangkalan: null
 };
 
+function escapeLpgMapText(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
   const container = document.getElementById(containerId);
   if (!container || typeof L === 'undefined') return;
@@ -103,7 +112,7 @@ window.renderLpgGisMarkers = function() {
     const marker = L.marker([ag.lat, ag.lng], { icon: agentIcon })
       .bindPopup(`
         <div style="font-size:0.84rem; line-height:1.5;">
-          <strong style="color:#1E3A8A; font-size:0.92rem;">${ag.name}</strong><br>
+          <strong style="color:#1E3A8A; font-size:0.92rem;">${escapeLpgMapText(ag.name)}</strong><br>
           <span style="font-size:0.75rem; color:#059669; font-weight:800;">KODE: ${agId}</span><br>
           📍 Wilayah: Kec. ${ag.kec}<br>
           🏪 Membina: <strong>${agPangkalan.length} Pangkalan</strong><br>
@@ -121,7 +130,7 @@ window.renderLpgGisMarkers = function() {
 
     const kecMeta = PINRANG_KECAMATAN_COORDS[kecName];
     const kecPangkalan = pangkalanList.filter(p => p.kecamatan === kecName && !p.isDeleted);
-    const count = kecPangkalan.length || kecMeta.pangkalanCount;
+    const count = kecPangkalan.length;
 
     const districtIcon = L.divIcon({
       className: 'custom-gis-district-icon',
@@ -137,7 +146,6 @@ window.renderLpgGisMarkers = function() {
         <div style="font-size:0.84rem; line-height:1.5;">
           <strong style="color:#0F172A; font-size:0.95rem;">Kecamatan ${kecName}</strong><br>
           🔥 Total Pangkalan Aktif: <strong>${count} Pangkalan</strong><br>
-          💰 HET Resmi: <strong>Rp 18.500</strong> / Tabung<br>
           <hr style="margin:6px 0; border:0; border-top:1px solid #E2E8F0;">
           <button onclick="filterTableByKec('${kecName}')" style="background:#1D4ED8; color:#FFFFFF; border:none; padding:4px 10px; border-radius:4px; font-size:0.74rem; font-weight:800; cursor:pointer; width:100%;">
             Lihat Daftar Pangkalan (${count}) &rarr;
@@ -165,7 +173,12 @@ window.renderLpgGisMarkers = function() {
 
   // 3. Render Titik GPS Pangkalan yang Telah Terverifikasi Lapangan
   pangkalanList.forEach(p => {
-    if (p.latitude && p.longitude && !p.isDeleted) {
+    const latitude = Number(p.latitude);
+    const longitude = Number(p.longitude);
+    const hasValidCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
+      && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+    const isGpsVerified = ['VERIFIED', 'VERIFIED_GPS', 'ADMIN_VERIFIED'].includes(p.verificationStatus);
+    if (hasValidCoordinates && isGpsVerified && !p.isDeleted) {
       if (filterKec && p.kecamatan !== filterKec) return;
       if (filterAgent && p.agentId !== filterAgent) return;
 
@@ -176,15 +189,15 @@ window.renderLpgGisMarkers = function() {
         iconAnchor: [9, 9]
       });
 
-      const pMarker = L.marker([p.latitude, p.longitude], { icon: pklIcon })
+      const pMarker = L.marker([latitude, longitude], { icon: pklIcon })
         .bindPopup(`
           <div style="font-size:0.82rem; line-height:1.45;">
-            <strong style="color:#0F2C59;">${p.name}</strong><br>
+            <strong style="color:#0F2C59;">${escapeLpgMapText(p.name)}</strong><br>
             <span style="font-size:0.72rem; color:#059669; font-weight:800;">✓ TERVERIFIKASI GPS</span><br>
-            🏢 Agen: ${p.agentName || p.agentId}<br>
-            📍 Desa: ${p.desaKelurahan}, Kec. ${p.kecamatan}<br>
-            📞 Kontak: ${p.phone || '-'}<br>
-            📍 Titik Koordinat: <code>${p.latitude.toFixed(5)}, ${p.longitude.toFixed(5)}</code>
+            🏢 Agen: ${escapeLpgMapText(p.agentName || p.agentId)}<br>
+            📍 Desa: ${escapeLpgMapText(p.desaKelurahan)}, Kec. ${escapeLpgMapText(p.kecamatan)}<br>
+            📞 Kontak: ${escapeLpgMapText(p.phone || '-')}<br>
+            📍 Titik Koordinat: <code>${latitude.toFixed(5)}, ${longitude.toFixed(5)}</code>
           </div>
         `);
 
