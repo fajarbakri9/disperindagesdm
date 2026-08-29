@@ -5,6 +5,8 @@
 
 let adminLpgCurrentPage = 1;
 const ADMIN_LPG_PER_PAGE = 20;
+let unsubscribeAdminLpgPangkalan = null;
+let unsubscribeAdminLpgAudit = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdminLpgMonitoring();
@@ -16,6 +18,67 @@ function initAdminLpgMonitoring() {
   renderAdminLpgAgentsTable();
   renderAdminLpgLedgerTable();
   renderAdminLpgAuditTable();
+
+  if (typeof auth !== 'undefined' && auth) {
+    auth.onAuthStateChanged(user => {
+      if (user && !unsubscribeAdminLpgPangkalan) subscribeAdminLpgFirestore();
+    });
+  }
+}
+
+function subscribeAdminLpgFirestore() {
+  if (typeof db === 'undefined' || !db || !auth.currentUser) return;
+
+  unsubscribeAdminLpgPangkalan = db.collection('lpg_pangkalan').onSnapshot(snapshot => {
+    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setLpgStore(LPG_STORAGE_KEYS.PANGKALAN, items);
+    refreshAdminLpgStats();
+    renderAdminLpgPangkalanTable();
+    renderAdminLpgAgentsTable();
+  }, error => console.error('[-] Sinkron master pangkalan admin gagal:', error.code));
+
+  unsubscribeAdminLpgAudit = db.collection('lpg_audit_logs')
+    .orderBy('createdAt', 'desc').limit(100).onSnapshot(snapshot => {
+      const logs = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt && typeof data.createdAt.toDate === 'function'
+            ? data.createdAt.toDate().toISOString()
+            : data.createdAt
+        };
+      });
+      setLpgStore(LPG_STORAGE_KEYS.AUDIT_LOGS, logs);
+      renderAdminLpgAuditTable();
+    }, error => console.error('[-] Sinkron audit LPG admin gagal:', error.code));
+}
+
+async function commitAdminPangkalanAction(pangkalan, update, auditData) {
+  if (typeof db === 'undefined' || !db || typeof auth === 'undefined' || !auth.currentUser) {
+    return { success: false, message: 'Sesi Firebase Admin tidak tersedia. Silakan login ulang.' };
+  }
+  const user = auth.currentUser;
+  const batch = db.batch();
+  batch.update(db.collection('lpg_pangkalan').doc(pangkalan.id), {
+    ...update,
+    updatedBy: user.uid,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  batch.set(db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`), {
+    action: auditData.action,
+    entityType: 'PANGKALAN',
+    entityId: pangkalan.id,
+    agentId: pangkalan.agentId,
+    actorUid: user.uid,
+    actorRole: getCurrentSession()?.role || 'DISPERINDAG_ADMIN',
+    before: auditData.before,
+    after: auditData.after,
+    reason: auditData.reason,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await batch.commit();
+  return { success: true };
 }
 
 // 1. STATISTIK RINGKAS
@@ -200,7 +263,7 @@ window.renderAdminLpgPangkalanTable = function() {
 };
 
 // 4. AKSI RESTORE PANGKALAN OLEH DISPERINDAG
-window.adminRestorePangkalan = function(pangkalanId) {
+function adminRestorePangkalanLocalLegacy(pangkalanId) {
   const pangkalanList = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
   const idx = pangkalanList.findIndex(p => p.id === pangkalanId);
   if (idx === -1) return;
@@ -251,7 +314,7 @@ window.adminLpgChangePage = function(newPage) {
 };
 
 // 4. AKSI VERIFIKASI & DETAIL PANGKALAN OLEH DISPERINDAG
-window.adminVerifyPangkalan = function(pangkalanId) {
+function adminVerifyPangkalanLocalLegacy(pangkalanId) {
   const pangkalanList = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
   const idx = pangkalanList.findIndex(p => p.id === pangkalanId);
   if (idx === -1) return;
@@ -330,6 +393,64 @@ window.adminDetailPangkalan = function(pangkalanId) {
     icon: "🏪",
     type: "info"
   });
+};
+
+// Implementasi otoritatif Firestore. Deklarasi ini menggantikan handler lokal
+// lama di atas agar refresh/perangkat lain selalu melihat hasil yang sama.
+window.adminRestorePangkalan = function(pangkalanId) {
+  const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []).find(p => p.id === pangkalanId);
+  if (!pangkalan) return;
+  CustomModal.confirm({
+    title: 'Pulihkan Pangkalan?',
+    message: `Pangkalan <strong>${pangkalan.name}</strong> akan diaktifkan kembali dan tersedia dalam distribusi agen.`,
+    confirmText: 'Pulihkan Pangkalan', cancelText: 'Batal', type: 'info',
+    onConfirm: async () => {
+      try {
+        const result = await commitAdminPangkalanAction(pangkalan, {
+          status: 'ACTIVE', isDeleted: false, deletedAt: null,
+          deletedBy: null, deleteReason: null
+        }, {
+          action: 'PANGKALAN_RESTORE',
+          before: { status: pangkalan.status, isDeleted: true },
+          after: { status: 'ACTIVE', isDeleted: false },
+          reason: 'Pangkalan dipulihkan kembali oleh Admin Disperindag ESDM Pinrang'
+        });
+        if (!result.success) throw new Error(result.message);
+        CustomModal.alert({
+          title: 'Pangkalan Dipulihkan',
+          message: `Pangkalan <strong>${pangkalan.name}</strong> telah dipulihkan permanen di Firestore.`,
+          icon: '✓', type: 'info'
+        });
+      } catch (error) {
+        CustomModal.alert({ title: 'Gagal Memulihkan', message: error.message || 'Write Firestore ditolak.', icon: '!', type: 'error' });
+      }
+    }
+  });
+};
+
+window.adminVerifyPangkalan = async function(pangkalanId) {
+  const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []).find(p => p.id === pangkalanId);
+  if (!pangkalan) return;
+  try {
+    const result = await commitAdminPangkalanAction(pangkalan, {
+      verificationStatus: 'VERIFIED',
+      verifiedBy: auth.currentUser.uid,
+      verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {
+      action: 'PANGKALAN_VERIFY',
+      before: { verificationStatus: pangkalan.verificationStatus },
+      after: { verificationStatus: 'VERIFIED' },
+      reason: 'Pangkalan diverifikasi sah oleh Pengawas Disperindag ESDM Pinrang'
+    });
+    if (!result.success) throw new Error(result.message);
+    CustomModal.alert({
+      title: 'Pangkalan Terverifikasi',
+      message: `Pangkalan <strong>${pangkalan.name}</strong> telah diverifikasi permanen di Firestore.`,
+      icon: '✓', type: 'info'
+    });
+  } catch (error) {
+    CustomModal.alert({ title: 'Gagal Memverifikasi', message: error.message || 'Write Firestore ditolak.', icon: '!', type: 'error' });
+  }
 };
 
 // 5. TABEL SALDO 8 AGEN RESMI & REKONSILIASI AGEN BARU
