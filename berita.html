@@ -508,15 +508,28 @@
         newsList = deduplicateNewsList(newsList);
       }
 
-      // 2. Cari artikel di LocalStorage
+      // 2. Cari artikel di LocalStorage & Default Database
       let article = null;
       if (queryKey) {
         article = newsList.find(n => 
-          n.id === queryKey || 
-          n.slug === queryKey || 
-          (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
-          (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
+          n && (
+            n.id === queryKey || 
+            n.slug === queryKey || 
+            (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
+            (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
+          )
         );
+
+        if (!article && typeof DEFAULT_NEWS !== 'undefined' && Array.isArray(DEFAULT_NEWS)) {
+          article = DEFAULT_NEWS.find(n => 
+            n && (
+              n.id === queryKey || 
+              n.slug === queryKey || 
+              (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
+              (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
+            )
+          );
+        }
       }
 
       // 3. Fallback Firestore jika artikel baru dibuat di perangkat lain
