@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Portal Pelaporan Agen LPG 3 Kg | Disperindag ESDM Pinrang</title>
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0F2C59">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="lpg-manifest.json">
+  <link rel="apple-touch-icon" sizes="192x192" href="assets/brand/lpg-app-icon-192.png">
   <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/modal-system.css">
@@ -79,6 +85,8 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .btn-install-lpg { display:none; background:#FACC15; border:0; color:#422006; padding:6px 10px; border-radius:7px; font-size:.72rem; font-weight:900; cursor:pointer; }
+    .lpg-topbar-actions { display:flex; align-items:center; gap:7px; }
     /* Info Card Agen */
     .lpg-agent-header-card {
       background: #EFF6FF;
@@ -360,7 +368,7 @@
           <p>Disperindag ESDM Pinrang</p>
         </div>
       </div>
-      <button type="button" class="btn-logout-lpg" onclick="logoutUser()">🚪 Keluar</button>
+      <div class="lpg-topbar-actions"><button type="button" class="btn-install-lpg" id="btnInstallLpgApp">Pasang Aplikasi</button><button type="button" class="btn-logout-lpg" onclick="logoutUser()">🚪 Keluar</button></div>
     </header>
 
     <!-- 2. IDENTITAS AGEN AKTIF -->
@@ -622,6 +630,6 @@
   <script src="js/lpg-engine.js?v=20260830_lpg_alerts_v4"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
-  <script src="js/lpg-agen.js?v=20260830_lpg_alerts_v4"></script>
+  <script src="js/lpg-agen.js?v=20260830_lpg_pwa_v5"></script>
 </body>
 </html>

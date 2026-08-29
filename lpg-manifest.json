@@ -1,0 +1,16 @@
+{
+  "id": "/lpg-agen.html",
+  "name": "Pelaporan Agen LPG 3 Kg Pinrang",
+  "short_name": "Agen LPG Pinrang",
+  "description": "Portal resmi pelaporan stok, distribusi, dan pangkalan LPG 3 Kg Kabupaten Pinrang.",
+  "start_url": "/lpg-agen.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#0F2C59",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/assets/brand/lpg-app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/brand/lpg-app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

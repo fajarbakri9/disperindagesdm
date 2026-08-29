@@ -11,8 +11,31 @@ let unsubscribeAgentPangkalan = null;
 let unsubscribeAgentLedger = null;
 let isSubmittingStockIn = false;
 let isSubmittingDistribution = false;
+let deferredLpgInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  deferredLpgInstallPrompt = event;
+  const button = document.getElementById('btnInstallLpgApp');
+  if (button) button.style.display = 'inline-flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredLpgInstallPrompt = null;
+  const button = document.getElementById('btnInstallLpgApp');
+  if (button) button.style.display = 'none';
+});
 
 document.addEventListener('DOMContentLoaded', () => {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/lpg-sw.js').catch(error => console.warn('Service worker LPG gagal didaftarkan:', error));
+  document.getElementById('btnInstallLpgApp')?.addEventListener('click', async () => {
+    if (!deferredLpgInstallPrompt) return;
+    deferredLpgInstallPrompt.prompt();
+    await deferredLpgInstallPrompt.userChoice;
+    deferredLpgInstallPrompt = null;
+    const button = document.getElementById('btnInstallLpgApp');
+    if (button) button.style.display = 'none';
+  });
   // 1. Guard Autentikasi Khusus Agen LPG
   currentAgentSession = requireAuth(['lpg_agen']);
   if (!currentAgentSession) return;
