@@ -82,8 +82,8 @@
 
         <form id="systemLoginForm" style="display: flex; flex-direction: column; gap: 18px;">
           <div>
-            <label class="form-label" for="loginUsername" style="font-size: 0.88rem;">Nama Pengguna (Username / NIP)</label>
-            <input type="text" id="loginUsername" class="form-input" required placeholder="Masukkan username resmi" style="padding: 12px 14px;" autocomplete="username">
+            <label class="form-label" for="loginUsername" style="font-size: 0.88rem;">Email Firebase / Username Lama</label>
+            <input type="text" id="loginUsername" class="form-input" required placeholder="nama@lpg.pinrang atau username" style="padding: 12px 14px;" autocomplete="username">
           </div>
 
           <div>
@@ -116,6 +116,10 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260830_firebase_auth_v1"></script>
   <script src="js/data.js?v=20260829_sync15_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
@@ -137,12 +141,14 @@
       const form = document.getElementById('systemLoginForm');
       const alertBox = document.getElementById('loginAlertBox');
 
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const u = document.getElementById('loginUsername').value;
         const p = document.getElementById('loginPassword').value;
 
-        const authResult = authenticateUser(u, p);
+        const authResult = u.includes('@')
+          ? await authenticateFirebaseUser(u, p)
+          : authenticateUser(u, p);
         if (authResult.success) {
           alertBox.style.display = 'block';
           alertBox.style.background = '#ECFDF5';

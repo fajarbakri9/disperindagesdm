@@ -297,6 +297,23 @@ Jika project saat ini menggunakan file HTML statis/vanilla JS, struktur URL bole
 
 Perluas Firebase Auth/RBAC yang sudah ada.
 
+Pada arsitektur Spark-only, role dan `agentId` disimpan di `/users/{uid}` karena pengelolaan custom claims memerlukan lingkungan Admin SDK. Security Rules membaca dokumen pengguna tersebut. Akun Firebase Authentication dan dokumen `/users/{uid}` pertama dibuat melalui Firebase Console oleh pengelola proyek; sesudah admin pertama aktif, pengelolaan profil akses dapat dilakukan sesuai rules dan UI admin.
+
+Schema minimum:
+
+```json
+{
+  "email": "agen01@lpg.pinrang",
+  "name": "Operator Agen",
+  "role": "LPG_AGENT_ADMIN",
+  "agentId": "AG-001",
+  "agentName": "PT. GASIFA MULYA PERSADA",
+  "status": "ACTIVE"
+}
+```
+
+Document ID harus sama persis dengan Firebase Authentication UID. Jangan menerima `role` atau `agentId` dari form login.
+
 Login agen dapat diarahkan melalui:
 
 ```text

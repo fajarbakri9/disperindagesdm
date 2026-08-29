@@ -404,6 +404,58 @@ function authenticateUser(username, password) {
   return { success: true, user: sessionUser };
 }
 
+async function authenticateFirebaseUser(email, password) {
+  if (typeof auth === 'undefined' || !auth || typeof db === 'undefined' || !db) {
+    return { success: false, message: "Layanan Firebase Authentication belum tersedia." };
+  }
+
+  try {
+    const credential = await auth.signInWithEmailAndPassword(email.trim().toLowerCase(), password);
+    const profileSnapshot = await db.collection('users').doc(credential.user.uid).get();
+    if (!profileSnapshot.exists) {
+      await auth.signOut();
+      return { success: false, message: "Akun berhasil diautentikasi tetapi belum mempunyai profil akses Disperindag." };
+    }
+
+    const profile = profileSnapshot.data();
+    if (profile.status !== 'ACTIVE') {
+      await auth.signOut();
+      return { success: false, message: "Akun Firebase tidak aktif. Hubungi administrator." };
+    }
+
+    const adminRoles = ['SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'LPG_ADMIN'];
+    const lpgAgentRoles = ['LPG_AGENT_ADMIN', 'LPG_AGENT_OPERATOR'];
+    const sessionUser = {
+      uid: credential.user.uid,
+      email: credential.user.email,
+      authProvider: 'FIREBASE',
+      username: profile.username || credential.user.email,
+      name: profile.name || credential.user.displayName || credential.user.email,
+      position: profile.position || null,
+      unit: profile.unit || null,
+      agentId: profile.agentId || null,
+      agentName: profile.agentName || null,
+      role: profile.role,
+      roleLabel: profile.roleLabel || profile.role,
+      roleIcon: profile.roleIcon || '🔐',
+      canAccessAdmin: adminRoles.includes(profile.role),
+      canAccessPetugas: profile.canAccessPetugas === true,
+      canAccessLpgAgen: lpgAgentRoles.includes(profile.role),
+      permissions: Array.isArray(profile.permissions) ? profile.permissions : [],
+      loginAt: new Date().toISOString()
+    };
+    localStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(sessionUser));
+    return { success: true, user: sessionUser };
+  } catch (error) {
+    const friendly = {
+      'auth/invalid-credential': 'Email atau kata sandi Firebase tidak sesuai.',
+      'auth/user-disabled': 'Akun Firebase telah dinonaktifkan.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan login. Silakan coba beberapa saat lagi.'
+    };
+    return { success: false, message: friendly[error.code] || 'Login Firebase gagal. Periksa koneksi dan kredensial Anda.' };
+  }
+}
+
 function getCurrentSession() {
   try {
     const raw = localStorage.getItem(SESSION_AUTH_KEY);
@@ -415,6 +467,10 @@ function getCurrentSession() {
 
 function logoutUser() {
   localStorage.removeItem(SESSION_AUTH_KEY);
+  if (typeof auth !== 'undefined' && auth && auth.currentUser) {
+    auth.signOut().finally(() => { window.location.href = "login.html"; });
+    return;
+  }
   window.location.href = "login.html";
 }
 
