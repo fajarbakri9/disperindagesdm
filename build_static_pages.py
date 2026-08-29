@@ -1,35 +1,72 @@
 import os
+import sys
 import json
 import re
 
-SITE_URL = "https://disperindagesdm-pinrang.web.app"
-DEFAULT_SHARE_IMG = f"{SITE_URL}/assets/social/default-share.jpg"
+sys.stdout.reconfigure(encoding='utf-8')
 
-# Baca data berita dari js/data.js
+SITE_URL = "https://disperindagesdm-pinrang.web.app"
+DEFAULT_COVER = f"{SITE_URL}/assets/banner/cover_disperindag_esdm_pinrang.jpg"
+
+# 1. BACA DATA DEFAULT_NEWS DARI js/data.js SECARA DINAMIS
 with open("js/data.js", "r", encoding="utf-8") as f:
     data_content = f.read()
 
 # Ekstrak objek DEFAULT_NEWS
-news_match = re.search(r'const DEFAULT_NEWS\s*=\s*(\[[\s\S]*?\]);', data_content)
+news_match = re.search(r'const DEFAULT_NEWS\s*=\s*(\[[\s\S]*?\]);\s*(?:\n|//|\bconst|\blet)', data_content)
 if not news_match:
     raise ValueError("DEFAULT_NEWS tidak ditemukan di js/data.js")
 
 news_json_str = news_match.group(1)
-# Bersihkan trailing commas dan parsing
-# Karena news_json_str adalah valid JS object literal, kita gunakan regex parser atau regex extracting
+
+# Parsing data artikel secara aman menggunakan regex / ast parser
+# Bersihkan trailing commas dan comments
+cleaned_str = re.sub(r'//.*', '', news_json_str)
+
+# Gunakan python script parser sederhana atau def struktur jika dibutuhkan
 import ast
 
-# Baca template dari berita.html
-with open("berita.html", "r", encoding="utf-8") as f:
-    berita_template = f.read()
+def parse_js_array(js_code):
+    try:
+        # Ubah JS object literal ke Python dict
+        py_code = re.sub(r'(\b\w+\b)\s*:', r'"\1":', js_code)
+        py_code = re.sub(r',\s*([\]}])', r'\1', py_code)
+        return json.loads(py_code)
+    except Exception as e:
+        # Fallback regex extractor
+        items = []
+        raw_blocks = re.findall(r'\{([^{}]+(?:\{[^{}]*\}[^{}]*)*)\}', js_code)
+        for b in raw_blocks:
+            d = {}
+            id_m = re.search(r'id\s*:\s*["\']([^"\']+)["\']', b)
+            if id_m: d['id'] = id_m.group(1)
+            title_m = re.search(r'title\s*:\s*["\']([^"\']+)["\']', b)
+            if title_m: d['title'] = title_m.group(1)
+            slug_m = re.search(r'slug\s*:\s*["\']([^"\']+)["\']', b)
+            if slug_m: d['slug'] = slug_m.group(1)
+            cat_m = re.search(r'category\s*:\s*["\']([^"\']+)["\']', b)
+            if cat_m: d['category'] = cat_m.group(1)
+            date_m = re.search(r'date\s*:\s*["\']([^"\']+)["\']', b)
+            if date_m: d['date'] = date_m.group(1)
+            author_m = re.search(r'author\s*:\s*["\']([^"\']+)["\']', b)
+            if author_m: d['author'] = author_m.group(1)
+            img_m = re.search(r'img\s*:\s*["\']([^"\']+)["\']', b)
+            if img_m: d['img'] = img_m.group(1)
+            exc_m = re.search(r'excerpt\s*:\s*["\']([^"\']+)["\']', b)
+            if exc_m: d['excerpt'] = exc_m.group(1)
+            content_m = re.search(r'content\s*:\s*["\']([^"\']+)["\']', b)
+            if content_m: d['content'] = content_m.group(1)
+            if 'id' in d and 'title' in d:
+                items.append(d)
+        return items
 
-# Definisikan data berita secara terstruktur
 ARTICLES = [
     {
         "id": "news_01",
         "slug": "tindak-lanjuti-aduan-warga-pangkalan-lpg-3-kg-nakal-di-duampanua-dijatuhi-sanksi-tegas-phu",
         "title": "Tindak Lanjuti Aduan Warga, Pangkalan LPG 3 Kg Nakal di Duampanua Dijatuhi Sanksi Tegas PHU",
         "category": "Perindustrian, Energi & SDM",
+        "topic_tag": "LPG 3 Kg",
         "date": "21 Agustus 2026",
         "publishedAt": "2026-08-21T10:00:00+08:00",
         "author": "Bidang Perindustrian & ESDM",
@@ -48,6 +85,7 @@ Dinas mengimbau kepada seluruh masyarakat Kabupaten Pinrang untuk tidak ragu mel
         "slug": "kawal-kepatuhan-het-disperindag-esdm-pinrang-gelar-rakor-bersama-agen-lpg-dan-usulkan-kuota-khusus-petani",
         "title": "Kawal Kepatuhan HET, Disperindag ESDM Pinrang Gelar Rakor Bersama Agen LPG dan Usulkan Kuota Khusus Petani",
         "category": "Perindustrian, Energi & SDM",
+        "topic_tag": "LPG 3 Kg",
         "date": "24 Agustus 2026",
         "publishedAt": "2026-08-24T09:30:00+08:00",
         "author": "Bidang Perindustrian & ESDM",
@@ -63,9 +101,27 @@ Fokus utama rakor ini adalah penegakan sistem pencatatan digital Merchant Apps P
     },
     {
         "id": "news_03",
+        "slug": "revitalisasi-786-lapak-pasar-sentral-pinrang-rampung-dorong-tata-kelola-pedagang-higienis",
+        "title": "Revitalisasi 786 Lapak Pasar Sentral Pinrang Rampung, Dorong Tata Kelola Pedagang Higienis",
+        "category": "Sarana & Pelaku Distribusi",
+        "topic_tag": "Pasar",
+        "date": "12 Agustus 2026",
+        "publishedAt": "2026-08-12T11:00:00+08:00",
+        "author": "Bidang Sarana & Pelaku Distribusi",
+        "img": "assets/banner/pasar_sentral_pinrang_clean_hd.jpg",
+        "excerpt": "Disperindag ESDM Pinrang merampungkan penataan zonasi 786 kios pedagang basah dan kering di Pasar Sentral Watang Sawitto untuk kenyamanan transaksi warga.",
+        "content": """PINRANG — Penataan dan peremajaan infrastruktur lapak pedagang di Pasar Sentral Pinrang, Kecamatan Watang Sawitto, resmi dirampungkan oleh Bidang Sarana dan Pelaku Distribusi Disperindag ESDM Kabupaten Pinrang.
+
+Program revitalisasi ini mencakup zonasi pemisahan komoditas basah (ikan, daging, sayur) dengan komoditas kering (tekstil, bumbu, kelontong), perbaikan drainase anti-genangan, serta instalasi penerangan hemat energi.
+
+"Dengan selesainya revitalisasi 786 kios dan lapak ini, suasana transaksi jual beli menjadi jauh lebih bersih, tertib, dan higienis. Kami ingin masyarakat merasa nyaman berbelanja di pasar rakyat kebanggaan Kabupaten Pinrang," ujar Kepala Bidang Sarana dan Pelaku Distribusi."""
+    },
+    {
+        "id": "news_04",
         "slug": "jamin-transaksi-adil-perlindungan-konsumen-bidang-kemetrologian-gelar-sidang-tera-ulang-timbangan-pasar-dan-spbu",
         "title": "Jamin Transaksi Adil & Perlindungan Konsumen, Bidang Kemetrologian Gelar Sidang Tera Ulang Timbangan Pasar dan SPBU",
         "category": "Kemetrologian",
+        "topic_tag": "Tera",
         "date": "15 Agustus 2026",
         "publishedAt": "2026-08-15T08:30:00+08:00",
         "author": "Bidang Kemetrologian",
@@ -80,10 +136,11 @@ Petugas Penera Ahli melakukan pengujian teknis menggunakan bejana ukur standar 2
 "Pelayanan tera ini merupakan bentuk kehadiran pemerintah daerah dalam melindungi hak konsumen dan memberikan kepastian hukum bagi para pelaku usaha," ungkap Kepala Bidang Kemetrologian."""
     },
     {
-        "id": "news_04",
+        "id": "news_05",
         "slug": "kendalikan-inflasi-pangan-pemkab-pinrang-dan-disperindag-esdm-gelar-operasi-pasar-beras-sphp-di-pasar-sentral",
         "title": "Kendalikan Inflasi Pangan, Pemkab Pinrang dan Disperindag ESDM Gelar Operasi Pasar Beras SPHP di Pasar Sentral",
         "category": "Pengembangan Perdagangan",
+        "topic_tag": "Pasar Murah",
         "date": "10 Agustus 2026",
         "publishedAt": "2026-08-10T09:00:00+08:00",
         "author": "Bidang Pengembangan Perdagangan",
@@ -98,10 +155,11 @@ Kepala Bidang Pengembangan Perdagangan menyampaikan bahwa pemantauan harga bahan
 "Melalui intervensi operasi pasar beras SPHP dan pemantauan harian ini, stabilitas harga pangan daerah di Kabupaten Pinrang dapat terus terjaga secara baik," tuturnya."""
     },
     {
-        "id": "news_05",
+        "id": "news_06",
         "slug": "akselerasi-umkm-naik-kelas-disperindag-pinrang-fasilitasi-sertifikasi-halal-gratis-dan-akun-siinas-bagi-pelaku-ikm",
         "title": "Akselerasi UMKM Naik Kelas, Disperindag Pinrang Fasilitasi Sertifikasi Halal Gratis dan Akun SIINas bagi Pelaku IKM",
         "category": "Perindustrian, Energi & SDM",
+        "topic_tag": "IKM",
         "date": "04 Agustus 2026",
         "publishedAt": "2026-08-04T11:00:00+08:00",
         "author": "Bidang Perindustrian & ESDM",
@@ -114,10 +172,11 @@ Melalui program ini, sebanyak 45 pelaku IKM olahan pangan lokal—seperti pengra
 "Dengan kepemilikan sertifikat Halal, izin edar P-IRT, dan sertifikasi Tingkat Komponen Dalam Negeri (TKDN-IKM), produk-produk unggulan Bumi Lasinrang memiliki keunggulan kompetitif untuk masuk ke etalase toko ritel modern serta e-Katalog Pengadaan Barang dan Jasa Pemerintah," jelas Kepala Bidang Perindustrian."""
     },
     {
-        "id": "news_06",
+        "id": "news_07",
         "slug": "sinergi-dekranasda-dan-disperindag-pinrang-promosikan-tenun-sutra-corak-laburasseng-di-ajang-pameran-nasional",
         "title": "Sinergi Dekranasda dan Disperindag Pinrang Promosikan Tenun Sutra Corak Laburasseng di Ajang Pameran Nasional",
         "category": "Perindustrian, Energi & SDM",
+        "topic_tag": "Dekranasda",
         "date": "22 Juli 2026",
         "publishedAt": "2026-07-22T13:00:00+08:00",
         "author": "Dekranasda & Humas Disperindag",
@@ -132,10 +191,11 @@ Kain tenun sutra yang dipamerkan merupakan mahakarya para penenun tradisional di
 Apresiasi tinggi datang dari para pemerhati wastra nusantara atas kehalusan tenunan, keanggunan motif Laburasseng, dan keaslian benang sutra khas Bumi Lasinrang."""
     },
     {
-        "id": "news_07",
+        "id": "news_08",
         "slug": "kopi-robusta-pinrang",
         "title": "Kopi Robusta Pinrang: Menembus Pasar Ekspor dengan Mutu Petik Merah Dataran Tinggi Basseang",
         "category": "Perindustrian & IKM",
+        "topic_tag": "IKM",
         "date": "25 Agustus 2026",
         "publishedAt": "2026-08-25T10:30:00+08:00",
         "author": "Bidang Perindustrian & ESDM",
@@ -150,10 +210,11 @@ Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinra
 Selain pendampingan mutu, dinas juga memfasilitasi legalitas P-IRT, Sertifikasi Halal BPJPH, pendaftaran akun SIINas, hingga desain kemasan berstandar ekspor agar produk kopi petani Pinrang memiliki nilai tambah yang optimal."""
     },
     {
-        "id": "news_08",
+        "id": "news_09",
         "slug": "pasar-murah-pinrang",
         "title": "Gerakan Pangan Murah (GPM) Tanggap Inflasi Digelar Serentak di 12 Kecamatan Pinrang",
         "category": "Pengembangan Perdagangan",
+        "topic_tag": "Pasar Murah",
         "date": "23 Agustus 2026",
         "publishedAt": "2026-08-23T08:00:00+08:00",
         "author": "Bidang Pengembangan Perdagangan",
@@ -166,10 +227,11 @@ Berbagai komoditas kebutuhan pokok dijual langsung di bawah harga pasar harian, 
 "Program ini merupakan wujud komitmen nyata Tim Pengendalian Inflasi Daerah (TPID) Kabupaten Pinrang dalam memastikan ketersediaan pasokan, keterjangkauan harga, serta kelancaran distribusi logistik pangan pokok bagi seluruh lapisan masyarakat," tutur Kepala Bidang Pengembangan Perdagangan."""
     },
     {
-        "id": "news_09",
+        "id": "news_10",
         "slug": "monitoring-harga-pangan",
         "title": "Pantauan Harian Bapokting: Pasokan Pangan Melimpah, Deviasi Harga Pasar Sentral Terkendali Stabil",
         "category": "Pengembangan Perdagangan",
+        "topic_tag": "Bapokting",
         "date": "26 Agustus 2026",
         "publishedAt": "2026-08-26T09:00:00+08:00",
         "author": "Bidang Pengembangan Perdagangan",
@@ -191,15 +253,42 @@ def generate_article_html(art, canonical_url):
     # Generate related items
     others = [o for o in ARTICLES if o['id'] != art['id']][:4]
     related_html = "".join([f'''
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <img src="{SITE_URL}/{o['img']}" style="width: 60px; height: 48px; object-fit: cover; border-radius: 6px; flex-shrink: 0;" alt="Thumb" onerror="this.src='{SITE_URL}/assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
+        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+          <img src="{SITE_URL}/{o['img']}" style="width: 68px; height: 52px; object-fit: cover; border-radius: 6px; flex-shrink: 0;" alt="Thumb" onerror="this.src='{SITE_URL}/assets/banner/cover_disperindag_esdm_pinrang.jpg'">
           <div>
-            <a href="{SITE_URL}/berita/{o['slug']}" style="font-size: 0.84rem; font-weight: 800; color: var(--primary-deep); text-decoration: none; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            <a href="{SITE_URL}/berita/{o['slug']}" style="font-size: 0.84rem; font-weight: 800; color: var(--primary-deep, #0F2C59); text-decoration: none; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
               {o['title']}
             </a>
-            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">📅 {o['date']}</div>
+            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 3px;">📅 {o['date']} &bull; #{o.get('topic_tag', 'Dinas')}</div>
           </div>
         </div>''' for o in others])
+
+    json_ld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": art["title"],
+        "description": art["excerpt"],
+        "image": [img_abs],
+        "datePublished": art.get("publishedAt", "2026-08-28T08:00:00+08:00"),
+        "dateModified": art.get("publishedAt", "2026-08-28T08:00:00+08:00"),
+        "author": [{
+            "@type": "Organization",
+            "name": art.get("author", "Humas Disperindag ESDM Pinrang"),
+            "url": SITE_URL
+        }],
+        "publisher": {
+            "@type": "GovernmentOrganization",
+            "name": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+            "logo": {
+                "@type": "ImageObject",
+                "url": f"{SITE_URL}/assets/brand/logo_pinrang_opt.png"
+            }
+        },
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": canonical_url
+        }
+    }, ensure_ascii=False, indent=2)
 
     html = f'''<!DOCTYPE html>
 <html lang="id">
@@ -210,12 +299,13 @@ def generate_article_html(art, canonical_url):
   <meta name="description" content="{art['excerpt']}">
   <link rel="canonical" href="{canonical_url}">
   
-  <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS (STATIC PRERENDERED) -->
+  <!-- OPEN GRAPH & MEDSOS SHARING RESMI (STATIC PRERENDERED) -->
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
   <meta property="og:title" content="{art['title']}">
   <meta property="og:description" content="{art['excerpt']}">
   <meta property="og:image" content="{img_abs}">
+  <meta property="og:image:secure_url" content="{img_abs}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/jpeg">
@@ -223,14 +313,21 @@ def generate_article_html(art, canonical_url):
   <meta property="og:url" content="{canonical_url}">
   <meta property="og:locale" content="id_ID">
   <meta property="article:published_time" content="{art['publishedAt']}">
-  <meta property="article:author" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="article:author" content="{art.get('author', 'Humas Disperindag ESDM Pinrang')}">
   <meta property="article:section" content="{art['category']}">
+  <meta property="article:tag" content="{art.get('topic_tag', 'Disperindag')}">
   
   <!-- TWITTER / X CARDS -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{art['title']}">
   <meta name="twitter:description" content="{art['excerpt']}">
   <meta name="twitter:image" content="{img_abs}">
+  <meta name="twitter:image:alt" content="{art['title']}">
+
+  <!-- STRUCTURED DATA JSON-LD -->
+  <script type="application/ld+json">
+{json_ld}
+  </script>
 
   <link rel="icon" type="image/png" href="{SITE_URL}/assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="{SITE_URL}/favicon.ico">
@@ -245,11 +342,12 @@ def generate_article_html(art, canonical_url):
     .article-layout {{ display: grid; grid-template-columns: 1.8fr 1fr; gap: 36px; align-items: start; }}
     .article-main {{ background: #FFFFFF; border-radius: var(--radius-lg); padding: 36px; border: 1.5px solid var(--border-subtle); box-shadow: var(--shadow-sm); }}
     .article-title {{ font-size: 1.85rem; font-weight: 900; color: var(--primary-deep); line-height: 1.3; margin: 14px 0 16px; }}
-    .article-cover {{ width: 100%; height: 380px; border-radius: var(--radius-md); overflow: hidden; margin: 20px 0; }}
+    .article-cover {{ width: 100%; height: 420px; border-radius: var(--radius-md); overflow: hidden; margin: 20px 0; background: #030D1B; }}
     .article-cover img {{ width: 100%; height: 100%; object-fit: cover; }}
-    .article-body-text {{ font-size: 0.95rem; line-height: 1.8; color: #334155; }}
-    .article-body-text p {{ margin-bottom: 18px; }}
-    @media (max-width: 900px) {{ .article-layout {{ grid-template-columns: 1fr; }} .article-main {{ padding: 24px; }} .article-cover {{ height: 240px; }} }}
+    .article-body-text {{ font-size: 0.98rem; line-height: 1.85; color: #334155; }}
+    .article-body-text p {{ margin-bottom: 20px; }}
+    .article-quote-box {{ background: linear-gradient(135deg, #FEFCE8, #FFFDF0); border-left: 4px solid var(--accent-gold, #D97706); padding: 18px 22px; border-radius: 0 12px 12px 0; margin: 24px 0; font-style: italic; color: #78350F; }}
+    @media (max-width: 900px) {{ .article-layout {{ grid-template-columns: 1fr; }} .article-main {{ padding: 24px; }} .article-cover {{ height: 260px; }} .article-title {{ font-size: 1.45rem; }} }}
   </style>
 </head>
 <body>
@@ -333,18 +431,24 @@ def generate_article_html(art, canonical_url):
         
         <!-- KOLOM UTAMA: DETAIL BERITA -->
         <article class="article-main" id="articleContainer">
-          <span class="badge-cat" style="background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px;">
-            {art['category']}
-          </span>
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+            <span class="badge-cat" style="background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px;">
+              {art['category']}
+            </span>
+            <span style="background: #FEF3C7; color: #92400E; font-weight: 800; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px;">
+              #{art.get('topic_tag', 'Dinas')}
+            </span>
+          </div>
+
           <h1 class="article-title">{art['title']}</h1>
           
           <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #E2E8F0; font-size: 0.82rem; color: #64748B; flex-wrap: wrap; gap: 10px;">
-            <div>📅 {art['date']} &bull; ✍️ Oleh: <strong>{art['author']}</strong></div>
+            <div>📅 {art['date']} &bull; ✍️ Oleh: <strong>{art.get('author', 'Humas Disperindag ESDM Pinrang')}</strong></div>
             <span class="verified-badge" style="background: #ECFDF5; color: #059669; font-weight: 800; padding: 4px 8px; border-radius: 4px; border: 1px solid #A7F3D0;">✓ Rilis Resmi Kedinasan</span>
           </div>
 
           <div class="article-cover">
-            <img src="{SITE_URL}/{art['img']}" alt="{art['title']}" onerror="this.src='{SITE_URL}/assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
+            <img src="{img_abs}" alt="{art['title']}" onerror="this.src='{DEFAULT_COVER}'">
           </div>
 
           <div class="article-body-text">
@@ -352,92 +456,102 @@ def generate_article_html(art, canonical_url):
           </div>
 
           <div style="margin-top: 36px; padding-top: 20px; border-top: 2px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-            <a href="{SITE_URL}/arsip-berita.html" class="btn-outline" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none; border: 1.5px solid var(--border-subtle); border-radius: 6px; color: var(--primary-deep); font-weight: 700;">
+            <a href="{SITE_URL}/arsip-berita.html" class="btn-outline" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none; border: 1.5px solid var(--border-subtle, #CBD5E1); border-radius: 6px; color: var(--primary-deep, #0F2C59); font-weight: 700;">
               &larr; Kembali ke Arsip Berita
             </a>
-            <button onclick="shareArticle()" class="btn-primary" style="padding: 8px 18px; font-size: 0.85rem; background: var(--accent-gold, #FACC15); color: #030D1B; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">
-              <span>🔗</span> Bagikan Rilis
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <a href="https://api.whatsapp.com/send?text={art['title']}%20{canonical_url}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #25D366; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <span>💬</span> WhatsApp
+              </a>
+              <a href="https://www.facebook.com/sharer/sharer.php?u={canonical_url}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #1877F2; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <span>📘</span> Facebook
+              </a>
+              <button onclick="shareArticle()" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; background: var(--accent-gold, #FACC15); color: #030D1B; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">
+                <span>🔗</span> Salin Tautan
+              </button>
+            </div>
           </div>
         </article>
 
-        <!-- SIDEBAR: BERITA TERKAIT & BANNER LAYANAN -->
+        <!-- SIDEBAR -->
         <aside class="article-sidebar">
-          
-          <div style="background: #FFFFFF; border-radius: var(--radius-lg); padding: 24px; border: 1.5px solid var(--border-subtle); box-shadow: var(--shadow-sm); margin-bottom: 24px;">
-            <h3 style="font-size: 1.05rem; font-weight: 900; color: var(--primary-deep); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--accent-gold);">
-              📰 Rilis Berita Terkait
+          <div class="sidebar-box" style="background: #FFFFFF; border-radius: var(--radius-lg); padding: 24px; border: 1.5px solid var(--border-subtle); box-shadow: var(--shadow-sm); margin-bottom: 24px;">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 16px; border-bottom: 2px solid var(--accent-gold); padding-bottom: 8px;">
+              Berita Kedinasan Terkini
             </h3>
-            <div style="display: flex; flex-direction: column; gap: 14px;" id="relatedNewsList">
-              {related_html}
-            </div>
+            {related_html}
           </div>
 
-          <!-- BANNER PORTAL PENGADUAN -->
-          <div style="background: linear-gradient(135deg, #0F2C59 0%, #1E3A8A 100%); border-radius: var(--radius-lg); padding: 24px; color: #FFFFFF; box-shadow: var(--shadow-md);">
-            <div style="font-size: 1.5rem; margin-bottom: 8px;">📢</div>
-            <h4 style="font-size: 1.05rem; font-weight: 900; margin-bottom: 8px;">Punya Informasi / Aduan?</h4>
-            <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.6; margin-bottom: 16px;">
-              Laporkan kelangkaan LPG 3 Kg, penipuan timbangan UTTP, atau lonjakan harga pangan melalui saluran resmi terpadu.
+          <div class="sidebar-box" style="background: linear-gradient(135deg, #0F2C59, #081A3A); border-radius: var(--radius-lg); padding: 24px; color: #FFFFFF; box-shadow: var(--shadow-md);">
+            <h4 style="font-size: 1rem; font-weight: 800; color: var(--accent-gold); margin-bottom: 8px;">Kanal Pengaduan Resmi</h4>
+            <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 16px;">
+              Temukan pelanggaran HET LPG 3 kg atau kecurangan timbangan pasar? Sampaikan aduan resmi Anda:
             </p>
-            <a href="{SITE_URL}/index.html#pengaduan" class="btn-primary" style="display: block; text-align: center; font-size: 0.82rem; padding: 8px 14px; background: var(--accent-gold); color: #030D1B; font-weight: 800; text-decoration: none; border-radius: 6px;">
-              Kirim Pengaduan &rarr;
+            <a href="https://wa.me/6282316002226" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; background: #25D366; color: #FFFFFF; font-weight: 800; font-size: 0.85rem; padding: 10px; border-radius: 8px; text-decoration: none;">
+              WhatsApp Hotline: 0823 1600 2226
             </a>
           </div>
-
         </aside>
 
       </div>
-
     </div>
   </main>
 
-  <!-- 4. FOOTER RESMI -->
-  <footer class="main-footer">
+  <!-- 4. MASTER FOOTER RESMI -->
+  <footer class="footer">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-col">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
-            <img src="{SITE_URL}/assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" style="width: 44px; height: auto;">
-            <div>
-              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 900; color: #FFFFFF;">DISPERINDAG ESDM</h4>
-              <span style="font-size: 0.76rem; color: #94A3B8; font-weight: 700;">KABUPATEN PINRANG</span>
+          <div class="footer-brand-header">
+            <img src="{SITE_URL}/assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang" class="footer-brand-logo">
+            <div class="footer-brand-title">
+              <h4>DISPERINDAG ESDM</h4>
+              <p>KABUPATEN PINRANG</p>
             </div>
           </div>
-          <p style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.6;">
-            Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.
+          <p class="footer-desc">
+            Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen memberikan pelayanan publik prima, menjaga stabilitas harga pokok, dan memberdayakan industri daerah.
           </p>
         </div>
 
         <div class="footer-col">
-          <h4>Standar Pelayanan</h4>
+          <h4 class="footer-heading">Navigasi Utama</h4>
           <ul class="footer-links">
-            <li><a href="{SITE_URL}/layanan.html">Standar Pelayanan & SOP</a></li>
-            <li><a href="{SITE_URL}/maklumat-pelayanan.html">Maklumat Pelayanan</a></li>
-            <li><a href="{SITE_URL}/index.html#pengaduan">Formulir Pengaduan</a></li>
+            <li><a href="{SITE_URL}/index.html">Beranda Portal</a></li>
+            <li><a href="{SITE_URL}/profil.html">Profil Kedinasan</a></li>
+            <li><a href="{SITE_URL}/layanan.html">Standar Pelayanan Publik</a></li>
+            <li><a href="{SITE_URL}/arsip-berita.html">Arsip Berita & Publikasi</a></li>
+            <li><a href="{SITE_URL}/dokumen.html">Dokumen & Regulasi</a></li>
+            <li><a href="{SITE_URL}/katalog-ikm.html">Katalog Produk IKM</a></li>
           </ul>
         </div>
 
         <div class="footer-col">
-          <h4>Kontak Resmi</h4>
-          <div style="font-size: 0.84rem; color: #CBD5E1; line-height: 1.65;">
-            <div>📍 Jl. Bintang No. 1, Kab. Pinrang</div>
-            <div>📱 WhatsApp: <a href="https://wa.me/6282316002226" style="color: #FDE047; text-decoration: none;">0823 1600 2226</a></div>
-            <div>✉️ Email: <a href="mailto:dinasperindagem.pinrang@gmail.com" style="color: #93C5FD; text-decoration: none;">dinasperindagem.pinrang@gmail.com</a></div>
+          <h4 class="footer-heading">Kontak & Lokasi</h4>
+          <div class="footer-contact-item">
+            <span>📍</span>
+            <span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span>
+          </div>
+          <div class="footer-contact-item">
+            <span>📞</span>
+            <span>0823 1600 2226</span>
+          </div>
+          <div class="footer-contact-item">
+            <span>✉️</span>
+            <span>dinasperindagem.pinrang@gmail.com</span>
           </div>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <div>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang - <a href="https://www.instagram.com/maroaproject/" target="_blank" rel="noopener noreferrer" style="color: #FACC15; font-weight: 800; text-decoration: none;">MAROA Project</a></div>
-        <div style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 700;">#BanggaMelayaniBangsa</div>
+        <p>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang.</p>
       </div>
     </div>
   </footer>
 
-  <script src="{SITE_URL}/js/data.js?v=20260828_upload_web_v2"></script>
-  <script src="{SITE_URL}/js/modal-system.js?v=20260828_upload_web_v2"></script>
-  <script src="{SITE_URL}/js/app.js?v=20260828_upload_web_v2"></script>
+  <script src="{SITE_URL}/js/modal-system.js"></script>
+  <script src="{SITE_URL}/js/pinrang-live.js"></script>
+  <script src="{SITE_URL}/js/app.js"></script>
   <script>
     window.shareArticle = function() {{
       if (navigator.share) {{
@@ -460,26 +574,35 @@ def generate_article_html(art, canonical_url):
 </html>'''
     return html
 
-# Generate semua artikel berita ke direktori berita/<slug>/index.html
+# 2. GENERATE SEMUA ARTIKEL BERITA KE DIREKTORI STATIS RESMI
 os.makedirs("berita", exist_ok=True)
 
+count = 0
 for art in ARTICLES:
-    # Generate untuk clean URL slug
+    canonical_url = f"{SITE_URL}/berita/{art['slug']}"
+    html_content = generate_article_html(art, canonical_url)
+    
+    # 1. berita/{slug}/index.html (Clean URL modern)
     slug_dir = os.path.join("berita", art["slug"])
     os.makedirs(slug_dir, exist_ok=True)
-    slug_file = os.path.join(slug_dir, "index.html")
-    canonical_url = f"{SITE_URL}/berita/{art['slug']}"
-    
-    html_content = generate_article_html(art, canonical_url)
-    with open(slug_file, "w", encoding="utf-8") as f:
+    with open(os.path.join(slug_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"Generated clean url: berita/{art['slug']}/index.html")
+        
+    # 2. berita/{slug}.html
+    with open(f"berita/{art['slug']}.html", "w", encoding="utf-8") as f:
+        f.write(html_content)
     
-    # Generate untuk ID legacy (misal berita/news_01/index.html)
+    # 3. berita/{id}/index.html (Legacy ID route)
     id_dir = os.path.join("berita", art["id"])
     os.makedirs(id_dir, exist_ok=True)
-    id_file = os.path.join(id_dir, "index.html")
-    with open(id_file, "w", encoding="utf-8") as f:
+    with open(os.path.join(id_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(html_content)
+        
+    # 4. berita/{id}.html
+    with open(f"berita/{art['id']}.html", "w", encoding="utf-8") as f:
+        f.write(html_content)
+        
+    count += 1
+    print(f"  [✓] Generated Open Graph static page: berita/{art['slug']}/index.html & berita/{art['id']}.html")
 
-print(f"Selesai me-render {len(ARTICLES)} artikel berita statis lengkap dengan Open Graph dan Twitter Cards.")
+print(f"\nSelesai men-generate {count} artikel berita statis resmi dengan Open Graph dan Twitter Cards!")

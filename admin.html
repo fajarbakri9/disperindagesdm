@@ -495,44 +495,132 @@
 
             </div>
 
-            <!-- RICH TEXT CONTENT EDITOR -->
+            <!-- WYSIWYG RICH TEXT STUDIO & LIVE VISUAL FORMATTER -->
             <div style="margin-bottom: 24px;">
-              <label class="form-label" style="font-weight: 800; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center;">
-                <span>📝 Isi Berita Lengkap (Rich Article Content) <span style="color:#DC2626;">*</span></span>
-                <span style="font-size: 0.74rem; color: #64748B; font-weight: normal;">Mendukung format paragraf, heading, kutipan resmi, list, dan link</span>
-              </label>
+              <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <label class="form-label" style="font-weight: 800; font-size: 0.92rem; margin-bottom: 0;">
+                  <span>📝 Isi Rilis Berita Lengkap (Rich Text Studio) <span style="color:#DC2626;">*</span></span>
+                </label>
 
-              <!-- TOOLBAR FORMATTING BERKELOMPOK -->
-              <div class="news-toolbar">
+                <!-- DUAL MODE SELECTOR -->
+                <div class="news-editor-tabs">
+                  <button type="button" id="tabModeVisual" class="news-editor-tab-btn active" onclick="switchEditorMode('visual')">
+                    <span>🎨</span> Mode Visual (WYSIWYG)
+                  </button>
+                  <button type="button" id="tabModeCode" class="news-editor-tab-btn" onclick="switchEditorMode('code')">
+                    <span>💻</span> Mode Kode / Markdown
+                  </button>
+                </div>
+              </div>
+
+              <!-- VISUAL TOOLBAR RIBBON LENGKAP -->
+              <div class="news-toolbar" id="newsVisualToolbar">
                 <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('p')" title="Paragraf Standar">¶ Paragraf</button>
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('h2')" title="Sub-judul Utama (Heading 2)"><strong>H2</strong> Sub-judul</button>
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('h3')" title="Bagian Artikel (Heading 3)"><strong>H3</strong> Bagian</button>
+                  <select class="news-tool-select" id="formatBlockSelect" onchange="applyBlockFormat(this.value); this.value='p';" title="Format Blok Paragraf / Heading">
+                    <option value="p">¶ Paragraf Standar</option>
+                    <option value="h2">H2 — Sub-Judul Utama</option>
+                    <option value="h3">H3 — Bagian Artikel</option>
+                  </select>
                 </div>
 
                 <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('b')" title="Teks Tebal (Bold)"><strong>B</strong> Tebal</button>
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('i')" title="Teks Miring (Italic)"><em>I</em> Miring</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('bold')" title="Teks Tebal (Ctrl+B)"><strong>B</strong></button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('italic')" title="Teks Miring (Ctrl+I)"><em>I</em></button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('underline')" title="Garis Bawah (Ctrl+U)"><u>U</u></button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('strikeThrough')" title="Coret Teks"><s>S</s></button>
                 </div>
 
                 <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('quote')" title="Kutipan Resmi Kepala Dinas / Pejabat" style="background:#FFFBEB; color:#92400E; border-color:#FDE68A;">
+                  <button type="button" class="news-tool-btn" onclick="execCmd('justifyLeft')" title="Rata Kiri">≡</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('justifyCenter')" title="Rata Tengah">⩶</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('justifyRight')" title="Rata Kanan">≣</button>
+                </div>
+
+                <div class="news-toolbar-group">
+                  <button type="button" class="news-tool-btn" onclick="insertOfficialQuote()" title="Kutipan Resmi Kepala Dinas / Pejabat" style="background:#FEFCE8; color:#92400E; border-color:#FDE68A; font-weight:800;">
                     💬 Kutipan Pejabat
+                  </button>
+                  <button type="button" class="news-tool-btn" onclick="insertDinasCallout()" title="Kotak Catatan Penting / Pengumuman" style="background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE; font-weight:800;">
+                    ℹ️ Info Dinas
                   </button>
                 </div>
 
                 <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('ul')" title="Daftar Butir Poin">• Poin Butir</button>
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('ol')" title="Daftar Angka / Urutan">1. Poin Angka</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('insertUnorderedList')" title="Daftar Butir Poin">• List</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('insertOrderedList')" title="Daftar Nomor">1. List</button>
                 </div>
 
                 <div class="news-toolbar-group">
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('link')" title="Sisipkan Tautan Dokumen/Portal">🔗 Tautan Link</button>
-                  <button type="button" class="news-tool-btn" onclick="insertFormat('hr')" title="Garis Pembatas Antar Bagian">— Garis Pembatas</button>
+                  <button type="button" class="news-tool-btn" onclick="insertEditorLink()" title="Sisipkan Link Tautan Web">🔗 Link</button>
+                  <button type="button" class="news-tool-btn" onclick="insertInlineImageModal()" title="Sisipkan Foto Sisipan Berita">🖼️ Foto</button>
+                  <button type="button" class="news-tool-btn" onclick="insertDataTableModal()" title="Sisipkan Tabel Data">📊 Tabel</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('insertHorizontalRule')" title="Garis Pembatas Antar Bagian">— Garis</button>
+                </div>
+
+                <div class="news-toolbar-group">
+                  <button type="button" class="news-tool-btn" onclick="execCmd('removeFormat')" title="Hapus Format Teks">🧹 Hapus Format</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('undo')" title="Undo (Kembalikan)">↩️</button>
+                  <button type="button" class="news-tool-btn" onclick="execCmd('redo')" title="Redo (Ulangi)">↪️</button>
                 </div>
               </div>
 
-              <textarea id="newsContentInput" class="news-textarea-editor" required placeholder="Tuliskan isi berita lengkap di sini... Gunakan tombol toolbar di atas untuk menyisipkan sub-judul kegiatan, kutipan resmi pimpinan dinas, poin-poin hasil verifikasi/pengawasan, dan tautan informasi."></textarea>
+              <!-- AREA KANVAS WYSIWYG VISUAL INTERAKTIF -->
+              <div id="newsVisualCanvas" class="news-visual-canvas" contenteditable="true" data-placeholder="Tuliskan isi rilis berita kedinasan di sini... Tekan tombol toolbar di atas untuk memformat teks, menyisipkan kutipan resmi pimpinan dinas, tabel, maupun foto dokumentasi." oninput="syncVisualToRaw()"></div>
+
+              <!-- AREA TEXTAREA KODE MARKDOWN / HTML (UNTUK ADVANCED USER) -->
+              <textarea id="newsContentInput" class="news-textarea-editor" style="display: none;" placeholder="Tuliskan kode markdown atau HTML artikel di sini..." oninput="syncRawToVisual()"></textarea>
+
+              <!-- STATUS BAR REAL-TIME STATS -->
+              <div class="editor-status-bar">
+                <div style="display: flex; gap: 16px;">
+                  <span id="editorWordCount">📊 <strong>0</strong> Kata</span>
+                  <span id="editorCharCount">📝 <strong>0</strong> Karakter</span>
+                  <span id="editorReadTime">⏱️ <strong>~1</strong> Menit Baca</span>
+                </div>
+                <div style="color: #059669; font-weight: 700;">
+                  <span>✓ Mode Penyuntingan Aktif</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- LIVE OPEN GRAPH & SOCIAL SHARE PREVIEW CARD -->
+            <div class="social-preview-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0; display: flex; align-items: center; gap: 6px;">
+                    <span>📱</span> Pratinjau Tampilan Media Sosial (Open Graph / WhatsApp / Facebook)
+                  </h4>
+                  <p style="font-size: 0.76rem; color: #64748B; margin: 2px 0 0;">
+                    Tampilan nyata bagaimana rilis berita ini muncul ketika dibagikan oleh masyarakat atau media ke WhatsApp, Facebook, dan X.
+                  </p>
+                </div>
+                <div class="social-preview-tabs">
+                  <button type="button" class="social-tab-btn active" id="btnPreviewFB" onclick="switchSocialPreview('facebook')">📘 Facebook / X Card</button>
+                  <button type="button" class="social-tab-btn" id="btnPreviewWA" onclick="switchSocialPreview('whatsapp')">💬 WhatsApp Bubble</button>
+                </div>
+              </div>
+
+              <!-- CARD PREVIEW: FACEBOOK / TWITTER -->
+              <div id="socialCardFB" class="fb-card-preview">
+                <img id="ogPreviewImg" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" alt="Preview Share">
+                <div class="fb-card-meta">
+                  <div class="fb-card-domain">DISPERINDAGESDM-PINRANG.WEB.APP</div>
+                  <div class="fb-card-title" id="ogPreviewTitle">Judul Rilis Berita Resmi Kedinasan Disperindag ESDM Pinrang</div>
+                  <div class="fb-card-desc" id="ogPreviewDesc">Ringkasan rilis berita resmi untuk pratinjau media sosial...</div>
+                </div>
+              </div>
+
+              <!-- CARD PREVIEW: WHATSAPP -->
+              <div id="socialCardWA" style="display: none; max-width: 440px; background: #DCF8C6; border-radius: 12px 12px 12px 2px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #C2E7A4;">
+                <div style="background: #FFFFFF; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0;">
+                  <img id="ogPreviewImgWA" src="assets/news/operasi_pasar_murah_sembako_pinrang.jpg" style="width: 100%; height: 160px; object-fit: cover;" alt="Preview WA">
+                  <div style="padding: 10px;">
+                    <div id="ogPreviewTitleWA" style="font-size: 0.88rem; font-weight: 800; color: #0F172A; line-height: 1.35; margin-bottom: 4px;">Judul Rilis Berita Resmi Kedinasan</div>
+                    <div id="ogPreviewDescWA" style="font-size: 0.75rem; color: #64748B; line-height: 1.35;">Ringkasan berita...</div>
+                    <div style="font-size: 0.68rem; color: #059669; font-weight: 700; margin-top: 6px;">disperindagesdm-pinrang.web.app</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- PENGATURAN PUBLIKASI & ACTION BAR -->

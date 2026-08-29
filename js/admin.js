@@ -265,13 +265,16 @@ function renderAdminNews(filterSearch = '', filterCat = '') {
           </span>
         </td>
         <td style="text-align: center;">
-          <div class="btn-action-group" style="justify-content: center;">
-            <button onclick="openNewsEditor('${item.id}')" class="btn-action-item btn-action-edit" title="Sunting Berita">
+          <div class="btn-action-group" style="justify-content: center; flex-wrap: wrap; gap: 4px;">
+            <button onclick="openNewsEditor('${item.id}')" class="btn-action-item btn-action-edit" title="Sunting Berita (WYSIWYG)">
               ✏️ Edit
             </button>
-            <a href="berita.html?id=${item.id}" target="_blank" class="btn-action-item btn-action-view" title="Lihat Tampilan Publik">
+            <a href="berita/${item.slug || item.id}" target="_blank" class="btn-action-item btn-action-view" title="Buka Halaman Rilis SEO Statis">
               👁️ Lihat
             </a>
+            <button onclick="copyNewsPublicLink('${item.slug || item.id}', '${(item.title || '').replace(/'/g, "\\'")}')" class="btn-action-item" style="background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE;" title="Salin Tautan Medsos (WhatsApp/FB)">
+              🔗 Link
+            </button>
             <button onclick="toggleNewsStatus('${item.id}')" class="btn-action-item btn-action-view" title="${isDraft ? 'Publikasikan Berita Ini' : 'Tarik ke Draf'}">
               ${isDraft ? '🚀 Terbitkan' : '📦 Draf'}
             </button>
@@ -294,6 +297,20 @@ function resetNewsFilter() {
   if (document.getElementById('newsCategoryFilter')) document.getElementById('newsCategoryFilter').value = '';
   renderAdminNews();
 }
+
+// COPY PUBLIC NEWS LINK
+window.copyNewsPublicLink = function(slugOrId, title) {
+  const url = `https://disperindagesdm-pinrang.web.app/berita/${slugOrId}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url);
+    CustomModal.alert({
+      title: "Tautan Berita Disalin",
+      message: `Tautan publik untuk artikel <strong>"${title}"</strong> telah disalin ke papan klip:<br><br><code style="background:#F1F5F9; padding:6px 10px; border-radius:6px; font-size:0.85rem; word-break:break-all; display:block; border:1px solid #CBD5E1; color:#0F2C59;">${url}</code><br><small style="color:#059669; font-weight:700;">✓ Siap dibagikan ke WhatsApp, Facebook, dan X dengan Pratinjau Foto Utama & Meta Resmi.</small>`,
+      icon: "📋",
+      type: "info"
+    });
+  }
+};
 
 // SLUG AUTO-GENERATOR
 function autoGenerateSlug(title) {
@@ -341,7 +358,18 @@ window.openNewsEditor = function(newsId = null) {
       document.getElementById('newsDateInput').value = item.date || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
       document.getElementById('newsAuthorInput').value = item.author || 'Humas Disperindag ESDM Pinrang';
       document.getElementById('newsExcerptInput').value = item.excerpt || '';
-      document.getElementById('newsContentInput').value = item.content || '';
+      
+      const rawContent = item.content || '';
+      document.getElementById('newsContentInput').value = rawContent;
+      const visualCanvas = document.getElementById('newsVisualCanvas');
+      if (visualCanvas) {
+        let renderedHtml = rawContent;
+        if (!rawContent.includes('<') && !rawContent.includes('>')) {
+          renderedHtml = rawContent.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+        }
+        visualCanvas.innerHTML = renderedHtml;
+      }
+
       document.getElementById('newsStatusSelect').value = item.status || 'published';
       document.getElementById('newsIsFeaturedCheckbox').checked = !!item.is_featured;
 
@@ -364,6 +392,8 @@ window.openNewsEditor = function(newsId = null) {
     document.getElementById('newsAuthorInput').value = 'Humas Disperindag ESDM Pinrang';
     document.getElementById('newsExcerptInput').value = '';
     document.getElementById('newsContentInput').value = '';
+    const visualCanvas = document.getElementById('newsVisualCanvas');
+    if (visualCanvas) visualCanvas.innerHTML = '';
     document.getElementById('newsStatusSelect').value = 'published';
     document.getElementById('newsIsFeaturedCheckbox').checked = false;
 
@@ -376,8 +406,17 @@ window.openNewsEditor = function(newsId = null) {
     currentNewsGallery = [];
   }
 
+  // Pasang live listener judul & excerpt untuk realtime social OG card preview
+  const titleInp = document.getElementById('newsTitleInput');
+  const excerptInp = document.getElementById('newsExcerptInput');
+  if (titleInp) titleInp.oninput = updateLiveSocialPreview;
+  if (excerptInp) excerptInp.oninput = updateLiveSocialPreview;
+
   renderNewsTagChips();
   renderNewsGalleryGrid();
+  syncVisualToRaw();
+  updateLiveSocialPreview();
+  switchEditorMode('visual');
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
@@ -450,6 +489,7 @@ window.selectArsipPhoto = function(path) {
   currentFeaturedImage = path;
   document.getElementById('newsFeaturedImageResult').value = path;
   document.getElementById('newsFeaturedPreviewImg').src = path;
+  updateLiveSocialPreview();
 };
 
 window.handleFeaturedImageUpload = function(input) {
@@ -479,6 +519,7 @@ window.handleFeaturedImageUpload = function(input) {
       currentFeaturedImage = compressedDataUrl;
       document.getElementById('newsFeaturedImageResult').value = compressedDataUrl;
       document.getElementById('newsFeaturedPreviewImg').src = compressedDataUrl;
+      updateLiveSocialPreview();
     };
   };
   reader.readAsDataURL(file);
@@ -539,53 +580,290 @@ window.removeGalleryItem = function(idx) {
   renderNewsGalleryGrid();
 };
 
-// RICH TEXT TOOLBAR FORMATTER
-window.insertFormat = function(type) {
-  const textarea = document.getElementById('newsContentInput');
-  if (!textarea) return;
+// ==============================================================================
+// WYSIWYG RICH TEXT STUDIO & VISUAL FORMATTING ENGINE
+// ==============================================================================
+let currentEditorMode = 'visual';
 
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const selectedText = textarea.value.substring(start, end);
-  let replacement = '';
+window.switchEditorMode = function(mode) {
+  currentEditorMode = mode;
+  const btnVisual = document.getElementById('tabModeVisual');
+  const btnCode = document.getElementById('tabModeCode');
+  const visualCanvas = document.getElementById('newsVisualCanvas');
+  const rawInput = document.getElementById('newsContentInput');
+  const toolbar = document.getElementById('newsVisualToolbar');
 
-  switch (type) {
-    case 'p':
-      replacement = selectedText ? `\n\n${selectedText}\n\n` : '\n\nTulis paragraf penjelasan berita di sini...\n\n';
-      break;
-    case 'h2':
-      replacement = `\n\n## ${selectedText || 'Sub-judul Bahasan Berita'}\n`;
-      break;
-    case 'h3':
-      replacement = `\n\n### ${selectedText || 'Rincian Kegiatan'}\n`;
-      break;
-    case 'b':
-      replacement = `**${selectedText || 'Teks Tebal'}**`;
-      break;
-    case 'i':
-      replacement = `*${selectedText || 'Teks Miring'}*`;
-      break;
-    case 'quote':
-      replacement = `\n\n> "${selectedText || 'Mewujudkan pelayanan prima dan pengawasan terpadu demi perlindungan konsumen masyarakat Bumi Lasinrang.'}" — Kepala Dinas Perindag ESDM Pinrang\n\n`;
-      break;
-    case 'ul':
-      replacement = `\n• ${selectedText || 'Poin pertama hasil pengawasan'}\n• Poin kedua tindak lanjut kedinasan\n• Poin ketiga partisipasi masyarakat\n`;
-      break;
-    case 'ol':
-      replacement = `\n1. ${selectedText || 'Langkah pertama verifikasi lapangan'}\n2. Langkah kedua koordinasi penyalur\n3. Langkah ketiga penetapan sanksi tegas\n`;
-      break;
-    case 'link':
-      replacement = `[${selectedText || 'Portal Resmi Pemkab Pinrang'}](https://pinrangkab.go.id)`;
-      break;
-    case 'hr':
-      replacement = `\n\n---\n\n`;
-      break;
-    default:
-      replacement = selectedText;
+  if (mode === 'visual') {
+    if (btnVisual) btnVisual.classList.add('active');
+    if (btnCode) btnCode.classList.remove('active');
+    if (visualCanvas) visualCanvas.style.display = 'block';
+    if (rawInput) rawInput.style.display = 'none';
+    if (toolbar) toolbar.style.display = 'flex';
+    syncRawToVisual();
+  } else {
+    if (btnCode) btnCode.classList.add('active');
+    if (btnVisual) btnVisual.classList.remove('active');
+    if (rawInput) rawInput.style.display = 'block';
+    if (visualCanvas) visualCanvas.style.display = 'none';
+    if (toolbar) toolbar.style.display = 'none';
+    syncVisualToRaw();
   }
+};
 
-  textarea.setRangeText(replacement, start, end, 'end');
-  textarea.focus();
+window.execCmd = function(command, value = null) {
+  const canvas = document.getElementById('newsVisualCanvas');
+  if (!canvas) return;
+  canvas.focus();
+  document.execCommand(command, false, value);
+  syncVisualToRaw();
+};
+
+window.applyBlockFormat = function(tag) {
+  const canvas = document.getElementById('newsVisualCanvas');
+  if (!canvas) return;
+  canvas.focus();
+  document.execCommand('formatBlock', false, `<${tag}>`);
+  syncVisualToRaw();
+};
+
+window.insertOfficialQuote = async function() {
+  const canvas = document.getElementById('newsVisualCanvas');
+  if (!canvas) return;
+  
+  const quoteText = await CustomModal.prompt({
+    title: "Kutipan Resmi Pimpinan / Pejabat",
+    message: "Masukkan pernyataan atau kutipan resmi pejabat dinas:",
+    defaultValue: "Pemerintah daerah berkomitmen penuh menjaga stabilitas harga pokok dan melindungi hak konsumen di seluruh wilayah Kabupaten Pinrang.",
+    inputType: "textarea",
+    icon: "💬",
+    confirmText: "Sisipkan Kutipan"
+  });
+
+  if (quoteText === null || quoteText === undefined || !quoteText.trim()) return;
+
+  const authorName = await CustomModal.prompt({
+    title: "Nama & Jabatan Pejabat",
+    message: "Masukkan nama dan jabatan resmi pejabat pembuat pernyataan:",
+    defaultValue: "Muhammad Yusuf Nur, S.STP., M.Si. (Kepala Dinas Perindag ESDM Kabupaten Pinrang)",
+    inputType: "text",
+    icon: "✍️",
+    confirmText: "Terapkan Pejabat"
+  });
+
+  const quoteHtml = `
+    <blockquote class="pejabat-quote">
+      "${quoteText.trim()}"
+      <span class="quote-author">— ${authorName ? authorName.trim() : 'Kepala Dinas Perindag ESDM Pinrang'}</span>
+    </blockquote>
+    <p><br></p>
+  `;
+
+  canvas.focus();
+  document.execCommand('insertHTML', false, quoteHtml);
+  syncVisualToRaw();
+};
+
+window.insertDinasCallout = async function() {
+  const canvas = document.getElementById('newsVisualCanvas');
+  if (!canvas) return;
+
+  const text = await CustomModal.prompt({
+    title: "Kotak Informasi / Pengumuman Kedinasan",
+    message: "Masukkan pesan informasi penting atau instruksi kedinasan:",
+    defaultValue: "Masyarakat dihimbau untuk melapor ke nomor WhatsApp 0823 1600 2226 apabila menemukan pelanggaran HET di tingkat pangkalan resmi.",
+    inputType: "textarea",
+    icon: "ℹ️",
+    confirmText: "Sisipkan Informasi"
+  });
+
+  if (!text || !text.trim()) return;
+
+  const calloutHtml = `
+    <div class="dinas-callout">
+      <strong>📌 PENGUMUMAN / CATATAN KEDINASAN:</strong><br>
+      ${text.trim()}
+    </div>
+    <p><br></p>
+  `;
+
+  canvas.focus();
+  document.execCommand('insertHTML', false, calloutHtml);
+  syncVisualToRaw();
+};
+
+window.insertEditorLink = async function() {
+  const canvas = document.getElementById('newsVisualCanvas');
+  if (!canvas) return;
+
+  const url = await CustomModal.prompt({
+    title: "Sisipkan Tautan Web",
+    message: "Masukkan alamat URL tautan (contoh: https://pinrangkab.go.id):",
+    defaultValue: "https://",
+    inputType: "text",
+    icon: "🔗",
+    confirmText: "Sisipkan Tautan"
+  });
+
+  if (url && url !== "https://" && url.trim()) {
+    execCmd('createLink', url.trim());
+  }
+};
+
+window.insertInlineImageModal = async function() {
+  const canvas = document.getElementById('newsVisualCanvas');
+  if (!canvas) return;
+
+  const imgUrl = await CustomModal.prompt({
+    title: "Sisipkan Foto Sisipan Berita",
+    message: "Pilih atau masukkan path URL foto (contoh: assets/news/operasi_pasar_murah_sembako_pinrang.jpg):",
+    defaultValue: "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
+    inputType: "text",
+    icon: "🖼️",
+    confirmText: "Sisipkan Foto"
+  });
+
+  if (!imgUrl || !imgUrl.trim()) return;
+
+  const caption = await CustomModal.prompt({
+    title: "Keterangan Foto (Caption)",
+    message: "Masukkan keterangan dokumentasi foto:",
+    defaultValue: "Dokumentasi kegiatan lapangan Disperindag ESDM Pinrang.",
+    inputType: "text",
+    icon: "📝",
+    confirmText: "Terapkan Caption"
+  });
+
+  const figHtml = `
+    <figure style="margin: 20px 0; text-align: center;">
+      <img src="${imgUrl.trim()}" style="max-width: 100%; border-radius: 8px; border: 1px solid #CBD5E1;" alt="Dokumentasi">
+      <figcaption style="font-size: 0.8rem; color: #64748B; margin-top: 6px; font-style: italic;">
+        📷 ${caption ? caption.trim() : 'Dokumentasi kegiatan resmi.'}
+      </figcaption>
+    </figure>
+    <p><br></p>
+  `;
+
+  canvas.focus();
+  document.execCommand('insertHTML', false, figHtml);
+  syncVisualToRaw();
+};
+
+window.insertDataTableModal = function() {
+  const canvas = document.getElementById('newsVisualCanvas');
+  if (!canvas) return;
+
+  const tableHtml = `
+    <table class="editor-table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Komoditas / Sektor</th>
+          <th>Harga / Capaian</th>
+          <th>Keterangan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Beras Medium SPHP</td>
+          <td>Rp 12.500 / Kg</td>
+          <td>Stok Gudang Bulog Aman</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Minyakita</td>
+          <td>Rp 15.700 / Liter</td>
+          <td>Sesuai HET Kemendag</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><br></p>
+  `;
+
+  canvas.focus();
+  document.execCommand('insertHTML', false, tableHtml);
+  syncVisualToRaw();
+};
+
+// SINKRONISASI VISUAL CANVAS KE RAW TEXTAREA & LIVE STATS
+window.syncVisualToRaw = function() {
+  const visualCanvas = document.getElementById('newsVisualCanvas');
+  const rawInput = document.getElementById('newsContentInput');
+  if (!visualCanvas || !rawInput) return;
+
+  rawInput.value = visualCanvas.innerHTML;
+  updateEditorStats(visualCanvas.innerText || '');
+  updateLiveSocialPreview();
+};
+
+window.syncRawToVisual = function() {
+  const visualCanvas = document.getElementById('newsVisualCanvas');
+  const rawInput = document.getElementById('newsContentInput');
+  if (!visualCanvas || !rawInput) return;
+
+  let val = rawInput.value || '';
+  if (!val.includes('<') && !val.includes('>')) {
+    val = val.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+  }
+  visualCanvas.innerHTML = val;
+  updateEditorStats(visualCanvas.innerText || '');
+  updateLiveSocialPreview();
+};
+
+function updateEditorStats(text) {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  const readMin = Math.max(1, Math.ceil(words / 200));
+
+  const wordEl = document.getElementById('editorWordCount');
+  const charEl = document.getElementById('editorCharCount');
+  const readEl = document.getElementById('editorReadTime');
+
+  if (wordEl) wordEl.innerHTML = `📊 <strong>${words.toLocaleString('id-ID')}</strong> Kata`;
+  if (charEl) charEl.innerHTML = `📝 <strong>${chars.toLocaleString('id-ID')}</strong> Karakter`;
+  if (readEl) readEl.innerHTML = `⏱️ <strong>~${readMin}</strong> Menit Baca`;
+}
+
+// LIVE SOCIAL OG PREVIEW
+function updateLiveSocialPreview() {
+  const title = document.getElementById('newsTitleInput')?.value?.trim() || 'Judul Rilis Berita Resmi Kedinasan Disperindag ESDM Pinrang';
+  const excerpt = document.getElementById('newsExcerptInput')?.value?.trim() || 'Ringkasan rilis berita resmi untuk pratinjau media sosial...';
+  const img = currentFeaturedImage || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg';
+
+  const ogTitleFB = document.getElementById('ogPreviewTitle');
+  const ogDescFB = document.getElementById('ogPreviewDesc');
+  const ogImgFB = document.getElementById('ogPreviewImg');
+
+  const ogTitleWA = document.getElementById('ogPreviewTitleWA');
+  const ogDescWA = document.getElementById('ogPreviewDescWA');
+  const ogImgWA = document.getElementById('ogPreviewImgWA');
+
+  if (ogTitleFB) ogTitleFB.textContent = title;
+  if (ogDescFB) ogDescFB.textContent = excerpt;
+  if (ogImgFB) ogImgFB.src = img;
+
+  if (ogTitleWA) ogTitleWA.textContent = title;
+  if (ogDescWA) ogDescWA.textContent = excerpt;
+  if (ogImgWA) ogImgWA.src = img;
+}
+
+window.switchSocialPreview = function(platform) {
+  const cardFB = document.getElementById('socialCardFB');
+  const cardWA = document.getElementById('socialCardWA');
+  const btnFB = document.getElementById('btnPreviewFB');
+  const btnWA = document.getElementById('btnPreviewWA');
+
+  if (platform === 'facebook') {
+    if (cardFB) cardFB.style.display = 'block';
+    if (cardWA) cardWA.style.display = 'none';
+    if (btnFB) btnFB.classList.add('active');
+    if (btnWA) btnWA.classList.remove('active');
+  } else {
+    if (cardWA) cardWA.style.display = 'block';
+    if (cardFB) cardFB.style.display = 'none';
+    if (btnWA) btnWA.classList.add('active');
+    if (btnFB) btnFB.classList.remove('active');
+  }
 };
 
 // SAVE NEWS HANDLER (CREATE / UPDATE)
@@ -597,8 +875,14 @@ window.handleSaveNews = function(overrideStatus = null) {
   const date = document.getElementById('newsDateInput')?.value?.trim() || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   const author = document.getElementById('newsAuthorInput')?.value?.trim() || 'Humas Disperindag ESDM Pinrang';
   const excerpt = document.getElementById('newsExcerptInput')?.value?.trim() || '';
-  const content = document.getElementById('newsContentInput')?.value?.trim();
-  const caption = document.getElementById('newsFeaturedCaptionInput')?.value?.trim() || 'Dokumentasi resmi Disperindag ESDM Pinrang.';
+  
+  // Ambil konten dari visual canvas jika ada, atau dari raw input
+  const visualCanvas = document.getElementById('newsVisualCanvas');
+  const content = (visualCanvas && visualCanvas.innerHTML.trim() !== '' && visualCanvas.innerHTML !== '<br>') 
+    ? visualCanvas.innerHTML.trim() 
+    : document.getElementById('newsContentInput')?.value?.trim();
+
+  const caption = document.getElementById('newsFeaturedCaptionInput')?.value?.trim() || 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.';
   const isFeatured = document.getElementById('newsIsFeaturedCheckbox')?.checked || false;
   const status = overrideStatus || document.getElementById('newsStatusSelect')?.value || 'published';
 
@@ -609,8 +893,8 @@ window.handleSaveNews = function(overrideStatus = null) {
   }
 
   if (!content) {
-    CustomModal.alert({ title: "Konten Berita Kosong", message: "Silakan masukkan isi berita lengkap pada editor.", icon: "⚠️", type: "warning" });
-    document.getElementById('newsContentInput')?.focus();
+    CustomModal.alert({ title: "Konten Berita Kosong", message: "Silakan masukkan isi berita lengkap pada editor visual.", icon: "⚠️", type: "warning" });
+    if (visualCanvas) visualCanvas.focus();
     return;
   }
 
@@ -631,7 +915,7 @@ window.handleSaveNews = function(overrideStatus = null) {
     img: currentFeaturedImage || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
     image_caption: caption,
     gallery: currentNewsGallery,
-    excerpt: excerpt || content.slice(0, 160) + '...',
+    excerpt: excerpt || (visualCanvas ? visualCanvas.innerText.slice(0, 160) + '...' : content.slice(0, 160) + '...'),
     content: content,
     status: status,
     is_featured: isFeatured,
@@ -701,6 +985,68 @@ window.handleSaveNews = function(overrideStatus = null) {
     icon: status === 'published' ? "🚀" : "💾",
     type: "info"
   });
+};
+
+// MODAL LIVE PREVIEW ARTIKEL BERITA
+window.previewCurrentNewsDraft = function() {
+  const modal = document.getElementById('modalNewsPreview');
+  const container = document.getElementById('newsPreviewContentContainer');
+  if (!modal || !container) return;
+
+  const title = document.getElementById('newsTitleInput')?.value?.trim() || 'Judul Rilis Berita';
+  const category = document.getElementById('newsCategorySelect')?.value || 'Perindustrian, Energi & SDM';
+  const date = document.getElementById('newsDateInput')?.value?.trim() || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const author = document.getElementById('newsAuthorInput')?.value?.trim() || 'Humas Disperindag ESDM Pinrang';
+  const img = currentFeaturedImage || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg';
+  const caption = document.getElementById('newsFeaturedCaptionInput')?.value?.trim() || 'Dokumentasi kegiatan resmi.';
+  
+  const visualCanvas = document.getElementById('newsVisualCanvas');
+  const rawContent = (visualCanvas && visualCanvas.innerHTML.trim() !== '') ? visualCanvas.innerHTML : (document.getElementById('newsContentInput')?.value || '');
+
+  let bodyHtml = rawContent;
+  if (!rawContent.includes('<') && !rawContent.includes('>')) {
+    bodyHtml = rawContent.split('\n\n').map(p => `<p style="margin-bottom:16px;">${p.replace(/\n/g, '<br>')}</p>`).join('');
+  }
+
+  container.innerHTML = `
+    <div style="max-width: 760px; margin: 0 auto; font-family: 'Plus Jakarta Sans', sans-serif;">
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+        <span style="background: #EFF6FF; color: #1D4ED8; font-weight: 800; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px;">
+          ${category}
+        </span>
+        <span style="background: #FEF3C7; color: #92400E; font-weight: 800; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px;">
+          #${currentNewsTags[0] || 'Dinas'}
+        </span>
+      </div>
+
+      <h1 style="font-size: 1.75rem; font-weight: 900; color: #0F2C59; line-height: 1.35; margin: 10px 0 16px;">
+        ${title}
+      </h1>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #E2E8F0; font-size: 0.82rem; color: #64748B; margin-bottom: 20px;">
+        <div>📅 ${date} &bull; ✍️ Oleh: <strong>${author}</strong></div>
+        <span style="background: #ECFDF5; color: #059669; font-weight: 800; padding: 3px 8px; border-radius: 4px; border: 1px solid #A7F3D0; font-size: 0.76rem;">✓ Rilis Resmi Kedinasan</span>
+      </div>
+
+      <div style="width: 100%; max-height: 380px; border-radius: 12px; overflow: hidden; margin-bottom: 8px; background: #030D1B;">
+        <img src="${img}" style="width: 100%; height: 380px; object-fit: cover;" alt="${title}">
+      </div>
+      <div style="font-size: 0.78rem; color: #64748B; font-style: italic; margin-bottom: 24px; text-align: center;">
+        📷 ${caption}
+      </div>
+
+      <div style="font-size: 1rem; line-height: 1.85; color: #334155;">
+        ${bodyHtml}
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'block';
+};
+
+window.closeNewsPreviewModal = function() {
+  const modal = document.getElementById('modalNewsPreview');
+  if (modal) modal.style.display = 'none';
 };
 
 // TOGGLE STATUS (PUBLISHED <-> DRAFT)

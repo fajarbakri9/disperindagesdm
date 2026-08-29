@@ -29,10 +29,6 @@
       {
         "source": "/intel/**",
         "destination": "/intel/index.html"
-      },
-      {
-        "source": "/berita/**",
-        "destination": "/berita.html"
       }
     ],
     "headers": [
