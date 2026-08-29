@@ -571,6 +571,26 @@
       if (spinner) spinner.style.display = 'none';
       if (contentArea) contentArea.style.display = 'block';
 
+      // Proteksi Status Draft Publik
+      const isPreviewMode = urlParams.get('preview') === 'true' || urlParams.get('preview') === '1';
+      if (article && article.status === 'draft' && !isPreviewMode) {
+        if (contentArea) {
+          contentArea.innerHTML = `
+            <div style="text-align: center; padding: 50px 15px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; max-width: 600px; margin: 40px auto;">
+              <div style="font-size: 3.2rem; margin-bottom: 12px;">📝</div>
+              <h2 style="font-size: 1.3rem; font-weight: 800; color: #92400E; margin-bottom: 8px;">Artikel Berstatus Draf</h2>
+              <p style="color: #B45309; font-size: 0.88rem; margin-bottom: 20px; line-height: 1.6;">
+                Rilis berita ini masih dalam tahap penyusunan draf internal dan belum diterbitkan secara resmi untuk publik.
+              </p>
+              <a href="/index.html" class="btn-primary" style="display: inline-block; padding: 8px 18px; font-size: 0.85rem; text-decoration: none; border-radius: 6px; background: #D97706; color: #FFF;">
+                <span>🏠</span> Kembali ke Beranda
+              </a>
+            </div>
+          `;
+        }
+        return;
+      }
+
       if (!article) {
         if (contentArea) {
           contentArea.innerHTML = `

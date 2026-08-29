@@ -745,4 +745,61 @@ for art in ARTICLES:
     count += 1
     print(f"  [✓] Generated Open Graph static page: berita/{art['slug']}/index.html & berita/{art['id']}.html")
 
-print(f"\nSelesai men-generate {count} artikel berita statis resmi dengan Open Graph dan Twitter Cards!")
+# 3. GENERATE & UPDATE SITEMAP.XML RESMI
+def update_sitemap_xml():
+    static_pages = [
+        {"loc": f"{SITE_URL}/", "priority": "1.00", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/profil.html", "priority": "0.90", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/layanan.html", "priority": "0.90", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/maklumat-pelayanan.html", "priority": "0.85", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/ppid.html", "priority": "0.90", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/katalog-ikm.html", "priority": "0.85", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/arsip-berita.html", "priority": "0.85", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/dokumen.html", "priority": "0.80", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/kontak.html", "priority": "0.80", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/search.html", "priority": "0.70", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/command-center.html", "priority": "0.95", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/pasar.html", "priority": "0.90", "changefreq": "daily"},
+    ]
+    
+    market_slugs = [
+        "pasar-sentral-pinrang", "pasar-pekkabata", "pasar-bungi", "pasar-langnga",
+        "pasar-teppo-benteng", "pasar-kariango", "pasar-pajalele", "pasar-paleteang", "pasar-suppa"
+    ]
+    for m in market_slugs:
+        static_pages.append({"loc": f"{SITE_URL}/pasar/{m}", "priority": "0.80", "changefreq": "weekly"})
+        
+    for a in ARTICLES:
+        static_pages.append({
+            "loc": f"{SITE_URL}/berita/{a['slug']}",
+            "priority": "0.85",
+            "changefreq": "weekly",
+            "lastmod": a.get("publishedAt", "2026-08-29T10:00:00+08:00")
+        })
+
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+        '        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+        '        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9',
+        '        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">'
+    ]
+    
+    for p in static_pages:
+        lastmod = p.get("lastmod", "2026-08-29T00:00:00+08:00")
+        xml_lines.append('  <url>')
+        xml_lines.append(f'    <loc>{p["loc"]}</loc>')
+        xml_lines.append(f'    <lastmod>{lastmod}</lastmod>')
+        xml_lines.append(f'    <changefreq>{p["changefreq"]}</changefreq>')
+        xml_lines.append(f'    <priority>{p["priority"]}</priority>')
+        xml_lines.append('  </url>')
+        
+    xml_lines.append('</urlset>')
+    
+    with open("sitemap.xml", "w", encoding="utf-8") as f:
+        f.write("\n".join(xml_lines) + "\n")
+    print("  [✓] Generated sitemap.xml dengan ke-15 rilis berita resmi dan seluruh halaman portal!")
+
+update_sitemap_xml()
+
+print(f"\nSelesai men-generate {count} artikel berita statis resmi dengan Open Graph, Twitter Cards, dan Sitemap!")

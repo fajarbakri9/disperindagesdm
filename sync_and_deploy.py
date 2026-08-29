@@ -9,34 +9,38 @@ def print_header(title):
     print(f"🚀 {title}")
     print("="*60)
 
-def run_step(cmd, desc):
+def run_step(cmd, desc, allow_failure=False):
     print(f"\n▶ {desc}...")
     try:
         res = subprocess.run(cmd, shell=True, text=True)
         if res.returncode == 0:
             return True
-        print(f"⚠️ Peringatan pada langkah: {desc} (Exit Code: {res.returncode})")
-        return True # Continue flow
+        if allow_failure:
+            print(f"ℹ️ Langkah '{desc}' selesai dengan catatan (Exit Code: {res.returncode}). Melanjutkan...")
+            return True
+        print(f"❌ Gagal pada langkah: {desc} (Exit Code: {res.returncode})")
+        return False
     except Exception as e:
-        print(f"❌ Gagal pada langkah: {desc} ({e})")
+        print(f"❌ Exception pada langkah: {desc} ({e})")
         return False
 
 def main():
     print_header("SINKRONISASI RILIS BERITA & DEPLOY PORTAL DISPERINDAG ESDM")
     
-    # 1. Generate seluruh halaman statis Open Graph
-    if not run_step("python build_static_pages.py", "1. Meng-compile File Statis Berita & Open Graph Medsos"):
+    # 1. Generate seluruh halaman statis Open Graph & Sitemap
+    if not run_step("python build_static_pages.py", "1. Meng-compile File Statis Berita, Open Graph & Sitemap"):
+        print("❌ Gagal meng-compile halaman statis. Proses dibatalkan.")
         sys.exit(1)
         
     # 2. Git add & commit
-    run_step('git add . && git commit -m "feat: Sinkronisasi rilis berita baru & update Open Graph prerendered"', "2. Git Commit Perubahan")
+    run_step('git add . && git commit -m "feat: Sinkronisasi rilis berita baru, Open Graph & Sitemap"', "2. Git Commit Perubahan", allow_failure=True)
     
     # 3. Git push
-    run_step("git push origin main", "3. Git Push ke Repository GitHub")
+    run_step("git push origin main", "3. Git Push ke Repository GitHub", allow_failure=True)
     
     # 4. Deploy ke Firebase Hosting
     if not run_step("npx -y firebase-tools deploy --only hosting", "4. Deploy ke Firebase Hosting (Live)"):
-        print("\n⚠️ Deploy Firebase mengalami kendala. Pastikan koneksi internet stabil.")
+        print("\n❌ Deploy Firebase gagal. Periksa koneksi internet atau status project.")
         sys.exit(1)
         
     print_header("SUKSES! SELURUH BERITA & OPEN GRAPH MEDSOS TELAH AKTIF")

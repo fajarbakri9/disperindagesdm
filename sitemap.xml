@@ -3,96 +3,72 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
-  <!-- 1. Halaman Beranda Utama -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
-
-  <!-- 2. Profil Kedinasan, Pejabat & Tupoksi Organisasi -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/profil.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
-
-  <!-- 3. Standar Operasional Prosedur (SOP) & Layanan Publik -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/layanan.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
-
-  <!-- 4. Piagam Maklumat Pelayanan Publik (MANTAP) -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/maklumat-pelayanan.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
-
-  <!-- 5. Portal Keterbukaan Informasi Publik (PPID Pelaksana) -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/ppid.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
-
-  <!-- 6. Katalog Produk IKM Binaan & Sertifikasi TKDN / Halal -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/katalog-ikm.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
-
-  <!-- 7. Warta & Arsip Berita Kedinasan Terkini -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/arsip-berita.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
-
-  <!-- 8. Repositori Dokumen Hukum, Regulasi, Renstra & LKjIP -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/dokumen.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
-
-  <!-- 9. Informasi Kontak & Lokasi Kantor Kedinasan -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/kontak.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
-
-  <!-- 10. Mesin Pencarian Global Informasi Kedinasan -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/search.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
-
-  <!-- 11. Command Center & TV Wallboard Monitoring -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/command-center.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
-
-  <!-- 12. Direktori Pasar & Sarana Perdagangan Kabupaten Pinrang -->
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/pasar.html</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
@@ -103,7 +79,7 @@
     <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-sentral-pinrang</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-pekkabata</loc>
@@ -144,14 +120,103 @@
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-paleteang</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://disperindagesdm-pinrang.web.app/pasar/pasar-suppa</loc>
     <lastmod>2026-08-29T00:00:00+08:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
+    <priority>0.80</priority>
   </url>
-
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/tindak-lanjuti-aduan-warga-pangkalan-lpg-3-kg-nakal-di-duampanua-dijatuhi-sanksi-tegas-phu</loc>
+    <lastmod>2026-08-21T10:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/kawal-kepatuhan-het-disperindag-esdm-pinrang-gelar-rakor-bersama-agen-lpg-dan-usulkan-kuota-khusus-petani</loc>
+    <lastmod>2026-08-24T09:30:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/revitalisasi-786-lapak-pasar-sentral-pinrang-rampung-dorong-tata-kelola-pedagang-higienis</loc>
+    <lastmod>2026-08-12T11:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/jamin-transaksi-adil-perlindungan-konsumen-bidang-kemetrologian-gelar-sidang-tera-ulang-timbangan-pasar-dan-spbu</loc>
+    <lastmod>2026-08-15T08:30:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/kendalikan-inflasi-pangan-pemkab-pinrang-dan-disperindag-esdm-gelar-operasi-pasar-beras-sphp-di-pasar-sentral</loc>
+    <lastmod>2026-08-10T09:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/akselerasi-umkm-naik-kelas-disperindag-pinrang-fasilitasi-sertifikasi-halal-gratis-dan-akun-siinas-bagi-pelaku-ikm</loc>
+    <lastmod>2026-08-04T11:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/sinergi-dekranasda-dan-disperindag-pinrang-promosikan-tenun-sutra-corak-laburasseng-di-ajang-pameran-nasional</loc>
+    <lastmod>2026-07-22T13:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/kopi-robusta-pinrang</loc>
+    <lastmod>2026-08-25T10:30:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/pasar-murah-pinrang</loc>
+    <lastmod>2026-08-23T08:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/monitoring-harga-pangan</loc>
+    <lastmod>2026-08-26T09:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/harga-eceran-tembus-rp-45-ribu-disperindagem-pinrang-ambil-tindakan-tegas-terhadap-pangkalan-nakal</loc>
+    <lastmod>2026-08-29T10:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/atasi-buying-panic-disperindagem-pinrang-gandeng-pertamina-dan-aph-siapkan-inovasi-digitalisasi-serta-sanksi-phk-pangkalan-nakal</loc>
+    <lastmod>2026-08-29T11:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/kadis-perindag-esdm-hadiri-mediasi-permasalahan-di-pasar-rakyat-pekkabata</loc>
+    <lastmod>2026-08-29T14:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/disperindag-esdm-pinrang-gelar-operasi-pasar-pangan-murah-di-12-kecamatan</loc>
+    <lastmod>2026-08-29T08:30:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disperindagesdm-pinrang.web.app/berita/stabilkan-pasokan-dan-harga-disperindag-esdm-pinrang-gelar-rapat-koordinasi-bersama-agen-lpg-se-kabupaten</loc>
+    <lastmod>2026-08-27T09:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
 </urlset>
