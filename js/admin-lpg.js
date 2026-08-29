@@ -7,6 +7,7 @@ let adminLpgCurrentPage = 1;
 const ADMIN_LPG_PER_PAGE = 20;
 let unsubscribeAdminLpgPangkalan = null;
 let unsubscribeAdminLpgAudit = null;
+let unsubscribeAdminLpgEvents = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdminLpgMonitoring();
@@ -21,7 +22,10 @@ function initAdminLpgMonitoring() {
 
   if (typeof auth !== 'undefined' && auth) {
     auth.onAuthStateChanged(user => {
-      if (user && !unsubscribeAdminLpgPangkalan) subscribeAdminLpgFirestore();
+      const session = getCurrentSession();
+      const permissions = Array.isArray(session?.permissions) ? session.permissions : [];
+      const canMonitorLpg = session?.role === 'SUPER_ADMIN' || permissions.includes('all') || permissions.includes('lpg');
+      if (user && canMonitorLpg && !unsubscribeAdminLpgPangkalan) subscribeAdminLpgFirestore();
     });
   }
 }
@@ -35,6 +39,7 @@ function subscribeAdminLpgFirestore() {
     refreshAdminLpgStats();
     renderAdminLpgPangkalanTable();
     renderAdminLpgAgentsTable();
+    publishLpgDashboardSnapshot();
   }, error => console.error('[-] Sinkron master pangkalan admin gagal:', error.code));
 
   unsubscribeAdminLpgAudit = db.collection('lpg_audit_logs')
@@ -52,6 +57,59 @@ function subscribeAdminLpgFirestore() {
       setLpgStore(LPG_STORAGE_KEYS.AUDIT_LOGS, logs);
       renderAdminLpgAuditTable();
     }, error => console.error('[-] Sinkron audit LPG admin gagal:', error.code));
+
+  unsubscribeAdminLpgEvents = db.collection('lpg_events').onSnapshot(snapshot => {
+    const events = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id, ...data,
+        createdAt: data.createdAt && typeof data.createdAt.toDate === 'function'
+          ? data.createdAt.toDate().toISOString() : data.createdAt,
+        status: doc.metadata.hasPendingWrites ? 'PENDING_SYNC' : 'FIRESTORE_SYNCED'
+      };
+    }).sort((a, b) => String(b.effectiveAt || b.createdAt).localeCompare(String(a.effectiveAt || a.createdAt)));
+    setLpgStore(LPG_STORAGE_KEYS.EVENTS, events);
+    const balances = {};
+    events.forEach(event => {
+      if (!balances[event.agentId]) balances[event.agentId] = { agentId: event.agentId, filledCylinderBalance: 0 };
+      balances[event.agentId].filledCylinderBalance += Number(event.delta || 0);
+    });
+    Object.values(balances).forEach(balance => {
+      balance.hasStockAnomaly = balance.filledCylinderBalance < 0;
+      balance.source = 'FIRESTORE_LEDGER_SUM_DELTA';
+      balance.updatedAt = new Date().toISOString();
+    });
+    setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
+    refreshAdminLpgStats();
+    renderAdminLpgAgentsTable();
+    renderAdminLpgLedgerTable();
+    publishLpgDashboardSnapshot();
+  }, error => console.error('[-] Sinkron ledger LPG admin gagal:', error.code));
+}
+
+let lpgSnapshotWriteTimer = null;
+function publishLpgDashboardSnapshot() {
+  if (!auth?.currentUser || !db) return;
+  clearTimeout(lpgSnapshotWriteTimer);
+  lpgSnapshotWriteTimer = setTimeout(async () => {
+    const summary = refreshLpgDashboardSummary();
+    try {
+      await db.collection('lpg_dashboard').doc('summary').set({
+        officialAgents: summary.activeAgents,
+        activePangkalan: summary.totalPangkalan,
+        stockAtAgents: summary.stockAtAgents,
+        distributedToday: summary.distributedToday,
+        distributedThisMonth: summary.distributedThisMonth,
+        monthlyAllocation: null,
+        allocationStatus: 'UNAVAILABLE',
+        source: 'IMMUTABLE_LPG_EVENTS_SUM_DELTA',
+        updatedBy: auth.currentUser.uid,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('[-] Publikasi snapshot LPG gagal:', error.code);
+    }
+  }, 500);
 }
 
 async function commitAdminPangkalanAction(pangkalan, update, auditData) {

@@ -430,6 +430,24 @@ function renderTickerDOM(customText = null) {
 }
 
 // --- 9. RENDER DATA COMMAND CENTER CONFIG & METRICS KE DOM ---
+let latestLpgDashboardSnapshot = null;
+
+function renderLpgDashboardSnapshot(data) {
+  if (!data) return;
+  const agents = safeNumber(data.officialAgents);
+  const bases = safeNumber(data.activePangkalan);
+  const stock = safeNumber(data.stockAtAgents);
+  const distributed = safeNumber(data.distributedToday);
+  setSafeText('cc_s3_lpg_official_agents', agents === null ? '--' : `${agents} AGEN`);
+  setSafeText('cc_s3_lpg_official_bases', bases === null ? 'PANGKALAN: --' : `${bases} Pangkalan`);
+  setSafeText('cc_kpi_lpg_official_bases', bases === null ? 'Pangkalan: --' : `${bases} Pangkalan Terdaftar`);
+  setSafeText('cc_s3_lpg_progress_text', stock === null ? 'STOK AGEN: --' : `STOK AGEN: ${stock.toLocaleString('id-ID')} TABUNG`);
+  const allocationText = data.allocationStatus === 'UNAVAILABLE'
+    ? 'Alokasi bulanan: data belum tersedia'
+    : `Alokasi Bulanan: ${(safeNumber(data.monthlyAllocation) || 0).toLocaleString('id-ID')} Tabung`;
+  setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran hari ini: ${distributed === null ? '--' : distributed.toLocaleString('id-ID')} Tabung • ${allocationText}`);
+}
+
 function renderCommandCenterData(config, isFromCache = false) {
   if (!config) return;
 
@@ -476,6 +494,7 @@ function renderCommandCenterData(config, isFromCache = false) {
   if (lpgBar) lpgBar.style.width = distributionPct === null ? '0%' : `${distributionPct}%`;
   setSafeText('cc_s3_lpg_progress_text', stockAtAgents === null ? 'STOK AGEN: --' : `STOK AGEN: ${stockAtAgents.toLocaleString('id-ID')} TABUNG`);
   setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran: ${distributedToday === null ? '--' : distributedToday.toLocaleString('id-ID')} Tabung • Alokasi Bulanan: ${monthlyQuota === null ? '--' : monthlyQuota.toLocaleString('id-ID')} Tabung`);
+  if (latestLpgDashboardSnapshot) renderLpgDashboardSnapshot(latestLpgDashboardSnapshot);
 
   // 5. Total UTTP Ditera
   const uttpVal = safeNumber(config.uttp_verified_count ?? config.uttp_verified);
@@ -1057,6 +1076,17 @@ function initFirestoreRealtimeService() {
           }
         },
         (err) => handleFirestoreError('metrics', err, 'disperindag_cc_cache_metrics')
+      );
+
+      // Snapshot publik berasal dari agregasi immutable ledger oleh admin LPG.
+      db.collection('lpg_dashboard').doc('summary').onSnapshot(
+        { includeMetadataChanges: true },
+        (doc) => {
+          if (!doc.exists) return;
+          latestLpgDashboardSnapshot = doc.data();
+          renderLpgDashboardSnapshot(latestLpgDashboardSnapshot);
+        },
+        (err) => handleFirestoreError('lpg_dashboard', err, 'disperindag_cc_cache_lpg')
       );
 
       // Listener Master Pasar Dinamis
