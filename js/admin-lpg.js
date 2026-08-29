@@ -5,6 +5,8 @@
 
 let adminLpgCurrentPage = 1;
 const ADMIN_LPG_PER_PAGE = 20;
+const adminLpgSelectedIds = new Set();
+let adminLpgVisiblePageIds = [];
 let unsubscribeAdminLpgPangkalan = null;
 let unsubscribeAdminLpgAudit = null;
 let unsubscribeAdminLpgEvents = null;
@@ -424,10 +426,12 @@ window.renderAdminLpgPangkalanTable = function() {
 
   const startIdx = (adminLpgCurrentPage - 1) * ADMIN_LPG_PER_PAGE;
   const pageItems = filtered.slice(startIdx, startIdx + ADMIN_LPG_PER_PAGE);
+  adminLpgVisiblePageIds = pageItems.map(item => item.id);
 
   if (pageItems.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#94A3B8;">Tidak ada data pangkalan yang sesuai kriteria pencarian.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#94A3B8;">Tidak ada data pangkalan yang sesuai kriteria pencarian.</td></tr>`;
     if (paginEl) paginEl.innerHTML = `<span>Menampilkan 0 dari total ${totalItems} pangkalan</span>`;
+    updateAdminLpgBulkToolbar();
     return;
   }
 
@@ -447,6 +451,7 @@ window.renderAdminLpgPangkalanTable = function() {
 
     return `
       <tr style="${isDeleted ? 'opacity: 0.6; background: #F8FAFC;' : ''}">
+        <td style="text-align:center;"><input type="checkbox" class="admin-lpg-row-check" value="${p.id}" ${adminLpgSelectedIds.has(p.id) ? 'checked' : ''} onchange="toggleAdminLpgSelection('${p.id}',this.checked)" aria-label="Pilih ${escapeLpgAlertHtml(p.name)}"></td>
         <td>
           <div style="font-weight: 800; color: #0F172A; font-size: 0.88rem;">${p.name}</div>
           <div style="font-size: 0.72rem; color: #1D4ED8; font-weight: 700;">ID: ${p.id}</div>
@@ -506,6 +511,70 @@ window.renderAdminLpgPangkalanTable = function() {
       </div>
     `;
   }
+  updateAdminLpgBulkToolbar();
+};
+
+window.toggleAdminLpgSelection = function(id, checked) {
+  if (checked) adminLpgSelectedIds.add(id); else adminLpgSelectedIds.delete(id);
+  updateAdminLpgBulkToolbar();
+};
+
+window.toggleAdminLpgPageSelection = function(checked) {
+  adminLpgVisiblePageIds.forEach(id => checked ? adminLpgSelectedIds.add(id) : adminLpgSelectedIds.delete(id));
+  document.querySelectorAll('.admin-lpg-row-check').forEach(input => { input.checked = checked; });
+  updateAdminLpgBulkToolbar();
+};
+
+window.clearAdminLpgSelection = function() {
+  adminLpgSelectedIds.clear();
+  document.querySelectorAll('.admin-lpg-row-check').forEach(input => { input.checked = false; });
+  updateAdminLpgBulkToolbar();
+};
+
+function updateAdminLpgBulkToolbar() {
+  const toolbar = document.getElementById('adminLpgBulkToolbar');
+  const count = document.getElementById('adminLpgSelectedCount');
+  const selectPage = document.getElementById('adminLpgSelectPage');
+  if (toolbar) toolbar.style.display = adminLpgSelectedIds.size ? 'flex' : 'none';
+  if (count) count.textContent = `${adminLpgSelectedIds.size} pangkalan dipilih`;
+  if (selectPage) {
+    const selectedOnPage = adminLpgVisiblePageIds.filter(id => adminLpgSelectedIds.has(id)).length;
+    selectPage.checked = adminLpgVisiblePageIds.length > 0 && selectedOnPage === adminLpgVisiblePageIds.length;
+    selectPage.indeterminate = selectedOnPage > 0 && selectedOnPage < adminLpgVisiblePageIds.length;
+  }
+}
+
+window.bulkVerifyAdminLpgPangkalan = function() {
+  const all = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
+  const selected = all.filter(item => adminLpgSelectedIds.has(item.id));
+  const eligible = selected.filter(item => !item.isDeleted && item.verificationStatus === 'PENDING_ADMIN_VERIFICATION');
+  if (!eligible.length) return CustomModal.alert({ title: 'Tidak Ada Data yang Dapat Diverifikasi', message: 'Pilihan saat ini tidak memiliki pangkalan yang masih menunggu verifikasi.', icon: '!', type: 'warning' });
+  CustomModal.confirm({
+    title: 'Verifikasi Beberapa Pangkalan?',
+    message: `<strong>${eligible.length} pangkalan</strong> akan ditetapkan sebagai terverifikasi. ${selected.length - eligible.length ? `<br><br>${selected.length - eligible.length} pilihan lain dilewati karena sudah terverifikasi atau tidak aktif.` : ''}`,
+    confirmText: `Verifikasi ${eligible.length} Pangkalan`, cancelText: 'Periksa Kembali', type: 'info',
+    onConfirm: async () => {
+      if (!auth?.currentUser || !db) return;
+      const user = auth.currentUser;
+      try {
+        for (let offset = 0; offset < eligible.length; offset += 200) {
+          const chunk = eligible.slice(offset, offset + 200);
+          const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+          const batch = db.batch();
+          chunk.forEach(item => {
+            batch.update(db.collection('lpg_pangkalan').doc(item.id), { verificationStatus: 'VERIFIED', verifiedBy: user.uid, verifiedAt: timestamp, updatedBy: user.uid, updatedAt: timestamp });
+            batch.set(db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`), { action: 'PANGKALAN_BULK_VERIFY', entityType: 'PANGKALAN', entityId: item.id, agentId: item.agentId, actorUid: user.uid, actorRole: getCurrentSession()?.role || 'LPG_ADMIN', before: { verificationStatus: item.verificationStatus }, after: { verificationStatus: 'VERIFIED' }, reason: `Verifikasi massal ${eligible.length} pangkalan melalui CMS`, createdAt: timestamp });
+          });
+          await batch.commit();
+        }
+        eligible.forEach(item => adminLpgSelectedIds.delete(item.id));
+        updateAdminLpgBulkToolbar();
+        CustomModal.alert({ title: 'Verifikasi Selesai', message: `${eligible.length} pangkalan berhasil diverifikasi dan masing-masing memiliki audit trail.`, icon: '✓', type: 'info' });
+      } catch (error) {
+        CustomModal.alert({ title: 'Verifikasi Gagal', message: error.message || 'Firestore menolak verifikasi massal.', icon: '!', type: 'error' });
+      }
+    }
+  });
 };
 
 // 4. AKSI RESTORE PANGKALAN OLEH DISPERINDAG

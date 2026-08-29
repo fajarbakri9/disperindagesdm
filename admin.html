@@ -962,11 +962,20 @@
             </div>
           </div>
 
+          <div id="adminLpgBulkToolbar" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-4px 0 14px;padding:11px 14px;border:1px solid #BFDBFE;border-radius:10px;background:#EFF6FF;box-shadow:0 4px 12px rgba(30,64,175,.07);">
+            <div><strong id="adminLpgSelectedCount" style="color:#1E3A8A;">0 pangkalan dipilih</strong><div style="font-size:.7rem;color:#64748B;margin-top:2px;">Pemilihan tetap tersimpan saat berpindah halaman.</div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn-primary" onclick="bulkVerifyAdminLpgPangkalan()" style="padding:7px 12px;background:#059669;">✓ Verifikasi Terpilih</button>
+              <button type="button" class="btn-outline" onclick="clearAdminLpgSelection()" style="padding:7px 12px;">Batalkan Pilihan</button>
+            </div>
+          </div>
+
           <!-- TABEL MASTER PANGKALAN -->
           <div style="overflow-x: auto;">
             <table class="admin-table">
               <thead>
                 <tr>
+                  <th style="width:42px;text-align:center;"><input id="adminLpgSelectPage" type="checkbox" onchange="toggleAdminLpgPageSelection(this.checked)" aria-label="Pilih semua pangkalan pada halaman ini"></th>
                   <th>ID &amp; Nama Pangkalan</th>
                   <th>Agen Penyalur</th>
                   <th>Kecamatan &amp; Desa</th>
@@ -1645,6 +1654,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_labels_id_v13"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_bulk_ui_v14"></script>
 </body>
 </html>
