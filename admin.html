@@ -49,6 +49,7 @@
   <link rel="stylesheet" href="css/style.css?v=20260828_sidebar_fit">
   <link rel="stylesheet" href="css/admin.css?v=20260828_sidebar_fit">
   <link rel="stylesheet" href="css/modal-system.css?v=20260828_sidebar_fit">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     /* PENJAMIN ISOLASI TAB PANEL ADMIN */
     .admin-panel {
@@ -893,6 +894,9 @@
             <button onclick="switchAdminLpgSubView('pangkalan')" class="btn-primary" id="btnSubPangkalan" style="padding: 8px 14px; font-size: 0.8rem;">
               <span>🏪</span> Direktori Pangkalan
             </button>
+            <button onclick="switchAdminLpgSubView('map')" class="btn-outline" id="btnSubMap" style="padding: 8px 14px; font-size: 0.8rem; border-color: #0284C7; color: #0284C7;">
+              <span>🗺️</span> Peta GIS Sebaran
+            </button>
             <button onclick="switchAdminLpgSubView('agen')" class="btn-outline" id="btnSubAgen" style="padding: 8px 14px; font-size: 0.8rem;">
               <span>🏢</span> Saldo 8 Agen
             </button>
@@ -1038,6 +1042,49 @@
               </tbody>
             </table>
           </div>
+        <!-- 5. SUBVIEW: PETA GIS SEBARAN DISTRIBUSI LPG -->
+        <div id="subViewLpgMap" style="display: none;">
+          <!-- FILTER PETA GIS -->
+          <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; flex: 1;">
+              <select id="gisFilterKecamatan" class="form-input" onchange="renderLpgGisMarkers()" style="font-size: 0.82rem; padding: 7px 12px; max-width: 220px;">
+                <option value="">Semua 12 Kecamatan</option>
+                <option value="Watang Sawitto">Watang Sawitto (122)</option>
+                <option value="Paleteang">Paleteang (77)</option>
+                <option value="Patampanua">Patampanua (77)</option>
+                <option value="Mattiro Bulu">Mattiro Bulu (63)</option>
+                <option value="Suppa">Suppa (66)</option>
+                <option value="Duampanua">Duampanua (87)</option>
+                <option value="Mattiro Sompe">Mattiro Sompe (48)</option>
+                <option value="Lembang">Lembang (41)</option>
+                <option value="Lanrisang">Lanrisang (39)</option>
+                <option value="Cempa">Cempa (29)</option>
+                <option value="Tiroang">Tiroang (26)</option>
+                <option value="Batulappa">Batulappa (6)</option>
+              </select>
+
+              <select id="gisFilterAgen" class="form-input" onchange="renderLpgGisMarkers()" style="font-size: 0.82rem; padding: 7px 12px; max-width: 260px;">
+                <option value="">Semua 8 Agen Resmi</option>
+                <option value="AG-001">PT. Gasifa Pinrang Mandiri (AG-001)</option>
+                <option value="AG-002">PT. Hamisa Harapan Mandiri (AG-002)</option>
+                <option value="AG-003">PT. H. Abd Rahman Hasyim (AG-003)</option>
+                <option value="AG-004">PT. Nurcahaya Berkah Abadi (AG-004)</option>
+                <option value="AG-005">PT. Wahyu Putra Mas (AG-005)</option>
+                <option value="AG-006">PT. Nasman Gas Pinrang (AG-006)</option>
+                <option value="AG-007">PT. Amiruddin Berkah Gas (AG-007)</option>
+                <option value="AG-008">PT. Kaka Putri Gas (AG-008)</option>
+              </select>
+            </div>
+
+            <div style="font-size: 0.76rem; color: #64748B; display: flex; gap: 14px; align-items: center;">
+              <span>🏢 = Titik Agen</span>
+              <span>📍 = Pusat Kecamatan (681 Pangkalan)</span>
+              <span>🟢 = Pangkalan Terverifikasi GPS</span>
+            </div>
+          </div>
+
+          <!-- CONTAINER CANVAS PETA LEAFLET -->
+          <div id="adminLpgGisMapContainer" style="width: 100%; height: 520px; border-radius: 12px; border: 1.5px solid #CBD5E1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); z-index: 1;"></div>
         </div>
 
       </div>
@@ -1504,6 +1551,8 @@
   <script src="js/data.js?v=20260829_sync15_v1"></script>
   <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
   <script src="js/lpg-engine.js?v=20260829_sync15_v1"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/lpg-gis-map.js?v=20260829_sync15_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260829_sync15_v1"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>

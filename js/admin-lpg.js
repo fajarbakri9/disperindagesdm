@@ -35,7 +35,7 @@ function refreshAdminLpgStats() {
 
 // 2. SUBVIEW SWITCHER
 window.switchAdminLpgSubView = function(viewName) {
-  const views = ['pangkalan', 'agen', 'ledger', 'audit'];
+  const views = ['pangkalan', 'map', 'agen', 'ledger', 'audit'];
   views.forEach(v => {
     const el = document.getElementById(`subViewLpg${v.charAt(0).toUpperCase() + v.slice(1)}`);
     const btn = document.getElementById(`btnSub${v.charAt(0).toUpperCase() + v.slice(1)}`);
@@ -53,6 +53,13 @@ window.switchAdminLpgSubView = function(viewName) {
   });
 
   if (viewName === 'pangkalan') renderAdminLpgPangkalanTable();
+  if (viewName === 'map') {
+    setTimeout(() => {
+      if (typeof initLpgGisMap === 'function') {
+        initLpgGisMap('adminLpgGisMapContainer');
+      }
+    }, 50);
+  }
   if (viewName === 'agen') renderAdminLpgAgentsTable();
   if (viewName === 'ledger') renderAdminLpgLedgerTable();
   if (viewName === 'audit') renderAdminLpgAuditTable();
