@@ -120,6 +120,9 @@ async function submitLpgLedgerEvent(eventData, userSession) {
   // tidak dapat membuat transaksi kedua atau diam-diam mengganti payload.
   db.collection('lpg_events').doc(clientEventId).set(payload).catch(error => {
     console.error('[-] Sinkronisasi ledger LPG ditolak Firestore:', error.code);
+    window.dispatchEvent(new CustomEvent('lpg-ledger-write-error', {
+      detail: { clientEventId, code: error.code || 'unknown' }
+    }));
   });
   return { success: true, event: payload, persistence: 'FIRESTORE_QUEUED' };
 }

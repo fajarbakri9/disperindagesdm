@@ -9,6 +9,8 @@ let currentStockInEventId = null;
 let currentDistributionEventId = null;
 let unsubscribeAgentPangkalan = null;
 let unsubscribeAgentLedger = null;
+let isSubmittingStockIn = false;
+let isSubmittingDistribution = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Guard Autentikasi Khusus Agen LPG
@@ -51,15 +53,28 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAgentPangkalanListUI();
   populateDistributionPangkalanDropdown();
   renderLedgerHistoryUI();
+
+  window.addEventListener('online', updateLpgPersistenceNotice);
+  window.addEventListener('offline', updateLpgPersistenceNotice);
+  window.addEventListener('lpg-ledger-write-error', event => {
+    CustomModal.alert({
+      title: 'Sinkronisasi Ditolak',
+      message: `Transaksi ${event.detail?.clientEventId || ''} tidak diterima Firestore (${event.detail?.code || 'unknown'}). Periksa data lalu coba kembali.`,
+      icon: '!', type: 'error'
+    });
+  });
 });
 
 function updateLpgPersistenceNotice() {
   const notice = document.getElementById('lpgPersistenceNotice');
   if (!notice) return;
   const connected = typeof auth !== 'undefined' && auth && auth.currentUser;
-  if (connected) {
+  if (connected && navigator.onLine) {
     notice.style.cssText += 'border-color:#10B981;background:#ECFDF5;color:#065F46;';
     notice.textContent = 'Firestore online/offline aktif. Transaksi dikirim sebagai immutable ledger dan akan tersinkron otomatis.';
+  } else if (connected) {
+    notice.style.cssText += 'border-color:#F59E0B;background:#FFFBEB;color:#92400E;';
+    notice.textContent = 'Perangkat sedang offline. Transaksi baru berstatus pending dan akan dikirim otomatis saat koneksi kembali.';
   } else {
     notice.textContent = 'Mode penyimpanan lokal. Catatan pada perangkat ini belum merupakan ledger Firestore dan tidak ikut indikator resmi Command Center.';
   }
@@ -182,6 +197,7 @@ window.closeModal = function(modalId) {
 // 3. SUBMIT STOK MASUK
 window.handleStockInSubmit = async function(e) {
   e.preventDefault();
+  if (isSubmittingStockIn) return;
   const qty = parseInt(document.getElementById('inputStockInQty').value, 10);
   const doNum = document.getElementById('inputStockInDo').value.trim();
   const dateVal = document.getElementById('inputStockInDate').value;
@@ -192,7 +208,12 @@ window.handleStockInSubmit = async function(e) {
     return;
   }
 
-  const res = await submitLpgLedgerEvent({
+  isSubmittingStockIn = true;
+  const submitButton = document.getElementById('btnSubmitStockIn');
+  if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Mengirim...'; }
+  let res;
+  try {
+    res = await submitLpgLedgerEvent({
     type: 'STOCK_IN',
     agentId: currentAgentId,
     agentName: currentAgentSession.agentName,
@@ -201,7 +222,13 @@ window.handleStockInSubmit = async function(e) {
     effectiveAt: dateVal ? new Date(dateVal).toISOString() : new Date().toISOString(),
     note: note,
     clientEventId: currentStockInEventId || generateUUID()
-  }, currentAgentSession);
+    }, currentAgentSession);
+  } catch (error) {
+    res = { success: false, message: `Transaksi gagal diproses (${error.code || 'unknown'}).` };
+  } finally {
+    isSubmittingStockIn = false;
+    if (submitButton) { submitButton.disabled = false; submitButton.textContent = '✓ Bukukan Stok Masuk'; }
+  }
 
   if (res.success) {
     currentStockInEventId = null;
@@ -224,6 +251,7 @@ window.handleStockInSubmit = async function(e) {
 // 4. SUBMIT DISTRIBUSI KE PANGKALAN
 window.handleDistributionSubmit = async function(e) {
   e.preventDefault();
+  if (isSubmittingDistribution) return;
   const pangkalanId = document.getElementById('selectDistPangkalan').value;
   const qty = parseInt(document.getElementById('inputDistQty').value, 10);
   const vehicle = document.getElementById('inputDistVehicle').value.trim();
@@ -241,7 +269,12 @@ window.handleDistributionSubmit = async function(e) {
   }
 
   const targetPangkalan = getAgentPangkalanList(currentAgentId).find(item => item.id === pangkalanId);
-  const res = await submitLpgLedgerEvent({
+  isSubmittingDistribution = true;
+  const submitButton = document.getElementById('btnSubmitDistribution');
+  if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Mengirim...'; }
+  let res;
+  try {
+    res = await submitLpgLedgerEvent({
     type: 'DISTRIBUTION',
     agentId: currentAgentId,
     agentName: currentAgentSession.agentName,
@@ -257,7 +290,13 @@ window.handleDistributionSubmit = async function(e) {
     doNumber: doNum,
     effectiveAt: dateVal ? new Date(dateVal).toISOString() : new Date().toISOString(),
     clientEventId: currentDistributionEventId || generateUUID()
-  }, currentAgentSession);
+    }, currentAgentSession);
+  } catch (error) {
+    res = { success: false, message: `Transaksi gagal diproses (${error.code || 'unknown'}).` };
+  } finally {
+    isSubmittingDistribution = false;
+    if (submitButton) { submitButton.disabled = false; submitButton.textContent = '✓ Salurkan Tabung'; }
+  }
 
   if (res.success) {
     currentDistributionEventId = null;
@@ -494,9 +533,11 @@ function renderLedgerHistoryUI() {
     const isStockIn = e.type === 'STOCK_IN';
     const isRejected = e.status === 'REJECTED';
     const isLocalOnly = e.status === 'LOCAL_ONLY';
+    const isPendingSync = e.status === 'PENDING_SYNC';
     const dateFormatted = new Date(e.effectiveAt || e.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const color = isRejected ? '#DC2626' : (isStockIn ? '#059669' : '#1D4ED8');
-    const badgeText = isRejected ? 'Ditolak' : (isLocalOnly ? 'Lokal • Belum Sinkron' : 'POSTED Server');
+    const badgeText = isRejected ? 'Ditolak'
+      : (isLocalOnly ? 'Lokal • Belum Sinkron' : (isPendingSync ? 'Pending Sinkron' : 'Tersinkron Firestore'));
     const sign = isStockIn ? '+' : '-';
 
     return `
