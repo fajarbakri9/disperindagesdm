@@ -312,6 +312,39 @@
       align-items: center;
       gap: 4px;
     }
+
+    /* Modal form operasional. Sebelumnya kedua kelas ini belum memiliki
+       layout sehingga klik tombol terlihat tidak bereaksi. */
+    .custom-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100001;
+      width: 100%;
+      min-height: 100dvh;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.72);
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .custom-modal-box {
+      position: relative;
+      width: 100%;
+      margin: auto;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+    }
+    .btn-float-add,
+    .btn-p-edit,
+    .btn-p-del {
+      position: relative;
+      z-index: 1;
+      pointer-events: auto;
+      touch-action: manipulation;
+    }
   </style>
 </head>
 <body>
@@ -589,6 +622,6 @@
   <script src="js/lpg-engine.js?v=20260830_pangkalan_crud_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
-  <script src="js/lpg-agen.js?v=20260830_pangkalan_crud_v1"></script>
+  <script src="js/lpg-agen.js?v=20260830_pangkalan_modal_v2"></script>
 </body>
 </html>
