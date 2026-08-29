@@ -507,3 +507,84 @@ function renderAdminLpgAuditTable() {
     `;
   }).join('');
 }
+
+// 8. EKSPOR DATA KE CSV RESMI DISPERINDAG
+window.exportLpgPangkalanCSV = function() {
+  const pangkalanList = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
+  if (pangkalanList.length === 0) {
+    CustomModal.alert({ title: "Data Kosong", message: "Tidak ada data pangkalan untuk diekspor.", icon: "⚠️", type: "warning" });
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "ID,Nama Pangkalan,Agen Penyalur,Kode Agen,Kecamatan,Desa/Kelurahan,Alamat,Pemilik,Kontak,Alokasi Bulanan,Status,Status Verifikasi,Sumber Data\n";
+
+  pangkalanList.forEach(p => {
+    const row = [
+      `"${p.id}"`,
+      `"${(p.name || '').replace(/"/g, '""')}"`,
+      `"${(p.agentName || '').replace(/"/g, '""')}"`,
+      `"${p.agentId || ''}"`,
+      `"${p.kecamatan || ''}"`,
+      `"${p.desaKelurahan || ''}"`,
+      `"${(p.address || '').replace(/"/g, '""')}"`,
+      `"${(p.ownerName || '').replace(/"/g, '""')}"`,
+      `"${p.phone || ''}"`,
+      p.monthlyAllocation || 560,
+      `"${p.status || 'ACTIVE'}"`,
+      `"${p.verificationStatus || 'VERIFIED'}"`,
+      `"${p.sourceType || 'ESDM_PUBLIC_SEED'}"`
+    ];
+    csvContent += row.join(",") + "\n";
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `Master_Pangkalan_LPG_3Kg_Pinrang_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+window.exportLpgLedgerCSV = function() {
+  const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
+  if (events.length === 0) {
+    CustomModal.alert({ title: "Buku Besar Kosong", message: "Belum ada riwayat transaksi ledger untuk diekspor.", icon: "⚠️", type: "warning" });
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "ID Transaksi,Client Event ID,Jenis Transaksi,Waktu Efektif (WITA),Kode Agen,Nama Agen,Tujuan / Pangkalan,Jumlah Tabung,Nomor DO,Armada,Status Ledger,Pelapor\n";
+
+  events.forEach(e => {
+    const targetName = e.type === 'STOCK_IN' 
+      ? (e.doNumber ? 'DO: ' + e.doNumber : 'DO Pertamina') 
+      : (e.pangkalanSnapshot ? e.pangkalanSnapshot.name : 'Pangkalan');
+
+    const row = [
+      `"${e.id}"`,
+      `"${e.clientEventId || ''}"`,
+      `"${e.type}"`,
+      `"${e.effectiveAt || e.createdAt}"`,
+      `"${e.agentId}"`,
+      `"${(e.agentName || '').replace(/"/g, '""')}"`,
+      `"${targetName.replace(/"/g, '""')}"`,
+      e.quantity,
+      `"${e.doNumber || ''}"`,
+      `"${e.vehicleNumber || ''}"`,
+      `"${e.status}"`,
+      `"${e.createdByName || e.createdBy}"`
+    ];
+    csvContent += row.join(",") + "\n";
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `Buku_Besar_Ledger_LPG_3Kg_Pinrang_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+

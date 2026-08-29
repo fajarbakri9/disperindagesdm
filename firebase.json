@@ -23,12 +23,16 @@
       "*.exe",
       "*.docx",
       "*.txt",
+      "*.mp4",
+      "*.webm",
+      "*.mkv",
       "UPLOAD WEB/**",
       "Flyer Opini Ombudsman.png",
       "Kadis Perindag ESDM.png",
       "Kadis perindesdm pinrang.png",
       "Logo_Pinrang.png",
-      "Sekretaris Dinas.png"
+      "Sekretaris Dinas.png",
+      "assets/docs/RKPD-2026-kabupaten-pinrang.pdf"
     ],
     "rewrites": [
       {
