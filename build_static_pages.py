@@ -534,7 +534,10 @@ def generate_article_html(art, canonical_url):
           </div>
 
           <div class="article-cover">
-            <img src="{img_abs}" alt="{art['title']}" onerror="this.src='{DEFAULT_COVER}'">
+            <img src="{img_abs}" id="articleHeroCover" alt="{art['title']}" onerror="this.src='{DEFAULT_COVER}'">
+          </div>
+          <div class="article-cover-caption" id="articleHeroCaption" style="font-size: 0.8rem; color: #64748B; font-style: italic; margin-top: -12px; margin-bottom: 20px;">
+            📷 {art.get('image_caption', 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.')}
           </div>
 
           <div class="article-body-text">
@@ -639,6 +642,38 @@ def generate_article_html(art, canonical_url):
   <script src="{SITE_URL}/js/pinrang-live.js"></script>
   <script src="{SITE_URL}/js/app.js"></script>
   <script>
+    // Client-Side Live Hydration: Jika admin baru saja mengedit artikel di CMS (mengganti foto, judul, dsb), sinkronkan seketika di browser!
+    document.addEventListener('DOMContentLoaded', () => {{
+      try {{
+        const slug = "{art['slug']}";
+        const id = "{art['id']}";
+        const rawNews = localStorage.getItem('disperindag_news');
+        if (rawNews) {{
+          const list = JSON.parse(rawNews);
+          const current = list.find(n => n && (n.slug === slug || n.id === id || n.title === "{art['title']}"));
+          if (current) {{
+            // 1. Update Foto Cover Utama jika diganti di CMS
+            if (current.img) {{
+              const imgEl = document.getElementById('articleHeroCover');
+              if (imgEl && imgEl.getAttribute('src') !== current.img) {{
+                imgEl.src = current.img;
+              }}
+            }}
+            // 2. Update Caption Foto jika diganti di CMS
+            if (current.image_caption) {{
+              const capEl = document.getElementById('articleHeroCaption');
+              if (capEl) capEl.textContent = '📷 ' + current.image_caption;
+            }}
+            // 3. Update Judul Utama jika disunting di CMS
+            if (current.title) {{
+              const titleEl = document.querySelector('.article-title');
+              if (titleEl) titleEl.textContent = current.title;
+            }}
+          }}
+        }}
+      }} catch(e) {{}}
+    }});
+
     window.shareArticle = function() {{
       if (navigator.share) {{
         navigator.share({{
