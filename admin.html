@@ -63,6 +63,27 @@
       from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    #lpgAdminWorkspace { border: 1px solid #E2E8F0; box-shadow: 0 12px 30px rgba(15,44,89,.08); overflow: visible; }
+    .lpg-workspace-head { display:grid; grid-template-columns:minmax(260px,1fr) auto; gap:18px; align-items:start; padding-bottom:16px; border-bottom:1px solid #E2E8F0; }
+    .lpg-workspace-head h3 { margin:0 0 5px; font-size:1.08rem; color:#0F172A; }
+    .lpg-workspace-head p { margin:0; max-width:720px; line-height:1.5; }
+    .lpg-nav-groups { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+    .lpg-module-tabs,.lpg-utility-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+    .lpg-module-tabs button,.lpg-utility-actions button { min-height:36px; border-radius:9px !important; white-space:nowrap; }
+    .lpg-utility-actions { padding-top:7px; border-top:1px dashed #CBD5E1; }
+    .lpg-utility-label { align-self:center; font-size:.68rem; font-weight:900; color:#64748B; text-transform:uppercase; letter-spacing:.06em; }
+    .lpg-directory-tools { margin-top:16px; padding:12px; border:1px solid #E2E8F0; border-radius:12px; background:#F8FAFC; }
+    .lpg-table-shell { overflow:auto; max-height:68vh; border:1px solid #E2E8F0; border-radius:10px; }
+    .lpg-table-shell .admin-table { min-width:1120px; margin:0; }
+    .lpg-table-shell .admin-table thead { position:sticky; top:0; z-index:3; }
+    .lpg-table-shell .admin-table tbody tr { transition:background .15s ease, box-shadow .15s ease; }
+    .lpg-table-shell .admin-table tbody tr:hover { background:#F8FAFC; box-shadow:inset 3px 0 #2563EB; }
+    .lpg-table-shell .admin-table td { padding-top:12px; padding-bottom:12px; vertical-align:middle; }
+    @media (max-width:1100px) {
+      .lpg-workspace-head { grid-template-columns:1fr; }
+      .lpg-nav-groups { align-items:stretch; }
+      .lpg-module-tabs,.lpg-utility-actions { justify-content:flex-start; }
+    }
   </style>
 </head>
 <body class="admin-layout">
@@ -886,13 +907,14 @@
       <div id="adminLpgAlertsPanel" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;"></div>
 
       <!-- KARTU UTAMA PENGAWASAN LPG -->
-      <div class="admin-card">
-        <div class="admin-card-header" style="flex-wrap: wrap; gap: 12px;">
+      <div class="admin-card" id="lpgAdminWorkspace">
+        <div class="lpg-workspace-head">
           <div>
             <h3>🔥 Direktori Master 681 Pangkalan & Pemantauan Distribusi LPG 3 Kg</h3>
             <p style="font-size: 0.82rem; color: #64748B;">Data bersumber resmi dari Ditjen Migas Kementerian ESDM Q1 2026 yang terintegrasi langsung dengan pelaporan agen penyalur.</p>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <div class="lpg-nav-groups">
+            <div class="lpg-module-tabs" aria-label="Navigasi modul pengawasan LPG">
             <button onclick="switchAdminLpgSubView('pangkalan')" class="btn-primary" id="btnSubPangkalan" style="padding: 8px 14px; font-size: 0.8rem;">
               <span>🏪</span> Direktori Pangkalan
             </button>
@@ -900,7 +922,7 @@
               <span>🗺️</span> Peta GIS Sebaran
             </button>
             <button onclick="switchAdminLpgSubView('agen')" class="btn-outline" id="btnSubAgen" style="padding: 8px 14px; font-size: 0.8rem;">
-              <span>🏢</span> Saldo 8 Agen
+              <span>🏢</span> Monitoring Agen
             </button>
             <button onclick="switchAdminLpgSubView('ledger')" class="btn-outline" id="btnSubLedger" style="padding: 8px 14px; font-size: 0.8rem;">
               <span>📜</span> Ledger Transaksi
@@ -917,12 +939,15 @@
             <button onclick="switchAdminLpgSubView('settings')" class="btn-outline" id="btnSubSettings" style="padding:8px 14px;font-size:.8rem;">
               <span>⚙️</span> Pengaturan LPG
             </button>
+            </div>
+            <div class="lpg-utility-actions"><span class="lpg-utility-label">Unduh Data</span>
             <button onclick="exportLpgPangkalanCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #059669; color: #059669;" title="Download Master 681 Pangkalan (Excel / CSV)">
               <span>📥</span> Ekspor CSV Pangkalan
             </button>
             <button onclick="exportLpgLedgerCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #1D4ED8; color: #1D4ED8;" title="Download Buku Besar Ledger (Excel / CSV)">
               <span>📥</span> Ekspor CSV Ledger
             </button>
+            </div>
           </div>
         </div>
 
@@ -930,7 +955,7 @@
         <div id="subViewLpgPangkalan" style="display: block;">
           
           <!-- FILTER & SEARCH BAR PANGKALAN -->
-          <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <div class="lpg-directory-tools" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
             <div style="flex: 2; min-width: 200px;">
               <input type="text" id="adminLpgSearchPangkalan" class="form-input" placeholder="🔍 Cari nama pangkalan, pemilik, desa, atau ID..." oninput="renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
             </div>
@@ -971,7 +996,7 @@
           </div>
 
           <!-- TABEL MASTER PANGKALAN -->
-          <div style="overflow-x: auto;">
+          <div class="lpg-table-shell">
             <table class="admin-table">
               <thead>
                 <tr>
@@ -1027,7 +1052,7 @@
             <div style="font-size:.8rem;color:#64748B;">Saldo berasal dari total <code>delta</code>; event lama tidak dapat diedit atau dihapus.</div>
             <button type="button" class="btn-primary" onclick="openAdminOpeningBalanceModal()" style="padding:8px 14px;font-size:.8rem;background:#059669;">+ Bukukan Saldo Awal</button>
           </div>
-          <div style="overflow-x: auto;">
+          <div class="lpg-table-shell">
             <table class="admin-table">
               <thead>
                 <tr>
@@ -1654,6 +1679,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_transfer_v15"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_professional_ui_v16"></script>
 </body>
 </html>

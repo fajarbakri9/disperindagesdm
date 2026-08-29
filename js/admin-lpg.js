@@ -475,27 +475,7 @@ window.renderAdminLpgPangkalanTable = function() {
           ${statusBadge}
         </td>
         <td style="text-align: center;">
-          <div style="display: flex; gap: 4px; justify-content: center;">
-            ${isDeleted ? `
-              <button onclick="adminRestorePangkalan('${p.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.72rem; background: #0284C7;" title="Pulihkan / Aktifkan Kembali Pangkalan">
-                ♻️ Pulihkan
-              </button>
-            ` : ''}
-            ${isPending && !isDeleted ? `
-              <button onclick="adminVerifyPangkalan('${p.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.72rem; background: #059669;" title="Verifikasi Pangkalan">
-                ✓ Verif
-              </button>
-            ` : ''}
-            ${hasPhuFlag && !isDeleted ? `
-              <button onclick="adminResolvePhuFlag('${p.id}')" class="btn-primary" style="padding: 4px 8px; font-size: 0.72rem; background: #D97706;" title="Tindak Lanjut Kasus Bungi">
-                ⚖️ Kasus
-              </button>
-            ` : ''}
-            ${!isDeleted ? `<button onclick="openAdminTransferPangkalan('${p.id}')" class="btn-outline" style="padding:4px 8px;font-size:.72rem;color:#7C3AED;border-color:#C4B5FD;" title="Pindahkan pangkalan ke agen penyalur lain">⇄ Pindah</button>` : ''}
-            <button onclick="adminDetailPangkalan('${p.id}')" class="btn-outline" style="padding: 4px 8px; font-size: 0.72rem;" title="Lihat Detail & Jejak Sumber">
-              🔍 Detail
-            </button>
-          </div>
+          <button type="button" onclick="openAdminPangkalanActionMenu('${p.id}')" class="btn-outline" style="padding:6px 11px;font-size:.74rem;white-space:nowrap;">Tindakan ▾</button>
         </td>
       </tr>
     `;
@@ -574,6 +554,25 @@ window.bulkVerifyAdminLpgPangkalan = function() {
       } catch (error) {
         CustomModal.alert({ title: 'Verifikasi Gagal', message: error.message || 'Firestore menolak verifikasi massal.', icon: '!', type: 'error' });
       }
+    }
+  });
+};
+
+window.openAdminPangkalanActionMenu = function(pangkalanId) {
+  const item = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []).find(pangkalan => pangkalan.id === pangkalanId);
+  if (!item) return;
+  const isDeleted = item.isDeleted || item.status === 'DELETED' || item.status === 'PHU';
+  const options = [{ value: 'DETAIL', label: 'Lihat Detail dan Jejak Sumber' }];
+  if (isDeleted) options.unshift({ value: 'RESTORE', label: 'Pulihkan Pangkalan' });
+  if (!isDeleted && item.verificationStatus === 'PENDING_ADMIN_VERIFICATION') options.unshift({ value: 'VERIFY', label: 'Verifikasi Pangkalan' });
+  if (!isDeleted) options.push({ value: 'TRANSFER', label: 'Pindahkan ke Agen Lain' });
+  if (!isDeleted && item.reviewFlag === 'POSSIBLE_PHU_AUG_2026') options.push({ value: 'PHU', label: 'Tindak Lanjut Review PHU' });
+  CustomModal.form({
+    title: `Tindakan: ${item.name}`, icon: '⚙️', submitText: 'Lanjutkan',
+    fields: [{ name: 'action', label: 'Pilih Tindakan', type: 'select', required: true, options }],
+    onSubmit: values => {
+      const handlers = { DETAIL: adminDetailPangkalan, RESTORE: adminRestorePangkalan, VERIFY: adminVerifyPangkalan, TRANSFER: openAdminTransferPangkalan, PHU: adminResolvePhuFlag };
+      if (handlers[values.action]) handlers[values.action](pangkalanId);
     }
   });
 };
