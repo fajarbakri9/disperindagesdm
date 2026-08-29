@@ -682,13 +682,13 @@
               <span>📂</span> Kembali ke Arsip Berita
             </a>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(article.title + ' ' + cleanNewsUrl)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #25D366; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(article.title + ' ' + canonicalUrl)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #25D366; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                 <span>💬</span> WhatsApp
               </a>
-              <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(cleanNewsUrl)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #1877F2; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #1877F2; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                 <span>📘</span> Facebook
               </a>
-              <button onclick="shareArticle('${cleanNewsUrl}', '${(article.title || '').replace(/'/g, "\\'")}')" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; background: var(--accent-gold, #FACC15); color: #030D1B; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">
+              <button onclick="shareArticle('${canonicalUrl}', '${(article.title || '').replace(/'/g, "\\'")}')" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; background: var(--accent-gold, #FACC15); color: #030D1B; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">
                 <span>🔗</span> Salin Tautan
               </button>
             </div>
