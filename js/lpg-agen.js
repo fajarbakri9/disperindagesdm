@@ -8,6 +8,7 @@ let currentAgentId = null;
 let currentStockInEventId = null;
 let currentDistributionEventId = null;
 let unsubscribeAgentPangkalan = null;
+let unsubscribeAgentLedger = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Guard Autentikasi Khusus Agen LPG
@@ -26,11 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof auth !== 'undefined' && auth) {
     auth.onAuthStateChanged(user => {
       updateLpgPersistenceNotice();
-      if (!user || unsubscribeAgentPangkalan) return;
-      unsubscribeAgentPangkalan = subscribeAgentPangkalanFirestore(currentAgentId, () => {
-        renderAgentPangkalanListUI();
-        populateDistributionPangkalanDropdown();
-      });
+      if (!user) return;
+      if (!unsubscribeAgentPangkalan) {
+        unsubscribeAgentPangkalan = subscribeAgentPangkalanFirestore(currentAgentId, () => {
+          renderAgentPangkalanListUI();
+          populateDistributionPangkalanDropdown();
+        });
+      }
+      if (!unsubscribeAgentLedger) {
+        unsubscribeAgentLedger = subscribeAgentLedgerFirestore(currentAgentId, () => {
+          refreshAgentDashboardUI();
+          renderLedgerHistoryUI();
+        });
+      }
     });
   }
 

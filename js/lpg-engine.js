@@ -16,7 +16,7 @@ const LPG_STORAGE_KEYS = {
 const LPG_ENGINE_VERSION = "2026_08_30_lpg_local_status_v3";
 
 function isLocallyAppliedLpgEvent(event) {
-  return event && (event.status === 'POSTED' || event.status === 'LOCAL_ONLY');
+  return event && ['POSTED', 'LOCAL_ONLY', 'PENDING_SYNC', 'FIRESTORE_SYNCED'].includes(event.status);
 }
 
 // 1. INISIALISASI DATABASE LPG
@@ -96,13 +96,6 @@ async function submitLpgLedgerEvent(eventData, userSession) {
     return { ...processLpgEvent(eventData, userSession), persistence: 'LOCAL_ONLY' };
   }
 
-  const token = await firebaseUser.getIdTokenResult();
-  const claimedAgentId = token.claims.agentId || null;
-  const adminRoles = ['SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'LPG_ADMIN'];
-  if (claimedAgentId !== eventData.agentId && !adminRoles.includes(token.claims.role)) {
-    return { success: false, message: 'Klaim akun Firebase tidak sesuai dengan agen transaksi.' };
-  }
-
   const quantity = Number(eventData.quantity);
   const delta = eventData.type === 'DISTRIBUTION' ? -quantity : quantity;
   const clientEventId = eventData.clientEventId || generateUUID();
@@ -129,6 +122,44 @@ async function submitLpgLedgerEvent(eventData, userSession) {
     console.error('[-] Sinkronisasi ledger LPG ditolak Firestore:', error.code);
   });
   return { success: true, event: payload, persistence: 'FIRESTORE_QUEUED' };
+}
+
+function firestoreTimestampToIso(value) {
+  if (value && typeof value.toDate === 'function') return value.toDate().toISOString();
+  return typeof value === 'string' ? value : null;
+}
+
+function subscribeAgentLedgerFirestore(agentId, callback) {
+  if (!hasFirebaseLpgSession()) return null;
+  return db.collection('lpg_events').where('agentId', '==', agentId)
+    .onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      const cloudEvents = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: firestoreTimestampToIso(data.createdAt) || data.effectiveAt,
+          status: doc.metadata.hasPendingWrites ? 'PENDING_SYNC' : 'FIRESTORE_SYNCED'
+        };
+      }).sort((a, b) => String(b.effectiveAt || b.createdAt).localeCompare(String(a.effectiveAt || a.createdAt)));
+
+      const allLocal = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
+      const otherAgentEvents = allLocal.filter(item => item.agentId !== agentId);
+      setLpgStore(LPG_STORAGE_KEYS.EVENTS, [...cloudEvents, ...otherAgentEvents]);
+
+      const balance = cloudEvents.reduce((sum, event) => sum + Number(event.delta || 0), 0);
+      const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
+      balances[agentId] = {
+        agentId,
+        filledCylinderBalance: balance,
+        hasStockAnomaly: balance < 0,
+        updatedAt: new Date().toISOString(),
+        source: 'FIRESTORE_LEDGER_SUM_DELTA'
+      };
+      setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
+      refreshLpgDashboardSummary();
+      if (typeof callback === 'function') callback(cloudEvents, snapshot.metadata.hasPendingWrites);
+    }, error => console.error('[-] Listener ledger Firestore gagal:', error.code));
 }
 
 // 3. LEDGER TRANSACTION PROCESSOR & IDEMPOTENCY
@@ -651,6 +682,7 @@ if (typeof window !== 'undefined') {
   window.submitLpgLedgerEvent = submitLpgLedgerEvent;
   window.getAgentPangkalanList = getAgentPangkalanList;
   window.subscribeAgentPangkalanFirestore = subscribeAgentPangkalanFirestore;
+  window.subscribeAgentLedgerFirestore = subscribeAgentLedgerFirestore;
   window.addAgentPangkalanFirestore = addAgentPangkalanFirestore;
   window.editAgentPangkalanFirestore = editAgentPangkalanFirestore;
   window.softDeleteAgentPangkalanFirestore = softDeleteAgentPangkalanFirestore;
