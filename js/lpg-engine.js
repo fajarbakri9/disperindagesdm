@@ -271,6 +271,116 @@ function getAgentPangkalanList(agentId) {
   return pangkalanList.filter(p => p.agentId === agentId);
 }
 
+function hasFirebaseLpgSession() {
+  return typeof auth !== 'undefined' && auth && auth.currentUser && typeof db !== 'undefined' && db;
+}
+
+function subscribeAgentPangkalanFirestore(agentId, callback) {
+  if (!hasFirebaseLpgSession()) return null;
+  return db.collection('lpg_pangkalan').where('agentId', '==', agentId).onSnapshot(snapshot => {
+    const cloudItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const allLocal = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
+    const otherAgents = allLocal.filter(item => item.agentId !== agentId);
+    setLpgStore(LPG_STORAGE_KEYS.PANGKALAN, [...cloudItems, ...otherAgents]);
+    if (typeof callback === 'function') callback(cloudItems);
+  }, error => console.error('[-] Listener pangkalan Firestore gagal:', error.code));
+}
+
+async function addAgentPangkalanFirestore(agentId, data, session) {
+  if (!hasFirebaseLpgSession()) return { ...addAgentPangkalan(agentId, data, session), persistence: 'LOCAL_ONLY' };
+  const user = auth.currentUser;
+  const docId = `PG-${generateUUID()}`;
+  const ref = db.collection('lpg_pangkalan').doc(docId);
+  const auditRef = db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`);
+  const normalizedName = (data.name || '').trim().toUpperCase();
+  const payload = {
+    id: docId,
+    agentId,
+    agentName: session.agentName || null,
+    name: (data.name || '').trim(),
+    normalizedName,
+    ownerName: (data.ownerName || '').trim() || null,
+    phone: (data.phone || '').trim() || null,
+    registrationNumber: data.registrationNumber || null,
+    kecamatan: data.kecamatan,
+    desaKelurahan: (data.desaKelurahan || '').trim(),
+    address: (data.address || '').trim(),
+    latitude: Number.isFinite(Number(data.latitude)) ? Number(data.latitude) : null,
+    longitude: Number.isFinite(Number(data.longitude)) ? Number(data.longitude) : null,
+    monthlyAllocation: Number.isSafeInteger(Number(data.monthlyAllocation)) ? Number(data.monthlyAllocation) : null,
+    status: 'ACTIVE',
+    isDeleted: false,
+    verificationStatus: 'PENDING_ADMIN_VERIFICATION',
+    sourceType: 'AGENT_CREATED',
+    sourceDate: new Date().toISOString().slice(0, 10),
+    sourceOriginal: {},
+    createdBy: user.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: user.uid,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  const batch = db.batch();
+  batch.set(ref, payload);
+  batch.set(auditRef, {
+    action: 'PANGKALAN_CREATE', entityType: 'PANGKALAN', entityId: docId,
+    agentId, actorUid: user.uid, actorRole: session.role, before: null,
+    after: { name: payload.name, status: payload.status },
+    reason: 'Pendaftaran pangkalan baru oleh agen',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await batch.commit();
+  return { success: true, pangkalan: payload, persistence: 'FIRESTORE' };
+}
+
+async function editAgentPangkalanFirestore(agentId, pangkalanId, fields, session) {
+  if (!hasFirebaseLpgSession()) return { ...editAgentPangkalan(agentId, pangkalanId, fields, session), persistence: 'LOCAL_ONLY' };
+  const current = getAgentPangkalanList(agentId).find(item => item.id === pangkalanId);
+  if (!current) return { success: false, message: 'Pangkalan tidak ditemukan pada data agen.' };
+  const user = auth.currentUser;
+  const update = {
+    name: fields.name.trim(), normalizedName: fields.name.trim().toUpperCase(),
+    ownerName: fields.ownerName || null, phone: fields.phone || null,
+    kecamatan: fields.kecamatan, desaKelurahan: fields.desaKelurahan,
+    address: fields.address, monthlyAllocation: Number(fields.monthlyAllocation) || null,
+    updatedBy: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  const batch = db.batch();
+  batch.update(db.collection('lpg_pangkalan').doc(pangkalanId), update);
+  batch.set(db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`), {
+    action: 'PANGKALAN_UPDATE', entityType: 'PANGKALAN', entityId: pangkalanId,
+    agentId, actorUid: user.uid, actorRole: session.role,
+    before: { name: current.name, address: current.address },
+    after: { name: update.name, address: update.address },
+    changedFields: Object.keys(update).filter(key => !['updatedBy', 'updatedAt'].includes(key)),
+    reason: fields.editReason, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await batch.commit();
+  return { success: true, message: 'Data pangkalan tersinkron ke Firestore.', persistence: 'FIRESTORE' };
+}
+
+async function softDeleteAgentPangkalanFirestore(agentId, pangkalanId, reason, session) {
+  if (!hasFirebaseLpgSession()) return { ...softDeleteAgentPangkalan(agentId, pangkalanId, reason, session), persistence: 'LOCAL_ONLY' };
+  const current = getAgentPangkalanList(agentId).find(item => item.id === pangkalanId);
+  if (!current) return { success: false, message: 'Pangkalan tidak ditemukan pada data agen.' };
+  const user = auth.currentUser;
+  const update = {
+    status: 'DELETED', isDeleted: true, deleteReason: reason.trim(),
+    deletedBy: user.uid, deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  const batch = db.batch();
+  batch.update(db.collection('lpg_pangkalan').doc(pangkalanId), update);
+  batch.set(db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`), {
+    action: 'PANGKALAN_DELETE', entityType: 'PANGKALAN', entityId: pangkalanId,
+    agentId, actorUid: user.uid, actorRole: session.role,
+    before: { status: current.status, isDeleted: current.isDeleted === true },
+    after: { status: 'DELETED', isDeleted: true }, reason: reason.trim(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await batch.commit();
+  return { success: true, message: `Pangkalan "${current.name}" dinonaktifkan dan histori tetap tersimpan.`, persistence: 'FIRESTORE' };
+}
+
 function addAgentPangkalan(agentId, pangkalanData, userSession) {
   const pangkalanList = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
   const agents = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []);
@@ -540,6 +650,10 @@ if (typeof window !== 'undefined') {
   window.processLpgEvent = processLpgEvent;
   window.submitLpgLedgerEvent = submitLpgLedgerEvent;
   window.getAgentPangkalanList = getAgentPangkalanList;
+  window.subscribeAgentPangkalanFirestore = subscribeAgentPangkalanFirestore;
+  window.addAgentPangkalanFirestore = addAgentPangkalanFirestore;
+  window.editAgentPangkalanFirestore = editAgentPangkalanFirestore;
+  window.softDeleteAgentPangkalanFirestore = softDeleteAgentPangkalanFirestore;
   window.addAgentPangkalan = addAgentPangkalan;
   window.editAgentPangkalan = editAgentPangkalan;
   window.softDeleteAgentPangkalan = softDeleteAgentPangkalan;

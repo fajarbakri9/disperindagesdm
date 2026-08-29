@@ -139,7 +139,13 @@ service cloud.firestore {
       allow update: if isLpgAdmin() || (
         ownsLpgAgent(resource.data.agentId) &&
         request.resource.data.agentId == resource.data.agentId &&
-        request.resource.data.sourceOriginal == resource.data.sourceOriginal
+        request.resource.data.sourceOriginal == resource.data.sourceOriginal &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'normalizedName', 'ownerName', 'phone', 'kecamatan',
+          'desaKelurahan', 'address', 'latitude', 'longitude',
+          'monthlyAllocation', 'notes', 'status', 'isDeleted', 'deletedAt',
+          'deletedBy', 'deleteReason', 'updatedAt', 'updatedBy'
+        ])
       );
       allow delete: if false;
     }

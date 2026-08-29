@@ -7,6 +7,7 @@ let currentAgentSession = null;
 let currentAgentId = null;
 let currentStockInEventId = null;
 let currentDistributionEventId = null;
+let unsubscribeAgentPangkalan = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Guard Autentikasi Khusus Agen LPG
@@ -22,7 +23,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (codeEl) codeEl.textContent = currentAgentId;
 
   updateLpgPersistenceNotice();
-  if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(updateLpgPersistenceNotice);
+  if (typeof auth !== 'undefined' && auth) {
+    auth.onAuthStateChanged(user => {
+      updateLpgPersistenceNotice();
+      if (!user || unsubscribeAgentPangkalan) return;
+      unsubscribeAgentPangkalan = subscribeAgentPangkalanFirestore(currentAgentId, () => {
+        renderAgentPangkalanListUI();
+        populateDistributionPangkalanDropdown();
+      });
+    });
+  }
 
   // 3. Set Default Date Picker ke Sekarang
   setDefaultDateTimeInputs();
@@ -364,7 +374,7 @@ window.openModalEditPangkalan = function(pangkalanId) {
   document.getElementById('modalPangkalanForm').style.display = 'flex';
 };
 
-window.handlePangkalanFormSubmit = function(e) {
+window.handlePangkalanFormSubmit = async function(e) {
   e.preventDefault();
   const editId = document.getElementById('pangkalanEditId').value;
   const name = document.getElementById('pangkalanName').value.trim();
@@ -383,9 +393,14 @@ window.handlePangkalanFormSubmit = function(e) {
       return;
     }
 
-    const res = editAgentPangkalan(currentAgentId, editId, {
-      name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address, monthlyAllocation: allocation, editReason
-    }, currentAgentSession);
+    let res;
+    try {
+      res = await editAgentPangkalanFirestore(currentAgentId, editId, {
+        name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address, monthlyAllocation: allocation, editReason
+      }, currentAgentSession);
+    } catch (error) {
+      res = { success: false, message: `Firestore menolak perubahan (${error.code || 'unknown'}).` };
+    }
 
     if (res.success) {
       closeModal('modalPangkalanForm');
@@ -397,9 +412,14 @@ window.handlePangkalanFormSubmit = function(e) {
     }
   } else {
     // Mode Tambah Baru
-    const res = addAgentPangkalan(currentAgentId, {
-      name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address, monthlyAllocation: allocation
-    }, currentAgentSession);
+    let res;
+    try {
+      res = await addAgentPangkalanFirestore(currentAgentId, {
+        name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address, monthlyAllocation: allocation
+      }, currentAgentSession);
+    } catch (error) {
+      res = { success: false, message: `Firestore menolak pendaftaran (${error.code || 'unknown'}).` };
+    }
 
     if (res.success) {
       closeModal('modalPangkalanForm');
@@ -433,7 +453,12 @@ window.confirmDeletePangkalan = async function(pangkalanId) {
 
   if (reason === null || reason === undefined || !reason.trim()) return;
 
-  const res = softDeleteAgentPangkalan(currentAgentId, pangkalanId, reason.trim(), currentAgentSession);
+  let res;
+  try {
+    res = await softDeleteAgentPangkalanFirestore(currentAgentId, pangkalanId, reason.trim(), currentAgentSession);
+  } catch (error) {
+    res = { success: false, message: `Firestore menolak penonaktifan (${error.code || 'unknown'}).` };
+  }
   if (res.success) {
     CustomModal.alert({ title: "Pangkalan Dinonaktifkan", message: res.message, icon: "🗑️", type: "info" });
     renderAgentPangkalanListUI();
