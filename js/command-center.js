@@ -384,9 +384,10 @@ function renderCommandCenterData(config, isFromCache = false) {
   setSafeText('cc_kpi_spbu_verified_pct', spbuVal !== null ? `${spbuVal}%` : '--');
   setSafeText('cc_s2_spbu_verified_pct', spbuVal !== null ? `${spbuVal}%` : '--');
 
-  // 4. Penyaluran LPG 3 Kg & HET Resmi
-  const lpgVal = safeNumber(config.lpg_distribution_pct);
-  setSafeText('cc_kpi_lpg_distribution_pct', lpgVal !== null ? `${lpgVal}%` : '--');
+  // 4. Penyaluran LPG 3 Kg & HET Resmi (Integrasi Data Live Otoritatif)
+  const lpgSummary = (typeof refreshLpgDashboardSummary === 'function') 
+    ? refreshLpgDashboardSummary() 
+    : ((typeof getLpgStore === 'function') ? getLpgStore('disperindag_lpg_dashboard_summary', {}) : {});
 
   const hetVal = safeNumber(config.het_lpg_price, 18500);
   const hetStr = hetVal !== null ? formatRupiahVal(hetVal) : 'Rp 18.500';
@@ -394,20 +395,25 @@ function renderCommandCenterData(config, isFromCache = false) {
   setSafeText('cc_s3_het_lpg_price', hetStr);
   setSafeText('cc_s3_het_lpg_regulation', config.het_lpg_regulation || 'Pergub Sulsel No. 11/2021');
 
-  const agentsCount = safeNumber(config.lpg_official_agents, 11);
-  const basesCount = safeNumber(config.lpg_official_bases, 340);
-  setSafeText('cc_s3_lpg_official_agents', agentsCount !== null ? `${agentsCount} AGEN` : '--');
-  setSafeText('cc_s3_lpg_official_bases', basesCount !== null ? `${basesCount} Pangkalan` : '--');
-  setSafeText('cc_kpi_lpg_official_bases', basesCount !== null ? `${basesCount} Pangkalan Terdaftar` : 'Pangkalan Terdaftar');
+  const agentsCount = lpgSummary.activeAgents || 8;
+  const basesCount = lpgSummary.totalPangkalan || 681;
+  const stockAtAgents = lpgSummary.stockAtAgents || 0;
+  const distributedToday = lpgSummary.distributedToday || 0;
 
-  // Slide 3 LPG Progress
-  if (lpgVal !== null) {
-    const lpgBar = document.getElementById('cc_s3_lpg_progress_bar');
-    if (lpgBar) lpgBar.style.width = `${Math.min(100, Math.max(0, lpgVal))}%`;
-    setSafeText('cc_s3_lpg_progress_text', `${lpgVal}% TERDISTRIBUSI`);
+  setSafeText('cc_s3_lpg_official_agents', `${agentsCount} AGEN`);
+  setSafeText('cc_s3_lpg_official_bases', `${basesCount} Pangkalan`);
+  setSafeText('cc_kpi_lpg_official_bases', `${basesCount} Pangkalan Terdaftar`);
+
+  // Progress Distribusi LPG
+  const lpgDistPctEl = document.getElementById('cc_kpi_lpg_distribution_pct');
+  if (lpgDistPctEl) {
+    lpgDistPctEl.textContent = `${distributedToday.toLocaleString('id-ID')} TBG`;
   }
-  const lpgQuota = safeNumber(config.lpg_monthly_quota_tabung || config.monthly_quota);
-  setSafeText('cc_s3_lpg_total_quota_text', `Alokasi Kuota Daerah: ${lpgQuota !== null ? lpgQuota.toLocaleString('id-ID') : '29.350'} Tabung/Bulan`);
+
+  const lpgBar = document.getElementById('cc_s3_lpg_progress_bar');
+  if (lpgBar) lpgBar.style.width = `100%`;
+  setSafeText('cc_s3_lpg_progress_text', `STOK BEREDAR: ${stockAtAgents.toLocaleString('id-ID')} TABUNG`);
+  setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran Hari Ini: ${distributedToday.toLocaleString('id-ID')} Tabung • Alokasi Bulanan Resmi: Data Belum Tersedia`);
 
   // 5. Total UTTP Ditera
   const uttpVal = safeNumber(config.uttp_verified_count);

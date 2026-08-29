@@ -108,6 +108,9 @@
         <button class="admin-tab-btn" data-tab="tabIkm">
           <span>🏭</span> Etalase Produk IKM
         </button>
+        <button class="admin-tab-btn" data-tab="tabLpgMonitoring">
+          <span>🔥</span> Pengawasan LPG 3 Kg
+        </button>
         <button class="admin-tab-btn" data-tab="tabReports">
           <span>📨</span> Pengaduan &amp; Tiket
         </button>
@@ -849,6 +852,185 @@
       </div>
     </div>
 
+    <!-- 7.5. TAB: PENGAWASAN DISTRIBUSI LPG 3 KG DAERAH -->
+    <div class="admin-panel admin-tab-content" id="tabLpgMonitoring">
+      
+      <!-- STATISTIK RINGKAS PENGAWASAN LPG -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div class="metric-card" style="background: #EFF6FF; border: 1.5px solid #BFDBFE;">
+          <div style="font-size: 0.76rem; font-weight: 800; color: #1E3A8A; text-transform: uppercase;">Agen Penyalur Resmi</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #1D4ED8; margin: 4px 0;" id="adminLpgStatAgents">8 Agen</div>
+          <div style="font-size: 0.72rem; color: #64748B;">Aktif Melaporkan di Kab. Pinrang</div>
+        </div>
+
+        <div class="metric-card" style="background: #F0FDF4; border: 1.5px solid #BBF7D0;">
+          <div style="font-size: 0.76rem; font-weight: 800; color: #166534; text-transform: uppercase;">Total Pangkalan Binaan</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #15803D; margin: 4px 0;" id="adminLpgStatPangkalan">681 Pangkalan</div>
+          <div style="font-size: 0.72rem; color: #64748B;">Tersebar di 12 Kecamatan</div>
+        </div>
+
+        <div class="metric-card" style="background: #FEF3C7; border: 1.5px solid #FDE68A;">
+          <div style="font-size: 0.76rem; font-weight: 800; color: #92400E; text-transform: uppercase;">Stok Terhitung di Agen</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #D97706; margin: 4px 0;" id="adminLpgStatStock">0 Tabung</div>
+          <div style="font-size: 0.72rem; color: #64748B;">Saldo Otoritatif Buku Ledger</div>
+        </div>
+
+        <div class="metric-card" style="background: #FDF2F8; border: 1.5px solid #FBCFE8;">
+          <div style="font-size: 0.76rem; font-weight: 800; color: #9D174D; text-transform: uppercase;">Tersalurkan Hari Ini</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #DB2777; margin: 4px 0;" id="adminLpgStatDistributed">0 Tabung</div>
+          <div style="font-size: 0.72rem; color: #64748B;">Penyaluran Berstatus POSTED</div>
+        </div>
+      </div>
+
+      <!-- KARTU UTAMA PENGAWASAN LPG -->
+      <div class="admin-card">
+        <div class="admin-card-header" style="flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3>🔥 Direktori Master 681 Pangkalan & Pemantauan Distribusi LPG 3 Kg</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Data bersumber resmi dari Ditjen Migas Kementerian ESDM Q1 2026 yang terintegrasi langsung dengan pelaporan agen penyalur.</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button onclick="switchAdminLpgSubView('pangkalan')" class="btn-primary" id="btnSubPangkalan" style="padding: 8px 14px; font-size: 0.8rem;">
+              <span>🏪</span> Direktori Pangkalan
+            </button>
+            <button onclick="switchAdminLpgSubView('agen')" class="btn-outline" id="btnSubAgen" style="padding: 8px 14px; font-size: 0.8rem;">
+              <span>🏢</span> Saldo 8 Agen
+            </button>
+            <button onclick="switchAdminLpgSubView('ledger')" class="btn-outline" id="btnSubLedger" style="padding: 8px 14px; font-size: 0.8rem;">
+              <span>📜</span> Ledger Transaksi
+            </button>
+            <button onclick="switchAdminLpgSubView('audit')" class="btn-outline" id="btnSubAudit" style="padding: 8px 14px; font-size: 0.8rem;">
+              <span>🛡️</span> Audit Trail
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. SUBVIEW: DIREKTORI PANGKALAN -->
+        <div id="subViewLpgPangkalan" style="display: block;">
+          
+          <!-- FILTER & SEARCH BAR PANGKALAN -->
+          <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+            <div style="flex: 2; min-width: 200px;">
+              <input type="text" id="adminLpgSearchPangkalan" class="form-input" placeholder="🔍 Cari nama pangkalan, pemilik, desa, atau ID..." oninput="renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
+            </div>
+            <div style="flex: 1; min-width: 160px;">
+              <select id="adminLpgFilterKecamatan" class="form-input" onchange="renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
+                <option value="">Semua 12 Kecamatan</option>
+                <option value="Batulappa">Batulappa (6)</option>
+                <option value="Cempa">Cempa (29)</option>
+                <option value="Duampanua">Duampanua (87)</option>
+                <option value="Lanrisang">Lanrisang (39)</option>
+                <option value="Lembang">Lembang (41)</option>
+                <option value="Mattiro Bulu">Mattiro Bulu (63)</option>
+                <option value="Mattiro Sompe">Mattiro Sompe (48)</option>
+                <option value="Paleteang">Paleteang (77)</option>
+                <option value="Patampanua">Patampanua (77)</option>
+                <option value="Suppa">Suppa (66)</option>
+                <option value="Tiroang">Tiroang (26)</option>
+                <option value="Watang Sawitto">Watang Sawitto (122)</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 140px;">
+              <select id="adminLpgFilterStatus" class="form-input" onchange="renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
+                <option value="">Semua Status</option>
+                <option value="ACTIVE">Aktif Saja</option>
+                <option value="PENDING">Menunggu Verifikasi</option>
+                <option value="PHU_FLAG">Review PHU Bungi</option>
+                <option value="DELETED">Nonaktif / Dihapus</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TABEL MASTER PANGKALAN -->
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID &amp; Nama Pangkalan</th>
+                  <th>Agen Penyalur</th>
+                  <th>Kecamatan &amp; Desa</th>
+                  <th>Pemilik &amp; Kontak</th>
+                  <th>Alokasi / Bulan</th>
+                  <th>Status &amp; Verifikasi</th>
+                  <th style="text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminLpgPangkalanTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="adminLpgPangkalanPagination" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #64748B;"></div>
+        </div>
+
+        <!-- 2. SUBVIEW: SALDO 8 AGEN RESMI -->
+        <div id="subViewLpgAgen" style="display: none;">
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Kode &amp; Nama Agen Penyalur</th>
+                  <th>Wilayah Operasional</th>
+                  <th>Total Pangkalan</th>
+                  <th>Saldo Stok Terhitung</th>
+                  <th>Stok Masuk Hari Ini</th>
+                  <th>Distribusi Hari Ini</th>
+                  <th>Status Pelaporan</th>
+                </tr>
+              </thead>
+              <tbody id="adminLpgAgentsTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. SUBVIEW: BUKU BESAR LEDGER TRANSAKSI -->
+        <div id="subViewLpgLedger" style="display: none;">
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Waktu (WITA)</th>
+                  <th>Jenis Transaksi</th>
+                  <th>Agen Penyalur</th>
+                  <th>Penerima (Pangkalan / DO)</th>
+                  <th>Jumlah (Tabung)</th>
+                  <th>Status Ledger</th>
+                  <th>Petugas / Pelapor</th>
+                </tr>
+              </thead>
+              <tbody id="adminLpgLedgerTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4. SUBVIEW: AUDIT TRAIL LOG -->
+        <div id="subViewLpgAudit" style="display: none;">
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Waktu Log</th>
+                  <th>Aksi Audit</th>
+                  <th>Entitas Target</th>
+                  <th>Agen Terkait</th>
+                  <th>Pelaku (Actor)</th>
+                  <th>Keterangan / Alasan</th>
+                </tr>
+              </thead>
+              <tbody id="adminLpgAuditTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- 8. TAB: PENGGUNA & RBAC -->
     <div class="admin-panel admin-tab-content" id="tabUsers">
       <div class="admin-card">
@@ -1308,6 +1490,8 @@
   </main>
 
   <script src="js/data.js?v=20260829_sync15_v1"></script>
+  <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
+  <script src="js/lpg-engine.js?v=20260829_sync15_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260829_sync15_v1"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -1315,5 +1499,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260829_sync15_v1"></script>
+  <script src="js/admin-lpg.js?v=20260829_sync15_v1"></script>
 </body>
 </html>

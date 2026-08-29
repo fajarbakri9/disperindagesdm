@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Portal Pelaporan Agen LPG 3 Kg | Disperindag ESDM Pinrang</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/modal-system.css">
+  <style>
+    :root {
+      --lpg-primary: #0F2C59;
+      --lpg-accent: #D97706;
+      --lpg-bg: #F8FAFC;
+      --lpg-card: #FFFFFF;
+      --lpg-border: #E2E8F0;
+      --lpg-green: #059669;
+      --lpg-red: #DC2626;
+    }
+    body {
+      background: var(--lpg-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+    }
+    .lpg-app-container {
+      max-width: 500px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--lpg-card);
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+    /* Header Agen */
+    .lpg-topbar {
+      background: linear-gradient(135deg, #0F2C59 0%, #030D1B 100%);
+      color: #FFFFFF;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .lpg-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lpg-brand img {
+      width: 36px;
+      height: auto;
+    }
+    .lpg-brand-text h1 {
+      font-size: 0.95rem;
+      margin: 0;
+      font-weight: 800;
+      color: #FFFFFF;
+    }
+    .lpg-brand-text p {
+      font-size: 0.72rem;
+      margin: 2px 0 0;
+      color: #FCD34D;
+      font-weight: 700;
+    }
+    .btn-logout-lpg {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #FFFFFF;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    /* Info Card Agen */
+    .lpg-agent-header-card {
+      background: #EFF6FF;
+      border-bottom: 1px solid #DBEAFE;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .lpg-agent-name {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #1E3A8A;
+    }
+    .lpg-agent-code {
+      font-size: 0.7rem;
+      background: #1D4ED8;
+      color: #FFFFFF;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+    /* Saldo Card */
+    .lpg-stock-hero {
+      padding: 20px;
+      text-align: center;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--lpg-border);
+    }
+    .lpg-stock-label {
+      font-size: 0.76rem;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 800;
+    }
+    .lpg-stock-val {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--lpg-primary);
+      line-height: 1.1;
+      margin: 6px 0;
+    }
+    .lpg-stock-unit {
+      font-size: 0.9rem;
+      color: #475569;
+      font-weight: 700;
+    }
+    /* Rekap Hari Ini */
+    .lpg-today-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 0 20px 16px;
+    }
+    .lpg-today-box {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .lpg-today-title {
+      font-size: 0.72rem;
+      color: #64748B;
+      font-weight: 700;
+    }
+    .lpg-today-num {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+    .num-in { color: var(--lpg-green); }
+    .num-out { color: #2563EB; }
+    /* Action Buttons */
+    .lpg-actions-wrapper {
+      padding: 0 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-lpg-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.1s ease, filter 0.15s ease;
+      min-height: 48px;
+    }
+    .btn-lpg-action:active {
+      transform: scale(0.98);
+    }
+    .btn-stock-in {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    }
+    .btn-distribution {
+      background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+    }
+    .btn-pangkalan {
+      background: #F1F5F9;
+      color: #1E293B;
+      border: 1.5px solid #CBD5E1;
+    }
+    /* Section Tabs */
+    .lpg-tabs-bar {
+      display: flex;
+      border-bottom: 2px solid #E2E8F0;
+      background: #FFFFFF;
+      position: sticky;
+      top: 68px;
+      z-index: 90;
+    }
+    .lpg-tab-btn {
+      flex: 1;
+      padding: 12px 6px;
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #64748B;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .lpg-tab-btn.active {
+      color: #1D4ED8;
+      border-bottom-color: #1D4ED8;
+    }
+    /* Content Panels */
+    .lpg-panel {
+      display: none;
+      padding: 16px 20px;
+    }
+    .lpg-panel.active {
+      display: block;
+    }
+    /* Activity Feed Item */
+    .activity-feed-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .activity-feed-item:last-child {
+      border-bottom: none;
+    }
+    /* Pangkalan Item Card */
+    .pangkalan-card-item {
+      background: #FFFFFF;
+      border: 1px solid var(--lpg-border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .pangkalan-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+    .pangkalan-name {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .pangkalan-loc {
+      font-size: 0.74rem;
+      color: #64748B;
+      margin-bottom: 8px;
+    }
+    .pangkalan-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .badge-verified { background: #ECFDF5; color: #059669; }
+    .badge-pending { background: #FEF3C7; color: #B45309; }
+    .badge-deleted { background: #FEE2E2; color: #DC2626; }
+    .pangkalan-actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #F1F5F9;
+    }
+    .btn-p-edit {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 6px;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+      cursor: pointer;
+    }
+    .btn-p-del {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 6px;
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FECACA;
+      cursor: pointer;
+    }
+    /* Floating + Tambah Button */
+    .btn-float-add {
+      background: #059669;
+      color: #FFFFFF;
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lpg-app-container">
+    
+    <!-- 1. TOPBAR RESMI -->
+    <header class="lpg-topbar">
+      <div class="lpg-brand">
+        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pinrang">
+        <div class="lpg-brand-text">
+          <h1>MONITORING LPG 3 KG</h1>
+          <p>Disperindag ESDM Pinrang</p>
+        </div>
+      </div>
+      <button type="button" class="btn-logout-lpg" onclick="logoutUser()">🚪 Keluar</button>
+    </header>
+
+    <!-- 2. IDENTITAS AGEN AKTIF -->
+    <div class="lpg-agent-header-card">
+      <div>
+        <div class="lpg-agent-name" id="lpgAgentHeaderName">Memuat Agen...</div>
+        <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">Penyalur Resmi LPG 3 Kg Subsidi</div>
+      </div>
+      <span class="lpg-agent-code" id="lpgAgentHeaderCode">AG-000</span>
+    </div>
+
+    <!-- 3. TABS NAVIGATION -->
+    <div class="lpg-tabs-bar">
+      <button type="button" class="lpg-tab-btn active" id="tabBtnDashboard" onclick="switchLpgTab('dashboard')">📊 Operasional</button>
+      <button type="button" class="lpg-tab-btn" id="tabBtnPangkalan" onclick="switchLpgTab('pangkalan')">🏪 Pangkalan Saya</button>
+      <button type="button" class="lpg-tab-btn" id="tabBtnRiwayat" onclick="switchLpgTab('riwayat')">📜 Riwayat</button>
+    </div>
+
+    <!-- 4. PANEL 1: DASHBOARD OPERASIONAL -->
+    <div class="lpg-panel active" id="panelDashboard">
+      
+      <!-- HERO SALDO TERHITUNG -->
+      <div class="lpg-stock-hero">
+        <div class="lpg-stock-label">Saldo Stok Terhitung Saat Ini</div>
+        <div class="lpg-stock-val" id="lpgCurrentStockVal">0</div>
+        <div class="lpg-stock-unit">Tabung Isi 3 Kg</div>
+      </div>
+
+      <!-- REKAP HARI INI -->
+      <div class="lpg-today-grid">
+        <div class="lpg-today-box">
+          <div class="lpg-today-title">Stok Masuk Hari Ini</div>
+          <div class="lpg-today-num num-in" id="lpgTodayStockIn">+0</div>
+        </div>
+        <div class="lpg-today-box">
+          <div class="lpg-today-title">Tersalur Hari Ini</div>
+          <div class="lpg-today-num num-out" id="lpgTodayDistributed">-0</div>
+        </div>
+      </div>
+
+      <!-- TOMBOL AKSI UTAMA -->
+      <div class="lpg-actions-wrapper">
+        <button type="button" class="btn-lpg-action btn-stock-in" onclick="openModalStockIn()">
+          <span>➕</span> Input Stok Masuk (DO)
+        </button>
+        <button type="button" class="btn-lpg-action btn-distribution" onclick="openModalDistribution()">
+          <span>🚚</span> Distribusi ke Pangkalan
+        </button>
+      </div>
+
+      <!-- AKTIVITAS TERAKHIR -->
+      <div style="padding: 0 20px 20px;">
+        <div style="font-size: 0.8rem; font-weight: 800; color: #475569; margin-bottom: 10px;">Aktivitas Transaksi Terbaru:</div>
+        <div id="lpgRecentActivityFeed" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 14px;">
+          <div style="font-size: 0.76rem; color: #94A3B8; padding: 10px 0; text-align: center;">Belum ada aktivitas transaksi.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 5. PANEL 2: MASTER PANGKALAN SAYA -->
+    <div class="lpg-panel" id="panelPangkalan">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 800; margin: 0; color: #0F172A;">Daftar Pangkalan Binaan</h3>
+          <p style="font-size: 0.72rem; color: #64748B; margin: 2px 0 0;" id="pangkalanCountSummary">Memuat pangkalan...</p>
+        </div>
+        <button type="button" class="btn-float-add" onclick="openModalAddPangkalan()">+ Tambah</button>
+      </div>
+
+      <!-- SEARCH PANGKALAN -->
+      <input type="text" id="searchPangkalanInput" class="form-input" placeholder="🔍 Cari nama pangkalan / desa..." style="padding: 10px 12px; font-size: 0.82rem; margin-bottom: 12px;" oninput="renderAgentPangkalanListUI()">
+
+      <div id="agentPangkalanListContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- 6. PANEL 3: RIWAYAT TRANSAKSI LENGKAP -->
+    <div class="lpg-panel" id="panelRiwayat">
+      <h3 style="font-size: 0.95rem; font-weight: 800; margin: 0 0 12px; color: #0F172A;">Buku Ledger Transaksi</h3>
+      <div id="fullLedgerHistoryContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================================== -->
+  <!-- MODAL 1: INPUT STOK MASUK (STOCK_IN) -->
+  <!-- ============================================================================== -->
+  <div class="custom-modal-overlay" id="modalStockIn" style="display: none;">
+    <div class="custom-modal-box" style="max-width: 440px; padding: 22px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #065F46;">➕ Input Stok Masuk (DO)</h3>
+        <button type="button" onclick="closeModal('modalStockIn')" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+      </div>
+
+      <form id="formStockIn" onsubmit="handleStockInSubmit(event)">
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="font-size: 0.82rem;">Jumlah Tabung Isi (3 Kg) *</label>
+          <input type="number" id="inputStockInQty" class="form-input" required min="1" placeholder="Contoh: 560" style="font-size: 1.1rem; font-weight: 800; padding: 10px;">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="font-size: 0.82rem;">Nomor Delivery Order (DO) / SPPBE</label>
+          <input type="text" id="inputStockInDo" class="form-input" placeholder="Contoh: DO-PERTAMINA-7315-01">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="font-size: 0.82rem;">Tanggal & Waktu Diterima *</label>
+          <input type="datetime-local" id="inputStockInDate" class="form-input" required>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label class="form-label" style="font-size: 0.82rem;">Catatan Tambahan</label>
+          <input type="text" id="inputStockInNote" class="form-input" placeholder="Catatan pengiriman (opsional)">
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-outline" style="flex: 1; padding: 10px;" onclick="closeModal('modalStockIn')">Batal</button>
+          <button type="submit" class="btn-primary" style="flex: 2; padding: 10px; background: #059669;">✓ Bukukan Stok Masuk</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================================== -->
+  <!-- MODAL 2: DISTRIBUSI KE PANGKALAN (DISTRIBUTION) -->
+  <!-- ============================================================================== -->
+  <div class="custom-modal-overlay" id="modalDistribution" style="display: none;">
+    <div class="custom-modal-box" style="max-width: 440px; padding: 22px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #1D4ED8;">🚚 Distribusi ke Pangkalan</h3>
+        <button type="button" onclick="closeModal('modalDistribution')" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+      </div>
+
+      <form id="formDistribution" onsubmit="handleDistributionSubmit(event)">
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="font-size: 0.82rem;">Pilih Pangkalan Penerima *</label>
+          <select id="selectDistPangkalan" class="form-input" required style="padding: 10px; font-size: 0.84rem;">
+            <option value="">-- Pilih Pangkalan Binaan --</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="font-size: 0.82rem;">Jumlah Tabung Disalurkan *</label>
+          <input type="number" id="inputDistQty" class="form-input" required min="1" placeholder="Contoh: 120" style="font-size: 1.1rem; font-weight: 800; padding: 10px;">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="font-size: 0.82rem;">Nomor Polisi Armada / Kendaraan</label>
+          <input type="text" id="inputDistVehicle" class="form-input" placeholder="Contoh: DP 8123 LP">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="font-size: 0.82rem;">Tanggal & Waktu Pengiriman *</label>
+          <input type="datetime-local" id="inputDistDate" class="form-input" required>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label class="form-label" style="font-size: 0.82rem;">Nomor Nota / DO Pangkalan</label>
+          <input type="text" id="inputDistDo" class="form-input" placeholder="Nomor nota (opsional)">
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-outline" style="flex: 1; padding: 10px;" onclick="closeModal('modalDistribution')">Batal</button>
+          <button type="submit" class="btn-primary" style="flex: 2; padding: 10px; background: #1D4ED8;">✓ Salurkan Tabung</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================================== -->
+  <!-- MODAL 3: TAMBAH / EDIT PANGKALAN -->
+  <!-- ============================================================================== -->
+  <div class="custom-modal-overlay" id="modalPangkalanForm" style="display: none;">
+    <div class="custom-modal-box" style="max-width: 460px; padding: 22px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; margin: 0; color: #0F172A;" id="modalPangkalanTitle">Tambah Pangkalan Baru</h3>
+        <button type="button" onclick="closeModal('modalPangkalanForm')" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+      </div>
+
+      <form id="formPangkalan" onsubmit="handlePangkalanFormSubmit(event)">
+        <input type="hidden" id="pangkalanEditId" value="">
+
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem;">Nama Pangkalan / Usaha *</label>
+          <input type="text" id="pangkalanName" class="form-input" required placeholder="Contoh: PANGKALAN HJ. MARYAM">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem;">Nama Pemilik / Penanggung Jawab</label>
+          <input type="text" id="pangkalanOwner" class="form-input" placeholder="Nama lengkap pemilik">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem;">Nomor WhatsApp / HP</label>
+          <input type="text" id="pangkalanPhone" class="form-input" placeholder="08xxxxxxxxxx">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem;">Kecamatan *</label>
+          <select id="pangkalanKecamatan" class="form-input" required onchange="handleKecamatanChange(this.value)">
+            <option value="">-- Pilih Kecamatan --</option>
+            <option value="Batulappa">Batulappa</option>
+            <option value="Cempa">Cempa</option>
+            <option value="Duampanua">Duampanua</option>
+            <option value="Lanrisang">Lanrisang</option>
+            <option value="Lembang">Lembang</option>
+            <option value="Mattiro Bulu">Mattiro Bulu</option>
+            <option value="Mattiro Sompe">Mattiro Sompe</option>
+            <option value="Paleteang">Paleteang</option>
+            <option value="Patampanua">Patampanua</option>
+            <option value="Suppa">Suppa</option>
+            <option value="Tiroang">Tiroang</option>
+            <option value="Watang Sawitto">Watang Sawitto</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem;">Desa / Kelurahan *</label>
+          <input type="text" id="pangkalanDesa" class="form-input" required placeholder="Contoh: Desa Bungi">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem;">Alamat Lengkap *</label>
+          <textarea id="pangkalanAddress" class="form-input" required rows="2" placeholder="Nama jalan, RT/RW, patokan lokasi"></textarea>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem;">Alokasi Bulanan (Tabung)</label>
+          <input type="number" id="pangkalanAllocation" class="form-input" placeholder="560" value="560">
+        </div>
+
+        <div id="editReasonBox" style="display: none; margin-bottom: 12px;">
+          <label class="form-label" style="font-size: 0.8rem; color: #B45309;">Alasan Pembaruan Data *</label>
+          <input type="text" id="pangkalanEditReason" class="form-input" placeholder="Contoh: Pembaruan alamat atau nomor kontak">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn-outline" style="flex: 1; padding: 10px;" onclick="closeModal('modalPangkalanForm')">Batal</button>
+          <button type="submit" class="btn-primary" style="flex: 2; padding: 10px;">💾 Simpan Pangkalan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
+  <script src="js/lpg-engine.js?v=20260829_sync15_v1"></script>
+  <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
+  <script src="js/auth.js?v=20260829_sync15_v1"></script>
+  <script src="js/lpg-agen.js?v=20260829_sync15_v1"></script>
+</body>
+</html>

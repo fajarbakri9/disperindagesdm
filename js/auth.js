@@ -150,15 +150,185 @@ const DEFAULT_SYSTEM_USERS = [
     bio: "Operasional pengelolaan dan ketertiban 786 lapak aktif di Pasar Sentral Pinrang.",
     canAccessAdmin: false,
     canAccessPetugas: true,
+    canAccessLpgAgen: false,
     canManageUsers: false,
     canPublishDirectly: false,
     permissions: ["pasar", "prices"]
+  },
+  // 8 AKUN RESMI AGEN LPG 3 KG KABUPATEN PINRANG (BASELINE MIGAS ESDM Q1 2026)
+  {
+    username: "agen_gasifa",
+    password: "gasifa2026!",
+    name: "Operator PT. Gasifa Mulya Persada",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-001",
+    agentName: "PT. GASIFA MULYA PERSADA",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. Gasifa Mulya Persada",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. Gasifa Mulya Persada Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
+  },
+  {
+    username: "agen_hamisa",
+    password: "hamisa2026!",
+    name: "Operator PT. Hamisa Sukrah Mulya",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-002",
+    agentName: "PT. HAMISA SUKRAH MULYA",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. Hamisa Sukrah Mulya",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. Hamisa Sukrah Mulya Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
+  },
+  {
+    username: "agen_hasyim",
+    password: "hasyim2026!",
+    name: "Operator PT. H. Abd Rahman Hasyim",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-003",
+    agentName: "PT. H. ABD RAHMAN HASYIM",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. H. Abd Rahman Hasyim",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. H. Abd Rahman Hasyim Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
+  },
+  {
+    username: "agen_nurcahaya",
+    password: "nurcahaya2026!",
+    name: "Operator PT. Nurcahaya Energi Abadi",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-004",
+    agentName: "PT. NURCAHAYA ENERGI ABADI",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. Nurcahaya Energi Abadi",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. Nurcahaya Energi Abadi Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
+  },
+  {
+    username: "agen_wahyu",
+    password: "wahyu2026!",
+    name: "Operator PT. Wahyu Dwi Kencana Mandiri",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-005",
+    agentName: "PT. WAHYU DWI KENCANA MANDIRI",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. Wahyu Dwi Kencana Mandiri",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. Wahyu Dwi Kencana Mandiri Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
+  },
+  {
+    username: "agen_nasman",
+    password: "nasman2026!",
+    name: "Operator PT. Nasman Hafid Mandiri",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-006",
+    agentName: "PT. NASMAN HAFID MANDIRI",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. Nasman Hafid Mandiri",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. Nasman Hafid Mandiri Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
+  },
+  {
+    username: "agen_amiruddin",
+    password: "amiruddin2026!",
+    name: "Operator PT. H. Amiruddin Rahman",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-007",
+    agentName: "PT. H. AMIRUDDIN RAHMAN",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. H. Amiruddin Rahman",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. H. Amiruddin Rahman Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
+  },
+  {
+    username: "agen_kaka",
+    password: "kaka2026!",
+    name: "Operator PT. Kaka Migas Utama",
+    position: "Admin Penyalur LPG",
+    unit: "Agen LPG 3 Kg",
+    agentId: "AG-008",
+    agentName: "PT. KAKA MIGAS UTAMA",
+    role: "LPG_AGENT_ADMIN",
+    roleLabel: "Agen PT. Kaka Migas Utama",
+    roleIcon: "🔥",
+    phone: "0812 4292 1215",
+    avatar: "assets/brand/logo_pinrang_opt.png",
+    bio: "Penyalur resmi gas elpiji 3 kg bersubsidi PT. Kaka Migas Utama Kabupaten Pinrang.",
+    canAccessAdmin: false,
+    canAccessPetugas: false,
+    canAccessLpgAgen: true,
+    canManageUsers: false,
+    canPublishDirectly: false,
+    permissions: ["lpg_agent"]
   }
 ];
 
 // Inisialisasi Database Pengguna (Versi Terkini 2026)
 function initAuthStore() {
-  const targetAuthVer = "2026_08_29_official_photo_v4";
+  const targetAuthVer = "2026_08_29_lpg_agents_v1";
   const currentVer = localStorage.getItem("disperindag_users_version");
   if (currentVer !== targetAuthVer) {
     localStorage.setItem(AUTH_STORE_KEY, JSON.stringify(DEFAULT_SYSTEM_USERS));
@@ -203,18 +373,21 @@ function authenticateUser(username, password) {
   const sessionUser = {
     username: found.username,
     name: found.name,
-    nip: found.nip,
+    nip: found.nip || null,
     position: found.position,
     unit: found.unit,
+    agentId: found.agentId || null,
+    agentName: found.agentName || null,
     role: found.role,
     roleLabel: found.roleLabel,
     roleIcon: found.roleIcon,
     phone: found.phone,
     avatar: found.avatar,
     bio: found.bio,
-    canAccessAdmin: found.canAccessAdmin,
-    canAccessPetugas: found.canAccessPetugas,
-    permissions: found.permissions,
+    canAccessAdmin: found.canAccessAdmin || false,
+    canAccessPetugas: found.canAccessPetugas || false,
+    canAccessLpgAgen: found.canAccessLpgAgen || false,
+    permissions: found.permissions || [],
     loginAt: new Date().toISOString()
   };
 
@@ -237,17 +410,38 @@ function logoutUser() {
 }
 
 // Guard Akses Halaman (RBAC Enforcement)
-function requireAuth(allowedTypes = ['admin', 'petugas']) {
+function requireAuth(allowedTypes = ['admin', 'petugas', 'lpg_agen']) {
   const session = getCurrentSession();
   if (!session) {
     window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
     return null;
   }
 
+  if (allowedTypes.includes('lpg_agen') && allowedTypes.length === 1 && !session.canAccessLpgAgen && !session.canAccessAdmin) {
+    CustomModal.alert({
+      title: "Akses Khusus Agen LPG",
+      message: `Akun Anda tidak terdaftar sebagai perwakilan resmi Agen Penyalur LPG 3 Kg.`,
+      icon: "🚫",
+      type: "error",
+      onClose: () => {
+        window.location.href = session.canAccessAdmin ? "admin.html" : "petugas.html";
+      }
+    });
+    return null;
+  }
+
   if (allowedTypes.includes('admin') && !session.canAccessAdmin) {
     CustomModal.alert({
       title: "Akses Terbatas",
-      message: `Akun Anda dengan peran <strong>${session.roleLabel}</strong> tidak memiliki izin akses ke Panel CMS Administrator. Anda akan dialihkan ke Aplikasi Petugas.`,
+      message: `Akun Anda dengan peran <strong>${session.roleLabel}</strong> tidak memiliki izin akses ke Panel CMS Administrator.`,
+      icon: "🚫",
+      type: "error",
+      onClose: () => {
+        window.location.href = session.canAccessLpgAgen ? "lpg-agen.html" : "petugas.html";
+      }
+    });
+    return null;
+  }
       icon: "🚫",
       type: "error",
       onClose: () => {
