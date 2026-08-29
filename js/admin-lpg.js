@@ -12,6 +12,20 @@ let unsubscribeAdminLpgAgents = null;
 let unsubscribeAdminLpgAlerts = null;
 let unsubscribeAdminLpgSettings = null;
 const DEFAULT_LPG_SETTINGS = Object.freeze({ reportingNormalHours: 12, reportingLateHours: 24, minimumStockCylinders: 100, noDeliveryAlertDays: 7 });
+const LPG_UI_LABELS = Object.freeze({
+  OPEN: 'Belum Ditangani', ACKNOWLEDGED: 'Sedang Ditindaklanjuti', RESOLVED: 'Selesai', DISMISSED: 'Diabaikan',
+  CRITICAL: 'Kritis', WARNING: 'Peringatan', INFO: 'Informasi',
+  NORMAL: 'Aktif / Normal', STALE: 'Perlu Diperbarui', LATE: 'Terlambat',
+  'BELUM ADA AKTIVITAS': 'Belum Ada Aktivitas',
+  AVAILABLE: 'Stok Tersedia', LOW: 'Stok Menipis', ZERO: 'Stok Habis', UNKNOWN: 'Belum Ada Saldo Awal',
+  FIRESTORE_SYNCED: 'Tersimpan di Server', PENDING_SYNC: 'Menunggu Sinkronisasi', REJECTED: 'Ditolak Server',
+  AGENT_NO_ACTIVITY_24H: 'Agen Belum Melapor', STOCK_VARIANCE: 'Selisih/Anomali Stok',
+  PANGKALAN_CREATED_UNVERIFIED: 'Pangkalan Belum Diverifikasi', DATA_REVIEW_REQUIRED: 'Data Perlu Ditinjau'
+});
+
+function getLpgUiLabel(code) {
+  return LPG_UI_LABELS[code] || String(code || '-').replaceAll('_', ' ');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdminLpgMonitoring();
@@ -288,10 +302,10 @@ window.renderAdminLpgAlertTable = function() {
     const timeText = time ? new Date(time).toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA' : 'Belum ditindaklanjuti';
     const severityColor = item.severity === 'CRITICAL' ? '#B91C1C' : '#B45309';
     return `<tr>
-      <td><strong style="font-size:.76rem;color:${severityColor};">${escapeLpgAlertHtml(item.type)}</strong><br><span style="font-size:.68rem;font-weight:800;color:${severityColor};">${escapeLpgAlertHtml(item.severity)}</span></td>
+      <td><strong style="font-size:.76rem;color:${severityColor};">${escapeLpgAlertHtml(getLpgUiLabel(item.type))}</strong><br><span style="font-size:.68rem;font-weight:800;color:${severityColor};">${escapeLpgAlertHtml(getLpgUiLabel(item.severity))}</span></td>
       <td><strong>${escapeLpgAlertHtml(item.subject || item.entityId)}</strong><br><code>${escapeLpgAlertHtml(item.entityId)}</code></td>
       <td style="font-size:.78rem;color:#475569;max-width:360px;">${escapeLpgAlertHtml(item.message)}</td>
-      <td><span style="font-size:.7rem;font-weight:900;">${escapeLpgAlertHtml(status)}</span>${item.note ? `<br><small>${escapeLpgAlertHtml(item.note)}</small>` : ''}</td>
+      <td><span style="font-size:.7rem;font-weight:900;">${escapeLpgAlertHtml(getLpgUiLabel(status))}</span>${item.note ? `<br><small>${escapeLpgAlertHtml(item.note)}</small>` : ''}</td>
       <td style="font-size:.72rem;color:#64748B;"><code>${escapeLpgAlertHtml(item.updatedBy || '-')}</code><br>${escapeLpgAlertHtml(timeText)}</td>
       <td style="text-align:center;white-space:nowrap;">${status === 'OPEN' ? `<button class="btn-outline" onclick="updateAdminLpgAlert('${item.id}','ACKNOWLEDGED')" style="padding:4px 7px;font-size:.68rem;">Akui</button>` : ''} ${(status === 'OPEN' || status === 'ACKNOWLEDGED') ? `<button class="btn-outline" onclick="updateAdminLpgAlert('${item.id}','RESOLVED')" style="padding:4px 7px;font-size:.68rem;color:#047857;">Selesai</button><button class="btn-outline" onclick="updateAdminLpgAlert('${item.id}','DISMISSED')" style="padding:4px 7px;font-size:.68rem;color:#64748B;">Abaikan</button>` : '-'}</td>
     </tr>`;
@@ -302,7 +316,7 @@ window.updateAdminLpgAlert = function(alertId, nextStatus) {
   const candidate = getAdminLpgAlertCandidates().find(item => item.id === alertId) || getLpgStore(LPG_STORAGE_KEYS.ALERTS, []).find(item => item.id === alertId);
   if (!candidate || !auth?.currentUser || !db) return;
   CustomModal.form({
-    title: `Tindak Lanjut Alert: ${nextStatus}`, icon: '⚠️', submitText: 'Simpan Tindak Lanjut',
+    title: `Tindak Lanjut Alert: ${getLpgUiLabel(nextStatus)}`, icon: '⚠️', submitText: 'Simpan Tindak Lanjut',
     fields: [{ name: 'note', label: 'Catatan / Dasar Tindakan', type: 'textarea', required: true, rows: 3, placeholder: 'Tuliskan hasil pemeriksaan atau dasar keputusan' }],
     onSubmit: async data => {
       const user = auth.currentUser;
@@ -321,7 +335,7 @@ window.updateAdminLpgAlert = function(alertId, nextStatus) {
         else transaction.set(alertRef, { id: alertId, type: candidate.type, severity: candidate.severity, entityType: candidate.entityType, entityId: candidate.entityId, agentId: candidate.agentId || null, subject: candidate.subject, message: candidate.message, ...update, createdAt: timestamp });
         transaction.set(auditRef, { action: `ALERT_${nextStatus}`, entityType: 'ALERT', entityId: alertId, agentId: candidate.agentId || 'SYSTEM', actorUid: user.uid, actorRole: getCurrentSession()?.role || 'LPG_ADMIN', before: { status: existing.exists ? existing.data().status : 'OPEN' }, after: { status: nextStatus }, reason: data.note.trim(), createdAt: timestamp });
       });
-      CustomModal.alert({ title: 'Tindak Lanjut Tersimpan', message: `Status alert menjadi <strong>${nextStatus}</strong> dan audit trail telah dibuat.`, icon: '✓', type: 'info' });
+      CustomModal.alert({ title: 'Tindak Lanjut Tersimpan', message: `Status alert menjadi <strong>${getLpgUiLabel(nextStatus)}</strong> dan audit trail telah dibuat.`, icon: '✓', type: 'info' });
     }
   });
 };
@@ -727,7 +741,7 @@ function renderAdminLpgAgentsTable() {
     const stockStatus = !hasOpeningBalance ? 'UNKNOWN' : bal < 0 ? 'CRITICAL' : bal === 0 ? 'ZERO' : bal <= settings.minimumStockCylinders ? 'LOW' : 'AVAILABLE';
     const stockColor = stockStatus === 'AVAILABLE' ? '#047857' : stockStatus === 'LOW' ? '#B45309' : stockStatus === 'UNKNOWN' ? '#64748B' : '#B91C1C';
     const lastActivity = latestTime ? new Date(latestTime).toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA' : 'Belum pernah';
-    const statusReportBadge = `<span style="background:${reportingBg};color:${reportingColor};font-size:.7rem;font-weight:900;padding:3px 7px;border-radius:4px;">${reportingStatus}</span><br><small style="color:#64748B;">${lastActivity}</small>`;
+    const statusReportBadge = `<span style="background:${reportingBg};color:${reportingColor};font-size:.7rem;font-weight:900;padding:3px 7px;border-radius:4px;">${getLpgUiLabel(reportingStatus)}</span><br><small style="color:#64748B;">${lastActivity}</small>`;
 
     return `
       <tr>
@@ -737,7 +751,7 @@ function renderAdminLpgAgentsTable() {
         </td>
         <td style="font-size: 0.82rem; color: #475569;">${ag.address || 'Kabupaten Pinrang'}</td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #334155;">${agPangkalan.length} Pangkalan</td>
-        <td style="font-weight:900;font-size:.95rem;color:${stockColor};">${bal.toLocaleString('id-ID')} Tabung<br><span style="font-size:.68rem;">${stockStatus}</span></td>
+        <td style="font-weight:900;font-size:.95rem;color:${stockColor};">${bal.toLocaleString('id-ID')} Tabung<br><span style="font-size:.68rem;">${getLpgUiLabel(stockStatus)}</span></td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #059669;">+${inToday.toLocaleString('id-ID')}</td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #2563EB;">-${outToday.toLocaleString('id-ID')}</td>
         <td>${statusReportBadge}</td>
@@ -1009,7 +1023,7 @@ function renderAdminLpgLedgerTable() {
         <td style="font-size: 0.82rem; font-weight:800; color: #0F172A;">${targetName}</td>
         <td style="font-weight: 900; font-size: 0.92rem; color: ${color};">${isPositive ? '+' : '-'}${Number(e.quantity).toLocaleString('id-ID')} Tabung</td>
         <td>
-          <span style="font-size:0.72rem; font-weight:800; padding:2px 6px; border-radius:4px; ${isRejected ? 'background:#FEE2E2; color:#DC2626;' : 'background:#ECFDF5; color:#059669;'}">${e.status}</span>
+          <span style="font-size:0.72rem; font-weight:800; padding:2px 6px; border-radius:4px; ${isRejected ? 'background:#FEE2E2; color:#DC2626;' : 'background:#ECFDF5; color:#059669;'}">${getLpgUiLabel(e.status)}</span>
         </td>
         <td style="font-size: 0.76rem; color: #475569;">${e.createdByName || e.createdBy}</td>
         <td style="text-align:center;">${!isCorrection && !isRejected ? `<button type="button" class="btn-outline" onclick="adminCorrectLpgEvent('${e.id}')" style="padding:4px 8px;font-size:.7rem;color:#7C3AED;border-color:#C4B5FD;">↩ Koreksi</button>` : '-'}</td>
@@ -1091,7 +1105,7 @@ window.exportLpgDistributionReportCSV = function() {
   if (!date) return CustomModal.alert({ title: 'Tanggal Wajib Dipilih', message: 'Pilih tanggal laporan distribusi.', icon: '!', type: 'warning' });
   const events = getPostedLpgEvents().filter(event => event.type === 'DISTRIBUTION' && getLpgWitaDateKey(event.effectiveAt || event.createdAt) === date);
   const agentNames = new Map(getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).map(agent => [agent.id, agent.name]));
-  const rows = events.map(event => [date, event.effectiveAt || event.createdAt, event.agentId, event.agentName || agentNames.get(event.agentId) || '', event.pangkalanId || '', event.pangkalanSnapshot?.name || '', event.pangkalanSnapshot?.kecamatan || '', event.pangkalanSnapshot?.desaKelurahan || '', event.quantity, event.doNumber || '', event.vehicleNumber || '', event.createdByName || event.createdBy || '', event.status || 'FIRESTORE_SYNCED']);
+  const rows = events.map(event => [date, event.effectiveAt || event.createdAt, event.agentId, event.agentName || agentNames.get(event.agentId) || '', event.pangkalanId || '', event.pangkalanSnapshot?.name || '', event.pangkalanSnapshot?.kecamatan || '', event.pangkalanSnapshot?.desaKelurahan || '', event.quantity, event.doNumber || '', event.vehicleNumber || '', event.createdByName || event.createdBy || '', getLpgUiLabel(event.status || 'FIRESTORE_SYNCED')]);
   downloadLpgCsv(`Distribusi_Pangkalan_LPG_Pinrang_${date}.csv`, ['Tanggal WITA', 'Waktu Efektif', 'Kode Agen', 'Nama Agen', 'Kode Pangkalan', 'Nama Pangkalan', 'Kecamatan', 'Desa/Kelurahan', 'Jumlah Tabung', 'Nomor DO/Nota', 'Armada', 'Operator', 'Status Ledger'], rows);
 };
 
@@ -1134,7 +1148,7 @@ window.saveAdminLpgSettings = async function() {
     noDeliveryAlertDays: Number(document.getElementById('lpgSettingNoDeliveryDays')?.value)
   };
   if (!Number.isInteger(settings.reportingNormalHours) || settings.reportingNormalHours < 1 || !Number.isInteger(settings.reportingLateHours) || settings.reportingLateHours <= settings.reportingNormalHours || !Number.isInteger(settings.minimumStockCylinders) || settings.minimumStockCylinders < 0 || !Number.isInteger(settings.noDeliveryAlertDays) || settings.noDeliveryAlertDays < 1) {
-    return CustomModal.alert({ title: 'Pengaturan Tidak Valid', message: 'Pastikan semua nilai berupa bilangan bulat, batas LATE lebih besar dari NORMAL, dan nilai tidak negatif.', icon: '!', type: 'warning' });
+    return CustomModal.alert({ title: 'Pengaturan Tidak Valid', message: 'Pastikan semua nilai berupa bilangan bulat, batas Terlambat lebih besar dari batas Aktif/Normal, dan nilai tidak negatif.', icon: '!', type: 'warning' });
   }
   const user = auth.currentUser;
   const previous = { ...DEFAULT_LPG_SETTINGS, ...getLpgStore(LPG_STORAGE_KEYS.SETTINGS, {}) };
@@ -1215,7 +1229,7 @@ window.exportLpgLedgerCSV = function() {
       e.quantity,
       `"${e.doNumber || ''}"`,
       `"${e.vehicleNumber || ''}"`,
-      `"${e.status}"`,
+      `"${getLpgUiLabel(e.status)}"`,
       `"${e.createdByName || e.createdBy}"`
     ];
     csvContent += row.join(",") + "\n";

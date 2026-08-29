@@ -141,7 +141,7 @@ function setSystemStatus(state, customLabel = null) {
       case 'stale':
         badge.classList.add('status-stale');
         badgeDot.style.background = '#F97316';
-        badgeText.textContent = customLabel || '● DATA STALE';
+        badgeText.textContent = customLabel || '● DATA TERLAMBAT';
         break;
       case 'unavailable':
       default:
@@ -168,7 +168,7 @@ function setSystemStatus(state, customLabel = null) {
         break;
       case 'stale':
         dot.classList.add('dot-stale');
-        text.textContent = customLabel || '● DATA STALE';
+        text.textContent = customLabel || '● DATA TERLAMBAT';
         text.style.color = 'var(--accent-amber, #F59E0B)';
         break;
       case 'unavailable':

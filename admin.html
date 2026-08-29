@@ -1111,8 +1111,8 @@
             <h4 style="margin:0 0 5px;">Threshold Pengawasan LPG</h4>
             <p style="margin:0 0 16px;font-size:.78rem;color:#64748B;">Nilai ini menjadi sumber status pelaporan, status stok, dan alert. Perubahan disimpan dengan audit trail.</p>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;">
-              <label style="font-size:.76rem;font-weight:800;">Batas NORMAL (jam)<input id="lpgSettingNormalHours" type="number" min="1" class="form-input" style="margin-top:5px;"></label>
-              <label style="font-size:.76rem;font-weight:800;">Mulai LATE (jam)<input id="lpgSettingLateHours" type="number" min="2" class="form-input" style="margin-top:5px;"></label>
+              <label style="font-size:.76rem;font-weight:800;">Batas Aktif/Normal (jam)<input id="lpgSettingNormalHours" type="number" min="1" class="form-input" style="margin-top:5px;"></label>
+              <label style="font-size:.76rem;font-weight:800;">Mulai Terlambat (jam)<input id="lpgSettingLateHours" type="number" min="2" class="form-input" style="margin-top:5px;"></label>
               <label style="font-size:.76rem;font-weight:800;">Minimum stok (tabung)<input id="lpgSettingMinimumStock" type="number" min="0" class="form-input" style="margin-top:5px;"></label>
               <label style="font-size:.76rem;font-weight:800;">Tanpa kiriman (hari)<input id="lpgSettingNoDeliveryDays" type="number" min="1" class="form-input" style="margin-top:5px;"></label>
             </div>
@@ -1645,6 +1645,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_settings_v12"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_labels_id_v13"></script>
 </body>
 </html>
