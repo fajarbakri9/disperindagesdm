@@ -117,8 +117,16 @@ function mergeNewsWithDefaults(incomingList) {
   // Kumpulkan item baru yang tidak ada di default
   const newCustomItems = cleanIncoming.filter(inc => !baseList.some(b => b.id === inc.id));
 
-  // Gabungkan custom items baru di paling atas, diikuti baseMap terupdate
+  // Gabungkan custom items baru dan baseMap
   const merged = [...newCustomItems, ...Array.from(baseMap.values())];
+  
+  // Sortir agar artikel dengan updated_at terbaru selalu berada di paling atas
+  merged.sort((a, b) => {
+    const timeA = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+    const timeB = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+    return timeB - timeA;
+  });
+
   return deduplicateNewsList(merged);
 }
 window.mergeNewsWithDefaults = mergeNewsWithDefaults;

@@ -502,38 +502,10 @@
         }
       }
 
-      const rawStorage = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
-      let newsList = typeof mergeNewsWithDefaults === 'function' ? mergeNewsWithDefaults(rawStorage) : rawStorage;
-      if (typeof deduplicateNewsList === 'function') {
-        newsList = deduplicateNewsList(newsList);
-      }
-
-      // 2. Cari artikel di LocalStorage & Default Database
       let article = null;
-      if (queryKey) {
-        article = newsList.find(n => 
-          n && (
-            n.id === queryKey || 
-            n.slug === queryKey || 
-            (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
-            (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
-          )
-        );
 
-        if (!article && typeof DEFAULT_NEWS !== 'undefined' && Array.isArray(DEFAULT_NEWS)) {
-          article = DEFAULT_NEWS.find(n => 
-            n && (
-              n.id === queryKey || 
-              n.slug === queryKey || 
-              (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
-              (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
-            )
-          );
-        }
-      }
-
-      // 3. Fallback Firestore jika artikel baru dibuat di perangkat lain
-      if (!article && queryKey && typeof db !== 'undefined' && db !== null) {
+      // 1. PRIORITAS UTAMA (Cloud Single Source of Truth): Cek Cloud Firestore terlebih dahulu
+      if (queryKey && typeof db !== 'undefined' && db !== null) {
         try {
           const docSnap = await db.collection('news').doc(queryKey).get();
           if (docSnap.exists) {
@@ -545,16 +517,53 @@
               article = { id: d.id, ...d.data() };
             }
           }
-          if (article) {
-            newsList = typeof mergeNewsWithDefaults === 'function' ? mergeNewsWithDefaults([article, ...newsList]) : [article, ...newsList];
-            setStorage('disperindag_news', newsList);
-          }
         } catch(e) {
-          console.warn("Firestore resolver warning:", e);
+          console.warn("Firestore Cloud Read Warning:", e);
         }
       }
 
-      // Fallback ke artikel pertama jika tanpa query
+      // 2. PRIORITAS KEDUA: Jika Firestore offline / belum ada, baca dari LocalStorage Cache
+      const rawStorage = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+      let newsList = typeof mergeNewsWithDefaults === 'function' ? mergeNewsWithDefaults(rawStorage) : rawStorage;
+      if (typeof deduplicateNewsList === 'function') {
+        newsList = deduplicateNewsList(newsList);
+      }
+
+      if (!article && queryKey) {
+        article = newsList.find(n => 
+          n && (
+            n.id === queryKey || 
+            n.slug === queryKey || 
+            (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
+            (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
+          )
+        );
+      }
+
+      // 3. PRIORITAS KETIGA (Fallback Terakhir): Cek DEFAULT_NEWS statis
+      if (!article && queryKey && typeof DEFAULT_NEWS !== 'undefined' && Array.isArray(DEFAULT_NEWS)) {
+        article = DEFAULT_NEWS.find(n => 
+          n && (
+            n.id === queryKey || 
+            n.slug === queryKey || 
+            (n.slug && n.slug.toLowerCase() === queryKey.toLowerCase()) ||
+            (n.id && n.id.toLowerCase() === queryKey.toLowerCase())
+          )
+        );
+      }
+
+      // Jika artikel ditemukan di Cloud, sinkronkan ke LocalStorage Cache
+      if (article && article.id) {
+        const cachedIdx = newsList.findIndex(n => n && n.id === article.id);
+        if (cachedIdx !== -1) {
+          newsList[cachedIdx] = { ...newsList[cachedIdx], ...article };
+        } else {
+          newsList.unshift(article);
+        }
+        setStorage('disperindag_news', newsList);
+      }
+
+      // Fallback ke artikel pertama HANYA jika pengunjung membuka halaman /berita tanpa query apa pun
       if (!article && !queryKey) {
         article = newsList[0];
       }

@@ -1080,8 +1080,8 @@ window.switchSocialPreview = function(platform) {
   }
 };
 
-// SAVE NEWS HANDLER (CREATE / UPDATE)
-window.handleSaveNews = function(overrideStatus = null) {
+// SAVE NEWS HANDLER (CREATE / UPDATE) - ROBUST ASYNC TRANSACTION
+window.handleSaveNews = async function(overrideStatus = null) {
   const editId = document.getElementById('newsEditId')?.value || '';
   const title = document.getElementById('newsTitleInput')?.value?.trim();
   const slug = document.getElementById('newsSlugInput')?.value?.trim();
@@ -1113,7 +1113,9 @@ window.handleSaveNews = function(overrideStatus = null) {
   }
 
   const allNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
+  const nowIso = new Date().toISOString();
   
+  // Payload Bersih TANPA Field undefined (Mencegah Firestore Error)
   const articleObj = {
     id: editId || `news_${Date.now()}`,
     title: title,
@@ -1128,17 +1130,39 @@ window.handleSaveNews = function(overrideStatus = null) {
     sourceUrl: "https://disperindagesdm-pinrang.web.app",
     img: currentFeaturedImage || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
     image_caption: caption,
-    gallery: currentNewsGallery,
+    gallery: Array.isArray(currentNewsGallery) ? currentNewsGallery : [],
     excerpt: excerpt || (visualCanvas ? visualCanvas.innerText.slice(0, 160) + '...' : content.slice(0, 160) + '...'),
     content: content,
     status: status,
     is_featured: isFeatured,
-    created_at: editId ? undefined : new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: nowIso
   };
 
+  if (!editId) {
+    articleObj.created_at = nowIso;
+  }
+
+  // Indikator visual proses simpan
+  const submitBtns = document.querySelectorAll('#newsEditorModal button[type="submit"], #newsEditorModal .btn-primary');
+  submitBtns.forEach(btn => { if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Menyimpan ke Cloud...'; } });
+
+  let cloudSaveSuccess = false;
+  let cloudErrorMsg = '';
+
+  // 1. Sinkronisasi Mutlak ke Cloud Firestore (Primary Source of Truth)
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      await db.collection('news').doc(articleObj.id).set(articleObj, { merge: true });
+      cloudSaveSuccess = true;
+      console.log("[+] Berhasil menyimpan berita ke Cloud Firestore:", articleObj.id);
+    } catch(err) {
+      console.error("[-] Gagal menyimpan ke Cloud Firestore:", err);
+      cloudErrorMsg = err.message || err.toString();
+    }
+  }
+
+  // 2. Simpan ke Local Storage Cache
   if (editId) {
-    // Mode Update
     const idx = allNews.findIndex(n => n.id === editId);
     if (idx !== -1) {
       allNews[idx] = { ...allNews[idx], ...articleObj };
@@ -1146,14 +1170,12 @@ window.handleSaveNews = function(overrideStatus = null) {
       allNews.unshift(articleObj);
     }
   } else {
-    // Mode Insert Baru di urutan teratas
     allNews.unshift(articleObj);
   }
 
-  // Simpan ke LocalStorage
   setStorage('disperindag_news', allNews);
 
-  // Sinkronisasi otomatis ke Hero Carousel Banner (Headline Beranda)
+  // 3. Sinkronisasi otomatis ke Hero Carousel Banner (Headline Beranda)
   let banners = getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []);
   const existingBannerIdx = banners.findIndex(b => b.target_news_id === articleObj.id || b.title === articleObj.title);
   if (isFeatured && status === 'published') {
@@ -1177,28 +1199,29 @@ window.handleSaveNews = function(overrideStatus = null) {
   }
   setStorage('disperindag_banners', banners);
   if (typeof renderAdminBanners === 'function') renderAdminBanners();
+  if (typeof renderAdminNewsTable === 'function') renderAdminNewsTable();
 
-  // Sinkronisasi ke Cloud Firestore
-  if (typeof db !== 'undefined' && db !== null) {
-    try {
-      db.collection('news').doc(articleObj.id).set(articleObj, { merge: true })
-        .then(() => console.log("Firestore News Synced:", articleObj.id))
-        .catch(err => console.warn("Firestore News Sync Warning:", err));
-      
-      // Sync banners to firestore
-      db.collection('settings').doc('banners').set({ list: banners }, { merge: true }).catch(() => {});
-    } catch(e) {}
-  }
+  // Reset Tombol
+  submitBtns.forEach(btn => { if (btn) { btn.disabled = false; btn.innerHTML = '<span>✓</span> ' + (editId ? 'Perbarui Berita' : 'Terbitkan Berita Sekarang'); } });
 
-  // Selesai & Tutup Editor
+  // 4. Selesai & Tutup Editor
   closeNewsEditor();
 
-  CustomModal.alert({
-    title: editId ? "Berita Berhasil Diperbarui" : (status === 'published' ? "Berita Berhasil Diterbitkan" : "Draf Berita Disimpan"),
-    message: `Artikel <strong>"${articleObj.title}"</strong> telah berhasil ${editId ? 'diperbarui' : (status === 'published' ? 'diterbitkan secara resmi' : 'disimpan sebagai draf')}.${isFeatured && status === 'published' ? '<br><br><span style="color:#047857; font-weight:700;">✓ Otomatis ditayangkan di Headline Hero Beranda!</span>' : ''}`,
-    icon: status === 'published' ? "🚀" : "💾",
-    type: "info"
-  });
+  if (cloudSaveSuccess) {
+    CustomModal.alert({
+      title: editId ? "Berita Berhasil Diperbarui" : (status === 'published' ? "Berita Berhasil Diterbitkan" : "Draf Berita Disimpan"),
+      message: `Artikel <strong>"${articleObj.title}"</strong> telah berhasil tersimpan di Cloud Database dan Cache Lokal.${isFeatured && status === 'published' ? '<br><br><span style="color:#047857; font-weight:700;">✓ Otomatis ditayangkan di Headline Hero Beranda!</span>' : ''}`,
+      icon: status === 'published' ? "🚀" : "💾",
+      type: "info"
+    });
+  } else {
+    CustomModal.alert({
+      title: "Tersimpan di Cache Lokal",
+      message: `Artikel <strong>"${articleObj.title}"</strong> telah tersimpan di browser lokal, namun sinkronisasi cloud mengalami kendala:<br><small style="color:#DC2626;">${cloudErrorMsg || 'Koneksi database offline'}</small>`,
+      icon: "💾",
+      type: "warning"
+    });
+  }
 };
 
 // MODAL LIVE PREVIEW ARTIKEL BERITA
