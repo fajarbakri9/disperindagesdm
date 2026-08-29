@@ -78,6 +78,7 @@
     .lpg-table-shell .admin-table thead { position:sticky; top:0; z-index:3; }
     .lpg-table-shell .admin-table tbody tr { transition:background .15s ease, box-shadow .15s ease; }
     .lpg-table-shell .admin-table tbody tr:hover { background:#F8FAFC; box-shadow:inset 3px 0 #2563EB; }
+    .lpg-table-shell .admin-table tbody tr.is-selected { background:#EFF6FF; box-shadow:inset 3px 0 #2563EB; }
     .lpg-table-shell .admin-table td { padding-top:12px; padding-bottom:12px; vertical-align:middle; }
     @media (max-width:1100px) {
       .lpg-workspace-head { grid-template-columns:1fr; }
@@ -957,10 +958,10 @@
           <!-- FILTER & SEARCH BAR PANGKALAN -->
           <div class="lpg-directory-tools" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
             <div style="flex: 2; min-width: 200px;">
-              <input type="text" id="adminLpgSearchPangkalan" class="form-input" placeholder="🔍 Cari nama pangkalan, pemilik, desa, atau ID..." oninput="renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
+              <input type="text" id="adminLpgSearchPangkalan" class="form-input" placeholder="🔍 Cari nama pangkalan, pemilik, desa, atau ID..." oninput="adminLpgCurrentPage=1;renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
             </div>
             <div style="flex: 1; min-width: 160px;">
-              <select id="adminLpgFilterKecamatan" class="form-input" onchange="renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
+              <select id="adminLpgFilterKecamatan" class="form-input" onchange="adminLpgCurrentPage=1;renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
                 <option value="">Semua 12 Kecamatan</option>
                 <option value="Batulappa">Batulappa (6)</option>
                 <option value="Cempa">Cempa (29)</option>
@@ -977,7 +978,7 @@
               </select>
             </div>
             <div style="flex: 1; min-width: 140px;">
-              <select id="adminLpgFilterStatus" class="form-input" onchange="renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
+              <select id="adminLpgFilterStatus" class="form-input" onchange="adminLpgCurrentPage=1;renderAdminLpgPangkalanTable()" style="font-size: 0.84rem; padding: 9px 12px;">
                 <option value="">Semua Status</option>
                 <option value="ACTIVE">Aktif Saja</option>
                 <option value="PENDING">Menunggu Verifikasi</option>
@@ -985,6 +986,15 @@
                 <option value="DELETED">Nonaktif / Dihapus</option>
               </select>
             </div>
+            <div style="flex:1;min-width:170px;">
+              <select id="adminLpgSortPangkalan" class="form-input" onchange="adminLpgCurrentPage=1;renderAdminLpgPangkalanTable()" style="font-size:.84rem;padding:9px 12px;">
+                <option value="ID_ASC">Urutkan: Kode Pangkalan</option>
+                <option value="NAME_ASC">Nama A–Z</option>
+                <option value="DISTRICT_ASC">Kecamatan A–Z</option>
+                <option value="PENDING_FIRST">Menunggu Verifikasi Dulu</option>
+              </select>
+            </div>
+            <button type="button" class="btn-outline" onclick="resetAdminLpgDirectoryFilters()" style="padding:9px 13px;white-space:nowrap;">Atur Ulang</button>
           </div>
 
           <div id="adminLpgBulkToolbar" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-4px 0 14px;padding:11px 14px;border:1px solid #BFDBFE;border-radius:10px;background:#EFF6FF;box-shadow:0 4px 12px rgba(30,64,175,.07);">
@@ -1015,7 +1025,14 @@
               </tbody>
             </table>
           </div>
-          <div id="adminLpgPangkalanPagination" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #64748B;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;">
+            <label style="font-size:.76rem;color:#64748B;">Baris per halaman
+              <select id="adminLpgPageSize" class="form-input" onchange="setAdminLpgPageSize(this.value)" style="display:inline-block;width:auto;margin-left:6px;padding:5px 8px;font-size:.76rem;">
+                <option value="20">20</option><option value="50">50</option><option value="100">100</option>
+              </select>
+            </label>
+            <div id="adminLpgPangkalanPagination" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex:1;font-size:.8rem;color:#64748B;"></div>
+          </div>
         </div>
 
         <!-- 2. SUBVIEW: SALDO 8 AGEN RESMI -->
@@ -1679,6 +1696,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
   <script src="js/admin.js?v=20260830_user_groups_v3"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_professional_ui_v16"></script>
+  <script src="js/admin-lpg.js?v=20260830_lpg_directory_ux_v17"></script>
 </body>
 </html>

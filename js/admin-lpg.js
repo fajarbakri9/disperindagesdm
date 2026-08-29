@@ -4,7 +4,7 @@
 // ==============================================================================
 
 let adminLpgCurrentPage = 1;
-const ADMIN_LPG_PER_PAGE = 20;
+let adminLpgPerPage = 20;
 const adminLpgSelectedIds = new Set();
 let adminLpgVisiblePageIds = [];
 let unsubscribeAdminLpgPangkalan = null;
@@ -385,10 +385,12 @@ window.renderAdminLpgPangkalanTable = function() {
   const searchInput = document.getElementById('adminLpgSearchPangkalan');
   const filterKec = document.getElementById('adminLpgFilterKecamatan');
   const filterStat = document.getElementById('adminLpgFilterStatus');
+  const sortInput = document.getElementById('adminLpgSortPangkalan');
 
   const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
   const kecVal = filterKec ? filterKec.value : '';
   const statVal = filterStat ? filterStat.value : '';
+  const sortValue = sortInput ? sortInput.value : 'ID_ASC';
 
   const allPangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
 
@@ -417,15 +419,20 @@ window.renderAdminLpgPangkalanTable = function() {
     }
 
     return true;
+  }).sort((a, b) => {
+    if (sortValue === 'NAME_ASC') return String(a.name || '').localeCompare(String(b.name || ''), 'id');
+    if (sortValue === 'DISTRICT_ASC') return String(a.kecamatan || '').localeCompare(String(b.kecamatan || ''), 'id') || String(a.name || '').localeCompare(String(b.name || ''), 'id');
+    if (sortValue === 'PENDING_FIRST') return Number(b.verificationStatus === 'PENDING_ADMIN_VERIFICATION') - Number(a.verificationStatus === 'PENDING_ADMIN_VERIFICATION') || String(a.id || '').localeCompare(String(b.id || ''));
+    return String(a.id || '').localeCompare(String(b.id || ''), undefined, { numeric: true });
   });
 
   // Pagination calculation
   const totalItems = filtered.length;
-  const totalPages = Math.ceil(totalItems / ADMIN_LPG_PER_PAGE) || 1;
+  const totalPages = Math.ceil(totalItems / adminLpgPerPage) || 1;
   if (adminLpgCurrentPage > totalPages) adminLpgCurrentPage = 1;
 
-  const startIdx = (adminLpgCurrentPage - 1) * ADMIN_LPG_PER_PAGE;
-  const pageItems = filtered.slice(startIdx, startIdx + ADMIN_LPG_PER_PAGE);
+  const startIdx = (adminLpgCurrentPage - 1) * adminLpgPerPage;
+  const pageItems = filtered.slice(startIdx, startIdx + adminLpgPerPage);
   adminLpgVisiblePageIds = pageItems.map(item => item.id);
 
   if (pageItems.length === 0) {
@@ -450,7 +457,7 @@ window.renderAdminLpgPangkalanTable = function() {
     }
 
     return `
-      <tr style="${isDeleted ? 'opacity: 0.6; background: #F8FAFC;' : ''}">
+      <tr class="${adminLpgSelectedIds.has(p.id) ? 'is-selected' : ''}" style="${isDeleted ? 'opacity: 0.6;' : ''}">
         <td style="text-align:center;"><input type="checkbox" class="admin-lpg-row-check" value="${p.id}" ${adminLpgSelectedIds.has(p.id) ? 'checked' : ''} onchange="toggleAdminLpgSelection('${p.id}',this.checked)" aria-label="Pilih ${escapeLpgAlertHtml(p.name)}"></td>
         <td>
           <div style="font-weight: 800; color: #0F172A; font-size: 0.88rem;">${p.name}</div>
@@ -484,7 +491,7 @@ window.renderAdminLpgPangkalanTable = function() {
   // Render Pagination Controls
   if (paginEl) {
     paginEl.innerHTML = `
-      <div>Menampilkan <strong>${startIdx + 1} - ${Math.min(startIdx + ADMIN_LPG_PER_PAGE, totalItems)}</strong> dari <strong>${totalItems}</strong> pangkalan</div>
+      <div>Menampilkan <strong>${startIdx + 1}–${Math.min(startIdx + adminLpgPerPage, totalItems)}</strong> dari <strong>${totalItems}</strong> pangkalan</div>
       <div style="display: flex; gap: 6px;">
         <button class="btn-outline" style="padding: 4px 10px; font-size: 0.74rem;" ${adminLpgCurrentPage <= 1 ? 'disabled' : ''} onclick="adminLpgChangePage(${adminLpgCurrentPage - 1})">◀ Sebelumnya</button>
         <span style="padding: 4px 8px; font-weight: 800;">Hal ${adminLpgCurrentPage} / ${totalPages}</span>
@@ -497,19 +504,40 @@ window.renderAdminLpgPangkalanTable = function() {
 
 window.toggleAdminLpgSelection = function(id, checked) {
   if (checked) adminLpgSelectedIds.add(id); else adminLpgSelectedIds.delete(id);
+  const checkbox = Array.from(document.querySelectorAll('.admin-lpg-row-check')).find(input => input.value === id);
+  if (checkbox?.closest('tr')) checkbox.closest('tr').classList.toggle('is-selected', checked);
   updateAdminLpgBulkToolbar();
 };
 
 window.toggleAdminLpgPageSelection = function(checked) {
   adminLpgVisiblePageIds.forEach(id => checked ? adminLpgSelectedIds.add(id) : adminLpgSelectedIds.delete(id));
-  document.querySelectorAll('.admin-lpg-row-check').forEach(input => { input.checked = checked; });
+  document.querySelectorAll('.admin-lpg-row-check').forEach(input => { input.checked = checked; input.closest('tr')?.classList.toggle('is-selected', checked); });
   updateAdminLpgBulkToolbar();
 };
 
 window.clearAdminLpgSelection = function() {
   adminLpgSelectedIds.clear();
-  document.querySelectorAll('.admin-lpg-row-check').forEach(input => { input.checked = false; });
+  document.querySelectorAll('.admin-lpg-row-check').forEach(input => { input.checked = false; input.closest('tr')?.classList.remove('is-selected'); });
   updateAdminLpgBulkToolbar();
+};
+
+window.setAdminLpgPageSize = function(value) {
+  const size = Number(value);
+  if (![20, 50, 100].includes(size)) return;
+  adminLpgPerPage = size;
+  adminLpgCurrentPage = 1;
+  renderAdminLpgPangkalanTable();
+};
+
+window.resetAdminLpgDirectoryFilters = function() {
+  ['adminLpgSearchPangkalan', 'adminLpgFilterKecamatan', 'adminLpgFilterStatus'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  });
+  const sort = document.getElementById('adminLpgSortPangkalan');
+  if (sort) sort.value = 'ID_ASC';
+  adminLpgCurrentPage = 1;
+  renderAdminLpgPangkalanTable();
 };
 
 function updateAdminLpgBulkToolbar() {
