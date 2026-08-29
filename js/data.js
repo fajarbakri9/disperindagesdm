@@ -1267,6 +1267,7 @@ const DEFAULT_PRODUCTS_IKM = [
 const DEFAULT_NEWS = [
   {
     id: "news_01",
+    slug: "tindak-lanjuti-aduan-warga-pangkalan-lpg-3-kg-nakal-di-duampanua-dijatuhi-sanksi-tegas-phk",
     title: "Tindak Lanjuti Aduan Warga, Pangkalan LPG 3 Kg Nakal di Duampanua Dijatuhi Sanksi Tegas PHK",
     category: "Perindustrian, Energi & SDM",
     topic_tag: "LPG 3 Kg",
@@ -1274,8 +1275,9 @@ const DEFAULT_NEWS = [
     date: "21 Agustus 2026",
     author: "Bidang Perindustrian, ESDM",
     sourceName: "Humas Disperindag ESDM Pinrang",
-    sourceUrl: "https://pinrangkab.go.id",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
     img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
+    image_caption: "Sidak pengawasan distribusi gas elpiji 3 kg bersubsidi oleh Disperindag ESDM Pinrang bersama Pertamina.",
     excerpt: "Disperindag ESDM Pinrang bersama agen penyalur Pertamina menjatuhkan sanksi Pemutusan Hubungan Usaha (PHU) kepada pangkalan nakal di Kec. Duampanua yang menjual tabung gas melon jauh di atas HET.",
     content: `PINRANG — Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral (Disperindag ESDM) Kabupaten Pinrang bergerak cepat menindaklanjuti laporan masyarakat terkait pangkalan gas elpiji 3 kg bersubsidi yang menjual di atas Harga Eceran Tertinggi (HET) di Kecamatan Duampanua.
 
@@ -1285,6 +1287,7 @@ Kepala Dinas Perindag ESDM Pinrang, Muhammad Yusuf Nur, S.STP, menegaskan bahwa 
   },
   {
     id: "news_02",
+    slug: "kawal-kepatuhan-het-disperindag-esdm-pinrang-gelar-rakor-terpadu-bersama-9-agen-lpg-se-kabupaten-pinrang",
     title: "Kawal Kepatuhan HET, Disperindag ESDM Pinrang Gelar Rakor Terpadu Bersama 9 Agen LPG se-Kabupaten Pinrang",
     category: "Perindustrian, Energi & SDM",
     topic_tag: "LPG 3 Kg",
@@ -1292,8 +1295,9 @@ Kepala Dinas Perindag ESDM Pinrang, Muhammad Yusuf Nur, S.STP, menegaskan bahwa 
     date: "24 Agustus 2026",
     author: "Bidang Perindustrian, ESDM",
     sourceName: "Humas Disperindag ESDM Pinrang",
-    sourceUrl: "https://pinrangkab.go.id",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
     img: "assets/news/forum_konsultasi_publik_pelayanan_pinrang.jpg",
+    image_caption: "Rapat koordinasi teknis pengawasan kuota dan distribusi elpiji 3 kg bersubsidi di Aula Disperindag ESDM Pinrang.",
     excerpt: "Guna mencegah kelangkaan dan menjaga stabilitas pasokan energi bersubsidi, Disperindag ESDM mengumpulkan 9 direktur agen penyalur LPG 3 kg se-Kabupaten Pinrang dalam rapat koordinasi teknis.",
     content: `PINRANG — Bertempat di Aula Kantor Disperindag ESDM Kabupaten Pinrang, jajaran pimpinan dinas menggelar Rapat Koordinasi Teknis Pengawasan Pendistribusian Liquefied Petroleum Gas (LPG) Tabung 3 Kg bersama 9 pimpinan agen resmi yang beroperasi di wilayah Kabupaten Pinrang.
 
@@ -1303,6 +1307,7 @@ Fokus utama rakor ini adalah penegakan sistem digitalisasi Merchant Apps Pertami
   },
   {
     id: "news_03",
+    slug: "revitalisasi-786-lapak-pasar-sentral-pinrang-rampung-dorong-tata-kelola-pedagang-higienis",
     title: "Revitalisasi 786 Lapak Pasar Sentral Pinrang Rampung, Dorong Tata Kelola Pedagang Higienis",
     category: "Sarana & Pelaku Distribusi",
     topic_tag: "Pasar",
@@ -1310,8 +1315,9 @@ Fokus utama rakor ini adalah penegakan sistem digitalisasi Merchant Apps Pertami
     date: "12 Agustus 2026",
     author: "Bidang Sarana & Pelaku Distribusi",
     sourceName: "Humas Disperindag ESDM Pinrang",
-    sourceUrl: "https://pinrangkab.go.id",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
     img: "assets/news/pasar_sentral_pinrang_clean_hd.jpg",
+    image_caption: "Suasana penataan zonasi lapak higienis semi-modern di Pasar Sentral Pinrang.",
     excerpt: "Pembangunan dan penataan sarana perdagangan Pasar Sentral Pinrang tuntas. Sebanyak 786 unit lapak pedagang kini tampil dengan konsep pasar rakyat semi-modern yang bersih dan tertib.",
     content: `PINRANG — Pembangunan dan rehabilitasi sarana prasarana Pasar Sentral Pinrang telah rampung 100 persen. Sebanyak 786 unit lapak basah, kios sembako, dan los pakaian kini tampil dengan konsep pasar rakyat semi-modern yang higienis dan nyaman bagi pengunjung.
 
@@ -1321,6 +1327,7 @@ Kepala Dinas Perindag ESDM Pinrang menyampaikan bahwa penataan pasar rakyat ini 
   },
   {
     id: "news_04",
+    slug: "dorong-produk-lokal-masuk-e-katalog-disperindag-pinrang-gelar-sosialisasi-sertifikasi-p3dn-dan-tkdn-bagi-pelaku-ikm",
     title: "Dorong Produk Lokal Masuk e-Katalog, Disperindag Pinrang Gelar Sosialisasi Sertifikasi P3DN dan TKDN bagi Pelaku IKM",
     category: "Perindustrian, Energi & SDM",
     topic_tag: "IKM",
@@ -1328,8 +1335,9 @@ Kepala Dinas Perindag ESDM Pinrang menyampaikan bahwa penataan pasar rakyat ini 
     date: "06 Agustus 2026",
     author: "Bidang Perindustrian, ESDM",
     sourceName: "Humas Disperindag ESDM Pinrang",
-    sourceUrl: "https://pinrangkab.go.id",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
     img: "assets/news/sosialisasi_tkdn_ikm_pinrang_hd.jpg",
+    image_caption: "Pendampingan teknis penghitungan bobot lokal TKDN-IKM bersama Pusat P3DN Kementerian Perindustrian.",
     excerpt: "Disperindag Pinrang memfasilitasi puluhan pelaku IKM pangan olahan, kerajinan, dan mebel untuk mendapatkan sertifikasi Tingkat Komponen Dalam Negeri (TKDN-IKM) secara gratis.",
     content: `PINRANG — Upaya memperluas akses pasar bagi pelaku Industri Kecil dan Menengah (IKM) terus digencarkan oleh Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang melalui kegiatan Sosialisasi Peningkatan Penggunaan Produk Dalam Negeri (P3DN) dan Bimbingan Teknis Sertifikasi TKDN-IKM.
 
@@ -1339,6 +1347,7 @@ Melalui program ini, para pelaku usaha lokal dibimbing untuk menghitung bobot ka
   },
   {
     id: "news_05",
+    slug: "jamin-transaksi-adil-jelang-panen-raya-bidang-kemetrologian-intensifkan-tera-ulang-nozel-spbu-dan-timbangan-pasar",
     title: "Jamin Transaksi Adil Jelang Panen Raya, Bidang Kemetrologian Intensifkan Tera Ulang Nozel SPBU dan Timbangan Pasar",
     category: "Kemetrologian",
     topic_tag: "Tera",
@@ -1346,8 +1355,9 @@ Melalui program ini, para pelaku usaha lokal dibimbing untuk menghitung bobot ka
     date: "28 Juli 2026",
     author: "Bidang Kemetrologian",
     sourceName: "Humas Disperindag ESDM Pinrang",
-    sourceUrl: "https://pinrangkab.go.id",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
     img: "assets/news/tera_uttp_spbu_hd.jpg",
+    image_caption: "Petugas Penera Ahli menguji akurasi dispenser nozel BBM SPBU menggunakan bejana ukur standar 20 liter.",
     excerpt: "Memastikan takaran BBM presisi dan timbangan pasar akurat, petugas penera Disperindag Pinrang turun ke SPBU dan sentra penggilingan gabah di seluruh kecamatan.",
     content: `PINRANG — Memasuki musim panen raya padi di Bumi Lasinrang, Bidang Kemetrologian Disperindag ESDM Pinrang mengintensifkan pengawasan dan pelayanan tera ulang Alat Ukur, Takar, Timbang, dan Perlengkapannya (UTTP).
 
@@ -1357,21 +1367,83 @@ Petugas Penera Ahli menguji takaran menggunakan bejana ukur standar 20 liter ber
   },
   {
     id: "news_06",
-    title: "Sinergi Dekranasda dan Disperindag Pinrang Promosikan Kain Tenun Sutra Motif Khas Lasinrang di Panggung Nasional",
-    category: "Perindustrian, Energi & SDM",
-    topic_tag: "Pameran",
+    slug: "harga-eceran-tembus-rp-45-ribu-disperindagem-pinrang-ambil-tindakan-tegas-terhadap-pangkalan-nakal",
+    title: "Harga Eceran Tembus Rp 45 Ribu, Disperindagem Pinrang Ambil Tindakan Tegas Terhadap Pangkalan Nakal",
+    category: "Pelayanan Publik",
+    topic_tag: "LPG 3 Kg",
     content_origin: "internal_release",
-    date: "18 Juli 2026",
-    author: "Dekranasda & Humas Disperindag",
+    date: "29 Agustus 2026",
+    author: "Humas Disperindag ESDM Pinrang",
     sourceName: "Humas Disperindag ESDM Pinrang",
-    sourceUrl: "https://pinrangkab.go.id",
-    img: "assets/banner/tenun_sutra_pinrang_hd.jpg",
-    excerpt: "Kain tenun sutra tradisional motif khas Kabupaten Pinrang memukau pengunjung pameran kerajinan nasional berkat perpaduan corak etnik Bugis dan pewarna alami ramah lingkungan.",
-    content: `JAKARTA — Produk kerajinan kain tenun sutra khas Kabupaten Pinrang tampil memukau dalam ajang Pameran Kerajinan Nusantara yang berlangsung di Jakarta Convention Center.
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
+    img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
+    image_caption: "Tim Pengawas Disperindag ESDM Pinrang melakukan sidak pangkalan dan menjatuhkan sanksi tegas penertiban HET.",
+    excerpt: "PINRANG — Keresahan dan keluhan warga masyarakat terkait lonjakan harga LPG 3 Kg bersubsidi hingga Rp 45.000 langsung direspon tegas oleh Disperindag ESDM bersama Pertamina melalui sanksi PHU bagi pangkalan nakal.",
+    content: `PINRANG — Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang merespons cepat keluhan masyarakat terkait lonjakan harga gas elpiji 3 kg bersubsidi yang sempat mencapai Rp 45.000 di tingkat pengecer tidak resmi.
 
-Keikutsertaan ini merupakan kolaborasi strategis antara Dewan Kerajinan Nasional Daerah (Dekranasda) Kabupaten Pinrang bersama Disperindag ESDM Pinrang dalam membina pengrajin tenun lokal.
+Kepala Dinas Perindag ESDM Pinrang bersama jajaran Forkopimda dan agen resmi Pertamina langsung menggelar operasi penertiban pangkalan di sejumlah titik strategis. Dari hasil pengawasan, dinas menjatuhkan sanksi administratif dan penghentian alokasi kepada pangkalan yang terbukti menjual di atas HET resmi atau menyalurkan kepada pihak pengecer borongan.
 
-Kain tenun yang dipamerkan menonjolkan motif kearifan lokal Lasinrang yang telah resmi mengantongi sertifikat Hak Kekayaan Intelektual (HAKI).`
+Masyarakat diimbau untuk selalu membeli tabung gas 3 kg langsung di pangkalan resmi berplang dengan harga sesuai HET resmi pemerintah sebesar Rp 20.000 per tabung.`
+  },
+  {
+    id: "news_07",
+    slug: "atasi-buying-panic-disperindagem-pinrang-gandeng-pertamina-dan-aph-siapkan-inovasi-digitalisasi-serta-sanksi-phk-pangkalan-nakal",
+    title: "Atasi Buying Panic, Disperindagem Pinrang Gandeng Pertamina dan APH Siapkan Inovasi Digitalisasi Serta Sanksi PHK Pangkalan Nakal",
+    category: "Pelayanan Publik",
+    topic_tag: "LPG 3 Kg",
+    content_origin: "internal_release",
+    date: "29 Agustus 2026",
+    author: "Humas Disperindag ESDM Pinrang",
+    sourceName: "Humas Disperindag ESDM Pinrang",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
+    img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
+    image_caption: "Rapat koordinasi bersama Pertamina dan Aparat Penegak Hukum (APH) dalam pengamanan rantai pasok energi bersubsidi.",
+    excerpt: "Menjawab fenomena panic buying warga, Disperindag ESDM Pinrang bersama Pertamina dan APH memperkuat sistem digitalisasi pangkalan terpadu dan penegakan hukum bagi oknum penimbun.",
+    content: `PINRANG — Mengantisipasi fenomena panic buying serta spekulasi harga gas elpiji 3 kg bersubsidi, Disperindag ESDM Pinrang menggandeng PT Pertamina Patra Niaga dan Aparat Penegak Hukum (APH) guna memperketat tata kelola distribusi berbasis digital.
+
+Langkah preventif ini melibatkan integrasi logbook digital pangkalan dan verifikasi NIK KTP konsumen agar subsidi tepat sasaran bagi rumah tangga prasejahtera dan usaha mikro.
+
+Pemerintah Kabupaten Pinrang menegaskan tidak akan ragu membawa ke jalur hukum pihak-pihak yang sengaja menimbun atau mempermainkan pasokan energi bersubsidi masyarakat.`
+  },
+  {
+    id: "news_08",
+    slug: "kadis-perindag-esdm-hadiri-mediasi-permasalahan-di-pasar-rakyat-pekkabata",
+    title: "Kadis Perindag ESDM Hadiri Mediasi Permasalahan di Pasar Rakyat Pekkabata",
+    category: "Pengembangan Perdagangan",
+    topic_tag: "Pasar",
+    content_origin: "internal_release",
+    date: "29 Agustus 2026",
+    author: "Humas Disperindag ESDM Pinrang",
+    sourceName: "Humas Disperindag ESDM Pinrang",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
+    img: "assets/news/pasar_sentral_pinrang_clean_hd.jpg",
+    image_caption: "Pertemuan mediasi dan dialog kekeluargaan bersama perwakilan pedagang Pasar Rakyat Pekkabata.",
+    excerpt: "UPTD Pasar Wilayah I Disperindag ESDM Pinrang memfasilitasi mediasi kekeluargaan terkait penataan zonasi lapak pedagang Pasar Pekkabata demi kenyamanan bersama.",
+    content: `PINRANG — Kepala Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang memimpin langsung agenda mediasi dan dialog terbuka bersama para pedagang di Pasar Rakyat Pekkabata.
+
+Pertemuan yang berlangsung hangat dan penuh musyawarah ini membahas penataan ulang zonasi pedagang basah dan kering, ketertiban area parkir, serta pemeliharaan kebersihan lingkungan pasar.
+
+Hasil kesepakatan bersama menegaskan komitmen seluruh pedagang untuk mematuhi regulasi ketertiban pasar demi kelancaran aktivitas jual beli masyarakat.`
+  },
+  {
+    id: "news_09",
+    slug: "disperindag-esdm-pinrang-gelar-operasi-pasar-pangan-murah-di-12-kecamatan",
+    title: "Disperindag ESDM Pinrang Gelar Operasi Pasar Pangan Murah di 12 Kecamatan",
+    category: "Perindustrian, Energi & SDM",
+    topic_tag: "Pasar Murah",
+    content_origin: "internal_release",
+    date: "29 Agustus 2026",
+    author: "Humas Disperindag ESDM Pinrang",
+    sourceName: "Humas Disperindag ESDM Pinrang",
+    sourceUrl: "https://disperindagesdm-pinrang.web.app",
+    img: "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
+    image_caption: "Pelaksanaan Gerakan Pangan Murah dan Operasi Pasar Beras SPHP Disperindag ESDM Pinrang.",
+    excerpt: "Menjaga stabilitas harga sembako dan daya beli masyarakat, Disperindag ESDM Pinrang menyalurkan beras SPHP dan minyak goreng bersubsidi di 12 kecamatan.",
+    content: `PINRANG — Tim Pengendali Inflasi Daerah (TPID) bersama Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang menggelar rangkaian Operasi Pasar Pangan Murah secara bergilir di 12 wilayah kecamatan se-Kabupaten Pinrang.
+
+Komoditas utama yang disalurkan meliputi beras SPHP kemasan 5 kg seharga Rp 12.500/kg, minyak goreng premium, gula pasir, dan tepung terigu dengan harga di bawah harga pasar umum.
+
+Langkah strategis ini terbukti efektif menekan laju inflasi daerah dan meringankan beban pengeluaran kebutuhan pokok masyarakat.`
   }
 ];
 

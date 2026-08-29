@@ -242,6 +242,91 @@ Berbagai komoditas kebutuhan pokok dijual langsung di bawah harga pasar harian, 
 Berdasarkan hasil survei lapangan, indeks stabilitas harga komoditas pangan pokok berada pada tingkat sangat terkendali dengan deviasi inflasi bulanan sebesar 2.1%. Pasokan beras premium lokal tercatat mengalami penurunan harga sebesar Rp 500/kg menjadi Rp 14.500/kg seiring bergulirnya masa panen raya di Kecamatan Patampanua dan Duampanua.
 
 Masyarakat dan pelaku usaha dapat memantau perkembangan harga harian terverifikasi secara langsung dan transparan melalui portal resmi website Disperindag ESDM Pinrang dan TV Wallboard Command Center yang diperbarui setiap pukul 09.00 WITA."""
+    },
+    {
+        "id": "news_11",
+        "slug": "harga-eceran-tembus-rp-45-ribu-disperindagem-pinrang-ambil-tindakan-tegas-terhadap-pangkalan-nakal",
+        "title": "Harga Eceran Tembus Rp 45 Ribu, Disperindagem Pinrang Ambil Tindakan Tegas Terhadap Pangkalan Nakal",
+        "category": "Pelayanan Publik",
+        "topic_tag": "LPG 3 Kg",
+        "date": "29 Agustus 2026",
+        "publishedAt": "2026-08-29T10:00:00+08:00",
+        "author": "Humas Disperindag ESDM Pinrang",
+        "img": "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
+        "excerpt": "PINRANG — Keresahan dan keluhan warga masyarakat terkait lonjakan harga LPG 3 Kg bersubsidi hingga Rp 45.000 langsung direspon tegas oleh Disperindag ESDM bersama Pertamina melalui sanksi PHU bagi pangkalan nakal.",
+        "content": """PINRANG — Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang merespons cepat keluhan masyarakat terkait lonjakan harga gas elpiji 3 kg bersubsidi yang sempat mencapai Rp 45.000 di tingkat pengecer tidak resmi.
+
+Kepala Dinas Perindag ESDM Pinrang bersama jajaran Forkopimda dan agen resmi Pertamina langsung menggelar operasi penertiban pangkalan di sejumlah titik strategis. Dari hasil pengawasan, dinas menjatuhkan sanksi administratif dan penghentian alokasi kepada pangkalan yang terbukti menjual di atas HET resmi atau menyalurkan kepada pihak pengecer borongan.
+
+Masyarakat diimbau untuk selalu membeli tabung gas 3 kg langsung di pangkalan resmi berplang dengan harga sesuai HET resmi pemerintah sebesar Rp 20.000 per tabung."""
+    },
+    {
+        "id": "news_12",
+        "slug": "atasi-buying-panic-disperindagem-pinrang-gandeng-pertamina-dan-aph-siapkan-inovasi-digitalisasi-serta-sanksi-phk-pangkalan-nakal",
+        "title": "Atasi Buying Panic, Disperindagem Pinrang Gandeng Pertamina dan APH Siapkan Inovasi Digitalisasi Serta Sanksi PHK Pangkalan Nakal",
+        "category": "Pelayanan Publik",
+        "topic_tag": "LPG 3 Kg",
+        "date": "29 Agustus 2026",
+        "publishedAt": "2026-08-29T11:00:00+08:00",
+        "author": "Humas Disperindag ESDM Pinrang",
+        "img": "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
+        "excerpt": "Menjawab fenomena panic buying warga, Disperindag ESDM Pinrang bersama Pertamina dan APH memperkuat sistem digitalisasi pangkalan terpadu dan penegakan hukum bagi oknum penimbun.",
+        "content": """PINRANG — Mengantisipasi fenomena panic buying serta spekulasi harga gas elpiji 3 kg bersubsidi, Disperindag ESDM Pinrang menggandeng PT Pertamina Patra Niaga dan Aparat Penegak Hukum (APH) guna memperketat tata kelola distribusi berbasis digital.
+
+Langkah preventif ini melibatkan integrasi logbook digital pangkalan dan verifikasi NIK KTP konsumen agar subsidi tepat sasaran bagi rumah tangga prasejahtera dan usaha mikro.
+
+Pemerintah Kabupaten Pinrang menegaskan tidak akan ragu membawa ke jalur hukum pihak-pihak yang sengaja menimbun atau mempermainkan pasokan energi bersubsidi masyarakat."""
+    },
+    {
+        "id": "news_13",
+        "slug": "kadis-perindag-esdm-hadiri-mediasi-permasalahan-di-pasar-rakyat-pekkabata",
+        "title": "Kadis Perindag ESDM Hadiri Mediasi Permasalahan di Pasar Rakyat Pekkabata",
+        "category": "Pengembangan Perdagangan",
+        "topic_tag": "Pasar",
+        "date": "29 Agustus 2026",
+        "publishedAt": "2026-08-29T14:00:00+08:00",
+        "author": "Humas Disperindag ESDM Pinrang",
+        "img": "assets/news/pasar_sentral_pinrang_clean_hd.jpg",
+        "excerpt": "UPTD Pasar Wilayah I Disperindag ESDM Pinrang memfasilitasi mediasi kekeluargaan terkait penataan zonasi lapak pedagang Pasar Pekkabata demi kenyamanan bersama.",
+        "content": """PINRANG — Kepala Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang memimpin langsung agenda mediasi dan dialog terbuka bersama para pedagang di Pasar Rakyat Pekkabata.
+
+Pertemuan yang berlangsung hangat dan penuh musyawarah ini membahas penataan ulang zonasi pedagang basah dan kering, ketertiban area parkir, serta pemeliharaan kebersihan lingkungan pasar.
+
+Hasil kesepakatan bersama menegaskan komitmen seluruh pedagang untuk mematuhi regulasi ketertiban pasar demi kelancaran aktivitas jual beli masyarakat."""
+    },
+    {
+        "id": "news_14",
+        "slug": "disperindag-esdm-pinrang-gelar-operasi-pasar-pangan-murah-di-12-kecamatan",
+        "title": "Disperindag ESDM Pinrang Gelar Operasi Pasar Pangan Murah di 12 Kecamatan",
+        "category": "Perindustrian, Energi & SDM",
+        "topic_tag": "Pasar Murah",
+        "date": "29 Agustus 2026",
+        "publishedAt": "2026-08-29T08:30:00+08:00",
+        "author": "Humas Disperindag ESDM Pinrang",
+        "img": "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
+        "excerpt": "Menjaga stabilitas harga sembako dan daya beli masyarakat, Disperindag ESDM Pinrang menyalurkan beras SPHP dan minyak goreng bersubsidi di 12 kecamatan.",
+        "content": """PINRANG — Tim Pengendali Inflasi Daerah (TPID) bersama Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang menggelar rangkaian Operasi Pasar Pangan Murah secara bergilir di 12 wilayah kecamatan se-Kabupaten Pinrang.
+
+Komoditas utama yang disalurkan meliputi beras SPHP kemasan 5 kg seharga Rp 12.500/kg, minyak goreng premium, gula pasir, dan tepung terigu dengan harga di bawah harga pasar umum.
+
+Langkah strategis ini terbukti efektif menekan laju inflasi daerah dan meringankan beban pengeluaran kebutuhan pokok masyarakat."""
+    },
+    {
+        "id": "news_15",
+        "slug": "stabilkan-pasokan-dan-harga-disperindag-esdm-pinrang-gelar-rapat-koordinasi-bersama-agen-lpg-se-kabupaten",
+        "title": "Stabilkan Pasokan dan Harga, Disperindag ESDM Pinrang Gelar Rapat Koordinasi Bersama Agen LPG se-Kabupaten",
+        "category": "Pelayanan Publik",
+        "topic_tag": "LPG 3 Kg",
+        "date": "27 Agustus 2026",
+        "publishedAt": "2026-08-27T09:00:00+08:00",
+        "author": "Humas Disperindag ESDM Pinrang",
+        "img": "assets/news/forum_konsultasi_publik_pelayanan_pinrang.jpg",
+        "excerpt": "Disperindag ESDM Pinrang menggelar rapat koordinasi bersama agen LPG se-Kabupaten Pinrang untuk menjaga kelancaran distribusi, kestabilan stok, dan harga LPG 3 kg bersubsidi.",
+        "content": """PINRANG — Disperindag ESDM Kabupaten Pinrang menggelar rapat koordinasi bersama para agen LPG se-Kabupaten Pinrang untuk menjaga kelancaran distribusi, kestabilan stok, dan harga LPG, khususnya LPG 3 kg bersubsidi.
+
+Dalam pertemuan tersebut, agen diminta memperketat pengawasan distribusi hingga ke tingkat pangkalan resmi agar harga tetap sesuai HET yang ditetapkan.
+
+Kadis Perindag ESDM Pinrang menegaskan sanksi tegas akan dijatuhkan bagi pihak pangkalan maupun agen yang menyalahi prosedur distribusi."""
     }
 ]
 
