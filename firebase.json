@@ -3,6 +3,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
+    "site": "disperindagesdm-pinrang",
     "public": ".",
     "cleanUrls": true,
     "trailingSlash": false,
