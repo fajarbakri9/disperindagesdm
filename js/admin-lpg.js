@@ -351,7 +351,7 @@ function renderAdminLpgAgentsTable() {
     let outToday = 0;
 
     events.forEach(e => {
-      if (e.agentId === ag.id && e.status === 'POSTED') {
+      if (e.agentId === ag.id && isLocallyAppliedLpgEvent(e)) {
         const eDate = (e.effectiveAt || e.createdAt || '').slice(0, 10);
         if (eDate === todayStr) {
           if (e.type === 'STOCK_IN') inToday += e.quantity;
@@ -362,8 +362,8 @@ function renderAdminLpgAgentsTable() {
 
     const isReported = inToday > 0 || outToday > 0;
     const statusReportBadge = isReported 
-      ? `<span style="background:#ECFDF5; color:#059669; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">✓ Lapor Hari Ini</span>`
-      : `<span style="background:#FEF2F2; color:#DC2626; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Belum Ada Laporan</span>`;
+      ? `<span style="background:#FFFBEB; color:#92400E; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Catatan Lokal Hari Ini</span>`
+      : `<span style="background:#F1F5F9; color:#64748B; font-size:0.74rem; font-weight:800; padding:3px 8px; border-radius:4px;">Belum Ada Catatan</span>`;
 
     return `
       <tr>
@@ -404,9 +404,9 @@ window.openAdminAddAgentModal = async function() {
     name: name.trim(),
     normalizedName: name.trim().toUpperCase(),
     status: "ACTIVE",
-    phone: "0812 4292 1215",
-    address: "Kabupaten Pinrang",
-    initialCylinderQuota: 40000,
+    phone: null,
+    address: null,
+    initialCylinderQuota: null,
     sourceType: "DISPERINDAG_RECONCILED",
     sourceDate: nowIso.slice(0, 10),
     verificationStatus: "VERIFIED",
@@ -422,7 +422,6 @@ window.openAdminAddAgentModal = async function() {
     agentId: newId,
     agentName: newAgent.name,
     filledCylinderBalance: 0,
-    lastPostedEventAt: nowIso,
     updatedAt: nowIso
   };
   setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
@@ -441,7 +440,7 @@ window.openAdminAddAgentModal = async function() {
 
   CustomModal.alert({
     title: "Agen Baru Terdaftar",
-    message: `Agen resmi <strong>${newAgent.name}</strong> dengan Kode <strong>${newId}</strong> berhasil didaftarkan ke dalam sistem pengawasan.`,
+    message: `Agen <strong>${newAgent.name}</strong> dengan kode <strong>${newId}</strong> tersimpan pada perangkat ini. Sinkronisasi master server memerlukan Firebase Authentication.`,
     icon: "✓",
     type: "info"
   });
@@ -594,4 +593,3 @@ window.exportLpgLedgerCSV = function() {
   link.click();
   document.body.removeChild(link);
 };
-

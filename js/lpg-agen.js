@@ -78,7 +78,7 @@ function refreshAgentDashboardUI() {
   let todayIn = 0;
   let todayOut = 0;
 
-  const agentEvents = events.filter(e => e.agentId === currentAgentId && e.status === 'POSTED');
+  const agentEvents = events.filter(e => e.agentId === currentAgentId && isLocallyAppliedLpgEvent(e));
   
   agentEvents.forEach(e => {
     const eDate = (e.effectiveAt || e.createdAt || '').slice(0, 10);
@@ -168,8 +168,8 @@ window.handleStockInSubmit = function(e) {
   if (res.success) {
     closeModal('modalStockIn');
     CustomModal.alert({
-      title: "Stok Berhasil Masuk",
-      message: `Penerimaan <strong>${qty.toLocaleString('id-ID')} Tabung</strong> berhasil dicatat ke saldo pembukuan agen.<br><br>Saldo saat ini: <strong>${res.currentBalance.toLocaleString('id-ID')} Tabung</strong>.`,
+      title: "Tersimpan di Perangkat",
+      message: `Penerimaan <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>. Data ini belum menjadi ledger server sampai Firebase Auth dan processor backend diaktifkan.`,
       icon: "📦",
       type: "info"
     });
@@ -214,8 +214,8 @@ window.handleDistributionSubmit = function(e) {
   if (res.success) {
     closeModal('modalDistribution');
     CustomModal.alert({
-      title: "Distribusi Berhasil",
-      message: `Penyaluran <strong>${qty.toLocaleString('id-ID')} Tabung</strong> berhasil dibukukan.<br><br>Sisa saldo agen: <strong>${res.currentBalance.toLocaleString('id-ID')} Tabung</strong>.`,
+      title: "Tersimpan di Perangkat",
+      message: `Penyaluran <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Sisa saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>. Data ini belum berstatus POSTED server.`,
       icon: "🚚",
       type: "info"
     });
@@ -427,9 +427,10 @@ function renderLedgerHistoryUI() {
   container.innerHTML = agentEvents.map(e => {
     const isStockIn = e.type === 'STOCK_IN';
     const isRejected = e.status === 'REJECTED';
+    const isLocalOnly = e.status === 'LOCAL_ONLY';
     const dateFormatted = new Date(e.effectiveAt || e.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const color = isRejected ? '#DC2626' : (isStockIn ? '#059669' : '#1D4ED8');
-    const badgeText = isRejected ? 'Ditolak' : (isStockIn ? 'Stok Masuk' : 'Distribusi');
+    const badgeText = isRejected ? 'Ditolak' : (isLocalOnly ? 'Lokal • Belum Sinkron' : 'POSTED Server');
     const sign = isStockIn ? '+' : '-';
 
     return `

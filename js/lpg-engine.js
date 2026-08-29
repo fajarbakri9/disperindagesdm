@@ -13,7 +13,11 @@ const LPG_STORAGE_KEYS = {
   VERSION: 'disperindag_lpg_db_version'
 };
 
-const LPG_ENGINE_VERSION = "2026_08_30_lpg_nondestructive_v2";
+const LPG_ENGINE_VERSION = "2026_08_30_lpg_local_status_v3";
+
+function isLocallyAppliedLpgEvent(event) {
+  return event && (event.status === 'POSTED' || event.status === 'LOCAL_ONLY');
+}
 
 // 1. INISIALISASI DATABASE LPG
 function initLpgDatabase() {
@@ -41,6 +45,20 @@ function initLpgDatabase() {
 
     if (!localStorage.getItem(LPG_STORAGE_KEYS.EVENTS)) {
       localStorage.setItem(LPG_STORAGE_KEYS.EVENTS, JSON.stringify([]));
+    } else {
+      // Event lama diposting oleh browser, bukan oleh backend. Tandai secara
+      // jujur sebagai lokal agar tidak disalahartikan sebagai ledger server.
+      const existingEvents = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
+      let migrated = false;
+      existingEvents.forEach(item => {
+        if (item.status === 'POSTED' && !item.processedAt) {
+          item.status = 'LOCAL_ONLY';
+          item.localAppliedAt = item.postedAt || item.createdAt || new Date().toISOString();
+          item.postedAt = null;
+          migrated = true;
+        }
+      });
+      if (migrated) setLpgStore(LPG_STORAGE_KEYS.EVENTS, existingEvents);
     }
     if (!localStorage.getItem(LPG_STORAGE_KEYS.AUDIT_LOGS)) {
       localStorage.setItem(LPG_STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
@@ -87,8 +105,8 @@ function processLpgEvent(eventData, userSession) {
   const existingEvent = events.find(e => e.clientEventId === clientEventId);
   if (existingEvent) {
     return { 
-      success: existingEvent.status === 'POSTED', 
-      message: existingEvent.status === 'POSTED' ? "Transaksi sudah tercatat sebelumnya." : "Transaksi sebelumnya ditolak.",
+      success: isLocallyAppliedLpgEvent(existingEvent),
+      message: isLocallyAppliedLpgEvent(existingEvent) ? "Transaksi sudah tersimpan di perangkat sebelumnya." : "Transaksi sebelumnya ditolak.",
       event: existingEvent 
     };
   }
@@ -135,8 +153,8 @@ function processLpgEvent(eventData, userSession) {
     agentBalance.lastPostedEventAt = new Date().toISOString();
     agentBalance.updatedAt = new Date().toISOString();
     
-    newEvent.status = "POSTED";
-    newEvent.postedAt = new Date().toISOString();
+    newEvent.status = "LOCAL_ONLY";
+    newEvent.localAppliedAt = new Date().toISOString();
   } 
   else if (eventData.type === 'DISTRIBUTION') {
     // Validasi Pangkalan
@@ -186,8 +204,8 @@ function processLpgEvent(eventData, userSession) {
       address: targetPangkalan.address
     };
 
-    newEvent.status = "POSTED";
-    newEvent.postedAt = new Date().toISOString();
+    newEvent.status = "LOCAL_ONLY";
+    newEvent.localAppliedAt = new Date().toISOString();
   }
 
   // C. Simpan Perubahan Mutlak ke Database Ledger
@@ -197,22 +215,17 @@ function processLpgEvent(eventData, userSession) {
   setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
   setLpgStore(LPG_STORAGE_KEYS.EVENTS, events);
 
-  // D. Sinkronisasi ke Cloud Firestore jika online
-  if (typeof db !== 'undefined' && db !== null) {
-    try {
-      db.collection('lpg_events').doc(newEvent.id).set(newEvent, { merge: true }).catch(() => {});
-      db.collection('lpg_balances').doc(eventData.agentId).set(agentBalance, { merge: true }).catch(() => {});
-    } catch(e) {}
-  }
+  // D. Tidak mengirim saldo/event lokal ke cloud. Jalur cloud resmi harus
+  // membuat event PENDING dengan Firebase Auth, lalu diproses Cloud Functions.
 
   // E. Update Summary Dashboard
   refreshLpgDashboardSummary();
 
   return { 
     success: true, 
-    message: newEvent.type === 'STOCK_IN' 
-      ? `Stok masuk sebanyak ${qty.toLocaleString('id-ID')} tabung berhasil dibukukan.` 
-      : `Distribusi ${qty.toLocaleString('id-ID')} tabung ke ${newEvent.pangkalanSnapshot ? newEvent.pangkalanSnapshot.name : 'Pangkalan'} berhasil dibukukan.`,
+    message: newEvent.type === 'STOCK_IN'
+      ? `Stok masuk ${qty.toLocaleString('id-ID')} tabung tersimpan di perangkat.`
+      : `Distribusi ${qty.toLocaleString('id-ID')} tabung tersimpan di perangkat dan belum POSTED server.`,
     event: newEvent,
     currentBalance: agentBalance.filledCylinderBalance
   };
@@ -424,7 +437,7 @@ function refreshLpgDashboardSummary() {
   const reportedAgentIds = new Set();
 
   events.forEach(e => {
-    if (e.status === 'POSTED') {
+    if (isLocallyAppliedLpgEvent(e)) {
       const eDate = (e.effectiveAt || e.createdAt || '').slice(0, 10);
       if (eDate === todayStr) {
         if (e.type === 'STOCK_IN') stockInToday += e.quantity;
@@ -447,7 +460,7 @@ function refreshLpgDashboardSummary() {
   allKecamatan.forEach(kec => {
     const pInKec = activePangkalan.filter(p => p.kecamatan === kec);
     const distInKec = events.filter(e => 
-      e.status === 'POSTED' && 
+      isLocallyAppliedLpgEvent(e) &&
       e.type === 'DISTRIBUTION' && 
       e.pangkalanSnapshot && 
       e.pangkalanSnapshot.kecamatan === kec &&
@@ -475,17 +488,12 @@ function refreshLpgDashboardSummary() {
     agentsReportedToday: reportedAgentIds.size,
     agentsLate: Math.max(0, agents.length - reportedAgentIds.size),
     kecamatanStatus: kecamatanStatus,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    sourceMode: 'LOCAL_PREVIEW',
+    authoritative: false
   };
 
   setLpgStore(LPG_STORAGE_KEYS.DASHBOARD, summary);
-
-  // Sync ke Cloud Firestore
-  if (typeof db !== 'undefined' && db !== null) {
-    try {
-      db.collection('lpg_dashboard').doc('current').set(summary, { merge: true }).catch(() => {});
-    } catch(e) {}
-  }
 
   return summary;
 }
@@ -503,4 +511,5 @@ if (typeof window !== 'undefined') {
   window.refreshLpgDashboardSummary = refreshLpgDashboardSummary;
   window.getLpgStore = getLpgStore;
   window.LPG_STORAGE_KEYS = LPG_STORAGE_KEYS;
+  window.isLocallyAppliedLpgEvent = isLocallyAppliedLpgEvent;
 }
