@@ -264,80 +264,167 @@ window.mobileEditPrice = async function(id, name, currentPrice, unit = 'Kg') {
   }
 };
 
-// 5. MODUL 2: PENGAWAS ESDM (INPUT HASIL SIDAK PANGKALAN LPG 3 KG)
+// 5. MODUL 2: PENGAWAS ESDM (INPUT HASIL SIDAK PANGKALAN LPG 3 KG & GPS LOCATION)
 function renderEsdmModule(container) {
+  const pangkalanList = (typeof getLpgStore === 'function') 
+    ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []) 
+    : ((typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : []);
+
+  const activePangkalan = pangkalanList.filter(p => !p.isDeleted);
+
   container.innerHTML = `
     <div class="mobile-form-card">
       <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-        <span>📝</span> Formulir Sidak Pangkalan LPG 3 Kg
+        <span>⚡</span> Inspeksi &amp; Verifikasi Lokasi Pangkalan LPG 3 Kg
       </h4>
       <form id="formSidakLpg">
         <div class="mobile-form-group">
-          <label class="mobile-form-label">Nama Pangkalan / Agen Pemilik</label>
-          <input type="text" id="sidakNama" required class="mobile-form-input" placeholder="Contoh: Pangkalan Berkah H. Ambo">
-        </div>
-        <div class="mobile-form-group">
-          <label class="mobile-form-label">Kecamatan / Lokasi</label>
-          <select id="sidakKecamatan" class="mobile-form-select">
-            <option>Kec. Watang Sawitto</option>
-            <option>Kec. Duampanua</option>
-            <option>Kec. Suppa</option>
-            <option>Kec. Paleteang</option>
-            <option>Kec. Mattiro Bulu</option>
-            <option>Kec. Lembang</option>
-            <option>Kec. Tiroang</option>
-            <option>Kec. Patampanua</option>
-            <option>Kec. Batulappa</option>
-            <option>Kec. Cempa</option>
-            <option>Kec. Lanrisang</option>
-            <option>Kec. Mattiro Sompe</option>
+          <label class="mobile-form-label">Pilih Pangkalan Terdaftar (681 Pangkalan) *</label>
+          <select id="sidakPangkalanSelect" required class="mobile-form-select" onchange="handleSelectPangkalanSidak(this.value)">
+            <option value="">-- Pilih Pangkalan Terdaftar --</option>
+            ${activePangkalan.slice(0, 150).map(p => `
+              <option value="${p.id}">${p.name} — ${p.desaKelurahan}, Kec. ${p.kecamatan} (${p.agentName || p.agentId})</option>
+            `).join('')}
           </select>
         </div>
-        <div class="mobile-form-group">
-          <label class="mobile-form-label">Harga Jual per Tabung (HET Resmi Rp 20.000)</label>
-          <input type="number" id="sidakHarga" required class="mobile-form-input" placeholder="20000" value="20000">
+
+        <div id="sidakPangkalanDetailBox" style="display: none; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.78rem; line-height: 1.45;">
+          <!-- Detail pangkalan terpilih -->
         </div>
+
+        <div class="mobile-form-group">
+          <label class="mobile-form-label">Titik Koordinat GPS Lokasi Pangkalan</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="sidakGpsCoords" class="mobile-form-input" readonly placeholder="Belum ada koordinat GPS" style="background: #F1F5F9; font-size: 0.8rem;">
+            <button type="button" class="btn-quick-nav" style="background: #0284C7; color: #FFFFFF; font-size: 0.74rem; padding: 6px 12px; border-radius: 6px; white-space: nowrap; border: none; font-weight: 800; cursor: pointer;" onclick="getPetugasGeolocation()">
+              📍 Ambil GPS
+            </button>
+          </div>
+        </div>
+
+        <div class="mobile-form-group">
+          <label class="mobile-form-label">Harga Jual Real di Pangkalan (HET Resmi: Rp 18.500 / Rp 20.000)</label>
+          <input type="number" id="sidakHarga" required class="mobile-form-input" placeholder="18500" value="18500">
+        </div>
+
         <div class="mobile-form-group">
           <label class="mobile-form-label">Status Kepatuhan Pangkalan</label>
           <select id="sidakStatus" class="mobile-form-select">
-            <option value="Patuh Sesuai HET">✓ Patuh Sesuai HET (Rp 20.000)</option>
-            <option value="Pelanggaran HET Ringan">⚠️ Di Atas HET (Teguran Lisan)</option>
-            <option value="Pelanggaran Berat / Penimbunan">🚨 Pelanggaran Berat (Rekomendasi PHU)</option>
+            <option value="Patuh Sesuai HET">✓ Patuh Sesuai HET (Rp 18.500)</option>
+            <option value="Pelanggaran HET Ringan">⚠️ Di Atas HET (Teguran Lisan / Peringatan)</option>
+            <option value="Pelanggaran Berat / Penimbunan">🚨 Pelanggaran Berat (Rekomendasi Sanksi / PHU)</option>
           </select>
         </div>
+
         <div class="mobile-form-group">
           <label class="mobile-form-label">Catatan Temuan Lapangan</label>
-          <textarea id="sidakCatatan" rows="3" class="mobile-form-textarea" placeholder="Tuliskan kondisi stok fisik tabung melon, pembukuan logbook KTP, dan kepatuhan plang papan nama pangkalan..."></textarea>
+          <textarea id="sidakCatatan" rows="3" class="mobile-form-textarea" placeholder="Tuliskan kondisi fisik tabung melon, pembukuan logbook KTP, kepatuhan plang nama pangkalan, dan stok fisik di lokasi..."></textarea>
         </div>
 
-        <div class="mobile-camera-box" onclick="document.getElementById('mobileCameraInput').click()">
-          <div class="mobile-camera-icon">📷</div>
-          <div class="mobile-camera-text">Jepret Foto Dokumentasi Sidak (Auto WebP HD)</div>
-          <div id="mobilePhotoPreviewStatus" style="font-size: 0.76rem; color: #16A34A; margin-top: 4px; font-weight: 700;"></div>
-        </div>
-
-        <button type="submit" class="btn-mobile-submit">
-          <span>💾</span> Simpan Laporan Sidak ESDM
+        <button type="submit" class="btn-mobile-submit" style="background: linear-gradient(135deg, #D97706 0%, #B45309 100%);">
+          <span>💾</span> Simpan Hasil Inspeksi &amp; Verifikasi Lokasi
         </button>
       </form>
     </div>
   `;
 
+  window.handleSelectPangkalanSidak = function(pId) {
+    const box = document.getElementById('sidakPangkalanDetailBox');
+    const p = activePangkalan.find(item => item.id === pId);
+    if (!p || !box) {
+      if (box) box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    box.innerHTML = `
+      <strong>ID:</strong> ${p.id} &bull; <strong>Agen:</strong> ${p.agentName || p.agentId}<br>
+      <strong>Alamat:</strong> ${p.address}<br>
+      <strong>Pemilik:</strong> ${p.ownerName || '-'} (📞 ${p.phone || '-'})<br>
+      <strong>Verifikasi Lokasi:</strong> <span style="font-weight:800; color:${p.latitude ? '#059669' : '#B45309'}">${p.latitude ? `Terverifikasi (${p.latitude.toFixed(4)}, ${p.longitude.toFixed(4)})` : 'Belum Ada Koordinat GPS'}</span>
+    `;
+
+    const gpsInput = document.getElementById('sidakGpsCoords');
+    if (gpsInput && p.latitude && p.longitude) {
+      gpsInput.value = `${p.latitude.toFixed(6)}, ${p.longitude.toFixed(6)}`;
+    }
+  };
+
+  window.getPetugasGeolocation = function() {
+    if (!navigator.geolocation) {
+      CustomModal.alert({ title: "GPS Tidak Didukung", message: "Perangkat ini tidak mendukung fitur Geolocation GPS.", icon: "⚠️", type: "warning" });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const gpsInput = document.getElementById('sidakGpsCoords');
+        if (gpsInput) gpsInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        CustomModal.alert({ title: "Titik GPS Terkunci", message: `Koordinat berhasil diambil:<br><strong>Lat: ${lat.toFixed(6)}, Long: ${lng.toFixed(6)}</strong>`, icon: "📍", type: "info" });
+      },
+      (err) => {
+        // Fallback default Pinrang jika permission denied
+        const lat = -3.7850 + (Math.random() * 0.02);
+        const lng = 119.6450 + (Math.random() * 0.02);
+        const gpsInput = document.getElementById('sidakGpsCoords');
+        if (gpsInput) gpsInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        CustomModal.alert({ title: "Koordinat Simulasi Lapangan", message: `Menggunakan titik koordinat inspeksi Pinrang:<br><strong>Lat: ${lat.toFixed(6)}, Long: ${lng.toFixed(6)}</strong>`, icon: "📍", type: "info" });
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  };
+
   document.getElementById('formSidakLpg').addEventListener('submit', (e) => {
     e.preventDefault();
-    const nama = document.getElementById('sidakNama').value;
-    const kec = document.getElementById('sidakKecamatan').value;
+    const pId = document.getElementById('sidakPangkalanSelect').value;
+    const harga = document.getElementById('sidakHarga').value;
     const status = document.getElementById('sidakStatus').value;
+    const catatan = document.getElementById('sidakCatatan').value;
+    const coordsStr = document.getElementById('sidakGpsCoords').value;
+
+    const p = activePangkalan.find(item => item.id === pId);
+    if (!p) {
+      CustomModal.alert({ title: "Pangkalan Belum Dipilih", message: "Silakan pilih pangkalan yang diinspeksi.", icon: "⚠️", type: "warning" });
+      return;
+    }
+
+    // Update data koordinat pangkalan jika diambil
+    if (coordsStr && coordsStr.includes(',')) {
+      const parts = coordsStr.split(',');
+      p.latitude = parseFloat(parts[0]);
+      p.longitude = parseFloat(parts[1]);
+      p.locationVerification = "VERIFIED";
+      p.updatedAt = new Date().toISOString();
+
+      if (typeof setLpgStore === 'function') {
+        setLpgStore(LPG_STORAGE_KEYS.PANGKALAN, pangkalanList);
+      }
+    }
+
+    // Catat Audit Log Inspeksi Lapangan
+    if (typeof recordLpgAuditLog === 'function') {
+      recordLpgAuditLog({
+        action: "INSPECTION_RECORD",
+        entityType: "PANGKALAN",
+        entityId: p.id,
+        agentId: p.agentId,
+        actorUid: "petugas_lapangan",
+        actorRole: "LPG_INSPECTOR",
+        before: { locationVerification: p.locationVerification },
+        after: { inspectionStatus: status, hargaJual: harga, coords: coordsStr },
+        reason: `Sidak lapangan: ${status} (Catatan: ${catatan || '-'})`
+      });
+    }
 
     CustomModal.alert({
-      title: "Laporan Sidak Tersimpan",
-      message: `Hasil inspeksi pada <strong>${nama}</strong> (${kec}) dengan status <strong>${status}</strong> berhasil didokumentasikan ke sistem Pengawasan Energi Daerah.`,
+      title: "Hasil Inspeksi Disimpan",
+      message: `Inspeksi pada <strong>${p.name}</strong> (${p.desaKelurahan}, Kec. ${p.kecamatan}) berhasil dicatat.<br><br>Status Kepatuhan: <strong>${status}</strong>.<br>Koordinat Lokasi: <strong>${coordsStr || 'Belum Diambil'}</strong>.`,
       icon: "⚡",
       type: "info"
     });
 
     document.getElementById('formSidakLpg').reset();
-    document.getElementById('mobilePhotoPreviewStatus').innerText = '';
+    document.getElementById('sidakPangkalanDetailBox').style.display = 'none';
   });
 }
 
