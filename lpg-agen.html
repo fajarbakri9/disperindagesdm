@@ -514,7 +514,36 @@
       .lpg-agent-code { flex: 0 0 auto !important; width: 48px; min-width: 48px !important; box-sizing: border-box; text-align: center; white-space: nowrap !important; }
     }
     @keyframes lpgNameMarquee { from { transform: translateX(0); } to { transform: translateX(calc(-100% + 160px)); } }
-    @media (prefers-reduced-motion: reduce) { .lpg-agent-name.is-marquee { animation: none; } }  </style>
+    @media (prefers-reduced-motion: reduce) { .lpg-agent-name.is-marquee { animation: none; } }      @media screen and (max-width: 768px) and (orientation: portrait) {
+      html, body { overflow-x: hidden; }
+      .lpg-app-container { width: 100%; max-width: 100%; min-width: 0; }
+      .lpg-topbar { display: flex !important; flex-wrap: nowrap; min-height: 64px; padding: 10px clamp(10px, 3vw, 18px) !important; gap: clamp(6px, 2vw, 14px) !important; }
+      .lpg-brand { flex: 1 1 auto !important; min-width: 0 !important; overflow: hidden; }
+      .lpg-brand img { flex: 0 0 clamp(28px, 8vw, 40px); width: clamp(28px, 8vw, 40px) !important; }
+      .lpg-brand-text { min-width: 0; overflow: hidden; }
+      .lpg-brand-text h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(.68rem, 2.8vw, .92rem) !important; }
+      .lpg-brand-text p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(.5rem, 2vw, .68rem) !important; }
+      .lpg-topbar-actions { flex: 0 0 auto !important; width: auto !important; display: flex !important; gap: clamp(4px, 1.5vw, 8px) !important; }
+      .btn-install-lpg, .btn-logout-lpg { display: inline-flex !important; align-items: center; justify-content: center; gap: 5px; width: auto !important; max-width: none !important; min-height: 38px !important; padding: 8px clamp(7px, 2vw, 13px) !important; font-size: clamp(.58rem, 2.2vw, .78rem) !important; white-space: nowrap; text-align: center; }
+      .btn-install-lpg > span { display: inline-flex; align-items: center; justify-content: center; }
+      .lpg-agent-header-card { width: auto; margin-left: clamp(12px, 4vw, 20px) !important; margin-right: clamp(12px, 4vw, 20px) !important; gap: 8px; }
+      .lpg-agent-profile { min-width: 0; flex: 1 1 auto; }
+      .lpg-agent-copy { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+      .lpg-agent-name-wrap { min-width: 0; overflow: hidden; white-space: nowrap; }
+      .lpg-agent-name { display: inline-block; max-width: none !important; white-space: nowrap; }
+      .lpg-agent-code { flex: 0 0 auto !important; width: 50px; min-width: 50px !important; box-sizing: border-box; padding: 6px 4px !important; text-align: center; white-space: nowrap !important; }
+      .lpg-panel { min-width: 0; padding-left: clamp(12px, 4vw, 18px) !important; padding-right: clamp(12px, 4vw, 18px) !important; }
+      .lpg-actions-wrapper { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(6px, 2vw, 10px); }
+      .btn-lpg-action { min-width: 0; padding-left: 4px; padding-right: 4px; font-size: clamp(.62rem, 2.5vw, .88rem) !important; overflow-wrap: anywhere; }
+      .lpg-dashboard-card, .lpg-stock-hero, #lpgRecentActivityFeed { max-width: 100%; }
+    }
+    @keyframes lpgNameMarquee { from { transform: translateX(0); } to { transform: translateX(calc(-100% + 12rem)); } }
+    @media screen and (max-width: 350px) and (orientation: portrait) {
+      .lpg-brand-text p { display: none !important; }
+      .btn-install-lpg, .btn-logout-lpg { min-width: 34px; padding: 7px !important; font-size: 0 !important; }
+      .btn-install-lpg span:first-child, .btn-logout-lpg::first-letter { font-size: 1rem; }
+      .btn-install-lpg span:last-child { display: none; }
+    }  </style>
 </head>
 <body>
 
@@ -536,8 +565,7 @@
     <div class="lpg-agent-header-card">
       <div class="lpg-agent-profile">
         <div class="lpg-agent-avatar" id="lpgAgentAvatar">AG</div>
-        <div style="min-width:0;">
-          <div class="lpg-agent-name" id="lpgAgentHeaderName">Memuat Agen...</div>
+        <div class="lpg-agent-copy">`n          <div class="lpg-agent-name-wrap"><div class="lpg-agent-name" id="lpgAgentHeaderName">Memuat Agen...</div>
           <div style="font-size:0.7rem;color:#64748B;margin-top:2px;">Penyalur resmi LPG 3 Kg</div>
         </div>
       </div>
