@@ -103,6 +103,14 @@ def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "
             merged.update(validation)
             if validation["verification_status"] == "REJECTED":
                 if validation.get("duplicate_of"):
+                    if (writer and validation.get("duplicate_of") == validation.get("url_hash")
+                            and metadata.get("extractedBy") in {
+                                "jsonld", "opengraph", "twitter_card", "html_fallback"}
+                            and metadata.get("publisher")):
+                        writer.repair_duplicate_publisher(
+                            validation["url_hash"], publisher=metadata["publisher"],
+                            source_name=source["name"],
+                            extraction_method=metadata.get("extractedBy", "unknown"))
                     counters["duplicates"] += 1
                 else:
                     counters["rejected"] += 1

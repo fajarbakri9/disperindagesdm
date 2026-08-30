@@ -183,6 +183,26 @@ class MediaIntelligenceWriter:
                 })
             return "duplicate"
 
+    def repair_duplicate_publisher(self, item_id: str, *, publisher: str,
+                                   source_name: str, extraction_method: str) -> bool:
+        """Replace only a legacy registry-label fallback with direct evidence."""
+        direct_publisher = (publisher or "").strip()
+        if not item_id or not direct_publisher:
+            return False
+        ref = self.db.collection("mi_items").document(item_id)
+        existing = ref.get().to_dict() or {}
+        if (existing.get("publisher") not in {None, "", source_name}
+                or existing.get("publisher") == direct_publisher):
+            return False
+        now = utcnow()
+        ref.update({
+            "publisher": direct_publisher,
+            "extraction_method": extraction_method or "unknown",
+            "verified_at": now,
+            "updated_at": now,
+        })
+        return True
+
     def write_unknown_source_review(self, candidate: dict) -> str:
         """Create one idempotent onboarding review task; never an mi_item."""
         normalized = normalize_url(candidate.get("url", ""))

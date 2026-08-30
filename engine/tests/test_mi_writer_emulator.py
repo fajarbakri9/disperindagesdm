@@ -65,6 +65,9 @@ def test_three_runs_are_idempotent_and_auditable():
     assert writer.write_item(repaired) == "duplicate"
     assert (writer.db.collection("mi_items").document(url_hash).get().to_dict()
             ["publisher"]) == "Publisher Resmi"
+    assert writer.repair_duplicate_publisher(
+        url_hash, publisher="Publisher Lain", source_name="Pilot Source",
+        extraction_method="jsonld") is False
     runs = [writer.db.collection("mi_sync_runs").document(
         f"run-{namespace}-{number}").get().to_dict() for number in range(1, 4)]
     assert [run["status"] for run in runs] == ["SUCCESS"] * 3
