@@ -21,8 +21,8 @@ from config_loader import (
 from discovery import discover_from_source, detect_new_domain
 from extractor import extract_metadata
 from relevance import calculate_relevance, passes_tier_filter, critical_status
-from intelligence import analyze_batch
 from clusterer import find_matching_issue, create_new_issue, update_issue
+from validation import validate_item
 from firestore_writer import (
     get_existing_mention_hashes, save_mention, get_recent_issues,
     save_issue, update_source_health, register_new_source,
@@ -114,7 +114,14 @@ def main(tier_filter: str | None = None, dry_run: bool = False):
     for art in all_candidates[:20]:  # Max 20 per run agar tidak timeout
         meta = extract_metadata(art["url"], rss_entry=art)
         art.update({k: v for k, v in meta.items() if v})  # Merge, prioritas meta
-        enriched.append(art)
+        source = next(item for item in sources if item["id"] == art["source_id"])
+        validation = validate_item(source, art["url"], {**art, **meta})
+        art.update(validation)
+        if validation["verification_status"] == "VERIFIED_DIRECT":
+            enriched.append(art)
+        else:
+            print(f"  [SKIP] {art.get('title', art['url'])[:60]}: "
+                  f"{validation['verification_status']} {validation['verification_notes']}")
         time.sleep(0.5)
 
     # ── 5. Hitung relevance score ─────────────────────────────
@@ -139,8 +146,10 @@ def main(tier_filter: str | None = None, dry_run: bool = False):
     print(f"Lolos filter relevance (>=30): {len(enriched)} artikel")
 
     # ── 6. Intelligence analysis (Gemini) ──────────────────────
-    print("Analisis sentimen & topik via Gemini...")
-    enriched = analyze_batch(enriched, delay=1.5)
+    print("Analisis tone/NLP belum diaktifkan pada fase awal.")
+    for art in enriched:
+        art["tone"] = None
+        art["tone_confidence"] = None
 
     # ── 7. Deduplication & Issue Clustering ────────────────────
     print("Clustering & deduplication...")
@@ -247,9 +256,8 @@ def _print_article(art: dict):
     name  = art.get("source_name", "?")
     title = art.get("title", "")[:60]
     score = art.get("relevanceScore", 0)
-    sent  = art.get("sentiment", {}).get("label", "?")
     issue = art.get("issueId", "new")
-    print(f"  [{tier}] {name}: {title}... | R:{score} | {sent} | issue:{issue}")
+    print(f"  [{tier}] {name}: {title}... | R:{score} | issue:{issue}")
 
 
 if __name__ == "__main__":
