@@ -1,4 +1,4 @@
-"""Read-only onboarding check for the three Media Intelligence pilot sources."""
+"""Read-only onboarding check for every enabled Media Intelligence source."""
 
 from __future__ import annotations
 
@@ -17,7 +17,10 @@ from extractor import extract_metadata  # noqa: E402
 from normalizers import normalize_published_at, normalize_url  # noqa: E402
 
 
-def validate_source(source: dict, sample_size: int = 5) -> dict:
+def validate_source(source: dict, sample_size: int | None = None) -> dict:
+    sample_size = sample_size or int(source.get("verification_sample_count", 5))
+    if not 5 <= sample_size <= 10:
+        raise ValueError(f"{source['id']}: sample onboarding harus 5–10 artikel")
     candidates = discover_from_source(source, set())
     rows = []
     allowed = set(source.get("allowed_domains") or [source["domain"]])

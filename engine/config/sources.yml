@@ -54,3 +54,123 @@
   robots_status: ALLOWED
   parser_version: 1
   max_candidates_per_run: 30
+
+- id: suara_bumi_lasinrang
+  name: Suara Bumi Lasinrang
+  domain: sbl.pinrangkab.go.id
+  allowed_domains:
+    - sbl.pinrangkab.go.id
+  source_class: owned_official
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 1.0
+  discovery:
+    type: rss
+    urls:
+      - https://sbl.pinrangkab.go.id/feed/
+  robots_checked_at: "2026-08-30T13:55:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T13:55:00+08:00"
+  verification_sample_count: 10
+  verification_pass_count: 10
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: antara_makassar
+  name: ANTARA News Makassar
+  domain: makassar.antaranews.com
+  allowed_domains:
+    - makassar.antaranews.com
+  source_class: earned_media
+  priority: normal
+  enabled: true
+  pinrang_specific: false
+  source_weight: 0.9
+  discovery:
+    type: rss
+    urls:
+      - https://makassar.antaranews.com/rss/terkini.xml
+  robots_checked_at: "2026-08-30T13:55:00+08:00"
+  robots_status: NOT_PUBLISHED_ASSUME_ALLOWED
+  robots_http_status: 404
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T13:55:00+08:00"
+  verification_sample_count: 10
+  verification_pass_count: 10
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: tribun_timur
+  name: Tribun Timur
+  domain: makassar.tribunnews.com
+  allowed_domains:
+    - makassar.tribunnews.com
+  source_class: earned_media
+  priority: normal
+  enabled: true
+  pinrang_specific: false
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://makassar.tribunnews.com/rss
+  robots_checked_at: "2026-08-30T13:55:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T13:55:00+08:00"
+  verification_sample_count: 10
+  verification_pass_count: 10
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: rakyat_sulsel_pinrang
+  name: Rakyat Sulsel - Pinrang
+  domain: rakyatsulsel.fajar.co.id
+  allowed_domains:
+    - rakyatsulsel.fajar.co.id
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.9
+  discovery:
+    type: rss
+    urls:
+      - https://rakyatsulsel.fajar.co.id/tag/pinrang/feed/
+  robots_checked_at: "2026-08-30T13:55:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T13:55:00+08:00"
+  verification_sample_count: 10
+  verification_pass_count: 10
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: parepos_pinrang
+  name: Parepos - Pinrang
+  domain: parepos.fajar.co.id
+  allowed_domains:
+    - parepos.fajar.co.id
+  source_class: earned_media
+  priority: normal
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://parepos.fajar.co.id/tag/pinrang/feed/
+  robots_checked_at: "2026-08-30T13:55:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T13:55:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 30

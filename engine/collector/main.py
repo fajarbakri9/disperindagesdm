@@ -25,6 +25,24 @@ def _new_counters() -> dict:
                                 "needs_review")}
 
 
+def round_robin_candidates(grouped: list[list[tuple[dict, dict]]], limit: int = 20):
+    """Berikan slot adil kepada setiap sumber sebelum memenuhi batas global."""
+    result = []
+    depth = 0
+    while len(result) < limit:
+        added = False
+        for group in grouped:
+            if depth < len(group):
+                result.append(group[depth])
+                added = True
+                if len(result) == limit:
+                    return result
+        if not added:
+            break
+        depth += 1
+    return result
+
+
 def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "manual"):
     started = time.time()
     now = datetime.now(timezone.utc)
@@ -47,7 +65,7 @@ def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "
     else:
         existing_urls, existing_content = set(), set()
 
-    candidates: list[tuple[dict, dict]] = []
+    candidates_by_source: list[list[tuple[dict, dict]]] = []
     try:
         for source in sources:
             print(f"[{source.get('priority', 'normal')}] {source['name']}")
@@ -60,7 +78,7 @@ def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "
                     if text and passes_tier_filter(text, source, geo, keywords, keywords_raw):
                         relevant.append(article)
                 cap = int(source.get("max_candidates_per_run", 5))
-                candidates.extend((source, item) for item in relevant[:cap])
+                candidates_by_source.append([(source, item) for item in relevant[:cap]])
                 counters["sources_ok"] += 1
                 if writer:
                     writer.update_source_state(source["id"], success=True,
@@ -73,7 +91,7 @@ def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "
                                                error_code=type(exc).__name__,
                                                error_message=str(exc))
 
-        for source, article in candidates[:20]:
+        for source, article in round_robin_candidates(candidates_by_source, limit=20):
             metadata = extract_metadata(article["url"], rss_entry=article)
             merged = {**article, **{key: value for key, value in metadata.items() if value}}
             validation = validate_item(source, article["url"], merged,

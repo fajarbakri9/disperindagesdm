@@ -27,6 +27,8 @@ def test_three_runs_are_idempotent_and_auditable():
         "allowed_domains": ["example.test"], "source_class": "earned_media",
         "priority": "high", "enabled": True, "parser_version": 1,
         "discovery": {"type": "rss", "urls": ["https://example.test/feed"]},
+        "onboarding_status": "VERIFIED", "verification_sample_count": 5,
+        "verification_pass_count": 5,
     }
     item = {
         "source_id": source_id, "source_name": "Pilot Source",
@@ -41,6 +43,9 @@ def test_three_runs_are_idempotent_and_auditable():
     }
 
     writer.sync_sources([source])
+    stored_source = writer.db.collection("mi_sources").document(source_id).get().to_dict()
+    assert stored_source["onboarding_status"] == "VERIFIED"
+    assert stored_source["verification_pass_count"] == 5
     outcomes = []
     for number in range(1, 4):
         run_id = f"run-{namespace}-{number}"

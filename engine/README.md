@@ -6,7 +6,8 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
 
 ## Status implementasi
 
-- Tiga sumber pilot terverifikasi dari `config/sources.yml`.
+- Delapan sumber terverifikasi dari `config/sources.yml`: tiga pilot dan lima
+  sumber Tahap 10 yang masing-masing lulus 5–10 pemeriksaan artikel asli.
 - Discovery RSS/sitemap, ekstraksi metadata, normalisasi URL dan waktu WITA.
 - Validasi domain/canonical/tanggal serta exact URL/content deduplication.
 - Writer hanya menggunakan collection final `mi_*`.
@@ -82,5 +83,5 @@ mi_public/current
 ```
 
 Hanya `mi_public/current` yang dapat dibaca tanpa login. Semua collection
-internal dilindungi oleh Firestore Security Rules dan tidak dapat ditulis dari
-browser.
+internal dilindungi oleh Firestore Security Rules. Browser hanya dapat melakukan
+aksi review sempit oleh role berwenang dan wajib membuat audit log atomik.
