@@ -9,12 +9,15 @@ Output: list URL baru yang belum ada di Firestore
 """
 from __future__ import annotations
 import hashlib
+import re
 import time
 from urllib.parse import urlparse
 
 import feedparser
 import requests
 from bs4 import BeautifulSoup
+
+from normalizers import normalize_url
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; PinrangIntelBot/1.0)",
@@ -34,6 +37,13 @@ def discover_from_source(source: dict, existing_urls: set[str]) -> list[dict]:
     """
     found = []
     mode  = source.get("monitorMode", "rss")
+    discovery = source.get("discovery") or {}
+    discovery_type = discovery.get("type", mode)
+    discovery_urls = discovery.get("urls") or []
+
+    if discovery_type == "sitemap":
+        for sitemap_url in discovery_urls:
+            found.extend(_parse_sitemap(sitemap_url, source))
 
     # 1. RSS feed
     if "rss" in mode or "direct" in mode or "category" in mode or "tag" in mode:
@@ -67,6 +77,47 @@ def discover_from_source(source: dict, existing_urls: set[str]) -> list[dict]:
     new = [a for a in unique if _url_hash(a["url"]) not in existing_urls]
 
     return new
+
+
+def _parse_sitemap(sitemap_url: str, source: dict) -> list[dict]:
+    """Discover article URLs from a first-party sitemap or sitemap index."""
+    articles = []
+    try:
+        response = requests.get(sitemap_url, headers=HEADERS, timeout=TIMEOUT)
+        if response.status_code != 200:
+            return articles
+        soup = BeautifulSoup(response.content, "xml")
+        nested = [loc.get_text(strip=True) for loc in soup.select("sitemap > loc")]
+        if nested:
+            for child in nested[:5]:
+                articles.extend(_parse_sitemap(child, source))
+            return articles[:source.get("max_candidates_per_run", 30)]
+
+        allowed = set(source.get("allowed_domains") or [source["domain"]])
+        for node in soup.select("url"):
+            loc = node.find("loc")
+            if not loc:
+                continue
+            url = normalize_url(loc.get_text(strip=True))
+            if not url or urlparse(url).hostname not in allowed:
+                continue
+            path = urlparse(url).path
+            if "/berita/" not in path:
+                continue
+            slug = path.rstrip("/").split("/")[-1]
+            title_hint = re.sub(r"[-_]", " ", slug).strip()
+            lastmod = node.find("lastmod")
+            articles.append({
+                "url": url,
+                "title": title_hint,
+                "excerpt": "",
+                "published_at": lastmod.get_text(strip=True) if lastmod else "",
+                "source_id": source["id"],
+            })
+        return articles[:source.get("max_candidates_per_run", 30)]
+    except Exception as exc:
+        print(f"[SITEMAP ERROR] {source['name']}: {exc}")
+        return articles
 
 
 # ────────────────────────────────────────────────────────────
@@ -226,10 +277,6 @@ def detect_new_domain(url: str, known_domains: set[str]) -> str | None:
 # ────────────────────────────────────────────────────────────
 #  UTILS
 # ────────────────────────────────────────────────────────────
-
-import re
-
-from normalizers import normalize_url
 
 def _normalize_url(url: str) -> str:
     return normalize_url(url)

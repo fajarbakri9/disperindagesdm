@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 
+import yaml
+
 CONFIG_DIR = Path(__file__).parent.parent / "config"
 
 _cache = {}
@@ -22,13 +24,36 @@ def _load_json(filename: str) -> dict | list:
 
 def get_sources(tier: str | None = None, enabled_only: bool = True) -> list[dict]:
     """Kembalikan daftar sumber, opsional filter berdasarkan tier."""
-    sources = _load_json("source_registry.json")
+    source_file = CONFIG_DIR / "sources.yml"
+    if source_file.exists():
+        with open(source_file, encoding="utf-8") as f:
+            sources = yaml.safe_load(f) or []
+        sources = [_with_legacy_source_aliases(item) for item in sources]
+    else:
+        sources = _load_json("source_registry.json")
     if enabled_only:
         sources = [s for s in sources if s.get("enabled", True)]
     if tier:
         tiers = [t.strip() for t in tier.split(",")]
         sources = [s for s in sources if s.get("tier") in tiers]
     return sources
+
+
+def _with_legacy_source_aliases(source: dict) -> dict:
+    """Bridge the final source schema to existing collector adapters."""
+    item = dict(source)
+    discovery = item.get("discovery") or {}
+    urls = discovery.get("urls") or []
+    discovery_type = discovery.get("type", "rss")
+    item["tier"] = item.get("tier", "A+")
+    item["pinrangSpecific"] = bool(item.get("pinrang_specific", False))
+    item["sourceWeight"] = float(item.get("source_weight", 0.75))
+    item["monitorMode"] = discovery_type
+    if discovery_type == "rss":
+        item["rssUrl"] = urls[0] if urls else None
+    elif discovery_type in {"listing", "tag"}:
+        item["tagUrl"] = urls[0] if urls else None
+    return item
 
 
 def get_keywords() -> list[dict]:

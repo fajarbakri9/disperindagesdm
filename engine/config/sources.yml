@@ -1,0 +1,56 @@
+- id: disperindag_pinrang
+  name: Disperindag ESDM Kabupaten Pinrang
+  domain: disperindagesdm-pinrang.web.app
+  allowed_domains:
+    - disperindagesdm-pinrang.web.app
+  source_class: owned_official
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 1.0
+  discovery:
+    type: sitemap
+    urls:
+      - https://disperindagesdm-pinrang.web.app/sitemap.xml
+  robots_checked_at: "2026-08-30T13:12:00+08:00"
+  robots_status: ALLOWED
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: harian_fajar_pinrang
+  name: Harian Fajar - Pinrang
+  domain: harian.fajar.co.id
+  allowed_domains:
+    - harian.fajar.co.id
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: false
+  source_weight: 0.9
+  discovery:
+    type: rss
+    urls:
+      - https://harian.fajar.co.id/category/pinrang/feed/
+  robots_checked_at: "2026-08-30T13:12:00+08:00"
+  robots_status: ALLOWED
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: pinrang_terkini
+  name: Pinrang Terkini
+  domain: pinrang.terkini.id
+  allowed_domains:
+    - pinrang.terkini.id
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://pinrang.terkini.id/feed/
+  robots_checked_at: "2026-08-30T13:12:00+08:00"
+  robots_status: ALLOWED
+  parser_version: 1
+  max_candidates_per_run: 30
