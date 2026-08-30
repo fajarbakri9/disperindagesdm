@@ -10,7 +10,8 @@ NOW = datetime(2026, 8, 30, 5, 0, tzinfo=timezone.utc)
 def valid_meta(index=1):
     return {"title": f"Distribusi LPG Pinrang {index}", "excerpt": f"Laporan pangkalan nomor {index}",
             "canonical": f"https://portal.id/berita/{index}",
-            "publishedAt": "2026-08-30T12:00:00+08:00"}
+            "publishedAt": "2026-08-30T12:00:00+08:00",
+            "publisher": "Portal Pinrang", "extractedBy": "jsonld"}
 
 
 def test_dataset_20_relevant_items_are_verified():
@@ -57,3 +58,11 @@ def test_rss_fallback_is_not_mislabeled_as_direct_verification():
     result = validate_item(SOURCE, "https://portal.id/berita/1", meta, now=NOW)
     assert result["verification_status"] == "VERIFIED_FEED"
     assert result["extraction_method"] == "rss_fallback"
+
+
+def test_direct_page_without_publisher_needs_review():
+    meta = valid_meta()
+    meta["publisher"] = ""
+    result = validate_item(SOURCE, "https://portal.id/berita/1", meta, now=NOW)
+    assert result["verification_status"] == "NEEDS_REVIEW"
+    assert "PUBLISHER_MISSING" in result["verification_notes"]

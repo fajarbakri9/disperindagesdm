@@ -165,6 +165,22 @@ class MediaIntelligenceWriter:
             self.db.collection("mi_items").document(doc_id).create(payload)
             return "new"
         except AlreadyExists:
+            # Repair only a legacy publisher fallback when a later direct
+            # extraction provides stronger evidence. Article identity and
+            # historical content remain unchanged.
+            ref = self.db.collection("mi_items").document(doc_id)
+            existing = ref.get().to_dict() or {}
+            direct_publisher = (item.get("publisher") or "").strip()
+            if (item.get("verification_status") == "VERIFIED_DIRECT"
+                    and direct_publisher
+                    and existing.get("publisher") in {None, "", item.get("source_name", "")}
+                    and existing.get("publisher") != direct_publisher):
+                ref.update({
+                    "publisher": direct_publisher,
+                    "extraction_method": item.get("extraction_method", "unknown"),
+                    "verified_at": now,
+                    "updated_at": now,
+                })
             return "duplicate"
 
     def write_unknown_source_review(self, candidate: dict) -> str:

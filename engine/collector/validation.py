@@ -38,6 +38,10 @@ def validate_item(source: dict, discovered_url: str, metadata: dict, *,
         errors.append("CANONICAL_DOMAIN_NOT_ALLOWED")
     if not title:
         errors.append("TITLE_MISSING")
+    if (metadata.get("extractedBy") in {
+            "jsonld", "opengraph", "twitter_card", "html_fallback"}
+            and not (metadata.get("publisher") or "").strip()):
+        errors.append("PUBLISHER_MISSING")
     if not published_raw:
         errors.append("DATE_MISSING")
     elif published_at is None:
