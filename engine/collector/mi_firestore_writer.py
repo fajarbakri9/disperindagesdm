@@ -256,7 +256,9 @@ class MediaIntelligenceWriter:
         for doc in self.db.collection("mi_items").limit(limit).stream():
             item = doc.to_dict()
             if (item.get("verification_status") == "VERIFIED_DIRECT"
-                    and not item.get("story_cluster_id")):
+                    and not item.get("story_cluster_id")
+                    and item.get("source_id") and item.get("title")
+                    and item.get("published_at")):
                 self.assign_story_and_issue(doc.id)
                 processed += 1
         return processed

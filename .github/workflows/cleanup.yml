@@ -1,0 +1,55 @@
+name: Media Intelligence Cleanup
+
+on:
+  schedule:
+    - cron: "25 18 1 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Hanya tampilkan kandidat tanpa menghapus"
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: media-intelligence-cleanup-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  cleanup:
+    if: vars.MI_WIF_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GOOGLE_CLOUD_PROJECT: ${{ vars.GCP_PROJECT_ID }}
+      PYTHONPATH: engine
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: engine/collector/requirements.txt
+
+      - name: Authenticate through restricted WIF
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_MI_SERVICE_ACCOUNT }}
+
+      - name: Install pinned dependencies
+        run: pip install -r engine/collector/requirements.txt
+
+      - name: Dry-run retention plan
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: python engine/operations/cleanup_firestore.py
+
+      - name: Apply bounded retention cleanup
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+        run: python engine/operations/cleanup_firestore.py --apply

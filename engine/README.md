@@ -30,6 +30,9 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
 - Command Center Tahap 13 membaca tepat satu dokumen `mi_public/current` dan
   menampilkan mentions 24 jam, unique stories, critical issues, last sync,
   serta status dari snapshot yang sama.
+- Tahap 14 menyediakan cleanup bulanan yang bounded/dry-run-first, backup metadata
+  mingguan JSON.GZ dengan checksum dan artifact privat 30 hari, serta runbook
+  `docs/OPERATIONS.md`. Kedua scheduler tetap gated sampai WIF diaktifkan.
 - Halaman produksi tetap menampilkan status offline sampai `mi_public/current`
   diterbitkan oleh tahap snapshot yang teruji.
 
