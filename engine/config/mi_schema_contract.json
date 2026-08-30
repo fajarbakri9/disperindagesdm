@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "collections": [
+    "mi_sources",
+    "mi_source_state",
+    "mi_items",
+    "mi_story_clusters",
+    "mi_issues",
+    "mi_review_tasks",
+    "mi_sync_runs",
+    "mi_daily_metrics",
+    "mi_audit_logs",
+    "mi_public"
+  ],
+  "public_snapshot": {
+    "collection": "mi_public",
+    "document": "current",
+    "required_fields": [
+      "schema_version",
+      "generated_at",
+      "sync_run_id",
+      "system_status",
+      "last_run_at",
+      "last_data_update_at",
+      "last_full_success_at",
+      "source_health",
+      "kpis",
+      "top_stories",
+      "top_issues",
+      "latest_items",
+      "trend_7d"
+    ],
+    "limits": {
+      "latest_items": 30,
+      "top_stories": 10,
+      "top_issues": 10,
+      "trend_7d": 7
+    }
+  }
+}

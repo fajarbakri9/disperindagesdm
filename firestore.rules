@@ -22,6 +22,14 @@ service cloud.firestore {
         currentUserProfile().role == 'SUPER_ADMIN';
     }
 
+    function isMediaIntelligenceAdmin() {
+      return signedIn() && currentUserProfile().status == 'ACTIVE' &&
+        currentUserProfile().role in [
+          'SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'PUBLIC_RELATIONS_EDITOR',
+          'INDUSTRY_ESDM_EDITOR'
+        ];
+    }
+
     function ownsLpgAgent(agentId) {
       return signedIn() && currentUserProfile().status == 'ACTIVE' &&
         currentUserProfile().agentId != null && currentUserProfile().agentId == agentId;
@@ -89,54 +97,66 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Koleksi Internal Media Intelligence: Tertutup 100% dari akses klien/publik
+    // Koleksi internal: read-only untuk admin terautentikasi. Semua write
+    // browser ditolak; crawler memakai Admin SDK dengan IAM/WIF.
+    match /mi_sources/{sourceId} {
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
+    }
     match /mi_items/{itemId} {
-      allow read, write: if false;
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
     }
     match /mi_source_state/{sourceId} {
-      allow read, write: if false;
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
     }
     match /mi_sync_runs/{runId} {
-      allow read, write: if false;
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
     }
     match /mi_story_clusters/{clusterId} {
-      allow read, write: if false;
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
     }
     match /mi_issues/{issueId} {
-      allow read, write: if false;
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
     }
-    match /mi_review_queue/{queueId} {
-      allow read, write: if false;
+    match /mi_review_tasks/{taskId} {
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
+    }
+    match /mi_daily_metrics/{metricId} {
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
+    }
+    match /mi_audit_logs/{logId} {
+      allow read: if isMediaIntelligenceAdmin();
+      allow write: if false;
     }
 
     // Legacy fallback collections (deprecated)
     match /media_intelligence_feeds/{docId} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if false;
     }
     match /media_intelligence_summary/{docId} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if false;
     }
     match /media_intelligence_trending/{docId} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if false;
     }
     match /dashboard_snapshot/{docId} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if false;
     }
     match /dashboard/{docId} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if false;
     }
     match /config/{document=**} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if false;
     }
     match /mentions/{docId} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if false;
     }
     match /issues/{docId} {
       allow read: if true;
