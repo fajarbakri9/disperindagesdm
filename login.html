@@ -54,13 +54,21 @@
       color: #FFFFFF;
       border-bottom: 2px solid var(--accent-gold);
     }
-    .login-header-banner img {
+    .login-header-banner img { display: block; margin-left: auto; margin-right: auto;
       width: 64px;
       height: auto;
       margin-bottom: 12px;
       filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
     }
-  </style>
+    @media screen and (max-width: 768px) and (orientation: portrait) {
+      .login-container-wrapper { padding: 16px 12px; align-items: flex-start; }
+      .login-box-card { max-width: 420px; margin-top: 4vh; border-width: 1px; border-radius: 18px; }
+      .login-header-banner { padding: 24px 18px 22px; }
+      .login-header-banner img { display: block; margin-left: auto; margin-right: auto; width: 58px; margin-bottom: 9px; }
+      .login-box-card > div[style*="padding: 32px"] { padding: 24px 18px !important; }
+      #systemLoginForm { gap: 15px !important; }
+      .login-box-card input.form-input { min-height: 44px; box-sizing: border-box; }
+    }  </style>
 </head>
 <body>
 

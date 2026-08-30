@@ -391,8 +391,39 @@
     .activity-feed-icon { display:grid; place-items:center; flex:0 0 37px; width:37px; height:37px; border-radius:50%; font-size:.9rem; }
     .activity-feed-body { flex:1; min-width:0; }
     .activity-feed-amount { font-size:.9rem; font-weight:900; white-space:nowrap; }
+    .lpg-dashboard-card { padding:14px; border:1px solid #E2E8F0; border-radius:20px; background:#FFF; box-shadow:0 8px 24px rgba(15,23,42,.055); }
+    .lpg-dashboard-card + .lpg-dashboard-card { margin-top:12px; }
+    .lpg-composer-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .lpg-composer-icon { display:grid; place-items:center; width:38px; height:38px; flex:0 0 38px; border-radius:50%; background:linear-gradient(145deg,#DBEAFE,#EFF6FF); color:#1D4ED8; }
+    .lpg-composer-copy strong { display:block; font-size:.86rem; color:#0F172A; }
+    .lpg-composer-copy span { display:block; margin-top:2px; font-size:.69rem; color:#64748B; }
+    .lpg-sync-dot { display:inline-block; width:7px; height:7px; margin-right:5px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px rgba(16,185,129,.12); }
+    .lpg-feed-view-all { width:100%; padding:10px; border:0; border-top:1px solid #F1F5F9; background:#FFF; color:#1D4ED8; font-size:.72rem; font-weight:800; cursor:pointer; }
+    .lpg-feed-view-all:hover { background:#F8FAFC; }
+    .btn-lpg-action:focus-visible,.lpg-tab-btn:focus-visible,.lpg-feed-view-all:focus-visible { outline:3px solid rgba(37,99,235,.25); outline-offset:2px; }
+    .btn-lpg-action:hover { filter:brightness(1.03); transform:translateY(-1px); }
+    .lpg-panel.active { animation:lpgPanelIn .18s ease-out; }
+    @keyframes lpgPanelIn { from{opacity:.5;transform:translateY(3px)} to{opacity:1;transform:none} }
+    @media (prefers-reduced-motion:reduce) { .lpg-panel.active{animation:none}.btn-lpg-action{transition:none} }
     @media (max-width:390px) { .lpg-brand-text p{display:none}.btn-install-lpg{font-size:0;width:34px}.btn-install-lpg::after{content:"↓";font-size:1rem}.lpg-actions-wrapper{gap:6px}.btn-lpg-action{font-size:.66rem}.lpg-mini-date{display:none!important} }
-  </style>
+    @media screen and (max-width: 768px) and (orientation: portrait) {
+      .lpg-topbar { padding: 12px; gap: 8px; }
+      .lpg-brand { min-width: 0; flex: 1 1 auto; gap: 8px; }
+      .lpg-brand img { width: 32px; flex: 0 0 32px; }
+      .lpg-brand-text { min-width: 0; }
+      .lpg-brand-text h1 { font-size: .78rem; line-height: 1.15; }
+      .lpg-brand-text p { font-size: .58rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .lpg-topbar-actions { flex: 0 0 auto; gap: 5px !important; }
+      .btn-install-lpg, .btn-logout-lpg { min-height: 36px !important; padding: 7px 9px !important; border-radius: 8px !important; font-size: .62rem !important; line-height: 1.1; white-space: nowrap; }
+      .btn-install-lpg { max-width: 68px; }
+      .btn-logout-lpg { max-width: 48px; font-size: 0 !important; }
+      .btn-logout-lpg::after { content: 'Keluar'; font-size: .62rem; }
+    }
+    @media screen and (max-width: 360px) and (orientation: portrait) {
+      .lpg-brand-text p { display: none; }
+      .btn-install-lpg { font-size: 0 !important; width: 36px; padding: 7px !important; }
+      .btn-install-lpg::after { content: '↓'; font-size: 1rem; }
+    }  </style>
 </head>
 <body>
 
@@ -439,6 +470,7 @@
     <div class="lpg-panel active" id="panelDashboard">
       
       <!-- HERO SALDO TERHITUNG -->
+      <section class="lpg-dashboard-card" aria-label="Ringkasan stok dan aktivitas hari ini">
       <div class="lpg-stock-hero" id="lpgStockHero">
         <div class="lpg-stock-label">Saldo Stok Terhitung Saat Ini</div>
         <div class="lpg-stock-val" id="lpgCurrentStockVal">0</div>
@@ -457,8 +489,14 @@
           <div class="lpg-today-num num-out" id="lpgTodayDistributed">-0</div>
         </div>
       </div>
+      </section>
 
       <!-- TOMBOL AKSI UTAMA -->
+      <section class="lpg-dashboard-card" aria-label="Aksi cepat operasional">
+      <div class="lpg-composer-head">
+        <div class="lpg-composer-icon" aria-hidden="true">✍</div>
+        <div class="lpg-composer-copy"><strong>Apa yang ingin dicatat?</strong><span>Pilih aktivitas, isi singkat, lalu kirim.</span></div>
+      </div>
       <div class="lpg-actions-wrapper">
         <button type="button" class="btn-lpg-action btn-stock-in" onclick="openModalStockIn()">
           <span>➕</span> Input Stok Masuk (DO)
@@ -468,14 +506,16 @@
         </button>
         <button type="button" class="btn-lpg-action btn-pangkalan" onclick="switchLpgTab('pangkalan')"><span>🏪</span> Kelola Pangkalan</button>
       </div>
+      </section>
 
       <!-- AKTIVITAS TERAKHIR -->
-      <div class="lpg-feed-section">
-        <div class="lpg-section-heading"><strong>Aktivitas terbaru</strong><span>Feed operasional</span></div>
+      <section class="lpg-feed-section lpg-dashboard-card">
+        <div class="lpg-section-heading"><strong>Aktivitas terbaru</strong><span><i class="lpg-sync-dot"></i><span id="lpgFeedSyncLabel">Diperbarui otomatis</span></span></div>
         <div id="lpgRecentActivityFeed" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 14px;">
           <div style="font-size: 0.76rem; color: #94A3B8; padding: 10px 0; text-align: center;">Belum ada aktivitas transaksi.</div>
         </div>
-      </div>
+        <button type="button" class="lpg-feed-view-all" onclick="switchLpgTab('riwayat')">Lihat semua riwayat →</button>
+      </section>
 
     </div>
 
@@ -676,6 +716,6 @@
   <script src="js/lpg-engine.js?v=20260830_lpg_alerts_v4"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
-  <script src="js/lpg-agen.js?v=20260830_lpg_social_v6"></script>
+  <script src="js/lpg-agen.js?v=20260830_lpg_social_v7"></script>
 </body>
 </html>

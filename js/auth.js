@@ -457,9 +457,12 @@ async function authenticateFirebaseUser(email, password) {
     const friendly = {
       'auth/invalid-credential': 'Email atau kata sandi Firebase tidak sesuai.',
       'auth/user-disabled': 'Akun Firebase telah dinonaktifkan.',
-      'auth/too-many-requests': 'Terlalu banyak percobaan login. Silakan coba beberapa saat lagi.'
+      'auth/too-many-requests': 'Terlalu banyak percobaan login. Silakan coba beberapa saat lagi.',
+      'auth/network-request-failed': 'Koneksi ke layanan login gagal. Periksa internet atau domain Firebase.',
+      'auth/operation-not-allowed': 'Metode login Email/Password belum diaktifkan di Firebase.',
+      'auth/invalid-api-key': 'Konfigurasi Firebase tidak valid. Hubungi administrator.'
     };
-    return { success: false, message: friendly[error.code] || 'Login Firebase gagal. Periksa koneksi dan kredensial Anda.' };
+    return { success: false, message: friendly[error.code] || (error.code === 'permission-denied' ? 'Login berhasil, tetapi profil akses tidak dapat dibaca. Periksa aturan akses Firebase.' : 'Login Firebase gagal. Periksa koneksi dan kredensial Anda.') };
   }
 }
 
