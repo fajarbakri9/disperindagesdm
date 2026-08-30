@@ -1,6 +1,6 @@
 # Otomatisasi Berita dan Open Graph Tanpa PC Aktif
 
-Workflow `.github/workflows/sync-news-og.yml` berjalan setiap 10 menit dan juga dapat dijalankan manual dari GitHub. Workflow mengambil berita `published` dari Firestore, membangun HTML statis/OG/JSON-LD/sitemap, lalu melakukan deploy Hosting.
+Workflow `.github/workflows/sync-news-og.yml` berjalan enam kali sehari dan juga dapat dijalankan manual dari GitHub. Workflow mengambil berita `published` dari Firestore, membangun HTML statis/OG/JSON-LD/sitemap, lalu melakukan deploy Hosting. Frekuensi ini sengaja dibatasi agar penggunaan Firestore, Hosting, dan GitHub Actions tetap konservatif pada kuota gratis.
 
 ## Konfigurasi satu kali
 
@@ -15,7 +15,7 @@ Workflow tidak menerima JSON service-account key. Jangan membuat atau menyimpan 
 
 1. Editor membuka CMS dari PC atau HP dan menerbitkan berita.
 2. Berita langsung tersedia melalui Firestore reader.
-3. Maksimal sekitar 10 menit kemudian, GitHub Actions memperbarui halaman statis dan metadata sosial.
+3. Pada jadwal sinkronisasi berikutnya, GitHub Actions memperbarui halaman statis dan metadata sosial.
 4. Untuk kebutuhan mendesak, operator dapat menekan **Run workflow** melalui aplikasi atau situs GitHub.
 
 ## Batas gambar

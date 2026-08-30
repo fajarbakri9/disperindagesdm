@@ -25,6 +25,12 @@ def test_crawl_schedule_is_six_times_daily_in_wita():
     assert "--ignore=engine/tests/test_mi_writer_emulator.py" in text
 
 
+def test_legacy_news_sync_is_bounded_to_six_runs_daily():
+    text = (ROOT / ".github" / "workflows" / "sync-news-og.yml").read_text(encoding="utf-8")
+    assert 'cron: "27 2,6,10,14,18,22 * * *"' in text
+    assert 'cron: "*/10 * * * *"' not in text
+
+
 def test_backup_is_private_short_retention_artifact():
     text = (ROOT / ".github" / "workflows" / "backup.yml").read_text(encoding="utf-8")
     assert "actions/upload-artifact@v4" in text
