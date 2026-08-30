@@ -148,6 +148,7 @@ class MediaIntelligenceWriter:
             "fetched_at": item.get("fetched_at") or now, "verified_at": now,
             "verification_status": item.get("verification_status", "VERIFIED_DIRECT"),
             "verification_notes": item.get("verification_notes", []),
+            "extraction_method": item.get("extraction_method", "unknown"),
             "topic_ids": item.get("matchedClusters", []),
             "district_ids": item.get("matchedGeo", []),
             "relevance_score": int(item.get("relevanceScore", 0)),

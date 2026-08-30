@@ -49,3 +49,11 @@ def test_rss_published_at_provenance_is_accepted():
     result = validate_item(SOURCE, "https://portal.id/berita/1", meta, now=NOW)
     assert result["verification_status"] == "VERIFIED_DIRECT"
     assert result["published_at_source"] == "2026-08-30T12:00:00+08:00"
+
+
+def test_rss_fallback_is_not_mislabeled_as_direct_verification():
+    meta = valid_meta()
+    meta["extractedBy"] = "rss_fallback"
+    result = validate_item(SOURCE, "https://portal.id/berita/1", meta, now=NOW)
+    assert result["verification_status"] == "VERIFIED_FEED"
+    assert result["extraction_method"] == "rss_fallback"

@@ -57,10 +57,13 @@ def validate_item(source: dict, discovered_url: str, metadata: dict, *,
                     "CANONICAL_DOMAIN_NOT_ALLOWED", "EXACT_URL_DUPLICATE",
                     "EXACT_CONTENT_DUPLICATE"}
     status = "REJECTED" if any(code in reject_codes for code in errors) else (
-        "NEEDS_REVIEW" if errors else "VERIFIED_DIRECT"
+        "NEEDS_REVIEW" if errors else
+        "VERIFIED_FEED" if metadata.get("extractedBy") == "rss_fallback" else
+        "VERIFIED_DIRECT"
     )
     return {"verification_status": status, "verification_notes": errors,
             "normalized_url": normalized_url, "canonical_url": canonical_url,
             "published_at": published_at, "published_at_source": published_raw,
             "content_hash": fingerprint, "url_hash": url_key,
-            "duplicate_of": duplicate_of}
+            "duplicate_of": duplicate_of,
+            "extraction_method": metadata.get("extractedBy") or "unknown"}

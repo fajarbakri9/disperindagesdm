@@ -26,6 +26,10 @@ HEADERS = {
 TIMEOUT = 15
 
 
+class DiscoveryError(RuntimeError):
+    """Failure that must be reflected in source health, not converted to zero items."""
+
+
 # ────────────────────────────────────────────────────────────
 #  ENTRY POINT: Discover artikel dari satu sumber
 # ────────────────────────────────────────────────────────────
@@ -85,7 +89,7 @@ def _parse_sitemap(sitemap_url: str, source: dict) -> list[dict]:
     try:
         response = requests.get(sitemap_url, headers=HEADERS, timeout=TIMEOUT)
         if response.status_code != 200:
-            return articles
+            raise DiscoveryError(f"Sitemap HTTP {response.status_code}: {sitemap_url}")
         soup = BeautifulSoup(response.content, "xml")
         nested = [loc.get_text(strip=True) for loc in soup.select("sitemap > loc")]
         if nested:
@@ -115,9 +119,10 @@ def _parse_sitemap(sitemap_url: str, source: dict) -> list[dict]:
                 "source_id": source["id"],
             })
         return articles[:source.get("max_candidates_per_run", 30)]
+    except DiscoveryError:
+        raise
     except Exception as exc:
-        print(f"[SITEMAP ERROR] {source['name']}: {exc}")
-        return articles
+        raise DiscoveryError(f"Sitemap gagal: {type(exc).__name__}") from exc
 
 
 # ────────────────────────────────────────────────────────────
@@ -129,7 +134,7 @@ def _parse_rss(rss_url: str, source: dict) -> list[dict]:
     try:
         feed = feedparser.parse(rss_url, request_headers=HEADERS)
         if feed.bozo and not feed.entries:
-            return articles
+            raise DiscoveryError(f"RSS tidak dapat dibaca: {rss_url}")
 
         for entry in feed.entries[:30]:
             url = _get_url_from_entry(entry)
@@ -156,8 +161,10 @@ def _parse_rss(rss_url: str, source: dict) -> list[dict]:
                 "enclosure_url": enclosure_url,
                 "source_id":     source["id"],
             })
-    except Exception as e:
-        print(f"[RSS ERROR] {source['name']}: {e}")
+    except DiscoveryError:
+        raise
+    except Exception as exc:
+        raise DiscoveryError(f"RSS gagal: {type(exc).__name__}") from exc
     return articles
 
 
@@ -179,7 +186,7 @@ def _scrape_links(page_url: str, source: dict) -> list[dict]:
     try:
         resp = requests.get(page_url, headers=HEADERS, timeout=TIMEOUT)
         if resp.status_code != 200:
-            return articles
+            raise DiscoveryError(f"Halaman discovery HTTP {resp.status_code}: {page_url}")
         soup = BeautifulSoup(resp.text, "lxml")
         domain = source["domain"]
 
@@ -201,8 +208,12 @@ def _scrape_links(page_url: str, source: dict) -> list[dict]:
                 "published_at": "",
                 "source_id":    source["id"],
             })
-    except Exception as e:
-        print(f"[SCRAPE ERROR] {source['name']}: {e}")
+        if not articles:
+            raise DiscoveryError(f"Markup discovery tidak menghasilkan tautan artikel: {page_url}")
+    except DiscoveryError:
+        raise
+    except Exception as exc:
+        raise DiscoveryError(f"Scrape gagal: {type(exc).__name__}") from exc
     return articles[:20]
 
 
