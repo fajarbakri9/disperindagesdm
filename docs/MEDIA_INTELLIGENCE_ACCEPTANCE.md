@@ -31,7 +31,7 @@ Hasil:
 
 - halaman selesai dimuat;
 - lebar viewport benar dan tidak ada overflow horizontal;
-- snapshot production dirender (8 kartu berita);
+- snapshot production dirender dari dokumen publik Firestore yang dibatasi maksimal 30 kartu;
 - indikator `DATA AKTUAL FRESH` tampil;
 - fungsi toggle tema tersedia;
 - dark mode aktif dengan warna latar dan teks yang sesuai;
@@ -47,11 +47,11 @@ node engine/scripts/browser_acceptance.mjs "https://disperindagesdm-pinrang.web.
 
 Status: **BELUM MEMENUHI CUTOVER**
 
-Dari 8 artikel pada snapshot, audit otomatis ketat menghasilkan **4/8 lulus**:
+Audit production terbaru menghasilkan **9/12 lulus**:
 
-- 4 artikel cocok langsung untuk URL, judul, publisher, dan tanggal;
-- 2 artikel Harian Fajar cocok untuk URL, judul, dan tanggal, tetapi halaman asal tidak menyediakan metadata publisher yang dapat diverifikasi ulang;
-- 2 artikel Pinrang Terkini tidak dapat diekstrak ulang dari halaman asal saat audit dan hanya boleh diperlakukan sebagai bukti feed sampai tersedia bukti langsung.
+- 9 artikel cocok langsung untuk URL, judul, publisher, tanggal, dan metode ekstraksi;
+- 1 artikel legacy Harian Fajar masih menunggu koreksi publisher berbasis bukti halaman asli;
+- 2 artikel Pinrang Terkini tidak dapat diekstrak ulang secara lengkap dari halaman asal saat audit dan tidak boleh dipaksa menjadi bukti langsung.
 
 Syarat final tetap 30 artikel dengan empat field cocok 100%. Kekurangan bukti tidak boleh diisi dengan asumsi atau data buatan.
 
