@@ -199,3 +199,127 @@
   verification_pass_count: 5
   parser_version: 1
   max_candidates_per_run: 30
+
+- id: mata_lasinrang
+  name: Mata Lasinrang
+  domain: matalasinrang.com
+  allowed_domains:
+    - matalasinrang.com
+    - www.matalasinrang.com
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.9
+  discovery:
+    type: rss
+    urls:
+      - https://www.matalasinrang.com/tag/pinrang/feed/
+  robots_checked_at: "2026-08-30T19:50:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T19:50:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: supala_media
+  name: Supala Media
+  domain: supalamedia.id
+  allowed_domains:
+    - supalamedia.id
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://supalamedia.id/feed/
+  robots_checked_at: "2026-08-30T19:50:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T19:50:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: pijar_news_pinrang
+  name: Pijar News - Pinrang
+  domain: pijarnews.com
+  allowed_domains:
+    - pijarnews.com
+    - www.pijarnews.com
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.9
+  discovery:
+    type: rss
+    urls:
+      - https://pijarnews.com/tag/pinrang/feed/
+  robots_checked_at: "2026-08-30T19:50:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T19:50:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: sahabat_news_pinrang
+  name: Sahabat News - Pinrang
+  domain: sahabatnews.net
+  allowed_domains:
+    - sahabatnews.net
+    - www.sahabatnews.net
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://www.sahabatnews.net/feeds/posts/default?alt=rss
+  robots_checked_at: "2026-08-30T19:50:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T19:50:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 30
+
+- id: berita_online_pinrang
+  name: Berita-Online - Pinrang
+  domain: berita-online.com
+  allowed_domains:
+    - berita-online.com
+    - www.berita-online.com
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://berita-online.com/category/pinrang/feed/
+  robots_checked_at: "2026-08-30T19:50:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T19:50:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 30
