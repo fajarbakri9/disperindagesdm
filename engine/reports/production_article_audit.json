@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "audited_at": "2026-08-30T11:20:14.819569+00:00",
-  "snapshot_sync_run_id": "20260830T111328Z-cbdc0886",
-  "snapshot_last_run_at": "2026-08-30T11:14:32.692683Z",
+  "audited_at": "2026-08-30T11:29:37.806024+00:00",
+  "snapshot_sync_run_id": "20260830T112812Z-2f5d2f30",
+  "snapshot_last_run_at": "2026-08-30T11:29:11.097401Z",
   "required_articles": 30,
   "sampled_articles": 8,
   "passed_articles": 4,
