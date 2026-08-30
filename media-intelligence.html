@@ -801,7 +801,6 @@
           <button type="button" class="feed-tab" onclick="filterFeeds('harga_pangan', this)">🍚 Pangan / Sembako</button>
           <button type="button" class="feed-tab" onclick="filterFeeds('pasar', this)">🏪 Pasar</button>
           <button type="button" class="feed-tab" onclick="filterFeeds('metrologi', this)">⚖️ Metrologi</button>
-          <button type="button" class="feed-tab" disabled title="Media sosial belum termasuk dalam perhitungan KPI resmi" style="opacity: 0.45; cursor: not-allowed;">📱 Media Sosial (Off)</button>
         </div>
         <div class="feeds-scroll" id="streamFeedsContainer">
           <!-- Injected via JavaScript -->
@@ -1047,9 +1046,6 @@
     let isDataFromCache = false;
 
     document.addEventListener('DOMContentLoaded', () => {
-      localStorage.removeItem('disperindag_media_intelligence');
-      localStorage.removeItem('disperindag_media_intel_ver');
-
       startWitaClock();
       initRealtimeSnapshotListener();
 
@@ -1057,8 +1053,12 @@
       setInterval(() => {
         if (currentSnapshotData) {
           const freshInfo = evaluateFreshness(currentSnapshotData);
-          renderHeaderStatus(freshInfo);
           renderAuditSummary(currentSnapshotData, freshInfo);
+          if (isDataFromCache || !navigator.onLine) {
+            handleSnapshotDisconnected();
+          } else {
+            renderHeaderStatus(freshInfo);
+          }
         }
       }, 60 * 1000);
 
@@ -1108,13 +1108,17 @@
               if (validateSnapshotContract(data)) {
                 currentSnapshotData = data;
                 const freshInfo = evaluateFreshness(data);
-                renderHeaderStatus(freshInfo);
                 renderKPIs(data.kpis || {});
                 renderTopStories(data.top_stories || []);
                 renderTopIssues(data.top_issues || []);
                 renderLatestItems(data.latest_items || []);
                 renderAuditSummary(data, freshInfo);
                 renderTicker(data.latest_items || []);
+                if (isDataFromCache || !navigator.onLine) {
+                  handleSnapshotDisconnected();
+                } else {
+                  renderHeaderStatus(freshInfo);
+                }
               } else {
                 console.warn('[MI] Dokumen mi_public/current gagal validasi kontrak skema.');
               }
