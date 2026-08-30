@@ -105,7 +105,8 @@ def main(tier_filter: str | None = None, dry_run: bool = False):
     print(f"\nTotal kandidat relevan: {len(all_candidates)}")
     if not all_candidates:
         print("Tidak ada artikel baru. Selesai.")
-        return
+        failed_sources = sum(1 for item in stats_by_source.values() if item.get("error"))
+        return 1 if sources and failed_sources == len(sources) else 0
 
     # ── 4. Fetch metadata lengkap ─────────────────────────────
     print("\nMengambil metadata artikel...")
@@ -192,6 +193,7 @@ def main(tier_filter: str | None = None, dry_run: bool = False):
     print(f"\n=== SELESAI dalam {elapsed:.1f} detik ===")
     print(f"Artikel tersimpan: {len(enriched)}")
     print(f"Total isu aktif:   {len(recent_issues)}")
+    return 0
 
 
 def _build_snapshot(mentions: list, issues: list) -> dict:
@@ -251,8 +253,12 @@ def _print_article(art: dict):
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Pinrang Issue Discovery Engine")
     parser.add_argument("--tier", default=None, help="Filter tier: A, B, A+, atau kombinasi 'A+,A'")
     parser.add_argument("--dry-run", action="store_true", help="Jalankan tanpa tulis ke Firestore")
     args = parser.parse_args()
-    main(tier_filter=args.tier, dry_run=args.dry_run)
+    raise SystemExit(main(tier_filter=args.tier, dry_run=args.dry_run))

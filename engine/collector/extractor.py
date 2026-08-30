@@ -21,6 +21,8 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
+from normalizers import normalize_url
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; PinrangIntelBot/1.0; +https://pinrangkab.go.id)",
     "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
@@ -199,9 +201,4 @@ def _extract_twitter(soup: BeautifulSoup) -> dict:
 
 def _clean_url(url: str) -> str:
     """Buang parameter tracking, hapus amp subdomain."""
-    if not url:
-        return url
-    url = re.sub(r"[?&](utm_[a-z_]+|amp|noamp)[^&]*", "", url)
-    url = url.rstrip("?&")
-    url = re.sub(r"^https?://amp\.", "https://", url)
-    return url
+    return normalize_url(url)

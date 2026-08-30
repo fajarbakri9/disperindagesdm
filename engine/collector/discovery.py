@@ -229,11 +229,10 @@ def detect_new_domain(url: str, known_domains: set[str]) -> str | None:
 
 import re
 
+from normalizers import normalize_url
+
 def _normalize_url(url: str) -> str:
-    url = re.sub(r"[?&](utm_[a-z_]+|amp|noamp|fbclid)[^&]*", "", url)
-    url = url.rstrip("?&")
-    url = re.sub(r"^https?://amp\.", "https://", url)
-    return url.strip()
+    return normalize_url(url)
 
 
 def _strip_html(text: str) -> str:
