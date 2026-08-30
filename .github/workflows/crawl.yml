@@ -42,8 +42,12 @@ jobs:
       - name: Install pinned dependencies
         run: pip install -r engine/collector/requirements.txt
 
-      - name: Run collector tests
-        run: python -m pytest engine/tests -q
+      - name: Run unit and static collector tests
+        # Emulator-backed writer/retention tests run in the dedicated local/rules suite.
+        run: >-
+          python -m pytest engine/tests -q
+          --ignore=engine/tests/test_operations.py
+          --ignore=engine/tests/test_mi_writer_emulator.py
 
       - name: Collect, validate, and publish snapshot
         run: python engine/collector/main.py --trigger github_actions

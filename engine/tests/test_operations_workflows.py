@@ -21,6 +21,8 @@ def test_crawl_schedule_is_six_times_daily_in_wita():
     assert 'cron: "17 2,6,10,14,18,22 * * *"' in text
     assert "python engine/collector/main.py --trigger github_actions" in text
     assert "cancel-in-progress: false" in text
+    assert "--ignore=engine/tests/test_operations.py" in text
+    assert "--ignore=engine/tests/test_mi_writer_emulator.py" in text
 
 
 def test_backup_is_private_short_retention_artifact():

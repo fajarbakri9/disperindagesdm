@@ -6,15 +6,14 @@ memakai Application Default Credentials melalui Workload Identity Federation
 
 ## Aktivasi WIF
 
-Workflow `cleanup.yml` dan `backup.yml` akan dilewati sampai repository variable
+Workflow `crawl.yml`, `cleanup.yml`, `backup.yml`, dan `sync-news-og.yml` akan dilewati sampai repository variable
 `MI_WIF_ENABLED=true`. Siapkan `GCP_PROJECT_ID`, `GCP_WIF_PROVIDER`, dan
 `GCP_MI_SERVICE_ACCOUNT`. Provider wajib dibatasi ke repository ini dan branch
 `main`; service account memakai izin Firestore minimum, bukan Owner. Jalankan
 workflow manual sebelum mengandalkan jadwal.
 
-> Workflow legacy `.github/workflows/sync-news-og.yml` masih memakai secret JSON
-> dan bukan pipeline Media Intelligence. Migrasikan terpisah ke WIF sebelum
-> production cutover dianggap selesai.
+Workflow legacy `.github/workflows/sync-news-og.yml` juga telah dimigrasikan ke
+WIF. Secret service-account JSON lama harus tetap dihapus.
 
 ## Menambah sumber
 
