@@ -46,7 +46,7 @@ service cloud.firestore {
         validMediaReviewAudit(request.resource.data.review_event_id, entityType, entityId);
     }
 
-    function validMediaItemAction(itemId) {
+    function validMediaItemAction() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       let action = getAfter(/databases/$(database)/documents/mi_audit_logs/$(request.resource.data.review_event_id)).data.action;
       return (action in ['ACCEPT', 'REJECT'] && changed.hasOnly([
@@ -61,7 +61,7 @@ service cloud.firestore {
         ]));
     }
 
-    function validMediaIssueAction(issueId) {
+    function validMediaIssueAction() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       let action = getAfter(/databases/$(database)/documents/mi_audit_logs/$(request.resource.data.review_event_id)).data.action;
       return (action in ['ACCEPT', 'REJECT'] && changed.hasOnly([
@@ -166,7 +166,7 @@ service cloud.firestore {
           exists(/databases/$(database)/documents/mi_story_clusters/$(request.resource.data.story_cluster_id))) &&
         (request.resource.data.issue_id == null ||
           exists(/databases/$(database)/documents/mi_issues/$(request.resource.data.issue_id))) &&
-        validMediaReviewMetadata('ITEM', itemId) && validMediaItemAction(itemId);
+        validMediaReviewMetadata('ITEM', itemId) && validMediaItemAction();
     }
     match /mi_source_state/{sourceId} {
       allow read: if isMediaIntelligenceAdmin();
@@ -192,7 +192,7 @@ service cloud.firestore {
         request.resource.data.verification_status in ['UNVERIFIED', 'VERIFIED', 'REJECTED'] &&
         request.resource.data.title is string && request.resource.data.title.size() > 0 &&
         request.resource.data.title.size() <= 500 && request.resource.data.updated_at == request.time &&
-        validMediaReviewMetadata('ISSUE', issueId) && validMediaIssueAction(issueId);
+        validMediaReviewMetadata('ISSUE', issueId) && validMediaIssueAction();
     }
     match /mi_review_tasks/{taskId} {
       allow read: if isMediaIntelligenceAdmin();
