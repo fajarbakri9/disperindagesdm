@@ -440,6 +440,69 @@
       .btn-install-lpg, .btn-logout-lpg { width: 100% !important; max-width: none !important; font-size: .68rem !important; min-height: 34px !important; }
       .btn-install-lpg::after, .btn-logout-lpg::after { content: none !important; }
       .btn-install-lpg { font-size: .68rem !important; }
+    }      /* Portrait visual system aligned with the supplied reference. */
+    @media screen and (min-width: 431px) and (max-width: 768px) and (orientation: portrait) {
+      .lpg-app-container { max-width: 624px; }
+      .lpg-topbar { padding: 15px 20px; gap: 18px; }
+      .lpg-brand { gap: 12px; }
+      .lpg-brand img { width: 44px; }
+      .lpg-brand-text h1 { font-size: 1.15rem; letter-spacing: .01em; }
+      .lpg-brand-text p { font-size: .84rem; margin-top: 4px; }
+      .lpg-topbar-actions { gap: 9px !important; }
+      .btn-install-lpg, .btn-logout-lpg { min-height: 48px !important; padding: 10px 17px !important; border-radius: 9px !important; font-size: .9rem !important; }
+      .lpg-agent-header-card { margin: 15px 18px 0 !important; padding: 15px !important; border-radius: 9px !important; box-shadow: 0 2px 7px rgba(15,23,42,.10) !important; }
+      .lpg-agent-avatar { flex-basis: 48px; width: 48px; height: 48px; }
+      .lpg-agent-name { font-size: 1rem; color: #111827; }
+      .lpg-agent-code { min-width: auto !important; padding: 6px 11px !important; border-radius: 999px !important; background: #E0F2FE; color: #164E63; border: 1px solid #BAE6FD; font-size: .8rem !important; }
+      .lpg-welcome-strip { margin: 20px 22px 10px !important; padding: 0 !important; }
+      .lpg-welcome-strip strong { font-size: 1.2rem; }
+      .lpg-welcome-strip span { font-size: .82rem; }
+      #lpgPersistenceNotice { margin: 12px 18px 18px !important; padding: 10px 12px !important; border-radius: 6px !important; font-size: .78rem !important; }
+      .lpg-tabs-bar { margin: 0 18px !important; border: 0 !important; border-bottom: 1px solid #CBD5E1 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; }
+      .lpg-tab-btn { min-height: 50px; font-size: .95rem; border-radius: 0 !important; }
+      .lpg-tab-btn.active { background: transparent !important; box-shadow: inset 0 -3px #2563EB !important; }
+      .lpg-panel { padding: 18px !important; }
+      .lpg-stock-hero { padding: 23px 21px; border-radius: 9px; }
+      .lpg-stock-label { font-size: .9rem; }
+      .lpg-stock-val { font-size: 3.2rem; }
+      .lpg-today-box { padding: 15px; border: 1px solid #D1D5DB; border-radius: 8px; }
+      .lpg-actions-wrapper { gap: 10px; padding: 16px 0 18px; }
+      .btn-lpg-action { min-height: 91px; border-radius: 8px; font-size: .88rem; box-shadow: none; }
+      .btn-lpg-action span { width: 32px; height: 32px; font-size: 1.25rem; }
+      .lpg-dashboard-card { border-radius: 9px; box-shadow: none; border: 1px solid #E5E7EB; }
+      .lpg-section-heading strong { font-size: .98rem; }
+      #lpgRecentActivityFeed { border-radius: 8px !important; box-shadow: none !important; }
+    }
+    @media screen and (max-width: 430px) and (orientation: portrait) {
+      .lpg-topbar { padding: 12px 14px; }
+      .lpg-brand { justify-content: flex-start; }
+      .lpg-brand img { width: 36px; }
+      .lpg-brand-text h1 { font-size: .88rem; }
+      .lpg-brand-text p { font-size: .66rem; }
+      .lpg-topbar-actions { display: flex !important; width: auto; }
+      .btn-install-lpg, .btn-logout-lpg { min-height: 38px !important; padding: 8px 10px !important; font-size: .68rem !important; }
+      .btn-install-lpg { max-width: 82px !important; }
+      .btn-logout-lpg { max-width: 58px !important; }
+      .lpg-agent-code { border-radius: 999px !important; padding: 5px 7px !important; }
+    }      /* Final narrow portrait correction: compact single-row header. */
+    @media screen and (max-width: 430px) and (orientation: portrait) {
+      .lpg-topbar { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 7px !important; padding: 10px 12px !important; min-height: 62px; box-sizing: border-box; }
+      .lpg-brand { flex: 1 1 auto !important; min-width: 0 !important; justify-content: flex-start !important; gap: 7px !important; }
+      .lpg-brand img { width: 31px !important; flex: 0 0 31px !important; }
+      .lpg-brand-text h1 { font-size: .72rem !important; line-height: 1.15 !important; white-space: nowrap; }
+      .lpg-brand-text p { display: block !important; font-size: .54rem !important; white-space: nowrap; }
+      .lpg-topbar-actions { width: auto !important; flex: 0 0 auto !important; display: flex !important; gap: 4px !important; }
+      .btn-install-lpg, .btn-logout-lpg { width: auto !important; max-width: none !important; min-height: 36px !important; padding: 7px 8px !important; font-size: .6rem !important; white-space: nowrap !important; }
+      .btn-install-lpg::after, .btn-logout-lpg::after { content: none !important; }
+      .lpg-agent-header-card { margin-top: 10px !important; }
+    }
+    @media screen and (max-width: 350px) and (orientation: portrait) {
+      .lpg-brand-text p { display: none !important; }
+      .lpg-brand-text h1 { font-size: .66rem !important; }
+      .btn-install-lpg { font-size: 0 !important; width: 32px !important; }
+      .btn-install-lpg::before { content: '↓'; font-size: 1rem; }
+      .btn-logout-lpg { font-size: 0 !important; width: 32px !important; }
+      .btn-logout-lpg::before { content: '↪'; font-size: 1rem; }
     }  </style>
 </head>
 <body>
