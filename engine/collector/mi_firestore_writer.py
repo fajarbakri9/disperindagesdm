@@ -254,3 +254,102 @@ class MediaIntelligenceWriter:
         self.db.collection("mi_daily_metrics").document(date_id).set(metrics)
         self.db.collection("mi_daily_metrics").document("current").set(metrics)
         return metrics
+
+    def generate_public_snapshot(self, *, sync_run_id: str, now: datetime | None = None) -> dict:
+        """Publish the bounded, privacy-safe dashboard contract in one document."""
+        reference = now or utcnow()
+        source_states = [doc.to_dict() for doc in self.db.collection("mi_source_state").limit(200).stream()]
+        health = {
+            "total": len(source_states),
+            "ok": sum(1 for state in source_states if state.get("health") == "OK"),
+            "degraded": sum(1 for state in source_states if state.get("health") == "DEGRADED"),
+            "failed": sum(1 for state in source_states if state.get("health") in {"FAILED", "ROBOTS_BLOCKED"}),
+        }
+        metrics = self.db.collection("mi_daily_metrics").document("current").get().to_dict() or {}
+        kpis = {key: int(metrics.get(key, 0)) for key in (
+            "earned_mentions_24h", "unique_stories_24h", "active_sources_24h",
+            "active_critical_issues")}
+
+        items = [doc.to_dict() for doc in self.db.collection("mi_items").limit(2000).stream()]
+        verified = [item for item in items if item.get("verification_status") in {
+            "VERIFIED_DIRECT", "VERIFIED_FEED", "MANUAL_VERIFIED"}]
+        current_earned = 0
+        previous_earned = 0
+        for item in verified:
+            published = item.get("published_at")
+            if item.get("source_class") != "earned_media" or not published:
+                continue
+            age_hours = (reference - published).total_seconds() / 3600
+            if 0 <= age_hours < 24:
+                current_earned += 1
+            elif 24 <= age_hours < 48:
+                previous_earned += 1
+        kpis["mentions_trend_pct"] = ("BARU" if previous_earned == 0 else
+                                      round((current_earned - previous_earned) /
+                                            previous_earned * 100, 1))
+        verified.sort(key=lambda item: item.get("published_at") or datetime.min.replace(tzinfo=timezone.utc),
+                      reverse=True)
+        latest_items = [{key: item.get(key) for key in (
+            "title", "excerpt", "publisher", "published_at", "canonical_url", "image_url",
+            "topic_ids", "district_ids", "verification_status")}
+            for item in verified[:30]]
+
+        clusters = [doc.to_dict() for doc in self.db.collection("mi_story_clusters").limit(500).stream()]
+        clusters = [cluster for cluster in clusters if cluster.get("status") == "ACTIVE"]
+        clusters.sort(key=lambda cluster: cluster.get("last_item_at") or datetime.min.replace(tzinfo=timezone.utc),
+                      reverse=True)
+        top_stories = [{
+            "title": cluster.get("representative_title", ""),
+            "topic_ids": cluster.get("topic_ids", []), "district_ids": cluster.get("district_ids", []),
+            "source_count": int(cluster.get("source_count", 0)),
+            "article_count": int(cluster.get("item_count", 0)),
+            "last_item_at": cluster.get("last_item_at"),
+        } for cluster in clusters[:10]]
+
+        issues = [doc.to_dict() for doc in self.db.collection("mi_issues").limit(500).stream()]
+        public_issues = [issue for issue in issues
+                         if issue.get("verification_status") == "VERIFIED"
+                         and issue.get("status") in {"OPEN", "MONITORING"}]
+        rank = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
+        public_issues.sort(key=lambda issue: (rank.get(issue.get("severity"), 0),
+                                              issue.get("updated_at") or datetime.min.replace(tzinfo=timezone.utc)),
+                           reverse=True)
+        top_issues = [{
+            "title": issue.get("title", ""),
+            "topic_id": (issue.get("topic_ids") or [""])[0],
+            "district_ids": issue.get("district_ids", []), "severity": issue.get("severity", "LOW"),
+            "status": issue.get("status", "MONITORING"),
+            "media_item_count": int(issue.get("item_count", 0)),
+        } for issue in public_issues[:10]]
+
+        runs = [doc.to_dict() for doc in self.db.collection("mi_sync_runs").limit(100).stream()]
+        completed = [run for run in runs if run.get("finished_at")]
+        completed.sort(key=lambda run: run.get("finished_at"), reverse=True)
+        successful = [run for run in completed if run.get("status") == "SUCCESS"]
+        last_run_at = completed[0].get("finished_at") if completed else None
+        last_success_at = successful[0].get("finished_at") if successful else None
+        last_data_at = verified[0].get("published_at") if verified else None
+        age_hours = ((reference - last_run_at).total_seconds() / 3600
+                     if last_run_at else None)
+        system_status = ("OFFLINE" if age_hours is None or age_hours > 24 else
+                         "STALE" if age_hours > 8 else
+                         "DEGRADED" if health["degraded"] or health["failed"] else "FRESH")
+
+        daily = []
+        for doc in self.db.collection("mi_daily_metrics").limit(30).stream():
+            if doc.id == "current":
+                continue
+            value = doc.to_dict()
+            daily.append({"date": doc.id, **{key: int(value.get(key, 0)) for key in kpis}})
+        daily.sort(key=lambda value: value["date"])
+
+        snapshot = {
+            "schema_version": 1, "generated_at": reference, "sync_run_id": sync_run_id,
+            "system_status": system_status, "last_run_at": last_run_at,
+            "last_data_update_at": last_data_at, "last_full_success_at": last_success_at,
+            "source_health": health, "kpis": kpis, "top_stories": top_stories,
+            "top_issues": top_issues, "latest_items": latest_items, "trend_7d": daily[-7:],
+            "schedule_label": "PEMANTAUAN OTOMATIS • 4X SEHARI",
+        }
+        self.db.collection("mi_public").document("current").set(snapshot)
+        return snapshot

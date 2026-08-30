@@ -1,6 +1,7 @@
 """Integration acceptance test for Stage 5; requires Firestore Emulator."""
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from datetime import datetime, timezone
@@ -114,3 +115,24 @@ def test_four_portals_create_four_mentions_but_one_story():
     assert metrics["unique_stories_24h"] >= 1
     assert metrics["active_sources_24h"] >= 4
     assert metrics["active_critical_issues"] >= 1
+
+    run_id = f"snapshot-run-{namespace}"
+    writer.start_run(run_id, trigger="test", sources_total=4, engine_version="test")
+    writer.finish_run(run_id, status="SUCCESS", counters={"sources_ok": 4}, runtime_seconds=1)
+    snapshot = writer.generate_public_snapshot(sync_run_id=run_id)
+    required = {"schema_version", "generated_at", "sync_run_id", "system_status",
+                "last_run_at", "last_data_update_at", "last_full_success_at",
+                "source_health", "kpis", "top_stories", "top_issues", "latest_items",
+                "trend_7d"}
+    assert required <= snapshot.keys()
+    assert snapshot["kpis"]["mentions_trend_pct"] == "BARU" or isinstance(
+        snapshot["kpis"]["mentions_trend_pct"], (int, float))
+    assert len(snapshot["latest_items"]) <= 30
+    assert len(snapshot["top_stories"]) <= 10
+    assert len(snapshot["top_issues"]) <= 10
+    assert len(snapshot["trend_7d"]) <= 7
+    serialized = json.dumps(snapshot, default=str)
+    assert len(serialized.encode("utf-8")) < 1_000_000
+    for forbidden in ("review_notes", "admin_identity", "internal_disposition",
+                      "last_error_message", "email", "phone"):
+        assert f'"{forbidden}"' not in serialized

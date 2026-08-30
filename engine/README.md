@@ -14,7 +14,10 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
   `mi_source_state`; artikel terverifikasi disimpan idempoten di `mi_items`.
 - Story cluster, issue foundation, dan KPI 24 jam sudah tersedia di collection
   internal. Issue baru tetap `UNVERIFIED` sampai ditinjau manusia.
-- Tone/NLP dan public snapshot belum diaktifkan sebelum tahap penerimaannya selesai.
+- Snapshot publik tunggal dibuat di `mi_public/current` dari data terverifikasi,
+  dengan daftar terbatas dan tanpa error internal, catatan review, identitas admin,
+  atau PII.
+- Tone/NLP belum diaktifkan sebelum tahap penerimaannya selesai.
 - Halaman produksi tetap menampilkan status offline sampai `mi_public/current`
   diterbitkan oleh tahap snapshot yang teruji.
 

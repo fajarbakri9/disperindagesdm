@@ -131,6 +131,8 @@ def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "
         if writer:
             writer.finish_run(run_id, status=locals().get("status", "FAILED"),
                               counters=counters, runtime_seconds=elapsed)
+            if locals().get("status") != "FAILED":
+                writer.generate_public_snapshot(sync_run_id=run_id)
         print(f"Selesai {elapsed:.1f}s | status={locals().get('status', 'FAILED')} | {counters}")
     return return_code
 
