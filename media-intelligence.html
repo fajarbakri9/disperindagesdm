@@ -3,33 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Media & Social Intelligence Hub | Disperindag ESDM Kabupaten Pinrang</title>
-  <meta name="description" content="Radar intelijen media dan monitoring sentimen isu publik terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang.">
+  <title>Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang</title>
+  <meta name="description" content="Radar intelijen media dan monitoring isu strategis terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang berbasis data aktual dan terverifikasi.">
   <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/media-intelligence">
+  <meta name="robots" content="noindex, follow">
   <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
-  <meta property="og:title" content="Media & Social Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
-  <meta property="og:description" content="Radar intelijen media dan monitoring sentimen isu publik terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang.">
+  <meta property="og:title" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:description" content="Radar intelijen media dan monitoring isu strategis terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang.">
   <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_media_intelligence.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:image:alt" content="Media & Social Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:image:alt" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
   <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/media-intelligence">
   <meta property="og:locale" content="id_ID">
   <!-- TWITTER / X CARDS -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Media & Social Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
-  <meta name="twitter:description" content="Radar intelijen media dan monitoring sentimen isu publik terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang.">
+  <meta name="twitter:title" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
+  <meta name="twitter:description" content="Radar intelijen media dan monitoring isu strategis terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang.">
   <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_media_intelligence.png">
-  <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
-  <!-- TWITTER / X CARDS -->
   <!-- Primary Meta Tags -->
-  <meta name="title" content="Media & Social Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
-  <meta name="robots" content="index, follow">
-  <!-- Open Graph / Medsos Sharing -->
-  <!-- Twitter Card -->
+  <meta name="title" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
   <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
@@ -39,7 +35,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     /* ==========================================================================
-       MEDIA & SOCIAL INTELLIGENCE HUB (MODERN BRIGHT EDITORIAL NEWSROOM)
+       MEDIA INTELLIGENCE HUB (MODERN BRIGHT EDITORIAL NEWSROOM)
        ========================================================================== */
     :root[data-theme="light"] {
       --bg-base: #F8FAFC;
@@ -130,9 +126,6 @@
       gap: 8px;
     }
     .intel-live-pill {
-      background: #ECFDF5;
-      color: var(--accent-emerald);
-      border: 1px solid rgba(16, 185, 129, 0.3);
       font-size: 0.66rem;
       font-weight: 800;
       padding: 2px 8px;
@@ -142,13 +135,17 @@
       align-items: center;
       gap: 5px;
       font-family: 'JetBrains Mono', monospace;
+      transition: all 0.2s ease;
+      background: #F1F5F9;
+      color: #475569;
+      border: 1px solid #CBD5E1;
     }
     .status-pulse {
       width: 6px;
       height: 6px;
-      background: var(--accent-emerald);
       border-radius: 50%;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      background: #94A3B8;
+      box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
     }
     .intel-title-group p {
       font-size: 0.75rem;
@@ -182,6 +179,11 @@
       color: var(--text-main);
       border-color: #CBD5E1;
     }
+    :root[data-theme="dark"] .btn-action:hover {
+      background: #1C2D5A;
+      color: #F8FAFC;
+      border-color: #38BDF8;
+    }
     .btn-action.primary {
       background: #0284C7;
       color: #FFFFFF;
@@ -193,7 +195,7 @@
     /* 2. EXECUTIVE KPI CARDS BAR */
     .metrics-bar {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       padding: 10px 24px 6px;
       flex-shrink: 0;
@@ -215,10 +217,10 @@
       box-shadow: var(--shadow-md);
     }
     .metric-card.blue { border-left-color: var(--accent-blue); }
+    .metric-card.purple { border-left-color: var(--accent-purple); }
     .metric-card.green { border-left-color: var(--accent-emerald); }
     .metric-card.amber { border-left-color: var(--accent-amber); }
     .metric-card.rose { border-left-color: var(--accent-rose); }
-    .metric-card.purple { border-left-color: var(--accent-purple); }
     .metric-top {
       display: flex;
       justify-content: space-between;
@@ -325,9 +327,17 @@
       box-shadow: var(--shadow-sm);
       transform: translateX(2px);
     }
+    :root[data-theme="dark"] .topic-card:hover {
+      background: #1C2D5A !important;
+      border-color: #38BDF8 !important;
+    }
     .topic-card.critical {
       border-left: 3.5px solid var(--accent-rose);
       background: #FFF1F2;
+    }
+    :root[data-theme="dark"] .topic-card.critical {
+      background: rgba(244, 63, 94, 0.15) !important;
+      border-left-color: #F43F5E !important;
     }
     .topic-title {
       font-size: 0.78rem;
@@ -344,17 +354,6 @@
       color: var(--text-muted);
       font-family: 'JetBrains Mono', monospace;
     }
-    .sentiment-track {
-      height: 4px;
-      background: #CBD5E1;
-      border-radius: 2px;
-      overflow: hidden;
-      display: flex;
-      margin-top: 5px;
-    }
-    .s-pos { background: var(--accent-emerald); }
-    .s-neu { background: #94A3B8; }
-    .s-neg { background: var(--accent-rose); }
     /* MULTI-STREAM FILTER TABS */
     .feed-tabs-row {
       display: flex;
@@ -382,6 +381,11 @@
       color: #FFFFFF;
       border-color: #0F2C59;
     }
+    :root[data-theme="dark"] .feed-tab.active, :root[data-theme="dark"] .feed-tab:hover {
+      background: #38BDF8;
+      color: #0B132B;
+      border-color: #38BDF8;
+    }
     .feed-tab.alert-tab {
       color: var(--accent-rose);
       border-color: rgba(225, 29, 72, 0.3);
@@ -391,7 +395,7 @@
       background: var(--accent-rose);
       color: #FFFFFF;
     }
-    /* NEWS & SOCIAL FEED CARDS (KLIK KE LINK SPESIFIK) */
+    /* NEWS FEED CARDS */
     .feeds-scroll {
       display: flex;
       flex-direction: column;
@@ -418,17 +422,17 @@
       box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
-    .news-card.negative-item {
-      border-left: 3.5px solid var(--accent-rose);
-      background: #FFFBFB;
+    :root[data-theme="dark"] .news-card:hover {
+      border-color: #38BDF8;
     }
     .news-thumb {
-      width: 90px;
-      height: 72px;
+      width: 76px;
+      height: 62px;
       border-radius: 6px;
       object-fit: cover;
       flex-shrink: 0;
       border: 1px solid var(--border-color);
+      background: #F1F5F9;
     }
     .news-body {
       flex: 1;
@@ -452,6 +456,10 @@
       padding: 1px 6px;
       border-radius: 4px;
       font-size: 0.64rem;
+    }
+    :root[data-theme="dark"] .source-tag {
+      background: #1C2D5A;
+      color: #CBD5E1;
     }
     .direct-link-badge {
       margin-left: auto;
@@ -497,107 +505,6 @@
       font-size: 0.66rem;
       color: var(--text-muted);
       font-family: 'JetBrains Mono', monospace;
-    }
-    /* CITIZEN VOICES (KOMENTAR & EVALUASI KRITIS) */
-    .comments-scroll {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-    .voice-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 9px;
-      padding: 10px 12px;
-      transition: all 0.2s ease;
-    }
-    .voice-card:hover {
-      border-color: #94A3B8;
-      box-shadow: var(--shadow-sm);
-    }
-    .voice-card.critical {
-      border-left: 3.5px solid var(--accent-rose);
-      background: #FFF5F5;
-    }
-    .voice-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 5px;
-    }
-    .voice-user {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-    .user-avatar {
-      width: 22px;
-      height: 22px;
-      background: #0F2C59;
-      color: #FFFFFF;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.6rem;
-      font-weight: 900;
-    }
-    .voice-badge {
-      font-size: 0.62rem;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .badge-pos { background: #DCFCE7; color: #166534; }
-    .badge-neu { background: #F1F5F9; color: #475569; }
-    .badge-neg { background: #FFE4E6; color: #9F1239; font-weight: 900; }
-    .voice-text {
-      font-size: 0.72rem;
-      color: var(--text-main);
-      line-height: 1.38;
-      margin-bottom: 5px;
-    }
-    .voice-link-source {
-      font-size: 0.64rem;
-      color: #0284C7;
-      text-decoration: none;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      margin-bottom: 5px;
-    }
-    .voice-link-source:hover {
-      text-decoration: underline;
-    }
-    .disposition-box {
-      background: #FEF3C7;
-      border: 1px solid #FDE68A;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.66rem;
-      color: #92400E;
-      font-weight: 800;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .dept-response {
-      background: #EFF6FF;
-      border-left: 2.5px solid #0284C7;
-      padding: 5px 8px;
-      border-radius: 0 5px 5px 0;
-      font-size: 0.68rem;
-      color: #1E3A8A;
-      line-height: 1.35;
     }
     /* 4. BOTTOM TICKER */
     .intel-ticker {
@@ -652,10 +559,57 @@
       background: #CBD5E1;
       border-radius: 4px;
     }
-    /* SUPER RESPONSIVE ADAPTATION (PRESERVES DESKTOP FIT-TO-SCREEN 100%) */
+    /* ACCESSIBILITY: FOCUS VISIBLE RING */
+    button:focus-visible, a:focus-visible, input:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    /* DARK MODE SPECIFIC OVERRIDES */
+    :root[data-theme="dark"] #syncCycleIndicator {
+      background: rgba(56, 189, 248, 0.12) !important;
+      color: #38BDF8 !important;
+      border-color: rgba(56, 189, 248, 0.3) !important;
+    }
+    :root[data-theme="dark"] .direct-link-badge {
+      background: rgba(56, 189, 248, 0.15) !important;
+      color: #38BDF8 !important;
+    }
+    :root[data-theme="dark"] .news-card:hover .direct-link-badge {
+      background: #38BDF8 !important;
+      color: #0B132B !important;
+    }
+    :root[data-theme="dark"] .audit-info-box {
+      background: rgba(30, 64, 175, 0.25) !important;
+      border-color: rgba(147, 197, 253, 0.3) !important;
+      color: #93C5FD !important;
+    }
+    :root[data-theme="dark"] .footer-version-box {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border-color: var(--border-color) !important;
+      color: var(--text-muted) !important;
+    }
+    :root[data-theme="dark"] .ticker-tag {
+      background: #1C2D5A !important;
+      color: #38BDF8 !important;
+    }
+
+    /* RESPONSIVE DESIGN */
     @media (max-width: 1200px) {
-      .metrics-bar { grid-template-columns: repeat(3, 1fr); }
-      .intel-grid { grid-template-columns: 280px 1.2fr 1fr; }
+      .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1150px) {
+      .intel-grid {
+        grid-template-columns: 1fr 1.1fr !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .intel-column:last-child {
+        grid-column: span 2 !important;
+      }
+      .trending-scroll, .feeds-scroll {
+        max-height: 520px !important;
+      }
     }
     @media (max-width: 992px) {
       html, body {
@@ -670,106 +624,78 @@
         gap: 8px !important;
         padding: 10px 14px !important;
       }
-      .intel-brand {
-        width: 100% !important;
-      }
-      .intel-brand img {
-        height: 36px !important;
-      }
-      .intel-title-group h1 {
-        font-size: 0.95rem !important;
-        flex-wrap: wrap !important;
-      }
-      .intel-title-group p {
-        font-size: 0.7rem !important;
-      }
+      .intel-brand { width: 100% !important; }
       .intel-controls {
         width: 100% !important;
         overflow-x: auto !important;
         padding-bottom: 4px !important;
         gap: 6px !important;
-        flex-wrap: nowrap !important;
-        -webkit-overflow-scrolling: touch;
-      }
-      .btn-action {
-        font-size: 0.74rem !important;
-        padding: 5px 10px !important;
-        white-space: nowrap !important;
-        flex-shrink: 0 !important;
-      }
-      #syncCycleIndicator {
-        white-space: nowrap !important;
-        font-size: 0.68rem !important;
-        flex-shrink: 0 !important;
       }
       .metrics-bar {
         grid-template-columns: repeat(2, 1fr) !important;
         padding: 8px 14px !important;
-        gap: 8px !important;
-      }
-      .metric-card {
-        padding: 10px 12px !important;
-      }
-      .metric-val {
-        font-size: 1.45rem !important;
       }
       .intel-grid {
         grid-template-columns: 1fr !important;
         padding: 6px 14px 24px !important;
-        gap: 14px !important;
-        overflow: visible !important;
-        height: auto !important;
-      }
-      .intel-column {
         height: auto !important;
         overflow: visible !important;
       }
-      .intel-panel {
-        height: auto !important;
+      .intel-column:last-child {
+        grid-column: auto !important;
+      }
+      /* Mobile: Hindari nested scroll agar body menjadi primary scroll */
+      .trending-scroll, .feeds-scroll {
         max-height: none !important;
-        overflow: visible !important;
-      }
-      .trending-scroll, .feeds-scroll, .comments-scroll {
-        max-height: 520px !important;
-        overflow-y: auto !important;
-      }
-      .intel-ticker {
-        padding: 6px 14px !important;
+        overflow-y: visible !important;
       }
     }
-    @media (max-width: 480px) {
-      .metrics-bar {
-        grid-template-columns: 1fr !important;
+
+    /* ACCESSIBILITY: PREFERS REDUCED MOTION */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .ticker-marquee-inner {
+        animation: none !important;
+      }
+      .metric-card:hover, .news-card:hover, .topic-card:hover {
+        transform: none !important;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. TOP EDITORIAL HEADER (CLEAN & MODERN) -->
+  <!-- 1. TOP EDITORIAL HEADER -->
   <header class="intel-header">
     <div class="intel-brand">
       <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang">
       <div class="intel-title-group">
         <h1>
-          MEDIA & SOCIAL INTELLIGENCE HUB
-          <span class="intel-live-pill"><span class="status-pulse"></span> LIVE RADAR</span>
+          MEDIA INTELLIGENCE HUB
+          <span class="intel-live-pill" id="systemFreshnessPill" aria-live="polite">
+            <span class="status-pulse"></span> MEMUAT DATA...
+          </span>
         </h1>
-        <p>Sistem Pemantauan Berita Terkini, Isu Kritis, Sentimen Publik & Aspirasi Warga — Disperindag ESDM Kab. Pinrang</p>
+        <p>Radar Berita Terverifikasi &amp; Isu Strategis — Disperindag ESDM Kab. Pinrang</p>
       </div>
     </div>
 
     <div class="intel-controls">
       <div style="font-size: 0.72rem; font-weight: 700; color: #0284C7; font-family: 'JetBrains Mono'; margin-right: 6px; background: #E0F2FE; padding: 4px 10px; border-radius: 6px; border: 1px solid #BAE6FD;" id="syncCycleIndicator">
-        🕒 SIKLUS PEMANTAUAN: 4X SEHARI (07:00, 12:00, 17:00, 21:00 WITA)
+        🕒 PEMANTAUAN OTOMATIS • 4X SEHARI
       </div>
-      <button class="btn-action" onclick="refreshDataManual()" title="Segarkan Data Seketika">
-        <span>🔄</span> Sinkron Data
+      <button type="button" class="btn-action" onclick="initRealtimeSnapshotListener(true)" title="Muat ulang snapshot data terbaru dari Firestore">
+        <span>🔄</span> Muat Ulang Data
       </button>
-      <button class="btn-action" onclick="toggleTheme()" title="Ubah Mode Gelap / Cerah">
+      <button type="button" class="btn-action" onclick="toggleTheme()" title="Ubah Mode Gelap / Cerah">
         <span id="themeIcon">🌙</span> Mode Gelap
       </button>
-      <button class="btn-action" onclick="toggleFullscreen()" title="Tampilkan Layar Penuh">
+      <button type="button" class="btn-action" onclick="toggleFullscreen()" title="Tampilkan Layar Penuh">
         <span>⛶</span> Fullscreen
       </button>
       <a href="command-center.html" class="btn-action primary" title="Buka TV Wallboard Command Center">
@@ -781,64 +707,49 @@
     </div>
   </header>
 
-  <!-- 2. EXECUTIVE KPI CARDS BAR -->
-  <section class="metrics-bar">
+  <!-- 2. EXECUTIVE KPI CARDS BAR (4 KPI UTAMA SESUAI MASTER PLAN §30) -->
+  <section class="metrics-bar" aria-label="Ringkasan Eksekutif KPI 24 Jam">
     <div class="metric-card blue">
       <div class="metric-top">
-        <span>Total Sebutan (Mentions)</span>
-        <span>📡 24 Jam Terakhir</span>
+        <span>Media Mentions (24 Jam)</span>
+        <span>📰 Earned Media</span>
       </div>
-      <div class="metric-val" id="statMentions">1.482</div>
-      <div class="metric-sub">
-        <strong style="color: var(--accent-emerald);">▲ +14.2%</strong>
-        <span>Kenaikan volume perbincangan</span>
-      </div>
-    </div>
-
-    <div class="metric-card green">
-      <div class="metric-top">
-        <span>Indeks Sentimen Publik</span>
-        <span>👍 AI Analysis</span>
-      </div>
-      <div class="metric-val" id="statSentimentPos">74%</div>
-      <div class="metric-sub">
-        <span>🟢 Positif 74% &bull; ⚪ Netral 18% &bull; 🔴 Negatif 8%</span>
-      </div>
-    </div>
-
-    <div class="metric-card amber">
-      <div class="metric-top">
-        <span>Total Jangkauan (Reach)</span>
-        <span>👥 Audiens Warga</span>
-      </div>
-      <div class="metric-val" id="statReach">185.4K</div>
-      <div class="metric-sub">
-        <span>Estimasi pembaca berita & medsos</span>
+      <div class="metric-val" id="statMentions">—</div>
+      <div class="metric-sub" id="statMentionsSub">
+        <span>Tren 24h: </span><strong id="statMentionsTrend">—</strong>
       </div>
     </div>
 
     <div class="metric-card purple">
       <div class="metric-top">
-        <span>Total Interaksi Publik</span>
-        <span>🔥 Engagement</span>
+        <span>Unique Stories (24 Jam)</span>
+        <span>🧩 Story Clusters</span>
       </div>
-      <div class="metric-val" id="statEngagement">24.8K</div>
-      <div class="metric-sub">
-        <span>Likes, Komentar, & Share aktif</span>
+      <div class="metric-val" id="statStories">—</div>
+      <div class="metric-sub" id="statStoriesSub">
+        <span>Topik Liputan Unik Lintas Media</span>
       </div>
     </div>
 
-    <!-- CARD SINKRON DENGAN TAB ISU KRITIS -->
-    <div class="metric-card rose" style="cursor: pointer;" onclick="filterFeeds('critical', document.querySelector('.feed-tab.alert-tab'))" title="Klik untuk memfilter Isu Kritis">
+    <div class="metric-card green">
       <div class="metric-top">
-        <span>Disposisi & Evaluasi Isu</span>
-        <span>🚨 Tindak Lanjut</span>
+        <span>Sumber Aktif (24 Jam)</span>
+        <span>🌐 Portal Berita</span>
       </div>
-      <div class="metric-val" style="color: var(--accent-rose);" id="statDispositionsCount">
-        4 <span style="font-size: 1.05rem; font-weight: 700;">Isu Aktif</span>
+      <div class="metric-val" id="statSources">—</div>
+      <div class="metric-sub" id="statSourcesSub">
+        <span>Publisher Terverifikasi</span>
       </div>
-      <div class="metric-sub" id="statDispositionsDetail">
-        <strong style="color: var(--accent-rose);">⚠️ 4 Butuh Penanganan</strong> &bull; <span style="color: var(--accent-emerald);">✓ 8 Selesai</span>
+    </div>
+
+    <div class="metric-card amber">
+      <div class="metric-top">
+        <span>Isu Kritis Dipantau</span>
+        <span>🚨 Butuh Perhatian</span>
+      </div>
+      <div class="metric-val" id="statIssues">—</div>
+      <div class="metric-sub" id="statIssuesSub">
+        <span>Status OPEN / MONITORING</span>
       </div>
     </div>
   </section>
@@ -846,14 +757,14 @@
   <!-- 3. MAIN DASHBOARD GRID (FIT TO SCREEN) -->
   <main class="intel-grid">
 
-    <!-- KOLOM KIRI: TREN ISU & EVALUASI KRITIS -->
+    <!-- KOLOM KIRI: RADAR TOP STORIES & TOP ISSUES -->
     <div class="intel-column">
       <div class="intel-panel" style="flex: 1.25;">
         <div class="panel-header">
-          <div class="panel-title">
-            <span>🔥 Radar Isu & Evaluasi Strategis</span>
-          </div>
-          <span class="panel-pill" style="background: #FEF3C7; color: #92400E;">TOP 5 ISU</span>
+          <h2 class="panel-title" style="font-size: 0.82rem; font-weight: 800; margin: 0;">
+            <span>🔥 Top Story Clusters</span>
+          </h2>
+          <span class="panel-pill" style="background: #E0F2FE; color: #0369A1;" id="topStoriesBadge">— STORY</span>
         </div>
         <div class="trending-scroll" id="trendingTopicsContainer">
           <!-- Injected via JavaScript -->
@@ -862,81 +773,72 @@
 
       <div class="intel-panel" style="flex: 0.75;">
         <div class="panel-header">
-          <div class="panel-title">
-            <span>🎯 Proporsi Sentimen & Evaluasi</span>
-          </div>
-          <span class="panel-pill" style="background: #E0F2FE; color: #0369A1;">NLP LIVE</span>
+          <h2 class="panel-title" style="font-size: 0.82rem; font-weight: 800; margin: 0;">
+            <span>🎯 Radar Isu Strategis</span>
+          </h2>
+          <span class="panel-pill" style="background: #FEF3C7; color: #92400E;" id="topIssuesBadge">— ISU</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 7px;">
-          <div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 2px;">
-              <span>🟢 Sentimen Positif (Apresiasi / Dukungan)</span>
-              <strong style="color: var(--accent-emerald);">74%</strong>
-            </div>
-            <div style="height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden;">
-              <div style="width: 74%; height: 100%; background: var(--accent-emerald);"></div>
-            </div>
-          </div>
-          <div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 2px;">
-              <span>⚪ Sentimen Netral (Pertanyaan / Aspirasi)</span>
-              <strong style="color: #64748B;">18%</strong>
-            </div>
-            <div style="height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden;">
-              <div style="width: 18%; height: 100%; background: #94A3B8;"></div>
-            </div>
-          </div>
-          <div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 2px;">
-              <span style="color: var(--accent-rose); font-weight: 800;">🔴 Sentimen Negatif (Kritik / Keluhan Pengecer)</span>
-              <strong style="color: var(--accent-rose);">8%</strong>
-            </div>
-            <div style="height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden;">
-              <div style="width: 8%; height: 100%; background: var(--accent-rose);"></div>
-            </div>
-          </div>
+        <div class="trending-scroll" id="topIssuesContainer">
+          <!-- Injected via JavaScript -->
         </div>
       </div>
     </div>
 
-    <!-- KOLOM TENGAH: FEED BERITA & POSTINGAN MEDSOS KLIK SPESIFIK -->
+    <!-- KOLOM TENGAH: FEED BERITA AKTUAL DARI LATEST_ITEMS -->
     <div class="intel-column">
       <div class="intel-panel" style="flex: 1;">
         <div class="panel-header">
-          <div class="panel-title">
-            <span>📰 Aliran Berita & Media Sosial (Tautan Spesifik Aktif)</span>
-          </div>
-          <span class="panel-pill" style="background: #F1F5F9; color: var(--text-secondary);" id="feedCountBadge">6 ITEM</span>
+          <h2 class="panel-title" style="font-size: 0.82rem; font-weight: 800; margin: 0;">
+            <span>📰 Aliran Berita Terverifikasi</span>
+          </h2>
+          <span class="panel-pill" style="background: #F1F5F9; color: var(--text-secondary);" id="feedCountBadge" aria-live="polite">— BERITA</span>
         </div>
 
-        <!-- FILTER TABS DENGAN COUNTER SINKRON -->
-        <div class="feed-tabs-row">
-          <button class="feed-tab active" onclick="filterFeeds('all', this)">Semua Kanal</button>
-          <button class="feed-tab" onclick="filterFeeds('mainstream', this)">📰 Berita Online</button>
-          <button class="feed-tab" onclick="filterFeeds('instagram', this)">📸 Instagram</button>
-          <button class="feed-tab" onclick="filterFeeds('tiktok', this)">🎵 TikTok</button>
-          <button class="feed-tab" onclick="filterFeeds('facebook', this)">👥 Facebook</button>
-          <button class="feed-tab alert-tab" onclick="filterFeeds('critical', this)">⚠️ Isu Kritis & Evaluasi (<span id="criticalTabBadge">4</span>)</button>
+        <!-- FILTER TABS -->
+        <div class="feed-tabs-row" role="tablist">
+          <button type="button" class="feed-tab active" onclick="filterFeeds('all', this)">Semua Berita</button>
+          <button type="button" class="feed-tab" onclick="filterFeeds('lpg_3kg', this)">⛽ LPG 3 Kg</button>
+          <button type="button" class="feed-tab" onclick="filterFeeds('harga_pangan', this)">🍚 Pangan / Sembako</button>
+          <button type="button" class="feed-tab" onclick="filterFeeds('pasar', this)">🏪 Pasar</button>
+          <button type="button" class="feed-tab" onclick="filterFeeds('metrologi', this)">⚖️ Metrologi</button>
+          <button type="button" class="feed-tab" disabled title="Media sosial belum termasuk dalam perhitungan KPI resmi" style="opacity: 0.45; cursor: not-allowed;">📱 Media Sosial (Off)</button>
         </div>
-
         <div class="feeds-scroll" id="streamFeedsContainer">
           <!-- Injected via JavaScript -->
         </div>
       </div>
     </div>
 
-    <!-- KOLOM KANAN: SUARA WARGA & EVALUASI KELUHAN -->
+    <!-- KOLOM KANAN: STATUS KESEHATAN SISTEM & INFORMASI AUDIT -->
     <div class="intel-column">
       <div class="intel-panel" style="flex: 1;">
         <div class="panel-header">
-          <div class="panel-title">
-            <span>💬 Suara Warga & Evaluasi Tindak Lanjut</span>
-          </div>
-          <span class="panel-pill" style="background: #ECFDF5; color: #15803D;">RESPON AKTIF</span>
+          <h2 class="panel-title" style="font-size: 0.82rem; font-weight: 800; margin: 0;">
+            <span>🛡️ Status Sistem &amp; Audit Data</span>
+          </h2>
+          <span class="panel-pill" style="background: #F1F5F9; color: #475569;" id="auditHealthBadge" aria-live="polite">VALIDATION POLICY ACTIVE</span>
         </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 6px; font-size: 0.74rem;">
+          <div style="background: var(--bg-surface-elevated); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-weight: 800; color: var(--text-main); margin-bottom: 4px;">📡 Sumber Berita Terpantau</div>
+            <div id="sourceHealthSummary" style="color: var(--text-secondary); line-height: 1.45;">Memuat status crawler...</div>
+          </div>
 
-        <div class="comments-scroll" id="citizenCommentsContainer">
-          <!-- Injected via JavaScript -->
+          <div style="background: var(--bg-surface-elevated); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-weight: 800; color: var(--text-main); margin-bottom: 4px;">⏱️ Pembaruan Terakhir</div>
+            <div style="color: var(--text-muted); font-size: 0.7rem; line-height: 1.4;">
+              <div>Data Terakhir: <strong id="lblLastDataUpdate" style="color: var(--text-main);">—</strong></div>
+              <div>Sinkronisasi: <strong id="lblLastSync" style="color: var(--text-main);">—</strong></div>
+            </div>
+          </div>
+
+          <div class="audit-info-box" style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 10px 12px; font-size: 0.7rem; color: #1E40AF; line-height: 1.45;">
+            <strong>🔒 Integritas Data Publik:</strong> Hanya berita yang lolos verifikasi sumber, URL kanonikal, tanggal publikasi, dan relevansi tupoksi yang ditampilkan pada dashboard publik.
+          </div>
+
+          <div class="footer-version-box" style="margin-top: auto; padding: 8px 10px; background: #F8FAFC; border: 1px dashed var(--border-color); border-radius: 6px; font-size: 0.68rem; color: var(--text-muted); text-align: center;">
+            Sistem Media Intelligence v1.0 &bull; Firebase Spark Free Tier
+          </div>
         </div>
       </div>
     </div>
@@ -945,622 +847,624 @@
 
   <!-- 4. BOTTOM TICKER BAR -->
   <footer class="intel-ticker">
-    <div class="ticker-tag">
-      <span>🚨</span> LIVE RADAR
+    <div class="ticker-tag" id="tickerBadge">
+      <span>📡</span> RADAR AKTUAL
     </div>
     <div class="ticker-marquee">
       <div class="ticker-marquee-inner" id="tickerMarqueeContent">
-        • [FAJAR SULSEL] Disperindag Pinrang Sukses Tekan Inflasi Lewat Pasar Murah • [INSTAGRAM @perindagempinrang] Kadis Tindak Lanjut Keluhan Pengecer Gas 3 Kg di Batulappa • [ANTARA NEWS] UML Metrologi Selesaikan Uji Tera 100% SPBU Trans Sulawesi • [TIKTOK @explorepinrang] Video Promosi Kopi Robusta Lembang Tembus 68K Views • [SUARA WARGA FB] Pelayanan Tera Timbangan Pasar Sentral Dinilai Tertib dan Transparan • [DISPOSISI DINAS] Tim Gabungan Jadwalkan Sidak Pangkalan Gas Wilayah Perbukitan •
+        Memuat aliran berita aktual Disperindag ESDM Kabupaten Pinrang...
       </div>
     </div>
     <div style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; font-family: 'JetBrains Mono'; font-weight: 700;">
-      🕒 <span id="witaTimeClock">01:25:00 WITA</span>
+      🕒 <span id="witaTimeClock">--:--:-- WITA</span>
     </div>
   </footer>
 
+  <!-- FIREBASE CLIENT-SIDE SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260830_mi_cutover_v1"></script>
+
   <script>
     // =========================================================================
-    // DATASET MEDIA INTELLIGENCE (TAUTAN SPESIFIK ARTIKEL NYATA & ISU KRITIS)
+    // FRONTEND CUTOVER: PURE MI_PUBLIC/CURRENT DRIVEN WITH P0 DEFENSE-IN-DEPTH
     // =========================================================================
-    const CURRENT_DATA_VERSION = "2026_08_27_v30_clean_prod";
 
-    const MEDIA_DATA_MASTER = {
-      summary: {
-        total_mentions: 1482,
-        positive_percentage: 74,
-        neutral_percentage: 18,
-        negative_percentage: 8,
-        total_reach: "185.4K",
-        total_engagement: "24.8K",
-        media_articles: 142,
-        social_posts: 486,
-        citizen_comments: 854,
-        hot_issues_count: 5,
-        resolved_dispositions: 8,
-        last_crawler_sync: "27 Agustus 2026, 02:00 WITA"
-      },
-      trending_topics: [
-        {
-          id: "tt_01",
-          topic: "Pengawasan HET Gas LPG 3 Kg & Penertiban Pengecer Nakal",
-          category: "ESDM & Energi",
-          volume: 512,
-          sentiment: { positive: 68, neutral: 20, negative: 12 },
-          is_critical: true,
-          status: "🔴 Perlu Tindak Lanjut Lapangan",
-          badge_color: "rose",
-          direct_url: "https://makassar.tribunnews.com/2024/04/05/kadis-perindag-esdm-pinrang-sidak-pangkalan-lpg-3kg"
-        },
-        {
-          id: "tt_02",
-          topic: "Operasi Pasar Murah Sembako TPID Tekan Inflasi",
-          category: "Perdagangan",
-          volume: 428,
-          sentiment: { positive: 92, neutral: 6, negative: 2 },
-          is_critical: false,
-          status: "🟢 Apresiasi Tinggi Warga",
-          badge_color: "emerald",
-          direct_url: "https://fajar.co.id/2024/03/06/tekan-inflasi-pemkab-pinrang-gelar-pasar-murah/"
-        },
-        {
-          id: "tt_03",
-          topic: "Uji Tera Nozzle SPBU Jalur Trans Sulawesi & Pasar",
-          category: "Kemetrologian",
-          volume: 264,
-          sentiment: { positive: 88, neutral: 10, negative: 2 },
-          is_critical: false,
-          status: "🟢 Kepatuhan Standar",
-          badge_color: "blue",
-          direct_url: "https://makassar.antaranews.com/berita/390211/metrologi-pinrang-uji-tera-spbu-jalur-mudik"
-        },
-        {
-          id: "tt_04",
-          topic: "Penataan Ketertiban Lapak Liar di Luar Pasar Sentral",
-          category: "Pengelolaan Pasar",
-          volume: 186,
-          sentiment: { positive: 55, neutral: 25, negative: 20 },
-          is_critical: true,
-          status: "⚠️ Evaluasi Zonasi UPT Pasar",
-          badge_color: "amber",
-          direct_url: "https://pinrangkab.go.id/berita"
-        },
-        {
-          id: "tt_05",
-          topic: "Fasilitasi Sertifikasi Halal & TKDN Produk IKM Pinrang",
-          category: "Perindustrian & IKM",
-          volume: 92,
-          sentiment: { positive: 94, neutral: 6, negative: 0 },
-          is_critical: false,
-          status: "🟢 Program Berjalan Baik",
-          badge_color: "purple",
-          direct_url: "https://pinrangkab.go.id/berita"
-        }
-      ],
-      mainstream_news: [
-        {
-          id: "mn_01",
-          media_name: "Fajar Sulsel",
-          media_type: "Portal Berita Regional",
-          title: "Disperindag ESDM Pinrang Gelar Operasi Pasar Murah Tekan Laju Inflasi Jelang Hari Besar",
-          snippet: "Pemerintah Kabupaten Pinrang melalui Disperindag ESDM kembali menggelar pasar murah bahan pokok dengan menyalurkan beras SPHP, minyak goreng, dan gula pasir langsung ke pemukiman warga.",
-          published_at: "26 Agustus 2026, 09:30 WITA",
-          url: "https://fajar.co.id/2024/03/06/tekan-inflasi-pemkab-pinrang-gelar-pasar-murah/",
-          is_critical: false,
-          sentiment: "positive",
-          sentiment_score: 94,
-          views: "4.2K",
-          shares: 128,
-          img: "assets/news/operasi_pasar_murah_sembako_pinrang.jpg"
-        },
-        {
-          id: "mn_02",
-          media_name: "Tribun Timur Pinrang",
-          media_type: "Media Cetak & Online",
-          title: "Kadis Perindag ESDM Pinrang Pastikan Kuota dan Pasokan Gas LPG 3 Kg Aman di 12 Kecamatan",
-          snippet: "Kepala Dinas Perindag ESDM Pinrang Muhammad Yusuf Nur menegaskan seluruh pangkalan resmi wajib menjual gas melon sesuai HET Rp 20.000 dan menindak tegas pengecer yang memainkan harga.",
-          published_at: "25 Agustus 2026, 14:15 WITA",
-          url: "https://makassar.tribunnews.com/2024/04/05/kadis-perindag-esdm-pinrang-sidak-pangkalan-lpg-3kg",
-          is_critical: false,
-          sentiment: "positive",
-          sentiment_score: 88,
-          views: "6.8K",
-          shares: 245,
-          img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg"
-        },
-        {
-          id: "mn_03",
-          media_name: "Harian Sorot Investigasi",
-          media_type: "Media Investigasi Daerah",
-          title: "Warga Batulappa dan Mattiro Sompe Keluhkan Mahalnya Gas Melon di Tingkat Pengecer Warung",
-          snippet: "Meskipun harga resmi pangkalan Rp 20.000, sejumlah warga pedalaman mengeluhkan harga tembus Rp 24.000 - Rp 25.000 per tabung di tingkat pengecer tidak resmi. Disperindag diminta sidak langsung.",
-          published_at: "25 Agustus 2026, 10:40 WITA",
-          url: "https://makassar.tribunnews.com/tag/pinrang",
-          is_critical: true,
-          sentiment: "negative",
-          sentiment_score: 38,
-          views: "5.4K",
-          shares: 310,
-          img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg"
-        },
-        {
-          id: "mn_04",
-          media_name: "Antara News Sulsel",
-          media_type: "Kantor Berita Nasional",
-          title: "UML Metrologi Pinrang Tuntaskan Uji Tera 100% Nozzle Pompa SPBU di Jalur Trans Sulawesi",
-          snippet: "Guna menjamin kepastian takaran bagi konsumen dan pemudik, Tim Penera Ahli Metrologi Pinrang melakukan segel cap tanda tera sah pada seluruh SPBU di wilayah Kabupaten Pinrang.",
-          published_at: "24 Agustus 2026, 11:00 WITA",
-          url: "https://makassar.antaranews.com/berita/390211/metrologi-pinrang-uji-tera-spbu-jalur-mudik",
-          is_critical: false,
-          sentiment: "positive",
-          sentiment_score: 96,
-          views: "3.5K",
-          shares: 98,
-          img: "assets/news/tera_uttp_spbu_hd.jpg"
-        },
-        {
-          id: "mn_05",
-          media_name: "Berita Kota Makassar",
-          media_type: "Harian Daerah",
-          title: "Kain Tenun Sutra Motif Lasinrang Raih Apresiasi Tinggi di Pameran Produk Unggulan Daerah",
-          snippet: "Kerajinan tenun sutra khas Bumi Lasinrang binaan Disperindag ESDM Pinrang memikat pengunjung pameran dekranasda dengan kualitas benang sutra murni dan corak etnik kontemporer.",
-          published_at: "23 Agustus 2026, 16:45 WITA",
-          url: "https://beritakotamakassar.com/read/2023/11/15/tenun-sutra-khas-pinrang-pikat-pengunjung/",
-          is_critical: false,
-          sentiment: "positive",
-          sentiment_score: 98,
-          views: "5.1K",
-          shares: 186,
-          img: "assets/banner/tenun_sutra_pinrang_hd.jpg"
-        },
-        {
-          id: "mn_06",
-          media_name: "Portal Berita Daerah",
-          media_type: "Portal Pemantau Pangan",
-          title: "Evaluasi Lonjakan Harga Cabai Rawit Merah Akibat Pasokan Sentra Terganggu Cuaca",
-          snippet: "Tim Pengendali Inflasi Daerah bersama Bidang Perdagangan mencatat kenaikan harga cabai rawit ke level Rp 55.000/kg. Disperindag menyiapkan pasokan langsung dari petani lokal.",
-          published_at: "22 Agustus 2026, 11:30 WITA",
-          url: "https://pinrangkab.go.id/berita",
-          is_critical: true,
-          sentiment: "negative",
-          sentiment_score: 45,
-          views: "3.8K",
-          shares: 115,
-          img: "assets/banner/pasar_sentral_pinrang_clean_hd.jpg"
-        }
-      ],
-      social_posts: [
-        {
-          id: "sp_01",
-          platform: "instagram",
-          platform_icon: "📸",
-          account_name: "Disperindag ESDM Pinrang",
-          account_handle: "@perindagempinrang",
-          url: "https://www.instagram.com/perindagempinrang/",
-          caption: "Tim Pengawas ESDM & Perdagangan melakukan sidak berkala ketersediaan tabung Gas LPG 3 Kg bersubsidi di pangkalan resmi Kec. Watang Sawitto dan Mattiro Bulu. Pastikan membeli di pangkalan resmi dengan harga HET Rp 20.000/tabung! ⛽🔥 #DisperindagPinrang #GasElpiji",
-          post_time: "Kemarin, 15:30 WITA",
-          likes: "1.420",
-          comments: 68,
-          shares: 112,
-          is_critical: false,
-          sentiment: "positive",
-          media_img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
-          engagement_rate: "4.8%"
-        },
-        {
-          id: "sp_02",
-          platform: "facebook",
-          platform_icon: "👥",
-          account_name: "Suara Warga Pinrang (Grup Publik)",
-          account_handle: "Komunitas 85K Anggota",
-          url: "https://web.facebook.com/groups/suarawargapinrang",
-          caption: "Lapor pak kadis, pedagang kaki lima di luar pagar timur Pasar Sentral mulai bikin macet tiap pagi jam 07.00. Mohon UPT Pasar dan dinas terkait menertibkan agar pembeli nyaman masuk ke dalam gedung pasar.",
-          post_time: "Kemarin, 19:15 WITA",
-          likes: "420",
-          comments: 89,
-          shares: 45,
-          is_critical: true,
-          sentiment: "negative",
-          media_img: "assets/banner/pasar_sentral_pinrang_clean_hd.jpg",
-          engagement_rate: "6.2%"
-        },
-        {
-          id: "sp_03",
-          platform: "tiktok",
-          platform_icon: "🎵",
-          account_name: "Warga Pinrang Official",
-          account_handle: "@wargapinrang",
-          url: "https://www.tiktok.com/@explorepinrang",
-          caption: "Serbuan emak-emak di Pasar Murah Disperindag Pinrang! Minyakita 14rb dan Beras 5kg cuma 55rb langsung ludes dalam 2 jam. Keren pemda sering-sering buat kayak gini ya pak bupati! 👍🍚🔥",
-          post_time: "2 hari lalu",
-          likes: "4.850",
-          comments: 230,
-          shares: 640,
-          views: "68.5K",
-          is_critical: false,
-          sentiment: "positive",
-          media_img: "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
-          engagement_rate: "8.2%"
-        },
-        {
-          id: "sp_04",
-          platform: "instagram",
-          platform_icon: "📸",
-          account_name: "Explore Pinrang & Kuliner",
-          account_handle: "@explorepinrang",
-          url: "https://www.instagram.com/explorepinrang/",
-          caption: "Siapa sangka kopi arabika & robusta dari pegunungan Lembang Pinrang sekarang sudah tembus kafe-kafe hits Makassar & Jakarta! Binaan IKM Disperindag Pinrang makin mantap! ☕✨ #KopiPinrang #UMKMBisa",
-          post_time: "4 hari lalu",
-          likes: "2.150",
-          comments: 88,
-          shares: 145,
-          is_critical: false,
-          sentiment: "positive",
-          media_img: "assets/news/kopi_olahan_pinrang_hd.jpg",
-          engagement_rate: "6.4%"
-        },
-        {
-          id: "sp_05",
-          platform: "facebook",
-          platform_icon: "👥",
-          account_name: "Forum Konsumen Pinrang",
-          account_handle: "Komunitas Peduli Konsumen",
-          url: "https://web.facebook.com/groups/suarawargapinrang",
-          caption: "Mohon tera timbangan pedagang buah musiman di pinggir jalan poros Pinrang-Parepare juga diperiksa ya pak petugas metrologi, biar takarannya pas dan adil untuk pembeli.",
-          post_time: "5 hari lalu",
-          likes: "310",
-          comments: 42,
-          shares: 28,
-          is_critical: true,
-          sentiment: "negative",
-          media_img: "assets/news/pelayanan_tera_ulang_uttp_pinrang.jpg",
-          engagement_rate: "4.5%"
-        }
-      ],
-      citizen_comments: [
-        {
-          id: "cc_01",
-          author_name: "Hasbullah (@hasbul_batulappa)",
-          source_platform: "Instagram",
-          source_icon: "📸",
-          direct_url: "https://www.instagram.com/perindagempinrang/",
-          avatar_char: "HB",
-          comment_text: "Tolong sidak pengecer di Batulappa pak, kami beli sampai 25 ribu per tabung 3kg karena pangkalan jauh dari dusun. Mohon ditambah pangkalan resmi di desa kami biar harga sesuai HET Rp 20.000!",
-          timestamp: "27 Agustus 2026, 01:10 WITA",
-          sentiment: "negative",
-          sentiment_label: "🔴 Keluhan / Evaluasi Mendesak",
-          disposition: "⚠️ DISPOSISI: Bidang ESDM (Jadwal Pengawasan Pangkalan Batulappa)",
-          official_response: "Laporan diterima Bapak Hasbullah. Tim Pengawas ESDM telah menjadwalkan verifikasi pangkalan dan kuota distribusi wilayah Batulappa pekan ini."
-        },
-        {
-          id: "cc_02",
-          author_name: "Iwan Darmawan (Warga Watang Sawitto)",
-          source_platform: "Facebook",
-          source_icon: "👥",
-          direct_url: "https://web.facebook.com/groups/suarawargapinrang",
-          avatar_char: "ID",
-          comment_text: "Trotoar timur Pasar Sentral macet parah tiap pagi karena lapak jualan di luar pagar. Pembeli yang mau parkir jadi susah. Tolong ditertibkan bersama Satpol PP pak.",
-          timestamp: "26 Agustus 2026, 21:30 WITA",
-          sentiment: "negative",
-          sentiment_label: "🔴 Masukan Ketertiban Pasar",
-          disposition: "⚠️ DISPOSISI: UPT Pengelola Pasar Sentral & Koordinasi Trantib",
-          official_response: "Terima kasih informasinya. UPT Pasar Sentral sedang melakukan penataan relokasi pedagang trotoar ke dalam blok los basah yang masih kosong."
-        },
-        {
-          id: "cc_03",
-          author_name: "Andi Sukmawati, S.Pd.",
-          source_platform: "Facebook",
-          source_icon: "👥",
-          direct_url: "https://web.facebook.com/groups/suarawargapinrang",
-          avatar_char: "AS",
-          comment_text: "Alhamdulillah kemarin dapat beras SPHP dan minyak goreng murah di halaman kantor dinas. Sangat meringankan beban dapur kami para ibu rumah tangga. Terima kasih jajaran Disperindag Pinrang!",
-          timestamp: "26 Agustus 2026, 18:15 WITA",
-          sentiment: "positive",
-          sentiment_label: "🟢 Apresiasi Publik",
-          disposition: null,
-          official_response: "Terima kasih Ibu Andi Sukmawati. Program pasar murah TPID akan terus berlanjut ke kecamatan lainnya secara bergilir demi menjaga daya beli warga."
-        },
-        {
-          id: "cc_04",
-          author_name: "Rahmat Hidayat (Pengrajin Anyaman Lembang)",
-          source_platform: "TikTok",
-          source_icon: "🎵",
-          direct_url: "https://www.tiktok.com/@explorepinrang",
-          avatar_char: "RH",
-          comment_text: "Min, bagaimana alur pendaftaran untuk kelompok pengrajin anyaman bambu kami di desa agar bisa ikut pelatihan kemasan dan sertifikasi NIB/TKDN?",
-          timestamp: "26 Agustus 2026, 16:10 WITA",
-          sentiment: "neutral",
-          sentiment_label: "⚪ Pertanyaan / Permohonan Fasilitasi",
-          disposition: "ℹ️ DISPOSISI: Bidang Perindustrian & IKM",
-          official_response: "Bapak Rahmat silakan datang langsung ke Bidang Perindustrian di Kantor Disperindag ESDM Pinrang atau ajukan via menu Layanan Publik di website resmi."
-        },
-        {
-          id: "cc_05",
-          author_name: "Hj. Maimunah (Pedagang Pasar Pekkabata)",
-          source_platform: "Instagram",
-          source_icon: "📸",
-          direct_url: "https://www.instagram.com/perindagempinrang/",
-          avatar_char: "HM",
-          comment_text: "Pelayanan tera timbangan di pasar sangat tertib dan transparan. Petugas memeriksa dengan timbel standar dan langsung ditempel segel tera 2026. Pembeli jadi makin percaya belanja di lapak kami.",
-          timestamp: "26 Agustus 2026, 14:30 WITA",
-          sentiment: "positive",
-          sentiment_label: "🟢 Sangat Positif",
-          disposition: null,
-          official_response: "Terima kasih Ibu Hj. Maimunah. Kemetrologian yang jujur adalah kunci perdagangan yang berkah dan adil bagi penjual maupun pembeli."
-        }
-      ]
-    };
-
+    let currentSnapshotData = null;
     let currentFeedFilter = 'all';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // Force migration to latest valid dataset
-      const savedVersion = localStorage.getItem('disperindag_media_intel_ver');
-      if (savedVersion !== CURRENT_DATA_VERSION) {
-        localStorage.setItem('disperindag_media_intelligence', JSON.stringify(MEDIA_DATA_MASTER));
-        localStorage.setItem('disperindag_media_intel_ver', CURRENT_DATA_VERSION);
-      }
+    // 1. SECURITY HELPER: Escape HTML untuk mencegah stored XSS dari artikel media
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-      renderIntelligenceDashboard();
-      startWitaClock();
-    });
-
-    // SMART DATA FETCHER DENGAN FALLBACK BERLAPIS
-    function getMediaData() {
+    // 2. SECURITY HELPER: Sanitize URL (TAHAP 3: Return null untuk URL invalid/berbahaya, prioritaskan https/http)
+    function sanitizeUrl(url) {
+      if (!url || typeof url !== 'string') return null;
+      const trimmed = url.trim();
       try {
-        const stored = localStorage.getItem('disperindag_media_intelligence');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.mainstream_news && parsed.mainstream_news.length > 0) {
-            return parsed;
-          }
+        const parsed = new URL(trimmed);
+        if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+          return parsed.href;
         }
       } catch (e) {}
-      return MEDIA_DATA_MASTER;
+      return null;
     }
 
-    // HELPER MENGAMBIL URL AMAN (TIDAK PERNAH UNDEFINED)
-    function getSafeUrl(item, defaultFallback) {
-      if (item && item.url && typeof item.url === 'string' && item.url.trim() !== '' && item.url !== 'undefined') {
-        return item.url;
+    // 3. CONTRACT VALIDATION: Validasi integritas struktur snapshot dokumen (TAHAP 1)
+    function validateSnapshotContract(data) {
+      if (!data || typeof data !== 'object') return false;
+      if (data.schema_version !== 1) {
+        console.warn('[MI] Schema version mismatch:', data.schema_version);
+        return false;
       }
-      if (item && item.direct_url && typeof item.direct_url === 'string' && item.direct_url.trim() !== '' && item.direct_url !== 'undefined') {
-        return item.direct_url;
-      }
-      if (item && item.platform === 'instagram') return 'https://www.instagram.com/perindagempinrang/';
-      if (item && item.platform === 'facebook') return 'https://web.facebook.com/groups/suarawargapinrang';
-      if (item && item.platform === 'tiktok') return 'https://www.tiktok.com/@explorepinrang';
-      return defaultFallback || 'https://pinrangkab.go.id/berita';
+      if (!data.kpis || typeof data.kpis !== 'object') return false;
+      if (!Array.isArray(data.latest_items)) return false;
+      if (!Array.isArray(data.top_stories)) return false;
+      if (!Array.isArray(data.top_issues)) return false;
+      if (!data.source_health || typeof data.source_health !== 'object') return false;
+      if (!data.last_run_at && !data.last_full_success_at && !data.generated_at) return false;
+      return true;
     }
 
-    function renderIntelligenceDashboard() {
-      const data = getMediaData();
-
-      // Hitung Item Kritis Aktual
-      const criticalNewsCount = (data.mainstream_news || []).filter(n => n.is_critical).length;
-      const criticalSocialCount = (data.social_posts || []).filter(p => p.is_critical).length;
-      const totalCriticalFeeds = criticalNewsCount + criticalSocialCount;
-
-      // 1. Render Metrics Summary
-      if (data.summary) {
-        document.getElementById('statMentions').textContent = data.summary.total_mentions.toLocaleString('id-ID');
-        document.getElementById('statSentimentPos').textContent = `${data.summary.positive_percentage}%`;
-        document.getElementById('statReach').textContent = data.summary.total_reach;
-        document.getElementById('statEngagement').textContent = data.summary.total_engagement;
+    // 4. TIMESTAMP HELPER: Format tanggal WITA yang aman
+    function formatWitaDate(val) {
+      if (!val) return '—';
+      let d = null;
+      if (typeof val.toDate === 'function') {
+        d = val.toDate();
+      } else if (typeof val === 'string') {
+        d = new Date(val);
+      } else if (val instanceof Date) {
+        d = val;
       }
-
-      // Update Card KPI Isu Kritis Dinamis
-      const statDispositionsCount = document.getElementById('statDispositionsCount');
-      if (statDispositionsCount) {
-        statDispositionsCount.innerHTML = `${totalCriticalFeeds} <span style="font-size: 1.05rem; font-weight: 700;">Isu Aktif</span>`;
-      }
-      const statDispositionsDetail = document.getElementById('statDispositionsDetail');
-      if (statDispositionsDetail) {
-        statDispositionsDetail.innerHTML = `<strong style="color: var(--accent-rose);">⚠️ ${totalCriticalFeeds} Butuh Penanganan</strong> &bull; <span style="color: var(--accent-emerald);">✓ ${data.summary.resolved_dispositions || 8} Selesai</span>`;
-      }
-
-      // Update Badge Tab Isu Kritis
-      const criticalTabBadge = document.getElementById('criticalTabBadge');
-      if (criticalTabBadge) {
-        criticalTabBadge.textContent = totalCriticalFeeds;
-      }
-
-      // 2. Render Trending Topics
-      renderTrendingTopics(data.trending_topics || []);
-
-      // 3. Render Feeds
-      renderFeeds(data);
-
-      // 4. Render Citizen Comments
-      renderComments(data.citizen_comments || []);
+      if (!d || isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Makassar'
+      }) + ' WITA';
     }
 
-    function renderTrendingTopics(topics) {
+    // HELPER: Safe count & Safe KPI Number (TAHAP 1: Fix Zero -> One Bug)
+    function safeCount(val) {
+      const n = Number(val);
+      return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+    }
+
+    function safeKpiNumber(val) {
+      if (typeof val === 'number' && Number.isInteger(val) && val >= 0) {
+        return val;
+      }
+      return '—';
+    }
+
+    // 5. DEFENSE-IN-DEPTH FRESHNESS EVALUATOR (TAHAP 1: Prioritas Pipeline Freshness & Source Health)
+    function evaluateFreshness(snapshot) {
+      if (!snapshot) {
+        return {
+          freshness: 'OFFLINE',
+          coverage: 'FAILED',
+          label: 'OFFLINE / MENUNGGU DATA',
+          auditStatus: 'KONEKSI OFFLINE',
+          bg: '#F1F5F9',
+          color: '#475569',
+          pulse: '#94A3B8'
+        };
+      }
+
+      // TAHAP 1 Item 1: Prioritas Pipeline Freshness (last_full_success_at > last_run_at > generated_at)
+      let lastCrawlerRunMs = null;
+      const runVal = snapshot.last_full_success_at || snapshot.last_run_at || snapshot.generated_at;
+      if (runVal) {
+        const d = (typeof runVal.toDate === 'function') ? runVal.toDate() : new Date(runVal);
+        if (!isNaN(d.getTime())) {
+          lastCrawlerRunMs = d.getTime();
+        }
+      }
+
+      const nowMs = Date.now();
+
+      // TAHAP 1 Item 4: Future Timestamp Guard (> 5 menit ke masa depan)
+      if (lastCrawlerRunMs && lastCrawlerRunMs > (nowMs + 5 * 60 * 1000)) {
+        return {
+          freshness: 'TIMESTAMP_INVALID',
+          coverage: 'FAILED',
+          label: '⚠️ TIMESTAMP INVALID',
+          auditStatus: 'ANOMALI WAKTU',
+          bg: '#FEE2E2',
+          color: '#991B1B',
+          pulse: '#DC2626'
+        };
+      }
+
+      const crawlerAgeHours = lastCrawlerRunMs ? (nowMs - lastCrawlerRunMs) / (1000 * 60 * 60) : 999;
+
+      let freshness = 'STALE';
+      if (crawlerAgeHours <= 5) freshness = 'FRESH';
+      else if (crawlerAgeHours <= 8) freshness = 'DELAYED';
+      else if (crawlerAgeHours <= 12) freshness = 'STALE';
+      else freshness = 'OFFLINE';
+
+      // TAHAP 1 Item 3: Source Health Total Zero Guard
+      const health = snapshot.source_health || {};
+      const totalSources = parseInt(health.total, 10) || 0;
+      const okSources = parseInt(health.ok, 10) || 0;
+
+      let coverage = 'FAILED';
+      if (totalSources > 0) {
+        if (okSources === totalSources) {
+          coverage = 'HEALTHY';
+        } else if (okSources > 0) {
+          coverage = 'PARTIAL';
+        } else {
+          coverage = 'FAILED';
+        }
+      } else {
+        coverage = 'FAILED';
+      }
+
+      // TAHAP 1 Item 9: Matriks Status Audit & Label
+      if (totalSources === 0) {
+        return {
+          freshness: 'OFFLINE',
+          coverage: 'FAILED',
+          label: '⚪ SUMBER BELUM AKTIF',
+          auditStatus: 'SUMBER BELUM AKTIF',
+          bg: '#F1F5F9',
+          color: '#475569',
+          pulse: '#94A3B8'
+        };
+      }
+
+      if (freshness === 'FRESH' && coverage === 'HEALTHY') {
+        return { freshness, coverage, label: '🟢 DATA AKTUAL FRESH', auditStatus: 'VERIFIKASI AKTIF', bg: '#DCFCE7', color: '#166534', pulse: '#16A34A' };
+      } else if (freshness === 'FRESH' && coverage === 'PARTIAL') {
+        return { freshness, coverage, label: '🟡 DATA FRESH • COVERAGE PARSIAL', auditStatus: 'SUMBER PARSIAL', bg: '#FEF3C7', color: '#92400E', pulse: '#D97706' };
+      } else if (freshness === 'DELAYED') {
+        return { freshness, coverage, label: '🟡 PEMBARUAN TERTUNDA', auditStatus: 'PEMBARUAN TERTUNDA', bg: '#FEF3C7', color: '#92400E', pulse: '#D97706' };
+      } else if (freshness === 'STALE') {
+        return { freshness, coverage, label: '⚪ DATA KADALUARSA / STALE', auditStatus: 'DATA STALE', bg: '#F1F5F9', color: '#475569', pulse: '#94A3B8' };
+      } else {
+        return { freshness, coverage, label: '⚪ OFFLINE / MENUNGGU DATA', auditStatus: 'KONEKSI OFFLINE', bg: '#F1F5F9', color: '#475569', pulse: '#94A3B8' };
+      }
+    }
+
+    // =========================================================================
+    // TAHAP 2: FIRESTORE REALTIME onSnapshot() & WALLBOARD RESILIENCE
+    // =========================================================================
+
+    let unsubscribePublicSnapshot = null;
+    let isDataFromCache = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      localStorage.removeItem('disperindag_media_intelligence');
+      localStorage.removeItem('disperindag_media_intel_ver');
+
+      startWitaClock();
+      initRealtimeSnapshotListener();
+
+      // TAHAP 2 Item 4: Re-evaluasi umur data secara mandiri setiap 60 detik TANPA read Firestore tambahan
+      setInterval(() => {
+        if (currentSnapshotData) {
+          const freshInfo = evaluateFreshness(currentSnapshotData);
+          renderHeaderStatus(freshInfo);
+          renderAuditSummary(currentSnapshotData, freshInfo);
+        }
+      }, 60 * 1000);
+
+      // TAHAP 2 Item 6: Auto-recovery listener saat jaringan kembali online
+      window.addEventListener('online', () => {
+        console.log('[MI] Jaringan kembali online, memulihkan koneksi snapshot...');
+        initRealtimeSnapshotListener();
+      });
+
+      window.addEventListener('offline', () => {
+        console.warn('[MI] Jaringan terputus (offline).');
+        handleSnapshotDisconnected();
+      });
+    });
+
+    function initRealtimeSnapshotListener(isManualClick = false) {
+      const pill = document.getElementById('systemFreshnessPill');
+      if (pill && isManualClick) {
+        pill.innerHTML = `<span class="status-pulse" style="background:#0284C7;"></span> MEMPERBARUI...`;
+      }
+
+      // TAHAP 2 Item 2: Hindari listener ganda
+      if (unsubscribePublicSnapshot) {
+        try {
+          unsubscribePublicSnapshot();
+        } catch (e) {}
+        unsubscribePublicSnapshot = null;
+      }
+
+      if (typeof db === 'undefined' || !db) {
+        console.warn('[MI] Firestore SDK db belum terinisialisasi.');
+        if (!currentSnapshotData) renderOfflineState();
+        return;
+      }
+
+      try {
+        // TAHAP 2 Item 1: onSnapshot hanya untuk dokumen tunggal mi_public/current
+        const docRef = db.collection('mi_public').doc('current');
+        unsubscribePublicSnapshot = docRef.onSnapshot(
+          { includeMetadataChanges: true },
+          (doc) => {
+            if (doc.exists) {
+              const data = doc.data();
+              // TAHAP 2 Item 3: Metadata cache separation
+              isDataFromCache = doc.metadata ? doc.metadata.fromCache : false;
+
+              if (validateSnapshotContract(data)) {
+                currentSnapshotData = data;
+                const freshInfo = evaluateFreshness(data);
+                renderHeaderStatus(freshInfo);
+                renderKPIs(data.kpis || {});
+                renderTopStories(data.top_stories || []);
+                renderTopIssues(data.top_issues || []);
+                renderLatestItems(data.latest_items || []);
+                renderAuditSummary(data, freshInfo);
+                renderTicker(data.latest_items || []);
+              } else {
+                console.warn('[MI] Dokumen mi_public/current gagal validasi kontrak skema.');
+              }
+            } else {
+              console.warn('[MI] Dokumen mi_public/current belum dibuat di Firestore.');
+              if (!currentSnapshotData) renderOfflineState();
+            }
+          },
+          (err) => {
+            console.warn('[MI] Firestore onSnapshot stream terputus:', err);
+            handleSnapshotDisconnected();
+          }
+        );
+      } catch (err) {
+        console.error('[MI] Gagal menginisialisasi Firestore onSnapshot:', err);
+        handleSnapshotDisconnected();
+      }
+    }
+
+    // TAHAP 2 Item 5: Status saat koneksi terputus tetapi last-known-good data tersedia
+    function handleSnapshotDisconnected() {
+      const pill = document.getElementById('systemFreshnessPill');
+      if (currentSnapshotData) {
+        if (pill) {
+          pill.style.background = '#FEF3C7';
+          pill.style.color = '#92400E';
+          pill.style.border = '1px solid rgba(217, 119, 6, 0.35)';
+          pill.innerHTML = `<span class="status-pulse" style="background:#D97706;"></span> KONEKSI TERPUTUS • MENAMPILKAN DATA TERAKHIR`;
+        }
+        const auditBadge = document.getElementById('auditHealthBadge');
+        if (auditBadge) {
+          auditBadge.textContent = 'KONEKSI TERPUTUS';
+          auditBadge.style.background = '#FEF3C7';
+          auditBadge.style.color = '#92400E';
+        }
+      } else {
+        renderOfflineState();
+      }
+    }
+
+    function renderOfflineState() {
+      const pill = document.getElementById('systemFreshnessPill');
+      if (pill) {
+        pill.style.background = '#F1F5F9';
+        pill.style.color = '#475569';
+        pill.style.border = '1px solid #CBD5E1';
+        pill.innerHTML = `<span class="status-pulse" style="background:#94A3B8; box-shadow:0 0 0 3px rgba(148,163,184,0.2);"></span> OFFLINE / MENUNGGU DATA`;
+      }
+
+      // P0: Tampilkan '—' saat offline, bukan '0'
+      document.getElementById('statMentions').textContent = '—';
+      document.getElementById('statStories').textContent = '—';
+      document.getElementById('statSources').textContent = '—';
+      document.getElementById('statIssues').textContent = '—';
+      document.getElementById('statMentionsTrend').textContent = '—';
+
+      const feedContainer = document.getElementById('streamFeedsContainer');
+      if (feedContainer) {
+        feedContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; font-size: 0.82rem; color: var(--text-muted);">
+            <div style="font-size: 1.8rem; margin-bottom: 8px;">📡</div>
+            <strong>Menunggu Siklus Crawling Pertama atau Koneksi Firestore.</strong>
+            <p style="font-size: 0.72rem; margin-top: 4px;">Data akan muncul secara otomatis setelah pipeline crawler backend berjalan.</p>
+          </div>
+        `;
+      }
+
+      const topicsContainer = document.getElementById('trendingTopicsContainer');
+      if (topicsContainer) {
+        topicsContainer.innerHTML = `<div style="text-align: center; padding: 20px; font-size: 0.72rem; color: var(--text-muted);">Belum ada story cluster aktif.</div>`;
+      }
+
+      const issuesContainer = document.getElementById('topIssuesContainer');
+      if (issuesContainer) {
+        issuesContainer.innerHTML = `<div style="text-align: center; padding: 20px; font-size: 0.72rem; color: var(--text-muted);">Belum ada isu kritis terdeteksi.</div>`;
+      }
+
+      const sourceSummary = document.getElementById('sourceHealthSummary');
+      if (sourceSummary) {
+        sourceSummary.textContent = 'Menunggu data dari pipeline crawler.';
+      }
+
+      const auditBadge = document.getElementById('auditHealthBadge');
+      if (auditBadge) {
+        auditBadge.textContent = 'KONEKSI OFFLINE';
+        auditBadge.style.background = '#F1F5F9';
+        auditBadge.style.color = '#475569';
+      }
+
+      // TAHAP 1 Item 8: Offline Ticker
+      const tickerBadge = document.getElementById('tickerBadge');
+      if (tickerBadge) {
+        tickerBadge.innerHTML = '<span>📡</span> RADAR OFFLINE';
+        tickerBadge.style.background = '#475569';
+      }
+      const tickerMarquee = document.getElementById('tickerMarqueeContent');
+      if (tickerMarquee) {
+        tickerMarquee.textContent = 'Koneksi data belum tersedia — menunggu pipeline Media Intelligence.';
+      }
+    }
+
+    function renderHeaderStatus(freshInfo) {
+      const pill = document.getElementById('systemFreshnessPill');
+      if (!pill) return;
+
+      pill.style.background = freshInfo.bg;
+      pill.style.color = freshInfo.color;
+      pill.style.border = `1px solid ${freshInfo.color}40`;
+      pill.innerHTML = `<span class="status-pulse" style="background:${freshInfo.pulse}; box-shadow:0 0 0 3px ${freshInfo.pulse}30;"></span> ${freshInfo.label}`;
+    }
+
+    // TAHAP 1 Item 6: Validasi tipe KPI integer >= 0
+    function renderKPIs(kpis) {
+      document.getElementById('statMentions').textContent = safeKpiNumber(kpis.earned_mentions_24h);
+      document.getElementById('statStories').textContent = safeKpiNumber(kpis.unique_stories_24h);
+      document.getElementById('statSources').textContent = safeKpiNumber(kpis.active_sources_24h);
+      document.getElementById('statIssues').textContent = safeKpiNumber(kpis.active_critical_issues);
+
+      const trendEl = document.getElementById('statMentionsTrend');
+      if (trendEl) {
+        const trendVal = kpis.mentions_trend_pct;
+        if (trendVal === 'BARU') {
+          trendEl.textContent = 'BARU';
+          trendEl.style.color = 'var(--accent-emerald)';
+        } else if (typeof trendVal === 'number' && Number.isFinite(trendVal)) {
+          trendEl.textContent = (trendVal >= 0 ? `+${trendVal}%` : `${trendVal}%`);
+          trendEl.style.color = trendVal >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)';
+        } else {
+          trendEl.textContent = '—';
+        }
+      }
+    }
+
+    function renderTopStories(stories) {
       const container = document.getElementById('trendingTopicsContainer');
+      const badge = document.getElementById('topStoriesBadge');
+      if (badge) badge.textContent = `${stories.length} STORY`;
       if (!container) return;
 
-      container.innerHTML = topics.map((t, idx) => {
-        const safeLink = getSafeUrl(t, 'https://pinrangkab.go.id/berita');
+      if (stories.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 25px; font-size: 0.72rem; color: var(--text-muted);">Belum ada story cluster aktif 24 jam ini.</div>`;
+        return;
+      }
+
+      // P0: escapeHTML dan TAHAP 1 Item 7: Fix Zero -> One Bug (safeCount)
+      container.innerHTML = stories.map((s, idx) => {
+        const titleSafe = escapeHTML(s.title || '');
+        const topicList = (s.topic_ids || []).map(escapeHTML).join(', ') || 'Umum';
+        const districtList = (s.district_ids || []).map(escapeHTML).join(', ') || 'Pinrang';
+        const srcCount = safeCount(s.source_count);
+        const artCount = safeCount(s.article_count);
+
         return `
-          <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="topic-card ${t.is_critical ? 'critical' : ''}" title="Buka tautan liputan: ${t.topic}">
+          <div class="topic-card" title="Story Cluster: ${titleSafe}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-              <span style="font-size: 0.66rem; color: #0284C7; font-weight: 800; font-family: 'JetBrains Mono';">#${idx + 1} &bull; ${t.category}</span>
-              <span style="font-size: 0.66rem; font-weight: 800; color: var(--accent-${t.badge_color});">${t.status}</span>
+              <span style="font-size: 0.66rem; color: #0284C7; font-weight: 800; font-family: 'JetBrains Mono';">#${idx + 1} &bull; ${topicList}</span>
+              <span style="font-size: 0.66rem; font-weight: 800; color: #059669;">${srcCount} Media</span>
             </div>
-            <div class="topic-title">${t.topic}</div>
+            <div class="topic-title">${titleSafe}</div>
             <div class="topic-meta">
-              <span>🔊 ${t.volume} Sebutan</span>
-              <span style="color: ${t.is_critical ? 'var(--accent-rose)' : 'var(--accent-emerald)'}; font-weight: 800;">
-                ${t.sentiment.positive}% Positif &bull; ${t.sentiment.negative}% Evaluasi
-              </span>
+              <span>📰 ${artCount} Liputan Berita</span>
+              <span>📍 ${districtList}</span>
             </div>
-            <div class="sentiment-track">
-              <div class="s-pos" style="width: ${t.sentiment.positive}%;"></div>
-              <div class="s-neu" style="width: ${t.sentiment.neutral}%;"></div>
-              <div class="s-neg" style="width: ${t.sentiment.negative}%;"></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTopIssues(issues) {
+      const container = document.getElementById('topIssuesContainer');
+      const badge = document.getElementById('topIssuesBadge');
+      if (badge) badge.textContent = `${issues.length} ISU`;
+      if (!container) return;
+
+      if (issues.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 25px; font-size: 0.72rem; color: var(--text-muted);">Tidak ada isu kritis terbuka saat ini. Kondisi aman.</div>`;
+        return;
+      }
+
+      // P0: escapeHTML dan TAHAP 1 Item 7: Fix Zero -> One Bug (safeCount)
+      container.innerHTML = issues.map(iss => {
+        const isCritical = iss.severity === 'CRITICAL' || iss.severity === 'HIGH';
+        const titleSafe = escapeHTML(iss.title || '');
+        const topicSafe = escapeHTML(iss.topic_id || '');
+        const sevSafe = escapeHTML(iss.severity || '');
+        const statSafe = escapeHTML(iss.status || '');
+        const distSafe = (iss.district_ids || []).map(escapeHTML).join(', ') || 'Kab. Pinrang';
+        const countSafe = safeCount(iss.media_item_count);
+
+        return `
+          <div class="topic-card ${isCritical ? 'critical' : ''}" title="Isu: ${titleSafe}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+              <span style="font-size: 0.66rem; color: #D97706; font-weight: 800; font-family: 'JetBrains Mono';">${topicSafe}</span>
+              <span style="font-size: 0.64rem; font-weight: 800; color: ${isCritical ? 'var(--accent-rose)' : 'var(--accent-amber)'};">${sevSafe} &bull; ${statSafe}</span>
+            </div>
+            <div class="topic-title">${titleSafe}</div>
+            <div class="topic-meta">
+              <span>🚨 ${countSafe} Liputan Terkait</span>
+              <span>📍 ${distSafe}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLatestItems(items) {
+      const container = document.getElementById('streamFeedsContainer');
+      const badge = document.getElementById('feedCountBadge');
+      if (!container) return;
+
+      // TAHAP 3 Item 2: VERIFIED GUARD ketat
+      const validStatuses = ['VERIFIED_DIRECT', 'VERIFIED_FEED', 'MANUAL_VERIFIED'];
+      const validItems = (items || []).filter(it => {
+        if (!it) return false;
+        if (!validStatuses.includes(it.verification_status)) return false;
+        if (!it.title || typeof it.title !== 'string' || !it.title.trim()) return false;
+        if (!it.publisher || typeof it.publisher !== 'string' || !it.publisher.trim()) return false;
+        if (!it.published_at) return false;
+        // TAHAP 3 Item 1: URL kanonikal wajib lolos sanitizeUrl (bukan null)
+        const sanitizedCanonical = sanitizeUrl(it.canonical_url);
+        if (!sanitizedCanonical) return false;
+        return true;
+      });
+
+      let filtered = validItems;
+      if (currentFeedFilter !== 'all') {
+        filtered = validItems.filter(it => (it.topic_ids || []).includes(currentFeedFilter));
+      }
+
+      if (badge) badge.textContent = `${filtered.length} BERITA`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; font-size: 0.82rem; color: var(--text-muted);">
+            <div style="font-size: 1.8rem; margin-bottom: 8px;">📂</div>
+            <strong>Tidak ada berita pada kategori topik ini.</strong>
+            <p style="font-size: 0.72rem; margin-top: 4px;">Pilih tab filter lain atau klik 'Semua Berita'.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // TAHAP 3 Item 3 & 6: escapeHTML hanya untuk string innerHTML, thumbnail valid/netral
+      container.innerHTML = filtered.map(it => {
+        const timeFormatted = formatWitaDate(it.published_at);
+        const linkUrl = sanitizeUrl(it.canonical_url);
+        const titleSafe = escapeHTML(it.title || '');
+        const pubSafe = escapeHTML(it.publisher || 'Portal Berita');
+        const topicList = (it.topic_ids || []).map(escapeHTML).join(', ') || 'Berita';
+        const excerptSafe = escapeHTML(it.excerpt || '');
+        const sanitizedImg = it.image_url ? sanitizeUrl(it.image_url) : null;
+        const thumbImg = sanitizedImg || 'assets/brand/logo_pinrang_opt.png';
+
+        return `
+          <a href="${escapeHTML(linkUrl)}" target="_blank" rel="noopener noreferrer" class="news-card" title="Buka artikel asli di portal: ${pubSafe}">
+            <img src="${escapeHTML(thumbImg)}" class="news-thumb" alt="${titleSafe}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='assets/brand/logo_pinrang_opt.png'">
+            <div class="news-body">
+              <div>
+                <div class="news-source-line">
+                  <span>📰</span>
+                  <span>${pubSafe}</span>
+                  <span class="source-tag">${topicList}</span>
+                  <span class="direct-link-badge">↗ Buka Sumber Asli</span>
+                </div>
+                <div class="news-headline">${titleSafe}</div>
+                <div class="news-desc">${excerptSafe}</div>
+              </div>
+              <div class="news-footer">
+                <span>🕒 ${timeFormatted}</span>
+                <span style="color: #059669; font-weight: 800;">✓ TERVERIFIKASI</span>
+              </div>
             </div>
           </a>
         `;
       }).join('');
     }
 
-    function renderFeeds(data) {
-      const container = document.getElementById('streamFeedsContainer');
-      if (!container) return;
-
-      let combined = [];
-
-      // Add Mainstream News
-      (data.mainstream_news || []).forEach(n => {
-        combined.push({
-          type: 'mainstream',
-          is_critical: n.is_critical || false,
-          platform_icon: '📰',
-          source_name: n.media_name,
-          source_type: n.media_type,
-          title: n.title,
-          snippet: n.snippet,
-          time: n.published_at,
-          img: n.img,
-          url: getSafeUrl(n, 'https://pinrangkab.go.id/berita'),
-          stats: `👁️ ${n.views} &bull; 🔄 ${n.shares} Share`,
-          sentiment: n.is_critical ? '🔴 Perlu Evaluasi ' + n.sentiment_score + '%' : '🟢 Positif ' + n.sentiment_score + '%'
-        });
-      });
-
-      // Add Social Posts
-      (data.social_posts || []).forEach(p => {
-        combined.push({
-          type: p.platform,
-          is_critical: p.is_critical || false,
-          platform_icon: p.platform_icon,
-          source_name: `${p.account_name} (${p.account_handle})`,
-          source_type: p.platform.toUpperCase(),
-          title: p.caption,
-          snippet: p.caption,
-          time: p.post_time,
-          img: p.media_img,
-          url: getSafeUrl(p, 'https://www.instagram.com/perindagempinrang/'),
-          stats: `❤️ ${p.likes} &bull; 💬 ${p.comments} &bull; ER: ${p.engagement_rate}`,
-          sentiment: p.is_critical ? '🔴 Kritik / Evaluasi Lapangan' : '🟢 Apresiasi Publik'
-        });
-      });
-
-      // Filter by type
-      if (currentFeedFilter === 'critical') {
-        combined = combined.filter(c => c.is_critical === true);
-      } else if (currentFeedFilter !== 'all') {
-        combined = combined.filter(c => c.type === currentFeedFilter);
-      }
-
-      // Update counter badge
-      const feedCountBadge = document.getElementById('feedCountBadge');
-      if (feedCountBadge) {
-        feedCountBadge.textContent = `${combined.length} ITEM`;
-      }
-
-      if (combined.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px; font-size: 0.82rem; color: var(--text-muted);">
-            <div style="font-size: 1.8rem; margin-bottom: 8px;">📂</div>
-            <strong>Tidak ada konten pada kategori ini.</strong>
-            <p style="font-size: 0.72rem; margin-top: 4px;">Silakan pilih tab filter lainnya atau klik 'Semua Kanal'.</p>
-          </div>
+    function renderAuditSummary(snapshot, freshInfo) {
+      const health = snapshot.source_health || {};
+      const elHealth = document.getElementById('sourceHealthSummary');
+      if (elHealth) {
+        elHealth.innerHTML = `
+          <strong>${safeCount(health.ok)}</strong> dari <strong>${safeCount(health.total)}</strong> sumber beroperasi normal (${safeCount(health.failed)} gagal).
         `;
+      }
+
+      // TAHAP 1 Item 2: Pisahkan Content Recency & Pipeline Run
+      const elLastData = document.getElementById('lblLastDataUpdate');
+      if (elLastData) elLastData.textContent = formatWitaDate(snapshot.last_data_update_at);
+
+      const elLastSync = document.getElementById('lblLastSync');
+      if (elLastSync) elLastSync.textContent = formatWitaDate(snapshot.last_full_success_at || snapshot.last_run_at);
+
+      // TAHAP 4 & TAHAP 13: Sinkronkan Jadwal Monitoring 4X SEHARI
+      const elSchedule = document.getElementById('syncCycleIndicator');
+      if (elSchedule) {
+        const customLabel = snapshot.schedule_label ? escapeHTML(snapshot.schedule_label) : '🕒 PEMANTAUAN OTOMATIS • 4X SEHARI';
+        elSchedule.innerHTML = customLabel;
+      }
+
+      // TAHAP 1 Item 9: Status Audit Dinamis
+      const auditBadge = document.getElementById('auditHealthBadge');
+      if (auditBadge) {
+        auditBadge.textContent = freshInfo.auditStatus || 'VALIDATION POLICY ACTIVE';
+        if (freshInfo.auditStatus === 'VERIFIKASI AKTIF') {
+          auditBadge.style.background = '#DCFCE7';
+          auditBadge.style.color = '#166534';
+        } else if (freshInfo.auditStatus === 'SUMBER PARSIAL' || freshInfo.auditStatus === 'PEMBARUAN TERTUNDA') {
+          auditBadge.style.background = '#FEF3C7';
+          auditBadge.style.color = '#92400E';
+        } else if (freshInfo.auditStatus === 'ANOMALI WAKTU') {
+          auditBadge.style.background = '#FEE2E2';
+          auditBadge.style.color = '#991B1B';
+        } else {
+          auditBadge.style.background = '#F1F5F9';
+          auditBadge.style.color = '#475569';
+        }
+      }
+    }
+
+    // TAHAP 3 Item 4: FIX TICKER DOUBLE ESCAPING (textContent tidak memerlukan escapeHTML)
+    function renderTicker(items) {
+      const el = document.getElementById('tickerMarqueeContent');
+      if (!el) return;
+
+      const validStatuses = ['VERIFIED_DIRECT', 'VERIFIED_FEED', 'MANUAL_VERIFIED'];
+      const validItems = (items || []).filter(it => {
+        if (!it || !it.title || !validStatuses.includes(it.verification_status)) return false;
+        if (!sanitizeUrl(it.canonical_url)) return false;
+        return true;
+      });
+
+      if (validItems.length === 0) {
+        el.textContent = '• Sistem Media Intelligence Disperindag ESDM Pinrang beroperasi • Menunggu liputan media terbaru •';
         return;
       }
 
-      container.innerHTML = combined.map(item => `
-        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-card ${item.is_critical ? 'negative-item' : ''}" title="Buka artikel asli: ${item.source_name}">
-          <img src="${item.img}" class="news-thumb" alt="Thumb" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
-          <div class="news-body">
-            <div>
-              <div class="news-source-line">
-                <span>${item.platform_icon}</span>
-                <span>${item.source_name}</span>
-                <span class="source-tag">${item.source_type}</span>
-                <span class="direct-link-badge">↗ Buka Link Spesifik</span>
-              </div>
-              <div class="news-headline">${item.title}</div>
-              <div class="news-desc">${item.snippet}</div>
-            </div>
-            <div class="news-footer">
-              <span>🕒 ${item.time}</span>
-              <span style="color: #0284C7;">${item.stats}</span>
-              <span style="color: ${item.is_critical ? 'var(--accent-rose)' : 'var(--accent-emerald)'}; font-weight: 800;">${item.sentiment}</span>
-            </div>
-          </div>
-        </a>
-      `).join('');
+      // Gunakan raw string karena browser textContent sudah otomatis aman dari XSS
+      const tickerItems = validItems.slice(0, 10).map(it => `• [${it.publisher || 'Berita'}] ${it.title}`).join(' ');
+      el.textContent = `${tickerItems} •`;
     }
 
-    function renderComments(comments) {
-      const container = document.getElementById('citizenCommentsContainer');
-      if (!container) return;
-
-      container.innerHTML = comments.map(c => {
-        const safeCommentLink = getSafeUrl(c, 'https://www.instagram.com/perindagempinrang/');
-        return `
-          <div class="voice-card ${c.sentiment === 'negative' ? 'critical' : ''}">
-            <div class="voice-top">
-              <div class="voice-user">
-                <div class="user-avatar">${c.avatar_char}</div>
-                <div>
-                  <div>${c.author_name}</div>
-                  <div style="font-size: 0.64rem; color: var(--text-muted);">${c.source_icon} ${c.source_platform} &bull; ${c.timestamp}</div>
-                </div>
-              </div>
-              <span class="voice-badge ${c.sentiment === 'positive' ? 'badge-pos' : c.sentiment === 'negative' ? 'badge-neg' : 'badge-neu'}">
-                ${c.sentiment_label}
-              </span>
-            </div>
-
-            <div class="voice-text">"${c.comment_text}"</div>
-
-            <a href="${safeCommentLink}" target="_blank" rel="noopener noreferrer" class="voice-link-source" title="Buka tautan komentar di ${c.source_platform}">
-              ↗ Buka Sumber Postingan Komentar (${c.source_platform})
-            </a>
-
-            ${c.disposition ? `
-              <div class="disposition-box">
-                <span>🚨</span> ${c.disposition}
-              </div>
-            ` : ''}
-
-            ${c.official_response ? `
-              <div class="dept-response">
-                <strong>🛡️ Tindak Lanjut Dinas:</strong> ${c.official_response}
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.filterFeeds = function(type, btn) {
-      currentFeedFilter = type;
+    window.filterFeeds = function(topic, btn) {
+      currentFeedFilter = topic;
       document.querySelectorAll('.feed-tab').forEach(b => b.classList.remove('active'));
-      if (btn) {
-        btn.classList.add('active');
-      } else {
-        const matchingBtn = document.querySelector(`.feed-tab[onclick*="'${type}'"]`);
-        if (matchingBtn) matchingBtn.classList.add('active');
-      }
-      const data = getMediaData();
-      renderFeeds(data);
-    };
+      if (btn) btn.classList.add('active');
 
-    window.refreshDataManual = function() {
-      const statusText = document.querySelector('.intel-live-pill');
-      if (statusText) statusText.innerHTML = `<span class="status-pulse"></span> SINKRONISASI DATA...`;
-      
-      // Reset dan perbarui dari master
-      localStorage.setItem('disperindag_media_intelligence', JSON.stringify(MEDIA_DATA_MASTER));
-      localStorage.setItem('disperindag_media_intel_ver', CURRENT_DATA_VERSION);
-      
-      renderIntelligenceDashboard();
-      setTimeout(() => {
-        if (statusText) statusText.innerHTML = `<span class="status-pulse"></span> LIVE RADAR`;
-      }, 1000);
+      if (currentSnapshotData && currentSnapshotData.latest_items) {
+        renderLatestItems(currentSnapshotData.latest_items);
+      }
     };
 
     function startWitaClock() {

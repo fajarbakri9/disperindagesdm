@@ -38,6 +38,18 @@
       "Sekretaris Dinas.png",
       "assets/docs/RKPD-2026-kabupaten-pinrang.pdf"
     ],
+    "redirects": [
+      {
+        "source": "/intel",
+        "destination": "/media-intelligence",
+        "type": 302
+      },
+      {
+        "source": "/intel/**",
+        "destination": "/media-intelligence",
+        "type": 302
+      }
+    ],
     "rewrites": [
       {
         "source": "/berita",
@@ -46,10 +58,6 @@
       {
         "source": "/berita/**",
         "destination": "/berita.html"
-      },
-      {
-        "source": "/intel/**",
-        "destination": "/intel/index.html"
       }
     ],
     "headers": [
