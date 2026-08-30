@@ -687,7 +687,7 @@
 
     <div class="intel-controls">
       <div style="font-size: 0.72rem; font-weight: 700; color: #0284C7; font-family: 'JetBrains Mono'; margin-right: 6px; background: #E0F2FE; padding: 4px 10px; border-radius: 6px; border: 1px solid #BAE6FD;" id="syncCycleIndicator">
-        🕒 PEMANTAUAN OTOMATIS • 4X SEHARI
+        🕒 PEMANTAUAN OTOMATIS • 6X SEHARI
       </div>
       <button type="button" class="btn-action" onclick="initRealtimeSnapshotListener(true)" title="Muat ulang snapshot data terbaru dari Firestore">
         <span>🔄</span> Muat Ulang Data
@@ -1412,10 +1412,10 @@
       const elLastSync = document.getElementById('lblLastSync');
       if (elLastSync) elLastSync.textContent = formatWitaDate(snapshot.last_full_success_at || snapshot.last_run_at);
 
-      // TAHAP 4 & TAHAP 13: Sinkronkan Jadwal Monitoring 4X SEHARI
+      // TAHAP 4 & TAHAP 13: Sinkronkan jadwal monitoring enam kali sehari.
       const elSchedule = document.getElementById('syncCycleIndicator');
       if (elSchedule) {
-        const customLabel = snapshot.schedule_label ? escapeHTML(snapshot.schedule_label) : '🕒 PEMANTAUAN OTOMATIS • 4X SEHARI';
+        const customLabel = snapshot.schedule_label ? escapeHTML(snapshot.schedule_label) : '🕒 PEMANTAUAN OTOMATIS • 6X SEHARI';
         elSchedule.innerHTML = customLabel;
       }
 

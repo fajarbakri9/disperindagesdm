@@ -387,7 +387,7 @@ class MediaIntelligenceWriter:
             "last_data_update_at": last_data_at, "last_full_success_at": last_success_at,
             "source_health": health, "kpis": kpis, "top_stories": top_stories,
             "top_issues": top_issues, "latest_items": latest_items, "trend_7d": daily[-7:],
-            "schedule_label": "PEMANTAUAN OTOMATIS • 4X SEHARI",
+            "schedule_label": "PEMANTAUAN OTOMATIS • 6X SEHARI",
         }
         self.db.collection("mi_public").document("current").set(snapshot)
         return snapshot
