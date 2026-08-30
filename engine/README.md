@@ -6,7 +6,8 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
 
 ## Status implementasi
 
-- Delapan sumber aktif dari `config/sources.yml`. Status onboarding tidak menjadi
+- Sembilan sumber aktif dari `config/sources.yml`, termasuk Info Rakyat Pinrang.
+  Status onboarding tidak menjadi
   bukti cutover; audit production ketat tetap mensyaratkan 30 artikel yang cocok
   untuk canonical URL, judul, publisher, tanggal, dan ekstraksi langsung.
 - Discovery RSS/sitemap, ekstraksi metadata, normalisasi URL dan waktu WITA.

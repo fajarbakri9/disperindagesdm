@@ -59,6 +59,7 @@ def extract_metadata(url: str, rss_entry: dict | None = None) -> dict:
             # ── 1. JSON-LD NewsArticle ──────────────────────────
             jsonld = _extract_jsonld(soup)
             if jsonld:
+                page_og = _extract_og(soup)
                 meta.update({
                     "title":        jsonld.get("headline", ""),
                     "thumbnailUrl": _get_jsonld_image(jsonld),
@@ -66,7 +67,7 @@ def extract_metadata(url: str, rss_entry: dict | None = None) -> dict:
                     "canonical":    jsonld.get("mainEntityOfPage", {}).get("@id", url) or url,
                     "publishedAt":  jsonld.get("datePublished", ""),
                     "author":       _get_author(jsonld),
-                    "publisher":    _get_publisher(jsonld),
+                    "publisher":    _get_publisher(jsonld) or page_og.get("og:site_name", ""),
                     "extractedBy":  "jsonld",
                 })
                 meta["canonical"] = _clean_url(meta["canonical"])
@@ -81,6 +82,7 @@ def extract_metadata(url: str, rss_entry: dict | None = None) -> dict:
                     "thumbnailUrl": og.get("og:image", ""),
                     "excerpt":      og.get("og:description", ""),
                     "canonical":    og.get("og:url", url),
+                    "publisher":    og.get("og:site_name", ""),
                     "extractedBy":  "opengraph",
                 })
                 if not meta["publishedAt"]:

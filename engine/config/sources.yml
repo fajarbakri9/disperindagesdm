@@ -174,3 +174,28 @@
   verification_pass_count: 5
   parser_version: 1
   max_candidates_per_run: 30
+
+- id: info_rakyat_pinrang
+  name: Info Rakyat
+  domain: info-rakyat.com
+  allowed_domains:
+    - info-rakyat.com
+    - www.info-rakyat.com
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.9
+  discovery:
+    type: rss
+    urls:
+      - https://www.info-rakyat.com/feeds/posts/default?alt=rss
+  robots_checked_at: "2026-08-30T19:35:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T19:35:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 30
