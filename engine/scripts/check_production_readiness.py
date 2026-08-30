@@ -37,7 +37,15 @@ def static_checks() -> list[dict]:
     crawl = read(".github/workflows/crawl.yml")
     rules = read("firestore.rules")
     sources = read("engine/config/sources.yml")
+    requirements = read("engine/collector/requirements.txt")
+    env_example = read("engine/.env.example")
+    forbidden_paid_paths = [
+        ROOT / "MediaIntelCrawler.gs",
+        ROOT / "engine" / "collector" / "intelligence.py",
+    ]
     enabled_sources = len(re.findall(r"(?m)^  enabled: true\s*$", sources))
+    audit_path = ROOT / "engine" / "reports" / "production_article_audit.json"
+    audit = json.loads(audit_path.read_text(encoding="utf-8")) if audit_path.is_file() else {}
     legacy_access = re.search(
         r"(?:setStorage|localStorage\.setItem|getStorage)\([^\n]*disperindag_media_intelligence",
         admin + data,
@@ -50,6 +58,12 @@ def static_checks() -> list[dict]:
         check("wif_only_workflows", "credentials_json" not in workflows and
               "SERVICE_ACCOUNT_JSON" not in workflows,
               "Seluruh workflow cloud harus memakai WIF."),
+        check("spark_only_dependencies",
+              "google-generativeai" not in requirements and
+              "GEMINI_API_KEY" not in env_example and
+              "google-cloud-sdk" not in requirements and
+              not any(path.exists() for path in forbidden_paid_paths),
+              "Runtime tidak boleh memasang AI berbayar atau Cloud SDK."),
         check("crawler_scheduled", 'cron: "17 2,6,10,14,18,22 * * *"' in crawl and
               "MI_WIF_ENABLED == 'true'" in crawl,
               "Enam jadwal WITA tersedia dan fail-closed sampai WIF aktif."),
@@ -64,6 +78,12 @@ def static_checks() -> list[dict]:
         check("rules_fail_closed", "match /mi_public/{docId}" in rules and
               "match /mi_items/{itemId}" in rules,
               "Rules publik dan internal Media Intelligence terdefinisi."),
+        check("manual_article_acceptance",
+              audit.get("decision") == "PASS" and
+              int(audit.get("sampled_articles", 0)) >= 30 and
+              audit.get("passed_articles") == audit.get("sampled_articles"),
+              f"Audit ketat: {audit.get('passed_articles', 0)}/"
+              f"{audit.get('sampled_articles', 0)} artikel lulus; minimum 30."),
     ]
 
 
@@ -73,8 +93,13 @@ def production_snapshot_check(url: str) -> dict:
         with urlopen(request, timeout=12) as response:
             payload = json.load(response)
         fields = payload.get("fields", {})
-        return check("public_snapshot_active", bool(fields),
-                     f"Snapshot production terbaca ({len(fields)} field).")
+        audit_path = ROOT / "engine" / "reports" / "production_article_audit.json"
+        audit = json.loads(audit_path.read_text(encoding="utf-8")) if audit_path.is_file() else {}
+        snapshot_run = fields.get("sync_run_id", {}).get("stringValue")
+        audit_current = bool(snapshot_run and audit.get("snapshot_sync_run_id") == snapshot_run)
+        return check("public_snapshot_active", bool(fields) and audit_current,
+                     f"Snapshot production terbaca ({len(fields)} field); "
+                     f"audit {'sesuai' if audit_current else 'sudah kedaluwarsa'}." )
     except HTTPError as exc:
         return check("public_snapshot_active", False,
                      f"Firestore REST mengembalikan HTTP {exc.code}.")

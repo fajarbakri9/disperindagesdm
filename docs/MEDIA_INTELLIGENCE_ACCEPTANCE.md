@@ -47,10 +47,14 @@ node engine/scripts/browser_acceptance.mjs "https://disperindagesdm-pinrang.web.
 
 Status: **BELUM MEMENUHI CUTOVER**
 
-Dari 8 artikel pada snapshot:
+Dari 8 artikel pada snapshot, audit otomatis ketat menghasilkan **4/8 lulus**:
 
 - 4 artikel cocok langsung untuk URL, judul, publisher, dan tanggal;
 - 2 artikel Harian Fajar cocok untuk URL, judul, dan tanggal, tetapi halaman asal tidak menyediakan metadata publisher yang dapat diverifikasi ulang;
 - 2 artikel Pinrang Terkini tidak dapat diekstrak ulang dari halaman asal saat audit dan hanya boleh diperlakukan sebagai bukti feed sampai tersedia bukti langsung.
 
 Syarat final tetap 30 artikel dengan empat field cocok 100%. Kekurangan bukti tidak boleh diisi dengan asumsi atau data buatan.
+
+Laporan mesin tersimpan di `engine/reports/production_article_audit.json` dan
+readiness sekarang fail-closed jika laporan belum berstatus PASS dengan minimal
+30 artikel.

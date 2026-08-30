@@ -20,7 +20,9 @@ WIF. Secret service-account JSON lama harus tetap dihapus.
 1. Tambahkan entry disabled ke `engine/config/sources.yml` beserta discovery URL,
    exact allowed domains, robots status, dan tanggal verifikasi.
 2. Jalankan `python engine/scripts/validate_mi_sources.py`.
-3. Verifikasi manual 5–10 artikel asli: publisher, canonical, judul, dan tanggal.
+3. Jalankan audit read-only dan verifikasi 5–10 artikel asli: publisher,
+   canonical, judul, dan tanggal. Publisher kosong adalah gagal; jangan mengganti
+   metadata yang hilang dengan nama registry agar pemeriksaan terlihat lulus.
 4. Jalankan collector `--dry-run`, lalu enable dan pantau tiga run pertama.
 
 Domain GDELT yang belum dikenal tetap di `mi_review_tasks`; jangan melonggarkan
@@ -66,6 +68,21 @@ backup baru sebelum write produksi.
 Periksa Firebase Console > Firestore > Usage: reads, writes, deletes, storage, dan
 bandwidth. Backup dibatasi 10.000 dokumen/collection; naikkan hanya setelah audit.
 Command Center tetap membaca satu dokumen `mi_public/current`.
+
+## Gerbang cutover 30 artikel
+
+Jalankan:
+
+```powershell
+python engine/scripts/audit_production_articles.py --allow-incomplete
+python engine/scripts/check_production_readiness.py
+```
+
+Audit menulis `engine/reports/production_article_audit.json`. Cutover hanya lulus
+jika sekurangnya 30 artikel memiliki canonical URL, judul, publisher, dan waktu
+publikasi yang sama dengan halaman asli serta menggunakan ekstraksi langsung.
+`--allow-incomplete` hanya mengizinkan laporan NO-GO disimpan; opsi tersebut tidak
+mengubah keputusan audit menjadi PASS.
 
 ## Rollback
 

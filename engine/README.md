@@ -6,8 +6,9 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
 
 ## Status implementasi
 
-- Delapan sumber terverifikasi dari `config/sources.yml`: tiga pilot dan lima
-  sumber Tahap 10 yang masing-masing lulus 5–10 pemeriksaan artikel asli.
+- Delapan sumber aktif dari `config/sources.yml`. Status onboarding tidak menjadi
+  bukti cutover; audit production ketat tetap mensyaratkan 30 artikel yang cocok
+  untuk canonical URL, judul, publisher, tanggal, dan ekstraksi langsung.
 - Discovery RSS/sitemap, ekstraksi metadata, normalisasi URL dan waktu WITA.
 - GDELT DOC API dipakai hanya sebagai secondary discovery dengan delapan query
   terkontrol. Hasilnya selalu diarahkan ke halaman penerbit asli.
@@ -24,6 +25,7 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
   dengan daftar terbatas dan tanpa error internal, catatan review, identitas admin,
   atau PII.
 - Tone/NLP belum diaktifkan sebelum tahap penerimaannya selesai.
+- Dependensi dan API Gemini tidak dipasang atau dikonfigurasi pada fase Spark-only.
 - Tahap 12 Tone/NLP tetap ditunda sampai core stabil minimal dua minggu dan
   tersedia validasi manual minimal 100 artikel beserta accuracy, macro F1,
   confusion cases, dan confidence threshold.
@@ -45,6 +47,7 @@ Tidak ada writer aktif menuju collection legacy seperti `mentions`, `issues`,
 python -m pip install -r engine/collector/requirements.txt
 python engine/collector/main.py --dry-run
 python -m pytest engine/tests -q
+python engine/scripts/audit_production_articles.py --allow-incomplete
 ```
 
 Dry-run membaca sumber nyata tetapi tidak membuat koneksi tulis Firestore.

@@ -31,13 +31,13 @@ def validate_source(source: dict, sample_size: int | None = None) -> dict:
         row = {
             "url": candidate["url"],
             "title": meta.get("title", "").strip(),
-            "publisher": meta.get("publisher", "").strip() or source["name"],
+            "publisher": meta.get("publisher", "").strip(),
             "published_at": published_raw,
             "canonical": canonical,
             "checks": {
                 "article_url": urlparse(candidate["url"]).hostname in allowed,
                 "title": bool(meta.get("title", "").strip()),
-                "publisher": bool(meta.get("publisher", "").strip() or source["name"]),
+                "publisher": bool(meta.get("publisher", "").strip()),
                 "published_date": normalize_published_at(published_raw) is not None,
                 "canonical": bool(canonical) and urlparse(canonical).hostname in allowed,
             },

@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "audited_at": "2026-08-30T11:20:14.819569+00:00",
+  "snapshot_sync_run_id": "20260830T111328Z-cbdc0886",
+  "snapshot_last_run_at": "2026-08-30T11:14:32.692683Z",
+  "required_articles": 30,
+  "sampled_articles": 8,
+  "passed_articles": 4,
+  "decision": "NO-GO",
+  "articles": [
+    {
+      "url": "https://disperindagesdm-pinrang.web.app/berita/harga-eceran-tembus-rp-45-ribu-disperindagem-pinrang-ambil-tindakan-tegas-terhadap-pangkalan-nakal",
+      "expected": {
+        "title": "Harga Eceran Tembus Rp 45 Ribu, Disperindagem Pinrang Ambil Tindakan Tegas Terhadap Pangkalan Nakal",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-30T04:37:19.738Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "Harga Eceran Tembus Rp 45 Ribu, Disperindagem Pinrang Ambil Tindakan Tegas Terhadap Pangkalan Nakal",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-30T04:37:19.738Z",
+        "canonical_url": "https://disperindagesdm-pinrang.web.app/berita/harga-eceran-tembus-rp-45-ribu-disperindagem-pinrang-ambil-tindakan-tegas-terhadap-pangkalan-nakal",
+        "extraction_method": "jsonld"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": true,
+        "publisher": true,
+        "published_at": true,
+        "direct_extraction": true
+      },
+      "passed": true
+    },
+    {
+      "url": "https://disperindagesdm-pinrang.web.app/berita/atasi-buying-panic-disperindagem-pinrang-gandeng-pertamina-dan-aph-siapkan-inovasi-digitalisasi-serta-sanksi-phk-pangkalan-nakal",
+      "expected": {
+        "title": "Atasi Buying Panic, Disperindagem Pinrang Gandeng Pertamina dan APH Siapkan Inovasi Digitalisasi Serta Sanksi PHK Pangkalan Nakal",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-30T03:41:10.240Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "Atasi Buying Panic, Disperindagem Pinrang Gandeng Pertamina dan APH Siapkan Inovasi Digitalisasi Serta Sanksi PHK Pangkalan Nakal",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-30T03:41:10.240Z",
+        "canonical_url": "https://disperindagesdm-pinrang.web.app/berita/atasi-buying-panic-disperindagem-pinrang-gandeng-pertamina-dan-aph-siapkan-inovasi-digitalisasi-serta-sanksi-phk-pangkalan-nakal",
+        "extraction_method": "jsonld"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": true,
+        "publisher": true,
+        "published_at": true,
+        "direct_extraction": true
+      },
+      "passed": true
+    },
+    {
+      "url": "https://disperindagesdm-pinrang.web.app/berita/stabilkan-pasokan-dan-harga-disperindag-esdm-pinrang-gelar-rapat-koordinasi-bersama-agen-lpg-se-kabupaten",
+      "expected": {
+        "title": "Stabilkan Pasokan dan Harga, Disperindag ESDM Pinrang Gelar Rapat Koordinasi Bersama Agen LPG se-Kabupaten",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-29T15:07:32.738Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "Stabilkan Pasokan dan Harga, Disperindag ESDM Pinrang Gelar Rapat Koordinasi Bersama Agen LPG se-Kabupaten",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-29T15:07:32.738Z",
+        "canonical_url": "https://disperindagesdm-pinrang.web.app/berita/stabilkan-pasokan-dan-harga-disperindag-esdm-pinrang-gelar-rapat-koordinasi-bersama-agen-lpg-se-kabupaten",
+        "extraction_method": "jsonld"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": true,
+        "publisher": true,
+        "published_at": true,
+        "direct_extraction": true
+      },
+      "passed": true
+    },
+    {
+      "url": "https://disperindagesdm-pinrang.web.app/berita/kadis-perindag-esdm-hadiri-mediasi-permasalahan-di-pasar-rakyat-pekkabata",
+      "expected": {
+        "title": "Kadis Perindag ESDM Hadiri Mediasi Permasalahan di Pasar Rakyat Pekkabata",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-29T15:05:50.682Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "Kadis Perindag ESDM Hadiri Mediasi Permasalahan di Pasar Rakyat Pekkabata",
+        "publisher": "Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang",
+        "published_at": "2026-08-29T15:05:50.682Z",
+        "canonical_url": "https://disperindagesdm-pinrang.web.app/berita/kadis-perindag-esdm-hadiri-mediasi-permasalahan-di-pasar-rakyat-pekkabata",
+        "extraction_method": "jsonld"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": true,
+        "publisher": true,
+        "published_at": true,
+        "direct_extraction": true
+      },
+      "passed": true
+    },
+    {
+      "url": "https://harian.fajar.co.id/2026/08/19/pemkab-pinrang-perkuat-pompanisasi-cegah-gagal-panen-saat-kemarau",
+      "expected": {
+        "title": "Pemkab Pinrang Perkuat Pompanisasi, Cegah Gagal Panen saat Kemarau",
+        "publisher": "Harian Fajar - Pinrang",
+        "published_at": "2026-08-19T11:49:15Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "Pemkab Pinrang Perkuat Pompanisasi, Cegah Gagal Panen saat Kemarau",
+        "publisher": "",
+        "published_at": "2026-08-19T11:49:15+00:00",
+        "canonical_url": "https://harian.fajar.co.id/2026/08/19/pemkab-pinrang-perkuat-pompanisasi-cegah-gagal-panen-saat-kemarau",
+        "extraction_method": "opengraph"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": true,
+        "publisher": false,
+        "published_at": true,
+        "direct_extraction": true
+      },
+      "passed": false
+    },
+    {
+      "url": "https://harian.fajar.co.id/2026/08/18/pemkab-pinrang-pastikan-petani-tetap-dapat-pasokan-air-ditengah-ancaman-kemarau-berkepanjangan",
+      "expected": {
+        "title": "Pemkab Pinrang Pastikan Petani Tetap Dapat Pasokan Air Ditengah Ancaman Kemarau Berkepanjangan",
+        "publisher": "Harian Fajar - Pinrang",
+        "published_at": "2026-08-18T10:18:45Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "Pemkab Pinrang Pastikan Petani Tetap Dapat Pasokan Air Ditengah Ancaman Kemarau Berkepanjangan",
+        "publisher": "",
+        "published_at": "2026-08-18T10:18:45+00:00",
+        "canonical_url": "https://harian.fajar.co.id/2026/08/18/pemkab-pinrang-pastikan-petani-tetap-dapat-pasokan-air-ditengah-ancaman-kemarau-berkepanjangan",
+        "extraction_method": "opengraph"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": true,
+        "publisher": false,
+        "published_at": true,
+        "direct_extraction": true
+      },
+      "passed": false
+    },
+    {
+      "url": "https://pinrang.terkini.id/2026/07/29/polres-pinrang-pastikan-tak-ada-kelangkaan-bbm-antrean-solar-di-spbu-tiroang-dipicu-membludaknya-konsumen",
+      "expected": {
+        "title": "Polres Pinrang Pastikan Tak Ada Kelangkaan BBM, Antrean Solar di SPBU Tiroang Dipicu Membludaknya Konsumen",
+        "publisher": "Pinrang Terkini",
+        "published_at": "2026-07-29T11:51:00Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "",
+        "publisher": "",
+        "published_at": "",
+        "canonical_url": "https://pinrang.terkini.id/2026/07/29/polres-pinrang-pastikan-tak-ada-kelangkaan-bbm-antrean-solar-di-spbu-tiroang-dipicu-membludaknya-konsumen",
+        "extraction_method": "html_fallback"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": false,
+        "publisher": false,
+        "published_at": false,
+        "direct_extraction": true
+      },
+      "passed": false
+    },
+    {
+      "url": "https://pinrang.terkini.id/2026/07/15/sidak-beruntun-di-suppa-polisi-perketat-pengawasan-bbm-subsidi-di-pinrang",
+      "expected": {
+        "title": "Sidak Beruntun di Suppa, Polisi Perketat Pengawasan BBM Subsidi di Pinrang",
+        "publisher": "Pinrang Terkini",
+        "published_at": "2026-07-15T08:47:00Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "",
+        "publisher": "",
+        "published_at": "",
+        "canonical_url": "https://pinrang.terkini.id/2026/07/15/sidak-beruntun-di-suppa-polisi-perketat-pengawasan-bbm-subsidi-di-pinrang",
+        "extraction_method": "html_fallback"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": false,
+        "publisher": false,
+        "published_at": false,
+        "direct_extraction": true
+      },
+      "passed": false
+    }
+  ]
+}

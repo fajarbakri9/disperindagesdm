@@ -8,3 +8,5 @@ COLLECTOR_DIR = ENGINE_DIR / "collector"
 sys.path.insert(0, str(COLLECTOR_DIR))
 OPERATIONS_DIR = ENGINE_DIR / "operations"
 sys.path.insert(0, str(OPERATIONS_DIR))
+SCRIPTS_DIR = ENGINE_DIR / "scripts"
+sys.path.insert(0, str(SCRIPTS_DIR))
