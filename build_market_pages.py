@@ -1,6 +1,7 @@
 import os
 import json
 import re
+from pathlib import Path
 
 def build_market_pages():
     data_path = os.path.join("assets", "data", "markets.json")
@@ -454,6 +455,8 @@ def build_market_pages():
             stalls_summary_markup=stalls_summary_markup,
             address=address
         )
+        footer_partial = (Path(__file__).resolve().parent / "partials" / "footer.html").read_text(encoding="utf-8").strip()
+        html_out = re.sub(r'<footer\s+class="(?:main-footer|footer)"[^>]*>[\s\S]*?</footer>', footer_partial, html_out, count=1)
 
         # Simpan ke pasar/<slug>/index.html
         market_dir = os.path.join("pasar", slug)

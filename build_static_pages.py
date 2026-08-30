@@ -8,6 +8,7 @@ import urllib.parse
 import base64
 import binascii
 import hashlib
+from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -876,6 +877,8 @@ def generate_article_html(art, canonical_url):
   </script>
 </body>
 </html>'''
+    footer_partial = (Path(__file__).resolve().parent / "partials" / "footer.html").read_text(encoding="utf-8").strip()
+    html = re.sub(r'<footer\s+class="(?:main-footer|footer)"[^>]*>[\s\S]*?</footer>', footer_partial, html, count=1)
     return "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
 
 # 2. GENERATE SEMUA ARTIKEL BERITA KE DIREKTORI STATIS RESMI
