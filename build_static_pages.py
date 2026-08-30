@@ -582,7 +582,7 @@ def generate_article_html(art, canonical_url):
   <link rel="icon" type="image/png" href="{SITE_URL}/assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="{SITE_URL}/favicon.ico">
   <link rel="apple-touch-icon" href="{SITE_URL}/assets/brand/logo_pinrang_opt.png">
-  <link rel="stylesheet" href="{SITE_URL}/css/style.css">
+  <link rel="stylesheet" href="{SITE_URL}/css/style.css?v=20260830_footer_canonical_v2">
   <script src="{SITE_URL}/js/data.js"></script>
   <link rel="stylesheet" href="{SITE_URL}/css/modal-system.css">
   <style>

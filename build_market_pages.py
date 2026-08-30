@@ -45,7 +45,7 @@ def build_market_pages():
   <link rel="icon" type="image/png" href="../../assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="../../favicon.ico">
   <link rel="apple-touch-icon" href="../../assets/brand/logo_pinrang_opt.png">
-  <link rel="stylesheet" href="../../css/style.css?v=20260828_v14_footer_motto">
+  <link rel="stylesheet" href="../../css/style.css?v=20260830_footer_canonical_v2">
   <link rel="stylesheet" href="../../css/modal-system.css">
   <style>
     .market-detail-hero {{
