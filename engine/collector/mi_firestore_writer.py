@@ -16,6 +16,8 @@ from google.api_core.exceptions import AlreadyExists
 from google.auth.credentials import AnonymousCredentials
 from google.cloud import firestore as google_firestore
 
+from story_intelligence import find_matching_story, severity_from_relevance
+
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -150,3 +152,105 @@ class MediaIntelligenceWriter:
             return "new"
         except AlreadyExists:
             return "duplicate"
+
+    def assign_story_and_issue(self, item_id: str) -> tuple[str, str]:
+        """Attach one new item to a recent story and its issue foundation."""
+        item_ref = self.db.collection("mi_items").document(item_id)
+        item = item_ref.get().to_dict()
+        if not item:
+            raise ValueError(f"mi_items/{item_id} tidak ditemukan")
+        if item.get("story_cluster_id") and item.get("issue_id"):
+            return item["story_cluster_id"], item["issue_id"]
+
+        recent = []
+        for doc in self.db.collection("mi_story_clusters").limit(200).stream():
+            data = doc.to_dict()
+            data.setdefault("cluster_id", doc.id)
+            recent.append(data)
+        cluster_id = find_matching_story(item, recent) or f"story-{item_id[:24]}"
+        issue_id = f"issue-{cluster_id.removeprefix('story-')}"
+        cluster_ref = self.db.collection("mi_story_clusters").document(cluster_id)
+        cluster_snapshot = cluster_ref.get()
+        now = utcnow()
+        if cluster_snapshot.exists:
+            cluster = cluster_snapshot.to_dict()
+            item_ids = list(dict.fromkeys([*(cluster.get("item_ids") or []), item_id]))
+            source_ids = list(dict.fromkeys([*(cluster.get("source_ids") or []), item["source_id"]]))
+            cluster_ref.set({
+                "item_ids": item_ids, "source_ids": source_ids,
+                "item_count": len(item_ids), "source_count": len(source_ids),
+                "max_relevance_score": max(int(cluster.get("max_relevance_score", 0)),
+                                             int(item.get("relevance_score", 0))),
+                "last_item_at": max(filter(None, [cluster.get("last_item_at"), item.get("published_at")])),
+                "updated_at": now,
+            }, merge=True)
+        else:
+            cluster_ref.create({
+                "schema_version": 1, "cluster_id": cluster_id,
+                "representative_title": item.get("title", ""),
+                "topic_ids": item.get("topic_ids", []), "district_ids": item.get("district_ids", []),
+                "first_item_at": item.get("published_at"), "last_item_at": item.get("published_at"),
+                "item_ids": [item_id], "source_ids": [item["source_id"]],
+                "item_count": 1, "source_count": 1, "status": "ACTIVE",
+                "max_relevance_score": int(item.get("relevance_score", 0)),
+                "created_at": now, "updated_at": now,
+            })
+
+        cluster = cluster_ref.get().to_dict()
+        issue_ref = self.db.collection("mi_issues").document(issue_id)
+        previous_issue = issue_ref.get().to_dict() or {}
+        issue_ref.set({
+            "schema_version": 1, "issue_id": issue_id, "story_cluster_id": cluster_id,
+            "title": cluster.get("representative_title", item.get("title", "")),
+            "topic_ids": cluster.get("topic_ids", []), "district_ids": cluster.get("district_ids", []),
+            "status": previous_issue.get("status", "MONITORING"),
+            "severity": severity_from_relevance(cluster.get("max_relevance_score", 0)),
+            "verification_status": previous_issue.get("verification_status", "UNVERIFIED"),
+            "item_count": cluster.get("item_count", 1),
+            "source_count": cluster.get("source_count", 1),
+            "opened_at": cluster.get("first_item_at"), "last_item_at": cluster.get("last_item_at"),
+            "created_at": previous_issue.get("created_at") or now, "updated_at": now,
+        }, merge=True)
+        item_ref.set({"story_cluster_id": cluster_id, "issue_id": issue_id, "updated_at": now}, merge=True)
+        return cluster_id, issue_id
+
+    def backfill_intelligence(self, limit: int = 200) -> int:
+        """Attach verified pre-Stage-6 items that do not yet have a story."""
+        processed = 0
+        for doc in self.db.collection("mi_items").limit(limit).stream():
+            item = doc.to_dict()
+            if (item.get("verification_status") == "VERIFIED_DIRECT"
+                    and not item.get("story_cluster_id")):
+                self.assign_story_and_issue(doc.id)
+                processed += 1
+        return processed
+
+    def update_metrics(self, *, now: datetime | None = None) -> dict:
+        reference = now or utcnow()
+        cutoff = reference.timestamp() - 24 * 3600
+        items = []
+        for doc in self.db.collection("mi_items").limit(2000).stream():
+            item = doc.to_dict()
+            published = item.get("published_at")
+            if (item.get("verification_status") == "VERIFIED_DIRECT"
+                    and published and published.timestamp() >= cutoff):
+                items.append(item)
+        story_ids = {item.get("story_cluster_id") for item in items if item.get("story_cluster_id")}
+        source_ids = {item.get("source_id") for item in items if item.get("source_id")}
+        critical = 0
+        for doc in self.db.collection("mi_issues").limit(500).stream():
+            issue = doc.to_dict()
+            if (issue.get("verification_status") == "VERIFIED"
+                    and issue.get("status") in {"OPEN", "MONITORING"}
+                    and issue.get("severity") in {"HIGH", "CRITICAL"}):
+                critical += 1
+        metrics = {
+            "schema_version": 1, "period_hours": 24, "generated_at": reference,
+            "earned_mentions_24h": sum(1 for item in items if item.get("source_class") == "earned_media"),
+            "unique_stories_24h": len(story_ids), "active_sources_24h": len(source_ids),
+            "active_critical_issues": critical,
+        }
+        date_id = reference.astimezone(timezone.utc).strftime("%Y-%m-%d")
+        self.db.collection("mi_daily_metrics").document(date_id).set(metrics)
+        self.db.collection("mi_daily_metrics").document("current").set(metrics)
+        return metrics

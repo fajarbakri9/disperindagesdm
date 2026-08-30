@@ -107,12 +107,19 @@ def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "
             if writer:
                 outcome = writer.write_item(merged)
                 counters["items_new" if outcome == "new" else "duplicates"] += 1
+                if outcome == "new":
+                    writer.assign_story_and_issue(validation["url_hash"])
             else:
                 counters["items_new"] += 1
             existing_urls.add(validation["url_hash"])
             existing_content.add(validation["content_hash"])
             print(f"  VERIFIED {merged['title'][:70]} | R:{relevance['score']}")
 
+        if writer:
+            backfilled = writer.backfill_intelligence()
+            if backfilled:
+                print(f"Backfill intelligence: {backfilled} item")
+            writer.update_metrics()
         status = "FAILED" if sources and counters["sources_failed"] == len(sources) else (
             "PARTIAL" if counters["sources_failed"] else "SUCCESS")
         return_code = 1 if status == "FAILED" else 0

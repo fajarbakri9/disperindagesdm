@@ -12,8 +12,9 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
 - Writer hanya menggunakan collection final `mi_*`.
 - Setiap eksekusi dicatat di `mi_sync_runs`; kesehatan sumber disimpan di
   `mi_source_state`; artikel terverifikasi disimpan idempoten di `mi_items`.
-- Tone/NLP, story cluster, issue intelligence, metrics, dan public snapshot
-  belum diaktifkan sebelum tahap penerimaannya selesai.
+- Story cluster, issue foundation, dan KPI 24 jam sudah tersedia di collection
+  internal. Issue baru tetap `UNVERIFIED` sampai ditinjau manusia.
+- Tone/NLP dan public snapshot belum diaktifkan sebelum tahap penerimaannya selesai.
 - Halaman produksi tetap menampilkan status offline sampai `mi_public/current`
   diterbitkan oleh tahap snapshot yang teruji.
 

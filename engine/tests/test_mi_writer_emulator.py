@@ -63,3 +63,54 @@ def test_three_runs_are_idempotent_and_auditable():
     state = writer.db.collection("mi_source_state").document(source_id).get().to_dict()
     assert state["health"] == "OK"
     assert state["consecutive_failures"] == 0
+    assert writer.backfill_intelligence() >= 1
+    linked = writer.db.collection("mi_items").document(url_hash).get().to_dict()
+    assert linked["story_cluster_id"]
+    assert linked["issue_id"]
+
+
+def test_four_portals_create_four_mentions_but_one_story():
+    writer = MediaIntelligenceWriter(create_client("demo-media-intelligence"))
+    namespace = uuid.uuid4().hex
+    titles = [
+        "Kelangkaan LPG 3 Kg di Bungi Picu Antrean Warga",
+        "Warga Bungi Antre akibat LPG 3 Kg Langka",
+        "LPG 3 Kg Langka, Warga Bungi Terpaksa Mengantre",
+        "Antrean Warga Bungi Terjadi karena Kelangkaan LPG 3 Kg",
+    ]
+    cluster_ids, issue_ids = set(), set()
+    for index, title in enumerate(titles):
+        source_id = f"portal-{namespace}-{index}"
+        item_id = f"story-item-{namespace}-{index}"
+        item = {
+            "source_id": source_id, "source_name": source_id,
+            "source_class": "earned_media", "url": f"https://{source_id}.test/news",
+            "normalized_url": f"https://{source_id}.test/news",
+            "canonical_url": f"https://{source_id}.test/news", "url_hash": item_id,
+            "title": title, "excerpt": "Laporan kejadian yang sama.",
+            "published_at": datetime.now(timezone.utc), "published_at_source": "test",
+            "verification_status": "VERIFIED_DIRECT", "verification_notes": [],
+            "content_hash": f"content-{namespace}-{index}", "relevanceScore": 80,
+            "matchedGeo": [f"duampanua-{namespace}"], "matchedClusters": ["lpg"],
+        }
+        assert writer.write_item(item) == "new"
+        cluster_id, issue_id = writer.assign_story_and_issue(item_id)
+        cluster_ids.add(cluster_id)
+        issue_ids.add(issue_id)
+        if index == 2:
+            writer.db.collection("mi_issues").document(issue_id).set(
+                {"verification_status": "VERIFIED"}, merge=True)
+
+    assert len(cluster_ids) == 1
+    assert len(issue_ids) == 1
+    cluster = writer.db.collection("mi_story_clusters").document(cluster_ids.pop()).get().to_dict()
+    assert cluster["item_count"] == 4
+    assert cluster["source_count"] == 4
+    issue = writer.db.collection("mi_issues").document(issue_ids.pop()).get().to_dict()
+    assert issue["item_count"] == 4
+    assert issue["verification_status"] == "VERIFIED"
+    metrics = writer.update_metrics()
+    assert metrics["earned_mentions_24h"] >= 4
+    assert metrics["unique_stories_24h"] >= 1
+    assert metrics["active_sources_24h"] >= 4
+    assert metrics["active_critical_issues"] >= 1
