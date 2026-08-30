@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "audited_at": "2026-08-30T11:51:05.477668+00:00",
-  "snapshot_sync_run_id": "20260830T114911Z-4dcb1a0b",
-  "snapshot_last_run_at": "2026-08-30T11:50:31.911915Z",
+  "audited_at": "2026-08-30T11:59:37.782417+00:00",
+  "snapshot_sync_run_id": "20260830T115739Z-83cdae64",
+  "snapshot_last_run_at": "2026-08-30T11:58:59.905035Z",
   "required_articles": 30,
-  "sampled_articles": 11,
-  "passed_articles": 7,
+  "sampled_articles": 12,
+  "passed_articles": 8,
   "decision": "NO-GO",
   "articles": [
     {
@@ -141,6 +141,30 @@
         "publisher": "Supalamedia",
         "published_at": "2026-08-28T18:47:04+08:00",
         "canonical_url": "https://supalamedia.id/dampak-el-nino-di-pinrang-pemkab-fokus-pompanisasi-dan-koordinasi-lintas-sektor",
+        "extraction_method": "opengraph"
+      },
+      "checks": {
+        "canonical_url": true,
+        "title": true,
+        "publisher": true,
+        "published_at": true,
+        "direct_extraction": true
+      },
+      "passed": true
+    },
+    {
+      "url": "https://ajatappareng.online/dinas-sda-lakukan-pompanisasi-air-sungai-saddang-selamatkan-sawah-petani",
+      "expected": {
+        "title": "Dinas SDA Pinrang Lakukan Pompanisasi air Sungai Saddang, Selamatkan Sawah Petani - Ajatappareng Online",
+        "publisher": "Ajatappareng Online",
+        "published_at": "2026-08-26T08:12:24Z",
+        "verification_status": "VERIFIED_DIRECT"
+      },
+      "observed": {
+        "title": "Dinas SDA Pinrang Lakukan Pompanisasi air Sungai Saddang, Selamatkan Sawah Petani - Ajatappareng Online",
+        "publisher": "Ajatappareng Online",
+        "published_at": "2026-08-26T08:12:24+00:00",
+        "canonical_url": "https://ajatappareng.online/dinas-sda-lakukan-pompanisasi-air-sungai-saddang-selamatkan-sawah-petani",
         "extraction_method": "opengraph"
       },
       "checks": {
