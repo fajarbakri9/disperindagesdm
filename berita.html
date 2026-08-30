@@ -505,13 +505,24 @@
       let article = null;
 
       // 1. PRIORITAS UTAMA (Cloud Single Source of Truth): Cek Cloud Firestore terlebih dahulu
+      const firebaseEditor = typeof auth !== 'undefined' && auth && auth.currentUser;
       if (queryKey && typeof db !== 'undefined' && db !== null) {
         try {
-          const docSnap = await db.collection('news').doc(queryKey).get();
-          if (docSnap.exists) {
-            article = { id: docSnap.id, ...docSnap.data() };
+          if (firebaseEditor) {
+            const docSnap = await db.collection('news').doc(queryKey).get();
+            if (docSnap.exists) article = { id: docSnap.id, ...docSnap.data() };
           } else {
-            const querySnap = await db.collection('news').where('slug', '==', queryKey).get();
+            try {
+              const publishedDoc = await db.collection('news').doc(queryKey).get();
+              if (publishedDoc.exists) article = { id: publishedDoc.id, ...publishedDoc.data() };
+            } catch (ignored) {
+              // Slug publik biasanya berbeda dari document id; lanjutkan ke query slug.
+            }
+          }
+          if (!article) {
+            let slugQuery = db.collection('news').where('slug', '==', queryKey);
+            if (!firebaseEditor) slugQuery = slugQuery.where('status', '==', 'published');
+            const querySnap = await slugQuery.get();
             if (!querySnap.empty) {
               const d = querySnap.docs.slice().sort((a, b) => {
                 const timeOf = doc => {
@@ -580,7 +591,8 @@
       if (contentArea) contentArea.style.display = 'block';
 
       // Proteksi Status Draft Publik
-      const isPreviewMode = urlParams.get('preview') === 'true' || urlParams.get('preview') === '1';
+      const requestedPreview = urlParams.get('preview') === 'true' || urlParams.get('preview') === '1';
+      const isPreviewMode = requestedPreview && firebaseEditor;
       if (article && article.status === 'draft' && !isPreviewMode) {
         if (contentArea) {
           contentArea.innerHTML = `
@@ -642,6 +654,8 @@
       // Update Open Graph Tags
       const setMeta = (id, val) => { const el = document.getElementById(id); if (el) el.setAttribute('content', val); };
       setMeta('pageMetaDesc', snippet);
+      const canonicalElement = document.getElementById('pageCanonical');
+      if (canonicalElement) canonicalElement.setAttribute('href', canonicalUrl);
       setMeta('ogTitle', `${article.title} | Disperindag ESDM Pinrang`);
       setMeta('ogDesc', snippet);
       setMeta('ogImage', coverSrc.startsWith('http') ? coverSrc : `${window.location.origin}${coverSrc}`);
@@ -664,6 +678,32 @@
           .replace(/^• (.*$)/gim, '<li style="margin-bottom:6px;">$1</li>')
           .split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
       }
+      if (typeof sanitizeNewsHtml === 'function') formattedContent = sanitizeNewsHtml(formattedContent);
+
+      const structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'NewsArticle',
+        headline: article.title,
+        description: snippet,
+        image: [coverSrc.startsWith('http') ? coverSrc : `${window.location.origin}${coverSrc}`],
+        datePublished: article.published_at || article.publishedAt || article.created_at || article.createdAt,
+        dateModified: article.updated_at || article.updatedAt || article.published_at || article.publishedAt,
+        author: { '@type': 'Organization', name: article.author || 'Humas Disperindag ESDM Pinrang' },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Disperindag ESDM Kabupaten Pinrang',
+          logo: { '@type': 'ImageObject', url: `${window.location.origin}/assets/brand/logo_pinrang_opt.png` }
+        },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl }
+      };
+      let schemaNode = document.getElementById('articleStructuredData');
+      if (!schemaNode) {
+        schemaNode = document.createElement('script');
+        schemaNode.type = 'application/ld+json';
+        schemaNode.id = 'articleStructuredData';
+        document.head.appendChild(schemaNode);
+      }
+      schemaNode.textContent = JSON.stringify(structuredData);
 
       // 6. Galeri Tambahan
       let galleryHtml = '';

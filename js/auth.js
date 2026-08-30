@@ -28,7 +28,7 @@ function isProduction() {
 const DEFAULT_SYSTEM_USERS = [
   {
     username: "kadis_pinrang",
-    password: "pinrang2026!",
+    password: "",
     name: "Muhammad Yusuf Nur, S.STP",
     nip: "19800326 200003 1 001",
     position: "Kepala Dinas",
@@ -47,7 +47,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "sekretaris_dinas",
-    password: "sekretariat2026!",
+    password: "",
     name: "Hj. Ratnah, ST, M.Si",
     nip: "19770816 200903 2 004",
     position: "Sekretaris Dinas",
@@ -66,7 +66,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "editor_perdagangan",
-    password: "dagang2026!",
+    password: "",
     name: "Rusdi, S.Sos",
     nip: "19820112 200212 1 002",
     position: "Kepala Bidang Pengembangan Perdagangan",
@@ -85,7 +85,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "editor_esdm_industri",
-    password: "esdm2026!",
+    password: "",
     name: "Nasrawianty Vetraniwati Nasri, S.AP",
     nip: "19780921 200212 2 005",
     position: "Kepala Bidang Perindustrian, Energi dan SDM",
@@ -104,7 +104,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "editor_kemetrologian",
-    password: "metrologi2026!",
+    password: "",
     name: "Arhan Razak, S.IP",
     nip: "19700823 200212 1 003",
     position: "Kepala Bidang Kemetrologian",
@@ -123,7 +123,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "editor_distribusi",
-    password: "distribusi2026!",
+    password: "",
     name: "Abdul Rauf, S.E",
     nip: "19700622 200212 1 003",
     position: "Kepala Bidang Sarana & Pelaku Distribusi",
@@ -142,7 +142,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "petugas_pasar_sentral",
-    password: "pasar2026!",
+    password: "",
     name: "Eka Raharja, SH",
     nip: "19830414 200801 1 011",
     position: "Kepala UPTD Pasar Wilayah I (Pasar Sentral)",
@@ -163,7 +163,7 @@ const DEFAULT_SYSTEM_USERS = [
   // 8 AKUN RESMI AGEN LPG 3 KG KABUPATEN PINRANG (BASELINE MIGAS ESDM Q1 2026)
   {
     username: "agen_gasifa",
-    password: "gasifa2026!",
+    password: "",
     name: "Operator PT. Gasifa Mulya Persada",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -184,7 +184,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "agen_hamisa",
-    password: "hamisa2026!",
+    password: "",
     name: "Operator PT. Hamisa Sukrah Mulya",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -205,7 +205,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "agen_hasyim",
-    password: "hasyim2026!",
+    password: "",
     name: "Operator PT. H. Abd Rahman Hasyim",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -226,7 +226,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "agen_nurcahaya",
-    password: "nurcahaya2026!",
+    password: "",
     name: "Operator PT. Nurcahaya Energi Abadi",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -247,7 +247,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "agen_wahyu",
-    password: "wahyu2026!",
+    password: "",
     name: "Operator PT. Wahyu Dwi Kencana Mandiri",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -268,7 +268,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "agen_nasman",
-    password: "nasman2026!",
+    password: "",
     name: "Operator PT. Nasman Hafid Mandiri",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -289,7 +289,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "agen_amiruddin",
-    password: "amiruddin2026!",
+    password: "",
     name: "Operator PT. H. Amiruddin Rahman",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -310,7 +310,7 @@ const DEFAULT_SYSTEM_USERS = [
   },
   {
     username: "agen_kaka",
-    password: "kaka2026!",
+    password: "",
     name: "Operator PT. Kaka Migas Utama",
     position: "Admin Penyalur LPG",
     unit: "Agen LPG 3 Kg",
@@ -369,6 +369,9 @@ function saveAllUsers(users) {
 
 // Autentikasi Login Resmi
 function authenticateUser(username, password) {
+  if (isProduction()) {
+    return { success: false, message: "Login username lama telah dinonaktifkan. Gunakan akun email Firebase resmi." };
+  }
   const users = getAllUsers();
   const found = users.find(u => u.username.toLowerCase() === username.toLowerCase().trim());
   if (!found) {

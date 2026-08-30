@@ -104,19 +104,13 @@ const DBService = {
   // --- B. BERITA & PUBLIKASI ---
   async getNews(callback) {
     if (isFirebaseReady) {
-      db.collection("news").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+      db.collection("news").where("status", "==", "published").onSnapshot(snapshot => {
         const newsList = [];
         snapshot.forEach(doc => newsList.push({ id: doc.id, ...doc.data() }));
         if (newsList.length > 0) {
           setStorage('disperindag_news', newsList);
           if (callback) callback(newsList);
-        } else {
-          DEFAULT_NEWS.forEach(item => db.collection("news").doc(item.id).set({
-            ...item,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }));
-          if (callback) callback(DEFAULT_NEWS);
-        }
+        } else if (callback) callback(DEFAULT_NEWS.filter(item => (item.status || 'published') === 'published'));
       });
     } else {
       const local = getStorage('disperindag_news', DEFAULT_NEWS);

@@ -1,0 +1,55 @@
+name: Sinkronisasi Berita dan Open Graph
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: firebase-news-og-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout portal
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Autentikasi Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}"
+
+      - name: Build artikel, gambar OG, dan sitemap
+        run: python build_static_pages.py --cloud
+
+      - name: Validasi hasil build
+        shell: bash
+        run: |
+          python -m py_compile build_static_pages.py
+          node --check js/admin.js
+          node --check js/data.js
+          test -s sitemap.xml
+          grep -q 'application/ld+json' berita/*/index.html
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools@15.18.0
+
+      - name: Deploy Firebase Hosting
+        run: firebase deploy --only hosting --project disperindagesdm-pinrang --non-interactive

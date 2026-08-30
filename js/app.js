@@ -41,7 +41,7 @@ function initFirestoreLiveSync() {
   if (typeof db !== 'undefined' && db !== null) {
     try {
       // 1. Sync Berita Live dari Cloud Firestore
-      db.collection('news').onSnapshot(snapshot => {
+      db.collection('news').where('status', '==', 'published').onSnapshot(snapshot => {
         if (!snapshot.empty) {
           const cloudNews = [];
           snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));

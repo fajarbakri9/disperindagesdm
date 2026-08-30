@@ -473,7 +473,7 @@
       // REAL-TIME CLOUD FIRESTORE SYNC UNTUK ARSIP BERITA
       if (typeof db !== 'undefined' && db !== null) {
         try {
-          db.collection('news').onSnapshot(snapshot => {
+          db.collection('news').where('status', '==', 'published').onSnapshot(snapshot => {
             if (!snapshot.empty) {
               const cloudNews = [];
               snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));

@@ -45,8 +45,16 @@ service cloud.firestore {
       allow write: if true;
     }
     match /news/{docId} {
-      allow read: if true;
-      allow write: if true;
+      // Publik hanya boleh membaca rilis yang sudah diterbitkan. Editor yang
+      // terautentikasi tetap dapat membaca draf dari CMS.
+      allow read: if resource.data.status == 'published' || signedIn();
+      allow create, update, delete: if signedIn() &&
+        currentUserProfile().status == 'ACTIVE' &&
+        currentUserProfile().role in [
+          'SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'SECRETARIAT_ADMIN',
+          'TRADE_EDITOR', 'INDUSTRY_ESDM_EDITOR', 'METROLOGY_EDITOR',
+          'DISTRIBUTION_EDITOR', 'PUBLIC_RELATIONS_EDITOR', 'LPG_ADMIN'
+        ];
     }
     match /ikm_products/{docId} {
       allow read: if true;
@@ -73,42 +81,66 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // 4. MEDIA INTELLIGENCE — DATA CRAWLER RSS + GEMINI AI
-    // Read : publik — website bisa fetch data
-    // Write: dibuka (Firestore rules tidak bisa bedakan Apps Script vs browser,
-    //         data ini bersifat publik sehingga aman allow write: if true)
+    // 4. MEDIA INTELLIGENCE HUB (ARSITEKTUR PRODUCTION §26 & §29)
+    // Snapshot Publik: Hanya dokumen mi_public/current yang boleh dibaca publik.
+    // Seluruh penulisan hanya dapat dilakukan oleh Backend Engine melalui WIF/Admin SDK.
+    match /mi_public/{docId} {
+      allow read: if docId == 'current';
+      allow write: if false;
+    }
+
+    // Koleksi Internal Media Intelligence: Tertutup 100% dari akses klien/publik
+    match /mi_items/{itemId} {
+      allow read, write: if false;
+    }
+    match /mi_source_state/{sourceId} {
+      allow read, write: if false;
+    }
+    match /mi_sync_runs/{runId} {
+      allow read, write: if false;
+    }
+    match /mi_story_clusters/{clusterId} {
+      allow read, write: if false;
+    }
+    match /mi_issues/{issueId} {
+      allow read, write: if false;
+    }
+    match /mi_review_queue/{queueId} {
+      allow read, write: if false;
+    }
+
+    // Legacy fallback collections (deprecated)
     match /media_intelligence_feeds/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /media_intelligence_summary/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /media_intelligence_trending/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
-    // Snapshot TV Wallboard — 1 dokumen berisi 10 berita terbaru
     match /dashboard_snapshot/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /dashboard/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /config/{document=**} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /mentions/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /issues/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
 
     // 2. KANAL PENGADUAN MASYARAKAT (SP4N-LAPOR! & WEBSITE)

@@ -61,6 +61,57 @@ function getNewsTimestamp(item) {
   }
   return 0;
 }
+
+// Escaping untuk field teks yang dimasukkan ke template HTML.
+window.escapeNewsText = function(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[char]);
+};
+
+// Sanitizer allowlist untuk isi rich-text berita. Event handler, script,
+// iframe, style berbahaya, serta URL non-HTTP dibuang sebelum dirender/disimpan.
+window.sanitizeNewsHtml = function(input) {
+  const source = String(input ?? '');
+  if (!source || typeof DOMParser === 'undefined') return source;
+
+  const allowedTags = new Set([
+    'P', 'BR', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'H2', 'H3', 'H4',
+    'UL', 'OL', 'LI', 'BLOCKQUOTE', 'A', 'FIGURE', 'FIGCAPTION', 'IMG',
+    'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD', 'HR', 'DIV', 'SPAN'
+  ]);
+  const allowedAttributes = {
+    A: new Set(['href', 'title', 'target', 'rel']),
+    IMG: new Set(['src', 'alt', 'title', 'loading', 'width', 'height']),
+    TH: new Set(['colspan', 'rowspan', 'scope']),
+    TD: new Set(['colspan', 'rowspan']),
+    DIV: new Set(['class']), BLOCKQUOTE: new Set(['class']),
+    TABLE: new Set(['class']), SPAN: new Set(['class'])
+  };
+  const parsed = new DOMParser().parseFromString(`<body>${source}</body>`, 'text/html');
+
+  Array.from(parsed.body.querySelectorAll('*')).forEach(node => {
+    if (!allowedTags.has(node.tagName)) {
+      node.replaceWith(...Array.from(node.childNodes));
+      return;
+    }
+    Array.from(node.attributes).forEach(attr => {
+      const allowed = allowedAttributes[node.tagName];
+      if (!allowed || !allowed.has(attr.name.toLowerCase())) node.removeAttribute(attr.name);
+    });
+    if (node.tagName === 'A') {
+      const href = node.getAttribute('href') || '';
+      if (!/^(https?:|mailto:|tel:|\/|#)/i.test(href)) node.removeAttribute('href');
+      node.setAttribute('rel', 'noopener noreferrer');
+    }
+    if (node.tagName === 'IMG') {
+      const src = node.getAttribute('src') || '';
+      if (!/^(https?:|\/|assets\/)/i.test(src)) node.remove();
+      else node.setAttribute('loading', node.getAttribute('loading') || 'lazy');
+    }
+  });
+  return parsed.body.innerHTML;
+};
 window.getNewsTimestamp = getNewsTimestamp;
 
 // Deduplikasi berdasarkan ID/slug. Jika data lama berkonflik, versi terbaru selalu menang.

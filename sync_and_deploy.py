@@ -28,18 +28,16 @@ def main():
     print_header("SINKRONISASI RILIS BERITA & DEPLOY PORTAL DISPERINDAG ESDM")
     
     # 1. Generate seluruh halaman statis Open Graph & Sitemap
-    if not run_step("python build_static_pages.py", "1. Meng-compile File Statis Berita, Open Graph & Sitemap"):
+    if not run_step("python build_static_pages.py --cloud", "1. Sinkronisasi Firestore dan compile halaman OG statis"):
         print("❌ Gagal meng-compile halaman statis. Proses dibatalkan.")
         sys.exit(1)
         
-    # 2. Git add & commit
-    run_step('git add . && git commit -m "feat: Sinkronisasi rilis berita baru, Open Graph & Sitemap"', "2. Git Commit Perubahan", allow_failure=True)
-    
-    # 3. Git push
-    run_step("git push origin main", "3. Git Push ke Repository GitHub", allow_failure=True)
-    
-    # 4. Deploy ke Firebase Hosting
-    if not run_step("npx -y firebase-tools deploy --only hosting", "4. Deploy ke Firebase Hosting (Live)"):
+    # 2. Validasi sintaks sebelum menyentuh produksi
+    if not run_step("node --check js/admin.js && node --check js/data.js && python -m py_compile build_static_pages.py", "2. Validasi sintaks aplikasi"):
+        sys.exit(1)
+
+    # 3. Deploy rules dan hosting. Commit/push tetap keputusan operator.
+    if not run_step("npx -y firebase-tools deploy --only firestore:rules,hosting", "3. Deploy Firestore Rules dan Hosting (Live)"):
         print("\n❌ Deploy Firebase gagal. Periksa koneksi internet atau status project.")
         sys.exit(1)
         

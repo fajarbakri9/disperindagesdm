@@ -371,6 +371,9 @@ window.toggleNewsStatus = async function(id) {
   const newStatus = currentStatus === 'published' ? 'draft' : 'published';
   allNews[idx].status = newStatus;
   allNews[idx].updated_at = new Date().toISOString();
+  if (newStatus === 'published' && !allNews[idx].published_at) {
+    allNews[idx].published_at = allNews[idx].updated_at;
+  }
 
   setStorage('disperindag_news', allNews);
   renderAdminNews();
@@ -1124,9 +1127,10 @@ window.handleSaveNews = async function(overrideStatus = null) {
   
   // Ambil konten dari visual canvas jika ada, atau dari raw input
   const visualCanvas = document.getElementById('newsVisualCanvas');
-  const content = (visualCanvas && visualCanvas.innerHTML.trim() !== '' && visualCanvas.innerHTML !== '<br>') 
-    ? visualCanvas.innerHTML.trim() 
+  const rawContent = (visualCanvas && visualCanvas.innerHTML.trim() !== '' && visualCanvas.innerHTML !== '<br>')
+    ? visualCanvas.innerHTML.trim()
     : document.getElementById('newsContentInput')?.value?.trim();
+  const content = typeof sanitizeNewsHtml === 'function' ? sanitizeNewsHtml(rawContent) : rawContent;
 
   const caption = document.getElementById('newsFeaturedCaptionInput')?.value?.trim() || 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.';
   const isFeatured = document.getElementById('newsIsFeaturedCheckbox')?.checked || false;
@@ -1203,6 +1207,17 @@ window.handleSaveNews = async function(overrideStatus = null) {
     articleObj.created_at = nowIso;
   }
 
+  const payloadBytes = new Blob([JSON.stringify(articleObj)]).size;
+  if (payloadBytes > 800000) {
+    CustomModal.alert({
+      title: "Ukuran Berita Terlalu Besar",
+      message: `Payload berita berukuran ${(payloadBytes / 1024).toFixed(0)} KB. Batas aman CMS adalah 800 KB.<br><br>Kurangi foto galeri atau gunakan URL gambar yang sudah diunggah ke penyimpanan media.`,
+      icon: "⚠️",
+      type: "warning"
+    });
+    return;
+  }
+
   // Indikator visual proses simpan
   const submitBtns = document.querySelectorAll('#newsEditorModal button[type="submit"], #newsEditorModal .btn-primary');
   submitBtns.forEach(btn => { if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Menyimpan ke Cloud...'; } });
@@ -1220,6 +1235,20 @@ window.handleSaveNews = async function(overrideStatus = null) {
       console.error("[-] Gagal menyimpan ke Cloud Firestore:", err);
       cloudErrorMsg = err.message || err.toString();
     }
+  }
+
+
+  // Firestore adalah sumber utama pada deployment produksi. Jangan tampilkan
+  // berita sebagai tersimpan bila penulisan cloud gagal.
+  if (typeof db !== 'undefined' && db !== null && !cloudSaveSuccess) {
+    submitBtns.forEach(btn => { if (btn) btn.disabled = false; });
+    CustomModal.alert({
+      title: "Berita Belum Tersimpan",
+      message: `Sinkronisasi cloud gagal:<br><small style="color:#DC2626;">${escapeNewsText(cloudErrorMsg || 'Koneksi database tidak tersedia')}</small>`,
+      icon: "⚠️",
+      type: "error"
+    });
+    return;
   }
 
   // 2. Simpan ke Local Storage Cache

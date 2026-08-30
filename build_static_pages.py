@@ -2,11 +2,19 @@ import os
 import sys
 import json
 import re
+import html as html_lib
+import urllib.request
+import urllib.parse
+import base64
+import binascii
+import hashlib
 
 sys.stdout.reconfigure(encoding='utf-8')
 
 SITE_URL = "https://disperindagesdm-pinrang.web.app"
 DEFAULT_COVER = f"{SITE_URL}/assets/banner/cover_disperindag_esdm_pinrang.jpg"
+FIREBASE_PROJECT_ID = "disperindagesdm-pinrang"
+FIREBASE_WEB_API_KEY = "AIzaSyD4J1kidUcBcz7EdmYRIY66YR5jOEO477I"
 
 # 1. BACA DATA DEFAULT_NEWS DARI js/data.js SECARA DINAMIS
 with open("js/data.js", "r", encoding="utf-8") as f:
@@ -330,10 +338,165 @@ Kadis Perindag ESDM Pinrang menegaskan sanksi tegas akan dijatuhkan bagi pihak p
     }
 ]
 
+def decode_firestore_value(value):
+    if not isinstance(value, dict):
+        return value
+    scalar_types = (
+        "stringValue", "booleanValue", "integerValue", "doubleValue",
+        "timestampValue", "nullValue"
+    )
+    for key in scalar_types:
+        if key in value:
+            raw = value[key]
+            if key == "integerValue":
+                return int(raw)
+            return raw
+    if "arrayValue" in value:
+        return [decode_firestore_value(item) for item in value["arrayValue"].get("values", [])]
+    if "mapValue" in value:
+        return {
+            key: decode_firestore_value(item)
+            for key, item in value["mapValue"].get("fields", {}).items()
+        }
+    return None
+
+def fetch_published_cloud_articles():
+    endpoint = (
+        f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}"
+        f"/databases/(default)/documents:runQuery?key={urllib.parse.quote(FIREBASE_WEB_API_KEY)}"
+    )
+    payload = json.dumps({
+        "structuredQuery": {
+            "from": [{"collectionId": "news"}],
+            "where": {
+                "fieldFilter": {
+                    "field": {"fieldPath": "status"},
+                    "op": "EQUAL",
+                    "value": {"stringValue": "published"}
+                }
+            }
+        }
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        endpoint,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        results = json.loads(response.read().decode("utf-8"))
+
+    articles = []
+    for result in results:
+        document = result.get("document")
+        if not document:
+            continue
+        item = {
+            key: decode_firestore_value(value)
+            for key, value in document.get("fields", {}).items()
+        }
+        item["id"] = item.get("id") or document["name"].rsplit("/", 1)[-1]
+        item["publishedAt"] = item.get("published_at") or item.get("publishedAt") or item.get("created_at")
+        item["img"] = item.get("img") or "assets/social/default-share.jpg"
+        item["excerpt"] = item.get("excerpt") or item.get("title", "")
+        item["content"] = item.get("content") or ""
+        item["slug"] = item.get("slug") or item["id"]
+        if item.get("title") and item.get("status") == "published":
+            articles.append(item)
+    return articles
+
+def merge_cloud_articles(base_articles, cloud_articles):
+    merged = {item["id"]: item for item in base_articles}
+    for cloud in cloud_articles:
+        existing = merged.get(cloud["id"], {})
+        merged[cloud["id"]] = {**existing, **cloud}
+
+    # Slug adalah identitas URL publik. Jika migrasi lama meninggalkan lebih
+    # dari satu document id untuk slug yang sama, hanya revisi terbaru dibangun.
+    by_slug = {}
+    for item in merged.values():
+        slug = str(item.get("slug") or item.get("id") or "").strip().lower()
+        revision = (
+            item.get("updated_at") or item.get("updatedAt") or
+            item.get("published_at") or item.get("publishedAt") or
+            item.get("created_at") or item.get("createdAt") or ""
+        )
+        previous = by_slug.get(slug)
+        previous_revision = "" if not previous else (
+            previous.get("updated_at") or previous.get("updatedAt") or
+            previous.get("published_at") or previous.get("publishedAt") or
+            previous.get("created_at") or previous.get("createdAt") or ""
+        )
+        if not previous or str(revision) >= str(previous_revision):
+            by_slug[slug] = item
+
+    return sorted(
+        by_slug.values(),
+        key=lambda item: str(item.get("publishedAt") or item.get("published_at") or ""),
+        reverse=True
+    )
+
+def materialize_embedded_images(articles):
+    """Ubah featured image data URL CMS menjadi aset Hosting yang deterministik."""
+    output_dir = os.path.join("assets", "news", "generated")
+    os.makedirs(output_dir, exist_ok=True)
+    mime_extensions = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp"
+    }
+
+    for article in articles:
+        source = str(article.get("img") or "")
+        match = re.fullmatch(r"data:([^;,]+);base64,(.+)", source, re.DOTALL)
+        if not match:
+            continue
+        mime_type = match.group(1).lower()
+        extension = mime_extensions.get(mime_type)
+        if not extension:
+            article["img"] = "assets/social/default-share.jpg"
+            continue
+        try:
+            image_bytes = base64.b64decode(match.group(2), validate=True)
+        except (ValueError, binascii.Error):
+            article["img"] = "assets/social/default-share.jpg"
+            continue
+        if not image_bytes or len(image_bytes) > 800000:
+            article["img"] = "assets/social/default-share.jpg"
+            continue
+
+        safe_slug = re.sub(r"[^a-z0-9-]+", "-", str(article.get("slug") or article["id"]).lower()).strip("-")
+        digest = hashlib.sha256(image_bytes).hexdigest()[:12]
+        filename = f"{safe_slug[:90]}-{digest}.{extension}"
+        output_path = os.path.join(output_dir, filename)
+        with open(output_path, "wb") as image_file:
+            image_file.write(image_bytes)
+        article["img"] = f"assets/news/generated/{filename}"
+
+if "--cloud" in sys.argv:
+    try:
+        cloud_articles = fetch_published_cloud_articles()
+        ARTICLES = merge_cloud_articles(ARTICLES, cloud_articles)
+        materialize_embedded_images(ARTICLES)
+        print(f"[✓] Sinkronisasi Firestore: {len(cloud_articles)} berita published ditemukan.")
+    except Exception as error:
+        print(f"[!] Sinkronisasi Firestore gagal, build dibatalkan: {error}")
+        sys.exit(1)
+
 def generate_article_html(art, canonical_url):
-    img_abs = f"{SITE_URL}/{art['img']}" if not art['img'].startswith('http') else art['img']
-    paragraphs = art['content'].split('\n\n')
-    body_html = "".join([f"<p>{p.replace(chr(10), '<br>')}</p>" for p in paragraphs])
+    raw_image = str(art.get('img') or 'assets/social/default-share.jpg')
+    img_abs = f"{SITE_URL}/{raw_image.lstrip('/')}" if not raw_image.startswith('http') else raw_image
+    title_attr = html_lib.escape(str(art['title']), quote=True)
+    excerpt_attr = html_lib.escape(str(art['excerpt']), quote=True)
+    author_attr = html_lib.escape(str(art.get('author', 'Humas Disperindag ESDM Pinrang')), quote=True)
+    category_attr = html_lib.escape(str(art.get('category', 'Berita Kedinasan')), quote=True)
+    tag_attr = html_lib.escape(str(art.get('topic_tag', 'Disperindag')), quote=True)
+    raw_content = str(art.get('content') or '')
+    if re.search(r'<(?:p|div|h2|h3|ul|ol|blockquote|table)\b', raw_content, re.I):
+        body_html = raw_content
+    else:
+        paragraphs = raw_content.split('\n\n')
+        body_html = "".join([f"<p>{p.replace(chr(10), '<br>')}</p>" for p in paragraphs])
     
     # Generate related items
     others = [o for o in ARTICLES if o['id'] != art['id']][:4]
@@ -380,35 +543,35 @@ def generate_article_html(art, canonical_url):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{art['title']} | Disperindag ESDM Kabupaten Pinrang</title>
-  <meta name="description" content="{art['excerpt']}">
+  <title>{title_attr} | Disperindag ESDM Kabupaten Pinrang</title>
+  <meta name="description" content="{excerpt_attr}">
   <link rel="canonical" href="{canonical_url}">
   
   <!-- OPEN GRAPH & MEDSOS SHARING RESMI (STATIC PRERENDERED) -->
   <meta property="fb:app_id" content="966242223397117">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang">
-  <meta property="og:title" content="{art['title']}">
-  <meta property="og:description" content="{art['excerpt']}">
+  <meta property="og:title" content="{title_attr}">
+  <meta property="og:description" content="{excerpt_attr}">
   <meta property="og:image" content="{img_abs}">
   <meta property="og:image:secure_url" content="{img_abs}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/jpeg">
-  <meta property="og:image:alt" content="{art['title']}">
+  <meta property="og:image:alt" content="{title_attr}">
   <meta property="og:url" content="{canonical_url}">
   <meta property="og:locale" content="id_ID">
   <meta property="article:published_time" content="{art['publishedAt']}">
-  <meta property="article:author" content="{art.get('author', 'Humas Disperindag ESDM Pinrang')}">
-  <meta property="article:section" content="{art['category']}">
-  <meta property="article:tag" content="{art.get('topic_tag', 'Disperindag')}">
+  <meta property="article:author" content="{author_attr}">
+  <meta property="article:section" content="{category_attr}">
+  <meta property="article:tag" content="{tag_attr}">
   
   <!-- TWITTER / X CARDS -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{art['title']}">
-  <meta name="twitter:description" content="{art['excerpt']}">
+  <meta name="twitter:title" content="{title_attr}">
+  <meta name="twitter:description" content="{excerpt_attr}">
   <meta name="twitter:image" content="{img_abs}">
-  <meta name="twitter:image:alt" content="{art['title']}">
+  <meta name="twitter:image:alt" content="{title_attr}">
 
   <!-- STRUCTURED DATA JSON-LD -->
   <script type="application/ld+json">
@@ -419,6 +582,7 @@ def generate_article_html(art, canonical_url):
   <link rel="shortcut icon" type="image/x-icon" href="{SITE_URL}/favicon.ico">
   <link rel="apple-touch-icon" href="{SITE_URL}/assets/brand/logo_pinrang_opt.png">
   <link rel="stylesheet" href="{SITE_URL}/css/style.css">
+  <script src="{SITE_URL}/js/data.js"></script>
   <link rel="stylesheet" href="{SITE_URL}/css/modal-system.css">
   <style>
     .article-page {{ padding: 40px 0 60px; }}
@@ -678,7 +842,7 @@ def generate_article_html(art, canonical_url):
                 if (!html.includes('<p>') && !html.includes('<div>')) {{
                   html = html.split('\\n\\n').map(p => '<p>' + p.replace(/\\n/g, '<br>') + '</p>').join('');
                 }}
-                bodyEl.innerHTML = html;
+                bodyEl.innerHTML = typeof sanitizeNewsHtml === 'function' ? sanitizeNewsHtml(html) : '';
               }}
             }}
             // 5. Update Tanggal & Penulis
@@ -712,7 +876,7 @@ def generate_article_html(art, canonical_url):
   </script>
 </body>
 </html>'''
-    return html
+    return "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
 
 # 2. GENERATE SEMUA ARTIKEL BERITA KE DIREKTORI STATIS RESMI
 os.makedirs("berita", exist_ok=True)
@@ -798,7 +962,7 @@ def update_sitemap_xml():
     
     with open("sitemap.xml", "w", encoding="utf-8") as f:
         f.write("\n".join(xml_lines) + "\n")
-    print("  [✓] Generated sitemap.xml dengan ke-15 rilis berita resmi dan seluruh halaman portal!")
+    print(f"  [✓] Generated sitemap.xml dengan {len(ARTICLES)} rilis berita resmi dan seluruh halaman portal!")
 
 update_sitemap_xml()
 
