@@ -12,17 +12,20 @@ from config_loader import (get_all_geo_terms, get_all_keyword_terms, get_keyword
                            get_locations, get_sources)
 from discovery import discover_from_source
 from extractor import extract_metadata
+from gdelt_discovery import discover_gdelt_candidates, load_gdelt_config, source_for_url
 from mi_firestore_writer import MediaIntelligenceWriter
 from relevance import calculate_relevance, passes_tier_filter
 from validation import validate_item
 
-ENGINE_VERSION = "5.0.0"
+ENGINE_VERSION = "5.1.0"
 
 
 def _new_counters() -> dict:
     return {key: 0 for key in ("sources_ok", "sources_failed", "candidates_found",
                                 "items_new", "items_updated", "duplicates", "rejected",
-                                "needs_review")}
+                                "needs_review", "secondary_candidates",
+                                "secondary_verified", "secondary_duplicates",
+                                "unknown_domains", "secondary_failed")}
 
 
 def round_robin_candidates(grouped: list[list[tuple[dict, dict]]], limit: int = 20):
@@ -132,6 +135,67 @@ def main(tier_filter: str | None = None, dry_run: bool = False, trigger: str = "
             existing_urls.add(validation["url_hash"])
             existing_content.add(validation["content_hash"])
             print(f"  VERIFIED {merged['title'][:70]} | R:{relevance['score']}")
+
+        # GDELT is discovery only. Unknown publishers become review tasks;
+        # approved publishers must pass original-page extraction and the same
+        # validation/deduplication path as direct candidates.
+        try:
+            secondary = discover_gdelt_candidates(load_gdelt_config())
+            counters["secondary_candidates"] += len(secondary)
+            for article in secondary:
+                source = source_for_url(article["url"], sources)
+                if source is None:
+                    counters["unknown_domains"] += 1
+                    counters["needs_review"] += 1
+                    if writer:
+                        writer.write_unknown_source_review(article)
+                    continue
+                metadata = extract_metadata(article["url"], rss_entry=article)
+                merged = {**article, **{key: value for key, value in metadata.items() if value}}
+                validation = validate_item(source, article["url"], merged,
+                                           existing_url_keys=existing_urls,
+                                           existing_content_hashes=existing_content)
+                merged.update(validation)
+                if validation["verification_status"] != "VERIFIED_DIRECT":
+                    if validation.get("duplicate_of"):
+                        counters["duplicates"] += 1
+                        counters["secondary_duplicates"] += 1
+                    elif validation["verification_status"] == "NEEDS_REVIEW":
+                        counters["needs_review"] += 1
+                    else:
+                        counters["rejected"] += 1
+                    continue
+                relevance = calculate_relevance(
+                    merged.get("title", ""), merged.get("excerpt", ""),
+                    {"sourceWeight": source.get("source_weight", 0.75)},
+                    geo, keywords, keywords_raw)
+                if relevance["score"] < 30:
+                    counters["rejected"] += 1
+                    continue
+                merged.update({
+                    "source_id": source["id"], "source_name": source["name"],
+                    "source_class": source.get("source_class", "earned_media"),
+                    "matchedGeo": relevance["matched_geo"],
+                    "matchedClusters": relevance["matched_clusters"],
+                    "relevanceScore": relevance["score"], "tone": None,
+                    "tone_confidence": None,
+                })
+                if writer:
+                    outcome = writer.write_item(merged)
+                    counters["items_new" if outcome == "new" else "duplicates"] += 1
+                    if outcome == "new":
+                        writer.assign_story_and_issue(validation["url_hash"])
+                    else:
+                        counters["secondary_duplicates"] += 1
+                else:
+                    counters["items_new"] += 1
+                existing_urls.add(validation["url_hash"])
+                existing_content.add(validation["content_hash"])
+                counters["secondary_verified"] += 1
+        except Exception as exc:
+            # Secondary discovery is optional and must never take down direct collection.
+            counters["secondary_failed"] += 1
+            print(f"GDELT DEGRADED: {type(exc).__name__}: {exc}")
 
         if writer:
             backfilled = writer.backfill_intelligence()

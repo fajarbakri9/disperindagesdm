@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "endpoint": "https://api.gdeltproject.org/api/v2/doc/doc",
+  "timespan": "3months",
+  "max_records_per_query": 10,
+  "max_candidates_per_run": 20,
+  "queries": [
+    "Disperindag Pinrang",
+    "Disperindag ESDM Pinrang",
+    "Pinrang LPG",
+    "Pinrang pasar",
+    "Pinrang harga pangan",
+    "Pinrang metrologi",
+    "Pinrang IKM",
+    "Pinrang ESDM"
+  ]
+}

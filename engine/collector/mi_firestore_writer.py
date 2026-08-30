@@ -16,6 +16,7 @@ from google.api_core.exceptions import AlreadyExists
 from google.auth.credentials import AnonymousCredentials
 from google.cloud import firestore as google_firestore
 
+from normalizers import normalize_url
 from story_intelligence import find_matching_story, severity_from_relevance
 
 
@@ -78,13 +79,17 @@ class MediaIntelligenceWriter:
             "sources_ok": 0, "sources_failed": 0, "candidates_found": 0,
             "items_new": 0, "items_updated": 0, "duplicates": 0,
             "rejected": 0, "needs_review": 0, "runtime_seconds": 0,
+            "secondary_candidates": 0, "secondary_verified": 0,
+            "secondary_duplicates": 0, "unknown_domains": 0, "secondary_failed": 0,
             "engine_version": engine_version,
         })
 
     def finish_run(self, run_id: str, *, status: str, counters: dict,
                    runtime_seconds: float) -> None:
         allowed = {"sources_ok", "sources_failed", "candidates_found", "items_new",
-                   "items_updated", "duplicates", "rejected", "needs_review"}
+                   "items_updated", "duplicates", "rejected", "needs_review",
+                   "secondary_candidates", "secondary_verified",
+                   "secondary_duplicates", "unknown_domains", "secondary_failed"}
         payload = {key: int(counters.get(key, 0)) for key in allowed}
         payload.update({"finished_at": utcnow(), "status": status,
                         "runtime_seconds": round(runtime_seconds, 3)})
@@ -151,10 +156,35 @@ class MediaIntelligenceWriter:
             "title_hash": title_fingerprint(item.get("title", "")),
             "image_url": item.get("thumbnailUrl") or None, "tone": item.get("tone"),
             "tone_confidence": item.get("tone_confidence"),
+            "discovery_provider": item.get("discovery_provider", "DIRECT"),
+            "discovery_query": item.get("discovery_query"),
             "created_at": now, "updated_at": now,
         }
         try:
             self.db.collection("mi_items").document(doc_id).create(payload)
+            return "new"
+        except AlreadyExists:
+            return "duplicate"
+
+    def write_unknown_source_review(self, candidate: dict) -> str:
+        """Create one idempotent onboarding review task; never an mi_item."""
+        normalized = normalize_url(candidate.get("url", ""))
+        if not normalized:
+            raise ValueError("Candidate review tanpa URL valid.")
+        digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+        now = utcnow()
+        payload = {
+            "schema_version": 1, "task_type": "UNKNOWN_SOURCE_DOMAIN",
+            "status": "OPEN", "candidate_url": candidate.get("url"),
+            "normalized_url": normalized,
+            "candidate_domain": candidate.get("discovery_domain"),
+            "candidate_title": candidate.get("title", ""),
+            "discovery_provider": "GDELT",
+            "discovery_query": candidate.get("discovery_query"),
+            "created_at": now, "updated_at": now,
+        }
+        try:
+            self.db.collection("mi_review_tasks").document(f"unknown-domain-{digest}").create(payload)
             return "new"
         except AlreadyExists:
             return "duplicate"

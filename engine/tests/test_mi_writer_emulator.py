@@ -148,3 +148,21 @@ def test_four_portals_create_four_mentions_but_one_story():
     for forbidden in ("review_notes", "admin_identity", "internal_disposition",
                       "last_error_message", "email", "phone"):
         assert f'"{forbidden}"' not in serialized
+
+
+def test_unknown_gdelt_domain_creates_only_one_review_task():
+    writer = MediaIntelligenceWriter(create_client("demo-media-intelligence"))
+    namespace = uuid.uuid4().hex
+    candidate = {
+        "url": f"https://unknown-{namespace}.example/pinrang-lpg?utm_source=gdelt",
+        "title": "Berita LPG Pinrang",
+        "discovery_domain": f"unknown-{namespace}.example",
+        "discovery_query": "Pinrang LPG",
+    }
+    assert writer.write_unknown_source_review(candidate) == "new"
+    assert writer.write_unknown_source_review(candidate) == "duplicate"
+    reviews = list(writer.db.collection("mi_review_tasks")
+                   .where("normalized_url", "==", candidate["url"].split("?")[0]).stream())
+    assert len(reviews) == 1
+    assert reviews[0].to_dict()["task_type"] == "UNKNOWN_SOURCE_DOMAIN"
+    assert writer.db.collection("mi_items").document(reviews[0].id).get().exists is False

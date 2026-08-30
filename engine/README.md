@@ -9,7 +9,12 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
 - Delapan sumber terverifikasi dari `config/sources.yml`: tiga pilot dan lima
   sumber Tahap 10 yang masing-masing lulus 5–10 pemeriksaan artikel asli.
 - Discovery RSS/sitemap, ekstraksi metadata, normalisasi URL dan waktu WITA.
+- GDELT DOC API dipakai hanya sebagai secondary discovery dengan delapan query
+  terkontrol. Hasilnya selalu diarahkan ke halaman penerbit asli.
 - Validasi domain/canonical/tanggal serta exact URL/content deduplication.
+- Kandidat GDELT dari domain registry melewati validator dan deduplikasi yang
+  sama dengan sumber langsung. Domain asing hanya membuat task onboarding
+  idempoten di `mi_review_tasks` dan tidak pernah masuk `mi_items` atau KPI.
 - Writer hanya menggunakan collection final `mi_*`.
 - Setiap eksekusi dicatat di `mi_sync_runs`; kesehatan sumber disimpan di
   `mi_source_state`; artikel terverifikasi disimpan idempoten di `mi_items`.
@@ -34,6 +39,8 @@ python -m pytest engine/tests -q
 ```
 
 Dry-run membaca sumber nyata tetapi tidak membuat koneksi tulis Firestore.
+Gangguan atau timeout GDELT dicatat sebagai kondisi `DEGRADED` dan tidak
+menggagalkan pengumpulan delapan sumber langsung.
 
 ## Uji Firestore Emulator
 
