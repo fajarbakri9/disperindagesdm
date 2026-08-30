@@ -6,9 +6,9 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
 
 ## Status implementasi
 
-- Lima belas sumber aktif dari `config/sources.yml`, termasuk Info Rakyat,
+- Delapan belas sumber aktif dari `config/sources.yml`, termasuk Info Rakyat,
   Mata Lasinrang, Supala Media, Pijar News, Sahabat News, Berita-Online, dan
-  Ajatappareng Online.
+  Ajatappareng Online, ONEA News, TopNews1, dan KabarMakassar.
   Status onboarding tidak menjadi
   bukti cutover; audit production ketat tetap mensyaratkan 30 artikel yang cocok
   untuk canonical URL, judul, publisher, tanggal, dan ekstraksi langsung.

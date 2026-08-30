@@ -67,7 +67,7 @@ def static_checks() -> list[dict]:
         check("crawler_scheduled", 'cron: "17 2,6,10,14,18,22 * * *"' in crawl and
               "MI_WIF_ENABLED == 'true'" in crawl,
               "Enam jadwal WITA tersedia dan fail-closed sampai WIF aktif."),
-        check("source_registry_present", 0 < enabled_sources <= 15,
+        check("source_registry_present", 0 < enabled_sources <= 20,
               f"Sumber aktif terkonfigurasi: {enabled_sources}."),
         check("public_snapshot_reader", "mi_public" in public,
               "Dashboard publik harus membaca snapshot yang disanitasi."),

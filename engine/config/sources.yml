@@ -348,3 +348,78 @@
   verification_pass_count: 5
   parser_version: 1
   max_candidates_per_run: 30
+
+- id: onea_news_pinrang
+  name: ONEA News - Pinrang
+  domain: oneanews.com
+  allowed_domains:
+    - oneanews.com
+    - www.oneanews.com
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: false
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://oneanews.com/feed/
+  robots_checked_at: "2026-08-30T20:20:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T20:20:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 15
+
+- id: topnews1_pinrang
+  name: TopNews1 - Pinrang
+  domain: topnews1.online
+  allowed_domains:
+    - topnews1.online
+    - www.topnews1.online
+  source_class: earned_media
+  priority: high
+  enabled: true
+  pinrang_specific: true
+  source_weight: 0.85
+  discovery:
+    type: rss
+    urls:
+      - https://topnews1.online/tag/pinrang/feed/
+  robots_checked_at: "2026-08-30T20:20:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T20:20:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 20
+
+- id: kabar_makassar
+  name: KabarMakassar
+  domain: kabarmakassar.com
+  allowed_domains:
+    - kabarmakassar.com
+    - www.kabarmakassar.com
+  source_class: earned_media
+  priority: normal
+  enabled: true
+  pinrang_specific: false
+  source_weight: 0.8
+  discovery:
+    type: rss
+    urls:
+      - https://www.kabarmakassar.com/feed/
+  robots_checked_at: "2026-08-30T20:20:00+08:00"
+  robots_status: ALLOWED
+  robots_http_status: 200
+  onboarding_status: VERIFIED
+  verification_checked_at: "2026-08-30T20:20:00+08:00"
+  verification_sample_count: 5
+  verification_pass_count: 5
+  parser_version: 1
+  max_candidates_per_run: 15

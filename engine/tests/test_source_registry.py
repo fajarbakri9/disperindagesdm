@@ -1,9 +1,9 @@
 from config_loader import get_sources
 
 
-def test_registry_has_fifteen_individually_verified_sources():
+def test_registry_has_eighteen_individually_verified_sources():
     sources = get_sources()
-    assert len(sources) == 15
+    assert len(sources) == 18
     assert {source["source_class"] for source in sources} == {
         "owned_official", "earned_media"
     }
@@ -13,6 +13,8 @@ def test_registry_has_fifteen_individually_verified_sources():
             "sahabat_news_pinrang", "berita_online_pinrang"}.issubset(
                 {source["id"] for source in sources})
     assert "ajatappareng_online_pinrang" in {source["id"] for source in sources}
+    assert {"onea_news_pinrang", "topnews1_pinrang", "kabar_makassar"}.issubset(
+        {source["id"] for source in sources})
 
 
 def test_pilot_sources_have_onboarding_metadata():
