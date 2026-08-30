@@ -533,6 +533,59 @@ td.cc-empty-state {
   overflow: hidden;
 }
 
+.cc-mi-summary {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.35fr) repeat(5, minmax(110px, 1fr));
+  gap: 1px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.28);
+}
+
+.cc-mi-summary__title,
+.cc-mi-summary__metric {
+  min-width: 0;
+  padding: 8px 12px;
+  background: var(--bg-card-inner);
+}
+
+.cc-mi-summary__title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--accent-cyan);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.cc-mi-summary__title small,
+.cc-mi-summary__metric small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.cc-mi-summary__metric strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--text-main);
+  font: 900 1.05rem 'Chakra Petch', monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-mi-summary__metric .cc-mi-summary__time { font-size: 0.76rem; }
+.cc-mi-summary__metric .cc-mi-status { font-size: 0.72rem; }
+.cc-mi-status--fresh { color: var(--accent-emerald) !important; }
+.cc-mi-status--degraded { color: var(--accent-gold) !important; }
+.cc-mi-status--stale,
+.cc-mi-status--offline { color: var(--accent-rose) !important; }
+
 /* Enhanced Price Table */
 .table-price-lg {
   width: 100%;
@@ -694,6 +747,8 @@ td.cc-empty-state {
    .overview-main-grid {
      grid-template-columns: 1fr 1fr;
    }
+   .cc-mi-summary { grid-template-columns: repeat(3, 1fr); }
+   .cc-mi-summary__title { grid-column: span 3; }
 }
 
 @media (min-width: 1025px) and (max-width: 1400px) {
@@ -975,3 +1030,8 @@ td.cc-empty-state {
 .cc-map-layout .leaflet-control-zoom a { background:#0F2C59;color:#FFF;border-color:#1E4C80; }
 .cc-map-layout .leaflet-control-attribution { background:rgba(255,255,255,.88);font-size:9px; }
 @media(max-width:900px){.cc-map-toolbar{grid-template-columns:repeat(2,minmax(0,1fr));}.cc-map-heading{align-items:flex-start;flex-direction:column}.cc-map-quality{white-space:normal}.cc-map-legend{flex-wrap:wrap}.cc-map-legend small{width:100%;margin-left:0}}
+
+@media (max-width: 768px) {
+  .cc-mi-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cc-mi-summary__title { grid-column: span 2; }
+}

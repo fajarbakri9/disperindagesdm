@@ -116,6 +116,38 @@ function getFreshnessStatus(updatedAt, maxAgeMinutes) {
   return Date.now() - millis > maxAgeMinutes * 60 * 1000 ? 'stale' : 'fresh';
 }
 
+function renderMediaIntelligenceSummary(snapshot) {
+  const setText = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+  const safeKpi = value => Number.isInteger(value) && value >= 0 ? String(value) : '—';
+  const kpis = snapshot && typeof snapshot.kpis === 'object' ? snapshot.kpis : {};
+  setText('ccMiMentions24h', safeKpi(kpis.earned_mentions_24h));
+  setText('ccMiUniqueStories', safeKpi(kpis.unique_stories_24h));
+  setText('ccMiCriticalIssues', safeKpi(kpis.active_critical_issues));
+
+  const lastSyncMillis = timestampToMillis(snapshot?.last_run_at || snapshot?.last_full_success_at);
+  setText('ccMiLastSync', lastSyncMillis ? new Date(lastSyncMillis).toLocaleString('id-ID', {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Makassar'
+  }) + ' WITA' : '—');
+
+  const allowedStatuses = new Set(['FRESH', 'DEGRADED', 'STALE', 'OFFLINE']);
+  const status = allowedStatuses.has(snapshot?.system_status) ? snapshot.system_status : 'OFFLINE';
+  const statusElement = document.getElementById('ccMiStatus');
+  if (statusElement) {
+    statusElement.textContent = snapshot ? status : 'MENUNGGU DATA';
+    statusElement.className = `cc-mi-status cc-mi-status--${status.toLowerCase()}`;
+  }
+}
+
+function isValidMediaIntelligenceSnapshot(snapshot) {
+  return Boolean(snapshot && snapshot.schema_version === 1
+    && snapshot.kpis && typeof snapshot.kpis === 'object'
+    && ['FRESH', 'DEGRADED', 'STALE', 'OFFLINE'].includes(snapshot.system_status));
+}
+
 // --- 3. STATUS SYSTEM & BADGE INDICATOR (4 STATE TEGAS) ---
 // LIVE | OFFLINE/CACHE | DATA STALE | DATA TIDAK TERSEDIA
 function setSystemStatus(state, customLabel = null) {
@@ -1095,6 +1127,19 @@ function initFirestoreRealtimeService() {
           }
         },
         (err) => handleFirestoreError('metrics', err, 'disperindag_cc_cache_metrics')
+      );
+
+      // Tahap 13: satu-satunya sumber MI untuk Command Center adalah snapshot publik.
+      db.collection('mi_public').doc('current').onSnapshot(
+        { includeMetadataChanges: true },
+        (doc) => {
+          const data = doc.exists ? doc.data() : null;
+          renderMediaIntelligenceSummary(isValidMediaIntelligenceSnapshot(data) ? data : null);
+        },
+        (err) => {
+          console.warn('Firestore media intelligence public snapshot error:', err?.code || err);
+          renderMediaIntelligenceSummary(null);
+        }
       );
 
       // Snapshot publik berasal dari agregasi immutable ledger oleh admin LPG.

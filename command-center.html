@@ -39,7 +39,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800;900&family=JetBrains+Mono:wght@700;800;900&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <!-- Command Center Modular Stylesheet -->
-  <link rel="stylesheet" href="css/command-center.css?v=20260830_cc_map_professional_v7">
+  <link rel="stylesheet" href="css/command-center.css?v=20260830_mi_stage13_v1">
 </head>
 <body>
 
@@ -171,6 +171,17 @@
           </div>
         </div>
       </div>
+
+      <section class="cc-mi-summary" aria-labelledby="ccMiSummaryTitle">
+        <a class="cc-mi-summary__title" id="ccMiSummaryTitle" href="media-intelligence.html">
+          <span>MEDIA INTELLIGENCE</span><small>Snapshot publik terverifikasi</small>
+        </a>
+        <div class="cc-mi-summary__metric"><small>MENTIONS 24 JAM</small><strong id="ccMiMentions24h">—</strong></div>
+        <div class="cc-mi-summary__metric"><small>UNIQUE STORIES</small><strong id="ccMiUniqueStories">—</strong></div>
+        <div class="cc-mi-summary__metric"><small>CRITICAL ISSUES</small><strong id="ccMiCriticalIssues">—</strong></div>
+        <div class="cc-mi-summary__metric"><small>LAST SYNC</small><strong class="cc-mi-summary__time" id="ccMiLastSync">—</strong></div>
+        <div class="cc-mi-summary__metric"><small>STATUS</small><strong class="cc-mi-status cc-mi-status--offline" id="ccMiStatus">MENUNGGU DATA</strong></div>
+      </section>
 
       <!-- Main 3-Column Balanced Grid -->
       <div class="overview-main-grid">
@@ -534,6 +545,6 @@
   <script src="js/firebase-config.js?v=20260830_cc_integrity_v1"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/lpg-gis-map.js?v=20260830_big_boundary_v5"></script>
-  <script src="js/command-center.js?v=20260830_cc_lpg_map_v6"></script>
+  <script src="js/command-center.js?v=20260830_mi_stage13_v1"></script>
 </body>
 </html>

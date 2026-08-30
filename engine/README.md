@@ -24,6 +24,12 @@ saat ini adalah fase awal yang fail-closed dan mengikuti
   dengan daftar terbatas dan tanpa error internal, catatan review, identitas admin,
   atau PII.
 - Tone/NLP belum diaktifkan sebelum tahap penerimaannya selesai.
+- Tahap 12 Tone/NLP tetap ditunda sampai core stabil minimal dua minggu dan
+  tersedia validasi manual minimal 100 artikel beserta accuracy, macro F1,
+  confusion cases, dan confidence threshold.
+- Command Center Tahap 13 membaca tepat satu dokumen `mi_public/current` dan
+  menampilkan mentions 24 jam, unique stories, critical issues, last sync,
+  serta status dari snapshot yang sama.
 - Halaman produksi tetap menampilkan status offline sampai `mi_public/current`
   diterbitkan oleh tahap snapshot yang teruji.
 
