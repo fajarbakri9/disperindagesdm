@@ -57,12 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Set Informasi Header
   const nameEl = document.getElementById('lpgAgentHeaderName');
   const codeEl = document.getElementById('lpgAgentHeaderCode');
-  if (nameEl) nameEl.textContent = currentAgentSession.agentName || currentAgentSession.name;
+  if (nameEl) {
+    nameEl.textContent = currentAgentSession.agentName || currentAgentSession.name;
+    requestAnimationFrame(() => {
+      const nameWrap = nameEl.parentElement;
+      if (nameWrap && nameEl.scrollWidth > nameWrap.clientWidth) nameEl.classList.add('is-marquee');
+    });
+  }
   if (codeEl) codeEl.textContent = currentAgentId;
   const displayName = currentAgentSession.agentName || currentAgentSession.name || 'Agen LPG';
   const avatar = document.getElementById('lpgAgentAvatar');
   if (avatar) avatar.textContent = displayName.replace(/^PT\.?\s*/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase() || 'AG';
-  const hour = new Date().getHours();
+  const hour = Number(new Intl.DateTimeFormat('id-ID', { hour:'2-digit', hour12:false, timeZone:'Asia/Makassar' }).format(new Date()).replace(/\D/g, ''));
   const welcome = document.getElementById('lpgWelcomeText');
   if (welcome) welcome.textContent = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam';
   const todayLabel = document.getElementById('lpgTodayLabel');
@@ -112,14 +118,18 @@ function updateLpgPersistenceNotice() {
   const notice = document.getElementById('lpgPersistenceNotice');
   if (!notice) return;
   const connected = typeof auth !== 'undefined' && auth && auth.currentUser;
+  const feedSyncLabel = document.getElementById('lpgFeedSyncLabel');
   if (connected && navigator.onLine) {
     notice.style.cssText += 'border-color:#10B981;background:#ECFDF5;color:#065F46;';
     notice.textContent = 'Firestore online/offline aktif. Transaksi dikirim sebagai immutable ledger dan akan tersinkron otomatis.';
+    if (feedSyncLabel) feedSyncLabel.textContent = 'Tersinkron otomatis';
   } else if (connected) {
     notice.style.cssText += 'border-color:#F59E0B;background:#FFFBEB;color:#92400E;';
     notice.textContent = 'Perangkat sedang offline. Transaksi baru berstatus pending dan akan dikirim otomatis saat koneksi kembali.';
+    if (feedSyncLabel) feedSyncLabel.textContent = 'Menunggu koneksi';
   } else {
     notice.textContent = 'Mode penyimpanan lokal. Catatan pada perangkat ini belum merupakan ledger Firestore dan tidak ikut indikator resmi Command Center.';
+    if (feedSyncLabel) feedSyncLabel.textContent = 'Tersimpan lokal';
   }
 }
 
@@ -194,7 +204,9 @@ function refreshAgentDashboardUI() {
   // Aktivitas Terbaru
   const recentFeedEl = document.getElementById('lpgRecentActivityFeed');
   if (recentFeedEl) {
-    const latest5 = agentEvents.slice(0, 5);
+    const latest5 = [...agentEvents]
+      .sort((a, b) => new Date(b.effectiveAt || b.createdAt || 0) - new Date(a.effectiveAt || a.createdAt || 0))
+      .slice(0, 5);
     if (latest5.length === 0) {
       recentFeedEl.innerHTML = `<div style="padding:22px 14px;text-align:center;"><div style="font-size:1.35rem;margin-bottom:5px;">&#128203;</div><strong style="display:block;font-size:.78rem;color:#475569;">Belum ada aktivitas</strong><span style="font-size:.68rem;color:#94A3B8;">Transaksi terbaru akan tampil di sini.</span></div>`;
     } else {

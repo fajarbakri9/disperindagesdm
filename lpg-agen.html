@@ -503,7 +503,18 @@
       .btn-install-lpg::before { content: '↓'; font-size: 1rem; }
       .btn-logout-lpg { font-size: 0 !important; width: 32px !important; }
       .btn-logout-lpg::before { content: '↪'; font-size: 1rem; }
-    }  </style>
+    }      @media screen and (max-width: 430px) and (orientation: portrait) {
+      .btn-install-lpg { display: inline-flex !important; align-items: center; justify-content: center; gap: 5px; text-align: center; }
+      .btn-install-lpg > span { display: inline-flex; align-items: center; justify-content: center; }
+      .lpg-agent-copy { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+      .lpg-agent-name-wrap { overflow: hidden; white-space: nowrap; position: relative; }
+      .lpg-agent-name { display: inline-block; max-width: none !important; white-space: nowrap; }
+      .lpg-agent-name.is-marquee { animation: lpgNameMarquee 8s linear infinite alternate; padding-right: 18px; }
+      .lpg-agent-name-wrap:hover .lpg-agent-name { animation-play-state: paused; }
+      .lpg-agent-code { flex: 0 0 auto !important; width: 48px; min-width: 48px !important; box-sizing: border-box; text-align: center; white-space: nowrap !important; }
+    }
+    @keyframes lpgNameMarquee { from { transform: translateX(0); } to { transform: translateX(calc(-100% + 160px)); } }
+    @media (prefers-reduced-motion: reduce) { .lpg-agent-name.is-marquee { animation: none; } }  </style>
 </head>
 <body>
 
@@ -518,7 +529,7 @@
           <p>Disperindag ESDM Pinrang</p>
         </div>
       </div>
-      <div class="lpg-topbar-actions"><button type="button" class="btn-install-lpg" id="btnInstallLpgApp">Pasang Aplikasi</button><button type="button" class="btn-logout-lpg" onclick="logoutUser()">🚪 Keluar</button></div>
+      <div class="lpg-topbar-actions"><button type="button" class="btn-install-lpg" id="btnInstallLpgApp"><span aria-hidden="true">⇩</span><span>Pasang Aplikasi</span></button><button type="button" class="btn-logout-lpg" onclick="logoutUser()">🚪 Keluar</button></div>
     </header>
 
     <!-- 2. IDENTITAS AGEN AKTIF -->
