@@ -30,6 +30,50 @@ service cloud.firestore {
         ];
     }
 
+    function validMediaReviewAudit(eventId, entityType, entityId) {
+      let audit = getAfter(/databases/$(database)/documents/mi_audit_logs/$(eventId));
+      return eventId is string && eventId.size() >= 16 && eventId.size() <= 100 &&
+        existsAfter(/databases/$(database)/documents/mi_audit_logs/$(eventId)) &&
+        audit.data.event_id == eventId &&
+        audit.data.entity_type == entityType && audit.data.entity_id == entityId &&
+        audit.data.actor_uid == request.auth.uid &&
+        audit.data.actor_role == currentUserProfile().role && audit.data.created_at == request.time;
+    }
+
+    function validMediaReviewMetadata(entityType, entityId) {
+      return request.resource.data.reviewed_by == request.auth.uid &&
+        request.resource.data.reviewed_at == request.time &&
+        validMediaReviewAudit(request.resource.data.review_event_id, entityType, entityId);
+    }
+
+    function validMediaItemAction(itemId) {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let action = getAfter(/databases/$(database)/documents/mi_audit_logs/$(request.resource.data.review_event_id)).data.action;
+      return (action in ['ACCEPT', 'REJECT'] && changed.hasOnly([
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at', 'verification_status'
+        ])) || (action == 'EDIT' && changed.hasOnly([
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at',
+          'title', 'excerpt', 'topic_ids', 'district_ids'
+        ])) || (action == 'MERGE_STORY' && changed.hasOnly([
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at', 'story_cluster_id'
+        ])) || (action == 'ATTACH_ISSUE' && changed.hasOnly([
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at', 'issue_id'
+        ]));
+    }
+
+    function validMediaIssueAction(issueId) {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let action = getAfter(/databases/$(database)/documents/mi_audit_logs/$(request.resource.data.review_event_id)).data.action;
+      return (action in ['ACCEPT', 'REJECT'] && changed.hasOnly([
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at',
+          'verification_status', 'status'
+        ])) || (action == 'EDIT' && changed.hasOnly([
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at', 'title', 'status'
+        ])) || (action == 'SET_SEVERITY' && changed.hasOnly([
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at', 'severity'
+        ]));
+    }
+
     function ownsLpgAgent(agentId) {
       return signedIn() && currentUserProfile().status == 'ACTIVE' &&
         currentUserProfile().agentId != null && currentUserProfile().agentId == agentId;
@@ -97,15 +141,32 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Koleksi internal: read-only untuk admin terautentikasi. Semua write
-    // browser ditolak; crawler memakai Admin SDK dengan IAM/WIF.
+    // Koleksi internal dibaca admin terautentikasi. Write crawler memakai
+    // Admin SDK/WIF; browser hanya boleh melakukan review sempit + audit atomik.
     match /mi_sources/{sourceId} {
       allow read: if isMediaIntelligenceAdmin();
       allow write: if false;
     }
     match /mi_items/{itemId} {
       allow read: if isMediaIntelligenceAdmin();
-      allow write: if false;
+      allow create, delete: if false;
+      allow update: if isMediaIntelligenceAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title', 'excerpt', 'topic_ids', 'district_ids', 'verification_status',
+          'story_cluster_id', 'issue_id', 'reviewed_by', 'reviewed_at',
+          'review_event_id', 'review_notes', 'updated_at'
+        ]) &&
+        request.resource.data.verification_status in [
+          'VERIFIED_DIRECT', 'VERIFIED_FEED', 'MANUAL_VERIFIED', 'REJECTED', 'NEEDS_REVIEW'
+        ] && request.resource.data.title is string && request.resource.data.title.size() > 0 &&
+        request.resource.data.title.size() <= 500 && request.resource.data.excerpt is string &&
+        request.resource.data.excerpt.size() <= 2000 && request.resource.data.topic_ids is list &&
+        request.resource.data.district_ids is list && request.resource.data.updated_at == request.time &&
+        (request.resource.data.story_cluster_id == null ||
+          exists(/databases/$(database)/documents/mi_story_clusters/$(request.resource.data.story_cluster_id))) &&
+        (request.resource.data.issue_id == null ||
+          exists(/databases/$(database)/documents/mi_issues/$(request.resource.data.issue_id))) &&
+        validMediaReviewMetadata('ITEM', itemId) && validMediaItemAction(itemId);
     }
     match /mi_source_state/{sourceId} {
       allow read: if isMediaIntelligenceAdmin();
@@ -121,11 +182,28 @@ service cloud.firestore {
     }
     match /mi_issues/{issueId} {
       allow read: if isMediaIntelligenceAdmin();
-      allow write: if false;
+      allow create, delete: if false;
+      allow update: if isMediaIntelligenceAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title', 'status', 'severity', 'verification_status', 'story_cluster_id',
+          'reviewed_by', 'reviewed_at', 'review_event_id', 'review_notes', 'updated_at'
+        ]) && request.resource.data.severity in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] &&
+        request.resource.data.status in ['OPEN', 'MONITORING', 'RESOLVED', 'DISMISSED'] &&
+        request.resource.data.verification_status in ['UNVERIFIED', 'VERIFIED', 'REJECTED'] &&
+        request.resource.data.title is string && request.resource.data.title.size() > 0 &&
+        request.resource.data.title.size() <= 500 && request.resource.data.updated_at == request.time &&
+        validMediaReviewMetadata('ISSUE', issueId) && validMediaIssueAction(issueId);
     }
     match /mi_review_tasks/{taskId} {
       allow read: if isMediaIntelligenceAdmin();
-      allow write: if false;
+      allow create, delete: if false;
+      allow update: if isMediaIntelligenceAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'disposition', 'reviewed_by', 'reviewed_at', 'review_event_id',
+          'review_notes', 'updated_at'
+        ]) && request.resource.data.status in ['OPEN', 'ACCEPTED', 'REJECTED', 'COMPLETED'] &&
+        request.resource.data.updated_at == request.time &&
+        validMediaReviewMetadata('REVIEW_TASK', taskId);
     }
     match /mi_daily_metrics/{metricId} {
       allow read: if isMediaIntelligenceAdmin();
@@ -133,7 +211,19 @@ service cloud.firestore {
     }
     match /mi_audit_logs/{logId} {
       allow read: if isMediaIntelligenceAdmin();
-      allow write: if false;
+      allow create: if isMediaIntelligenceAdmin() && request.resource.data.keys().hasOnly([
+          'event_id', 'action', 'entity_type', 'entity_id', 'actor_uid', 'actor_role',
+          'before', 'after', 'reason', 'created_at'
+        ]) && request.resource.data.event_id == logId &&
+        request.resource.data.actor_uid == request.auth.uid &&
+        request.resource.data.action in [
+          'ACCEPT', 'REJECT', 'EDIT', 'MERGE_STORY', 'ATTACH_ISSUE', 'SET_SEVERITY'
+        ] && request.resource.data.entity_type in ['ITEM', 'ISSUE', 'REVIEW_TASK'] &&
+        request.resource.data.entity_id is string && request.resource.data.actor_role is string &&
+        request.resource.data.before is map && request.resource.data.after is map &&
+        request.resource.data.reason is string && request.resource.data.reason.size() <= 1000 &&
+        request.resource.data.created_at == request.time;
+      allow update, delete: if false;
     }
 
     // Legacy fallback collections (deprecated)

@@ -1416,10 +1416,13 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>📡 Manajemen Media & Social Intelligence Hub</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Input dan perbarui data pantauan berita mainstream, isu kritis, media sosial, dan suara warga secara faktual dan riil.</p>
+            <h3>📡 Review Media Intelligence</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Validasi hasil collector melalui antrean internal. Input KPI dan feed manual lama telah dinonaktifkan.</p>
           </div>
           <div style="display: flex; gap: 8px;">
+            <a href="media-intelligence-admin.html" class="btn-primary" style="background: #166534; text-decoration: none; font-size: 0.8rem; padding: 7px 14px;">
+              <span>✅</span> Buka Antrean Review
+            </a>
             <a href="media-intelligence.html" target="_blank" class="btn-primary" style="background: #0284C7; text-decoration: none; font-size: 0.8rem; padding: 7px 14px;">
               <span>👁️</span> Buka Layar Radar Live ↗
             </a>
@@ -1427,7 +1430,7 @@
         </div>
 
         <!-- FORM RINGKASAN METRIK & DISPOSISI -->
-        <form id="formMediaSummary" onsubmit="saveMediaIntelligenceSummary(event)" style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+        <form id="formMediaSummary" hidden aria-hidden="true" onsubmit="return false" style="display:none">
           <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
             <span>📊</span> Ringkasan Metrik Intelijen & Status Pengawasan (24 Jam)
           </h4>
@@ -1460,7 +1463,7 @@
         </form>
 
         <!-- KELOLA DAFTAR BERITA MAINSTREAM -->
-        <div style="margin-bottom: 28px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px;">
+        <div hidden aria-hidden="true" style="display:none">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
             <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0;">
               📰 Pantauan Berita Online & Rilis Media Terverifikasi
@@ -1489,7 +1492,7 @@
         </div>
 
         <!-- KELOLA SUARA & KOMENTAR WARGA -->
-        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px;">
+        <div hidden aria-hidden="true" style="display:none">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
             <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0;">
               💬 Suara Warga, Aspirasi & Disposisi Isu Kritis

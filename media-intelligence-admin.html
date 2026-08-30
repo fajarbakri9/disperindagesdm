@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Review Media Intelligence | Disperindag ESDM Pinrang</title>
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;color:#172033;background:#f3f6fa}*{box-sizing:border-box}
+    body{margin:0}.bar{background:#102a43;color:#fff;padding:16px 20px}.bar h1{font-size:1.15rem;margin:0}.bar p{margin:4px 0 0;color:#cbd5e1;font-size:.88rem}
+    main{max-width:1180px;margin:auto;padding:20px}.tools,.card{background:#fff;border:1px solid #dbe3ec;border-radius:12px;box-shadow:0 2px 8px #102a4312}
+    .tools{padding:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.tools span{margin-right:auto}.btn{border:0;border-radius:8px;padding:10px 13px;font-weight:700;cursor:pointer;background:#0b6bcb;color:#fff}.btn.secondary{background:#e8eef5;color:#26394d}.btn.danger{background:#b42318}.btn:disabled{opacity:.55;cursor:not-allowed}
+    .notice{margin:16px 0;padding:12px;border-radius:8px;background:#e8f2ff;color:#164e86}.notice.error{background:#fff0ef;color:#912018}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{padding:16px}.card h2{font-size:1rem;margin:0 0 12px}.entry{border-top:1px solid #edf1f5;padding:14px 0}.entry:first-of-type{border-top:0}.entry h3{font-size:.96rem;margin:0 0 6px}.meta{font-size:.8rem;color:#60758a;margin-bottom:10px}.actions{display:flex;gap:7px;flex-wrap:wrap}.actions .btn{font-size:.78rem;padding:7px 9px}.badge{display:inline-block;padding:3px 7px;border-radius:99px;background:#edf3f8;font-size:.72rem;font-weight:700}.empty{color:#60758a;font-size:.9rem}@media(max-width:800px){.grid{grid-template-columns:1fr}main{padding:12px}}
+  </style>
+</head>
+<body>
+  <header class="bar"><h1>Review Media Intelligence</h1><p>Validasi manusia • seluruh aksi dicatat pada audit log</p></header>
+  <main>
+    <section class="tools"><span id="identity">Memeriksa sesi Firebase…</span><button id="reload" class="btn secondary" disabled>Muat Ulang</button><a class="btn secondary" href="/admin">Kembali ke CMS</a></section>
+    <div id="notice" class="notice">Menunggu autentikasi.</div>
+    <section class="grid">
+      <article class="card"><h2>Item terbaru / perlu review</h2><div id="items" class="empty">Belum dimuat.</div></article>
+      <article class="card"><h2>Issue untuk validasi</h2><div id="issues" class="empty">Belum dimuat.</div></article>
+    </section>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260830_mi_admin_v1"></script>
+  <script src="js/media-intelligence-admin.js?v=20260830_mi_admin_v1"></script>
+</body>
+</html>

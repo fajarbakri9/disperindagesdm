@@ -68,6 +68,13 @@ def test_three_runs_are_idempotent_and_auditable():
     linked = writer.db.collection("mi_items").document(url_hash).get().to_dict()
     assert linked["story_cluster_id"]
     assert linked["issue_id"]
+    writer.db.collection("mi_items").document(url_hash).set(
+        {"verification_status": "MANUAL_VERIFIED"}, merge=True)
+    review_run = f"review-snapshot-{namespace}"
+    writer.start_run(review_run, trigger="test", sources_total=1, engine_version="test")
+    writer.finish_run(review_run, status="SUCCESS", counters={}, runtime_seconds=0.1)
+    snapshot = writer.generate_public_snapshot(sync_run_id=review_run)
+    assert any(entry["title"] == item["title"] for entry in snapshot["latest_items"])
 
 
 def test_four_portals_create_four_mentions_but_one_story():
