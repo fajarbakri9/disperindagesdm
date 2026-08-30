@@ -1,8 +1,10 @@
 from pathlib import Path
+import json
 import re
 
 
 HTML = (Path(__file__).resolve().parents[2] / "media-intelligence.html").read_text(encoding="utf-8")
+FIREBASE = json.loads((Path(__file__).resolve().parents[2] / "firebase.json").read_text(encoding="utf-8"))
 
 
 def test_frontend_reads_only_public_snapshot():
@@ -33,3 +35,10 @@ def test_source_links_are_sanitized_and_open_safely():
 def test_cached_snapshot_never_claims_live_connection():
     assert "if (isDataFromCache || !navigator.onLine)" in HTML
     assert "handleSnapshotDisconnected();" in HTML
+
+
+def test_clean_url_has_explicit_no_cache_header():
+    entries = {entry["source"]: entry.get("headers", [])
+               for entry in FIREBASE["hosting"]["headers"]}
+    for route in ("/media-intelligence", "/media-intelligence.html"):
+        assert {"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"} in entries[route]
