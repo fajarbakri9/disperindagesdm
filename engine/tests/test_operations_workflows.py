@@ -4,8 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).parents[2]
 
 
-def test_operations_workflows_use_wif_without_private_key_json():
-    for name in ("cleanup.yml", "backup.yml"):
+def test_all_cloud_workflows_use_wif_without_private_key_json():
+    for name in ("cleanup.yml", "backup.yml", "crawl.yml", "sync-news-og.yml"):
         text = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
         assert "google-github-actions/auth@v3" in text
         assert "workload_identity_provider" in text
@@ -14,6 +14,13 @@ def test_operations_workflows_use_wif_without_private_key_json():
         assert "MI_WIF_ENABLED == 'true'" in text
         assert "credentials_json" not in text
         assert "SERVICE_ACCOUNT_JSON" not in text
+
+
+def test_crawl_schedule_is_six_times_daily_in_wita():
+    text = (ROOT / ".github" / "workflows" / "crawl.yml").read_text(encoding="utf-8")
+    assert 'cron: "17 2,6,10,14,18,22 * * *"' in text
+    assert "python engine/collector/main.py --trigger github_actions" in text
+    assert "cancel-in-progress: false" in text
 
 
 def test_backup_is_private_short_retention_artifact():

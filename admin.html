@@ -1411,118 +1411,24 @@
       </div>
     </div>
 
-    <!-- 9. TAB: KELOLA MEDIA & SOCIAL INTELLIGENCE HUB -->
+    <!-- 9. TAB: MEDIA INTELLIGENCE -->
     <div class="admin-panel admin-tab-content" id="tabMediaIntelligence">
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>📡 Review Media Intelligence</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Validasi hasil collector melalui antrean internal. Input KPI dan feed manual lama telah dinonaktifkan.</p>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <a href="media-intelligence-admin.html" class="btn-primary" style="background: #166534; text-decoration: none; font-size: 0.8rem; padding: 7px 14px;">
-              <span>✅</span> Buka Antrean Review
-            </a>
-            <a href="media-intelligence.html" target="_blank" class="btn-primary" style="background: #0284C7; text-decoration: none; font-size: 0.8rem; padding: 7px 14px;">
-              <span>👁️</span> Buka Layar Radar Live ↗
-            </a>
+            <h3>Media Intelligence</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">KPI dan feed publik hanya berasal dari snapshot Firestore <code>mi_public/current</code>.</p>
           </div>
         </div>
-
-        <!-- FORM RINGKASAN METRIK & DISPOSISI -->
-        <form id="formMediaSummary" hidden aria-hidden="true" onsubmit="return false" style="display:none">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
-            <span>📊</span> Ringkasan Metrik Intelijen & Status Pengawasan (24 Jam)
-          </h4>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px;">
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.78rem;">Total Sebutan (Mentions):</label>
-              <input type="number" id="mi_total_mentions" class="form-input" required placeholder="Contoh: 1482">
-            </div>
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.78rem;">Sentimen Positif (%):</label>
-              <input type="number" id="mi_sentiment_pos" class="form-input" min="0" max="100" required placeholder="Contoh: 74">
-            </div>
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.78rem;">Total Jangkauan (Reach):</label>
-              <input type="text" id="mi_total_reach" class="form-input" required placeholder="Contoh: 185.4K">
-            </div>
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.78rem;">Total Interaksi (Engagement):</label>
-              <input type="text" id="mi_total_engagement" class="form-input" required placeholder="Contoh: 24.8K">
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <span style="font-size: 0.75rem; color: #64748B;">* Data ini mengontrol angka pada 5 kartu indikator di bagian atas layar intelijen.</span>
-            <button type="submit" class="btn-primary" style="font-size: 0.82rem; padding: 8px 20px;">
-              <span>💾</span> Simpan Ringkasan Metrik
-            </button>
-          </div>
-        </form>
-
-        <!-- KELOLA DAFTAR BERITA MAINSTREAM -->
-        <div hidden aria-hidden="true" style="display:none">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0;">
-              📰 Pantauan Berita Online & Rilis Media Terverifikasi
-            </h4>
-            <button onclick="openAddMediaNewsModal()" class="btn-primary" style="font-size: 0.8rem; padding: 7px 14px;">
-              <span>➕</span> Tambah Berita Baru
-            </button>
-          </div>
-
-          <div style="overflow-x: auto;">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Media & Kategori</th>
-                  <th>Judul Artikel Berita</th>
-                  <th>Tautan Berita Asli</th>
-                  <th>Sentimen</th>
-                  <th style="text-align: center;">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="miNewsTableBody">
-                <!-- Injected via JavaScript -->
-              </tbody>
-            </table>
-          </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a class="btn-primary" href="media-intelligence-admin.html" style="text-decoration: none;">Buka Antrean Review</a>
+          <a class="btn-primary" href="media-intelligence.html" style="background: #0284C7; text-decoration: none;">Lihat Dashboard Publik</a>
         </div>
-
-        <!-- KELOLA SUARA & KOMENTAR WARGA -->
-        <div hidden aria-hidden="true" style="display:none">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2C59; margin: 0;">
-              💬 Suara Warga, Aspirasi & Disposisi Isu Kritis
-            </h4>
-            <button onclick="openAddCitizenCommentModal()" class="btn-primary" style="font-size: 0.8rem; padding: 7px 14px; background: #059669;">
-              <span>➕</span> Tambah Komentar Warga
-            </button>
-          </div>
-
-          <div style="overflow-x: auto;">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Warga & Platform</th>
-                  <th>Isi Aspirasi / Keluhan</th>
-                  <th>Status Sentimen</th>
-                  <th>Disposisi & Respon Dinas</th>
-                  <th style="text-align: center;">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="miCommentsTableBody">
-                <!-- Injected via JavaScript -->
-              </tbody>
-            </table>
-          </div>
+        <div style="margin-top: 1rem; padding: 12px; border-radius: 8px; background: #EFF6FF; color: #1E3A8A;">
+          Input artikel, komentar, disposisi, dan KPI contoh pada CMS lama telah dinonaktifkan. Data publik diterbitkan hanya setelah lolos pipeline dan review yang berlaku.
         </div>
-
       </div>
     </div>
-
     <!-- 10. TAB: KONFIGURASI & AUDIT SISTEM TERPADU -->
     <div class="admin-panel admin-tab-content" id="tabSettings">
       

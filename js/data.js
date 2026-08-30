@@ -1863,209 +1863,7 @@ const DEFAULT_COMMAND_CENTER_CONFIG = {
 // 14. DATA STATUS PENGAWASAN 12 KECAMATAN SE-KABUPATEN PINRANG
 const DEFAULT_DISTRICTS_STATUS = [];
 
-// 17. DATASET MEDIA & SOCIAL INTELLIGENCE HUB (REAL-TIME MONITORING)
-const DEFAULT_MEDIA_INTELLIGENCE = {
-  summary: {
-    total_mentions: 1482,
-    positive_percentage: 78,
-    neutral_percentage: 16,
-    negative_percentage: 6,
-    total_reach: "185.4K",
-    total_engagement: "24.8K",
-    media_articles: 142,
-    social_posts: 486,
-    citizen_comments: 854,
-    hot_issues_count: 5,
-    last_crawler_sync: "27 Agustus 2026, 01:25 WITA",
-    crawling_status: "ACTIVE",
-    ingestion_nodes: 8
-  },
-  trending_topics: [
-    {
-      id: "tt_01",
-      topic: "Stabilitas HET Gas LPG 3 Kg & Pengawasan Pangkalan",
-      category: "ESDM & Energi",
-      volume: 512,
-      sentiment: { positive: 74, neutral: 20, negative: 6 },
-      trend: "up",
-      status: "Stabil & Terkendali",
-      badge_color: "emerald"
-    },
-    {
-      id: "tt_02",
-      topic: "Operasi Pasar Murah Bapokting Pengendalian Inflasi",
-      category: "Perdagangan",
-      volume: 428,
-      sentiment: { positive: 92, neutral: 6, negative: 2 },
-      trend: "up",
-      status: "Sangat Positif (Apresiasi Publik)",
-      badge_color: "emerald"
-    },
-    {
-      id: "tt_03",
-      topic: "Uji Tera Pompa SPBU & Timbangan Pasar Sentral",
-      category: "Kemetrologian",
-      volume: 264,
-      sentiment: { positive: 88, neutral: 10, negative: 2 },
-      trend: "stable",
-      status: "Kepatuhan Tinggi",
-      badge_color: "blue"
-    },
-    {
-      id: "tt_04",
-      topic: "Promosi Kain Sutra & Kerajinan IKM Pinrang",
-      category: "Perindustrian & IKM",
-      volume: 186,
-      sentiment: { positive: 95, neutral: 5, negative: 0 },
-      trend: "up",
-      status: "Pemberdayaan Berjalan Baik",
-      badge_color: "emerald"
-    },
-    {
-      id: "tt_05",
-      topic: "Penataan Parkir & Kebersihan Pasar Sentral Pinrang",
-      category: "Sarana Distribusi Pasar",
-      volume: 92,
-      sentiment: { positive: 45, neutral: 35, negative: 20 },
-      trend: "down",
-      status: "Dalam Proses Relokasi Trantib",
-      badge_color: "amber"
-    }
-  ],
-  verified_news: [
-    {
-      id: "mn_01",
-      media_name: "Antara News Sulsel",
-      media_category: "Nasional",
-      title: "Disperindag ESDM Pinrang Jamin Stok LPG 3 Kg Aman Sesuai HET Rp 20.000",
-      url: "https://makassar.antaranews.com/berita/lpg-pinrang-aman",
-      published_at: "26 Agustus 2026, 17:45 WITA",
-      sentiment: "positive",
-      sentiment_label: "🟢 Sangat Positif",
-      summary: "Dinas Perindag ESDM Pinrang intensifkan sidak gabungan pangkalan dan agen di 12 kecamatan untuk memastikan tidak ada spekulasi harga elpiji bersubsidi."
-    },
-    {
-      id: "mn_02",
-      media_name: "Tribun Timur Pinrang",
-      media_category: "Regional",
-      title: "Pasar Murah TPID Pinrang Diserbu Ribuan Warga, Inflasi Daerah Terjaga 2,1 Persen",
-      url: "https://makassar.tribunnews.com/pinrang/pasar-murah-tpid",
-      published_at: "26 Agustus 2026, 14:20 WITA",
-      sentiment: "positive",
-      sentiment_label: "🟢 Sangat Positif",
-      summary: "Penyaluran beras medium SPHP dan minyak goreng bersubsidi di halaman kantor dinas berlangsung tertib dan membantu daya beli masyarakat."
-    },
-    {
-      id: "mn_03",
-      media_name: "Harian Fajar Online",
-      media_category: "Regional",
-      title: "Ukur Ulang Nozzle SPBU Jalur Trans Sulawesi, Tim UML Pinrang Tempel Segel Sah",
-      url: "https://fajar.co.id/metrologi-spbu-pinrang",
-      published_at: "25 Agustus 2026, 11:30 WITA",
-      sentiment: "positive",
-      sentiment_label: "🟢 Sangat Positif",
-      summary: "Pengujian bejana ukur standar 20 liter menunjukkan deviasi nozzle SPBU se-Kabupaten Pinrang di bawah batas toleransi resmi BKD (0,5%)."
-    }
-  ],
-  social_posts: [
-    {
-      id: "sp_01",
-      platform: "instagram",
-      platform_icon: "📸",
-      account_name: "Disperindag ESDM Pinrang",
-      account_handle: "@perindagempinrang",
-      url: "https://www.instagram.com/perindagempinrang/",
-      caption: "Tim Pengawas ESDM & Perdagangan melakukan sidak berkala ketersediaan tabung Gas LPG 3 Kg bersubsidi di pangkalan resmi Kec. Watang Sawitto dan Mattiro Bulu. Pastikan membeli di pangkalan resmi dengan harga HET Rp 20.000/tabung! ⛽🔥 #DisperindagPinrang #GasElpiji",
-      post_time: "Kemarin, 15:30 WITA",
-      likes: "1.420",
-      comments: 68,
-      shares: 112,
-      is_critical: false,
-      sentiment: "positive",
-      media_img: "assets/news/sidak_lpg3kg_pinrang_hd.jpg",
-      engagement_rate: "4.8%"
-    },
-    {
-      id: "sp_02",
-      platform: "facebook",
-      platform_icon: "👥",
-      account_name: "Suara Warga Pinrang (Grup Publik)",
-      account_handle: "Komunitas 85K Anggota",
-      url: "https://web.facebook.com/groups/suarawargapinrang",
-      caption: "Lapor pak kadis, pedagang kaki lima di luar pagar timur Pasar Sentral mulai bikin macet tiap pagi jam 07.00. Mohon UPT Pasar dan dinas terkait menertibkan agar pembeli nyaman masuk ke dalam gedung pasar.",
-      post_time: "Kemarin, 19:15 WITA",
-      likes: "420",
-      comments: 89,
-      shares: 45,
-      is_critical: true,
-      sentiment: "negative",
-      media_img: "assets/banner/pasar_sentral_pinrang_clean_hd.jpg",
-      engagement_rate: "6.2%"
-    },
-    {
-      id: "sp_03",
-      platform: "tiktok",
-      platform_icon: "🎵",
-      account_name: "Warga Pinrang Official",
-      account_handle: "@wargapinrang",
-      url: "https://www.tiktok.com/@explorepinrang",
-      caption: "Serbuan emak-emak di Pasar Murah Disperindag Pinrang! Minyakita 14rb dan Beras 5kg cuma 55rb langsung ludes dalam 2 jam. Keren pemda sering-sering buat kayak gini ya pak bupati! 👍🍚🔥",
-      post_time: "2 hari lalu",
-      likes: "4.850",
-      comments: 230,
-      shares: 640,
-      views: "68.5K",
-      is_critical: false,
-      sentiment: "positive",
-      media_img: "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
-      engagement_rate: "8.2%"
-    }
-  ],
-  citizen_comments: [
-    {
-      id: "cc_01",
-      author_name: "Hasbullah (@hasbul_batulappa)",
-      source_platform: "Instagram",
-      source_icon: "📸",
-      direct_url: "https://www.instagram.com/perindagempinrang/",
-      avatar_char: "HB",
-      comment_text: "Tolong sidak pengecer di Batulappa pak, kami beli sampai 25 ribu per tabung 3kg karena pangkalan jauh dari dusun. Mohon ditambah pangkalan resmi di desa kami biar harga sesuai HET Rp 20.000!",
-      timestamp: "27 Agustus 2026, 01:10 WITA",
-      sentiment: "negative",
-      sentiment_label: "🔴 Keluhan / Evaluasi Mendesak",
-      disposition: "⚠️ DISPOSISI: Bidang ESDM (Jadwal Pengawasan Pangkalan Batulappa)",
-      official_response: "Laporan diterima Bapak Hasbullah. Tim Pengawas ESDM telah menjadwalkan verifikasi pangkalan dan kuota distribusi wilayah Batulappa pekan ini."
-    },
-    {
-      id: "cc_02",
-      author_name: "Iwan Darmawan (Warga Watang Sawitto)",
-      source_platform: "Facebook",
-      source_icon: "👥",
-      direct_url: "https://web.facebook.com/groups/suarawargapinrang",
-      avatar_char: "ID",
-      comment_text: "Trotoar timur Pasar Sentral macet parah tiap pagi karena lapak jualan di luar pagar. Pembeli yang mau parkir jadi susah. Tolong ditertibkan bersama Satpol PP pak.",
-      timestamp: "26 Agustus 2026, 21:30 WITA",
-      sentiment: "negative",
-      sentiment_label: "🔴 Masukan Ketertiban Pasar",
-      disposition: "⚠️ DISPOSISI: UPT Pengelola Pasar Sentral & Koordinasi Trantib",
-      official_response: "Terima kasih informasinya. UPT Pasar Sentral sedang melakukan penataan relokasi pedagang trotoar ke dalam blok los basah yang masih kosong."
-    },
-    {
-      id: "cc_03",
-      author_name: "Andi Sukmawati, S.Pd.",
-      source_platform: "Facebook",
-      source_icon: "👥",
-      direct_url: "https://web.facebook.com/groups/suarawargapinrang",
-      avatar_char: "AS",
-      comment_text: "Alhamdulillah kemarin dapat beras SPHP dan minyak goreng murah di halaman kantor dinas. Sangat meringankan beban dapur kami para ibu rumah tangga. Terima kasih jajaran Disperindag Pinrang!",
-      timestamp: "26 Agustus 2026, 18:15 WITA",
-      sentiment: "positive",
-      sentiment_label: "🟢 Apresiasi Publik",
-      disposition: null,
-      official_response: "Terima kasih Ibu Andi Sukmawati. Program pasar murah TPID akan terus berlanjut ke kecamatan lainnya secara bergilir demi menjaga daya beli warga."
-    }
-  ]
-};
+// Dataset Media Intelligence lama dihapus. Sumber tunggal: Firestore mi_public/current.
 
 function initDataStoreMigration() {
   const currentVer = localStorage.getItem('disperindag_data_version');
@@ -2109,7 +1907,8 @@ function initDataStoreMigration() {
     
     localStorage.setItem('disperindag_command_center', JSON.stringify(DEFAULT_COMMAND_CENTER_CONFIG));
     localStorage.setItem('disperindag_districts', JSON.stringify(DEFAULT_DISTRICTS_STATUS));
-    localStorage.setItem('disperindag_media_intelligence', JSON.stringify(DEFAULT_MEDIA_INTELLIGENCE));
+    // Hapus cache legacy agar tidak pernah dipakai kembali sebagai sumber intelijen.
+    localStorage.removeItem('disperindag_media_intelligence');
     localStorage.setItem('disperindag_complaint_recap_2025', JSON.stringify(DEFAULT_COMPLAINT_RECAP_2025));
     localStorage.setItem('disperindag_data_version', targetVer);
   } else {
@@ -2150,7 +1949,6 @@ window.DEFAULT_BANNERS = DEFAULT_BANNERS;
 window.DEFAULT_REPORTS = DEFAULT_REPORTS;
 window.DEFAULT_COMMAND_CENTER_CONFIG = DEFAULT_COMMAND_CENTER_CONFIG;
 window.DEFAULT_DISTRICTS_STATUS = DEFAULT_DISTRICTS_STATUS;
-window.DEFAULT_MEDIA_INTELLIGENCE = DEFAULT_MEDIA_INTELLIGENCE;
 window.DEFAULT_COMPLAINT_RECAP_2025 = DEFAULT_COMPLAINT_RECAP_2025;
 
 // ------------------------------------------------------------------------------

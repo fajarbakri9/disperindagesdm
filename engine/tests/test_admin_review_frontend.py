@@ -27,7 +27,8 @@ def test_public_dashboard_does_not_load_internal_review_script():
     assert "media-intelligence-admin.js" not in public
 
 
-def test_legacy_admin_manual_media_forms_are_disabled():
+def test_legacy_admin_manual_media_forms_are_removed():
     admin = (ROOT / "admin.html").read_text(encoding="utf-8")
-    assert 'id="formMediaSummary" hidden aria-hidden="true"' in admin
+    assert 'id="formMediaSummary"' not in admin
+    assert "DEFAULT_MEDIA_INTELLIGENCE" not in admin
     assert "media-intelligence-admin.html" in admin

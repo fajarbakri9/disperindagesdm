@@ -1,17 +1,15 @@
 # Otomatisasi Berita dan Open Graph Tanpa PC Aktif
 
-Workflow `.github/workflows/sync-news-og.yml` berjalan setiap 10 menit dan juga dapat dijalankan manual dari GitHub. Workflow mengambil berita `published` dari Firestore, mengekstrak featured image Base64 menjadi aset Firebase Hosting, membangun HTML statis/OG/JSON-LD/sitemap, lalu melakukan deploy Hosting.
+Workflow `.github/workflows/sync-news-og.yml` berjalan setiap 10 menit dan juga dapat dijalankan manual dari GitHub. Workflow mengambil berita `published` dari Firestore, membangun HTML statis/OG/JSON-LD/sitemap, lalu melakukan deploy Hosting.
 
 ## Konfigurasi satu kali
 
-1. Buat service account khusus deployment di Google Cloud project `disperindagesdm-pinrang`.
-2. Berikan peran minimum `Firebase Hosting Admin` dan `Service Usage Consumer`.
-3. Buat JSON key untuk service account tersebut.
-4. Di repository GitHub buka **Settings → Secrets and variables → Actions**.
-5. Buat repository secret bernama `FIREBASE_SERVICE_ACCOUNT_JSON` dan tempel seluruh isi JSON key.
-6. Buka tab **Actions → Sinkronisasi Berita dan Open Graph → Run workflow** untuk uji pertama.
+1. Siapkan Workload Identity Federation (WIF) untuk repository GitHub ini dan service account deployment dengan peran minimum `Firebase Hosting Admin` serta `Service Usage Consumer`.
+2. Di **Settings → Secrets and variables → Actions → Variables**, isi `GCP_PROJECT_ID`, `GCP_WIF_PROVIDER`, dan `GCP_MI_SERVICE_ACCOUNT`.
+3. Setelah uji WIF berhasil, set `MI_WIF_ENABLED` menjadi `true`.
+4. Buka **Actions → Sinkronisasi Berita dan Open Graph → Run workflow** untuk uji pertama.
 
-Jangan menyimpan JSON key di repository, Firestore, CMS, atau source JavaScript. Setelah konfigurasi berhasil, hapus salinan key dari perangkat yang digunakan untuk setup.
+Workflow tidak menerima JSON service-account key. Jangan membuat atau menyimpan private key di repository, GitHub secret, Firestore, CMS, source JavaScript, maupun perangkat operator.
 
 ## Alur operasional
 
