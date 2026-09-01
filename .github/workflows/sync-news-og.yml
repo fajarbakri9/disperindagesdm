@@ -24,6 +24,15 @@ jobs:
       - name: Checkout portal
         uses: actions/checkout@v4
 
+      - name: Verifikasi checkout bersih dan secret scan
+        shell: bash
+        run: |
+          test -z "$(git status --porcelain)"
+          if git grep -n -I -E "BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|private_key|client_secret|service_account" HEAD -- ":!*.md" ":!*.html" ":!assets/**"; then
+            echo "Credential pattern detected in repository history" >&2
+            exit 1
+          fi
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -42,19 +51,34 @@ jobs:
           service_account: ${{ vars.GCP_MI_SERVICE_ACCOUNT }}
 
       - name: Build artikel, gambar OG, dan sitemap
-        run: python build_static_pages.py --cloud
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        run: python scripts/build_production.py
 
       - name: Validasi hasil build
         shell: bash
         run: |
-          python -m py_compile build_static_pages.py
+          python -m py_compile build_static_pages.py scripts/build_production.py
           node --check js/admin.js
           node --check js/data.js
-          test -s sitemap.xml
-          grep -q 'application/ld+json' berita/*/index.html
+          test -s dist/sitemap.xml
+          grep -R -q 'application/ld+json' dist/berita/*/index.html
+          test -s dist/direktori-lpg.html
+          test -s dist/penyalur-bbm.html
+          test -s dist/peta-gis.html
+          test -s dist/js/lpg-engine.js
+          test -s dist/js/bbm-engine.js
+          test -s dist/js/market-engine.js
+          grep -q '2026-08-31-lpg-agent-coordinates-v2' dist/js/lpg-engine.js
+          grep -q '2026-08-31-bbm-single-source-v1' dist/js/bbm-engine.js
+          grep -q '2026-08-31-market-single-source-v3' dist/js/market-engine.js
 
       - name: Install Firebase CLI
         run: npm install --global firebase-tools@15.18.0
 
       - name: Deploy Firebase Hosting
+        # Jadwal otomatis hanya membangun dan memvalidasi. Publikasi produksi
+        # harus dipicu manual setelah master portal terbaru ada di repository,
+        # agar checkout lama tidak menimpa hosting dengan fallback lama.
+        if: github.event_name == 'workflow_dispatch'
         run: firebase deploy --only hosting --project "${{ vars.GCP_PROJECT_ID }}" --non-interactive
