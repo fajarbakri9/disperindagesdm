@@ -16,7 +16,10 @@ permissions:
 
 jobs:
   build-and-deploy:
-    if: vars.MI_WIF_ENABLED == 'true'
+    # Pengaman sementara: checkout GitHub belum memuat seluruh master portal.
+    # Jangan menjalankan build maupun publikasi dari jadwal otomatis. Aktifkan
+    # kembali hanya setelah baseline produksi lengkap sudah dikomit.
+    if: github.event_name == 'workflow_dispatch' && vars.MI_WIF_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
