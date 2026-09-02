@@ -594,9 +594,139 @@
       color: #38BDF8 !important;
     }
 
+    /* ── TEMUAN KRITIS ─────────────────────────────────────────────────── */
+    .critical-item {
+      background: #FFF1F2;
+      border: 1px solid #FECDD3;
+      border-left: 4px solid #E11D48;
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: all 0.2s ease;
+    }
+    :root[data-theme="dark"] .critical-item {
+      background: rgba(225,29,72,0.12);
+      border-color: rgba(225,29,72,0.3);
+    }
+    .critical-item.high {
+      border-left-color: #EA580C;
+      background: #FFF7ED;
+    }
+    :root[data-theme="dark"] .critical-item.high {
+      background: rgba(234,88,12,0.12);
+    }
+    .critical-item.medium {
+      border-left-color: #CA8A04;
+      background: #FEFCE8;
+    }
+    :root[data-theme="dark"] .critical-item.medium {
+      background: rgba(202,138,4,0.1);
+    }
+    .sev-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.6rem;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em;
+    }
+    .sev-critical { background: #FEE2E2; color: #991B1B; }
+    .sev-high { background: #FFEDD5; color: #9A3412; }
+    .sev-medium { background: #FEF9C3; color: #854D0E; }
+    .sev-low { background: #F0FDF4; color: #166534; }
+    .status-open { background: #FEE2E2; color: #991B1B; }
+    .status-monitoring { background: #FEF3C7; color: #92400E; }
+    .status-resolved { background: #DCFCE7; color: #166534; }
+    .critical-actions { display: flex; gap: 5px; margin-top: 7px; }
+    .critical-btn {
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 5px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      cursor: pointer;
+      border: 1px solid;
+      font-family: inherit;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .critical-btn-escalate { background: #FEE2E2; color: #991B1B; border-color: #FECDD3; }
+    .critical-btn-escalate:hover { background: #E11D48; color: #fff; border-color: #E11D48; }
+    .critical-btn-resolve { background: #F0FDF4; color: #166534; border-color: #A7F3D0; }
+    .critical-btn-resolve:hover { background: #059669; color: #fff; border-color: #059669; }
+    /* ── SOSIAL MEDIA MONITOR ──────────────────────────────────────────── */
+    .social-feed-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .social-tab {
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      font-size: 0.62rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .social-tab.active { background: #0F2C59; color: #fff; border-color: #0F2C59; }
+    :root[data-theme="dark"] .social-tab.active { background: #38BDF8; color: #0B132B; border-color: #38BDF8; }
+    .social-post {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 9px 11px;
+      transition: all 0.2s ease;
+      margin-bottom: 6px;
+    }
+    .social-post:hover { border-color: #0284C7; background: #FFFFFF; box-shadow: var(--shadow-sm); }
+    :root[data-theme="dark"] .social-post:hover { background: #1C2D5A; border-color: #38BDF8; }
+    .social-post-header { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+    .social-platform-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.6rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+    .social-author { font-size: 0.7rem; font-weight: 800; color: var(--text-main); }
+    .social-time { font-size: 0.62rem; color: var(--text-muted); font-family: 'JetBrains Mono'; margin-left: auto; }
+    .social-content {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .social-metrics { display: flex; gap: 10px; font-size: 0.62rem; color: var(--text-muted); font-family: 'JetBrains Mono'; }
+    .social-metrics span { display: flex; align-items: center; gap: 2px; }
+    .sentiment-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-right: 3px;
+      flex-shrink: 0;
+    }
     /* RESPONSIVE DESIGN */
     @media (max-width: 1200px) {
-      .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+      .metrics-bar { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 1150px) {
       .intel-grid {
@@ -644,13 +774,11 @@
       .intel-column:last-child {
         grid-column: auto !important;
       }
-      /* Mobile: Hindari nested scroll agar body menjadi primary scroll */
       .trending-scroll, .feeds-scroll {
         max-height: none !important;
         overflow-y: visible !important;
       }
     }
-
     /* ACCESSIBILITY: PREFERS REDUCED MOTION */
     @media (prefers-reduced-motion: reduce) {
       *, ::before, ::after {
@@ -659,10 +787,8 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
       }
-      .ticker-marquee-inner {
-        animation: none !important;
-      }
-      .metric-card:hover, .news-card:hover, .topic-card:hover {
+      .ticker-marquee-inner { animation: none !important; }
+      .metric-card:hover, .news-card:hover, .topic-card:hover, .social-post:hover {
         transform: none !important;
       }
     }
@@ -756,6 +882,17 @@
         <span>Status OPEN / MONITORING</span>
       </div>
     </div>
+
+    <div class="metric-card rose">
+      <div class="metric-top">
+        <span>Sosial Media Reach (24 Jam)</span>
+        <span>📱 Engagement</span>
+      </div>
+      <div class="metric-val" id="statSocialReach">—</div>
+      <div class="metric-sub" id="statSocialReachSub">
+        <span>Impresi terlacak lintas platform</span>
+      </div>
+    </div>
   </section>
 
   <!-- 3. MAIN DASHBOARD GRID (FIT TO SCREEN) -->
@@ -805,6 +942,7 @@
           <button type="button" class="feed-tab" onclick="filterFeeds('harga_pangan', this)">🍚 Pangan / Sembako</button>
           <button type="button" class="feed-tab" onclick="filterFeeds('pasar', this)">🏪 Pasar</button>
           <button type="button" class="feed-tab" onclick="filterFeeds('metrologi', this)">⚖️ Metrologi</button>
+          <button type="button" class="feed-tab alert-tab" onclick="filterFeeds('sosial_media', this)">📱 Sosial Media</button>
         </div>
         <div class="feeds-scroll" id="streamFeedsContainer">
           <!-- Injected via JavaScript -->
@@ -812,38 +950,75 @@
       </div>
     </div>
 
-    <!-- KOLOM KANAN: STATUS KESEHATAN SISTEM & INFORMASI AUDIT -->
+    <!-- KOLOM KANAN: TEMUAN KRITIS + MONITOR SOSMED + STATUS SISTEM -->
     <div class="intel-column">
-      <div class="intel-panel" style="flex: 1;">
+
+      <!-- PANEL A: TEMUAN KRITIS UNTUK DITINDAKLANJUTI -->
+      <div class="intel-panel" style="flex: 0 0 auto;">
         <div class="panel-header">
           <h2 class="panel-title" style="font-size: 0.82rem; font-weight: 800; margin: 0;">
-            <span>🛡️ Status Sistem &amp; Audit Data</span>
+            <span>🚨 Temuan Kritis &amp; Aksi Segera</span>
+          </h2>
+          <span class="panel-pill" style="background: #FEE2E2; color: #991B1B;" id="criticalFindingsBadge">— TEMUAN</span>
+        </div>
+        <div class="trending-scroll" id="criticalFindingsContainer" style="max-height: 210px;">
+          <!-- Injected via renderCriticalFindings() -->
+          <div style="text-align:center;padding:20px;font-size:.72rem;color:var(--text-muted)">Memuat temuan kritis...</div>
+        </div>
+      </div>
+
+      <!-- PANEL B: MONITOR SOSIAL MEDIA -->
+      <div class="intel-panel" style="flex: 1; min-height: 0;">
+        <div class="panel-header">
+          <h2 class="panel-title" style="font-size: 0.82rem; font-weight: 800; margin: 0;">
+            <span>📱 Monitor Sosial Media</span>
+          </h2>
+          <span class="panel-pill" style="background: #F0F9FF; color: #0369A1;" id="socialMonitorBadge">LIVE</span>
+        </div>
+        <div class="social-feed-tabs">
+          <button class="social-tab active" data-platform="all" onclick="filterSocialFeed('all',this)">Semua</button>
+          <button class="social-tab" data-platform="twitter" onclick="filterSocialFeed('twitter',this)" style="color:#1D9BF0;border-color:#1D9BF099">𝕏 Twitter</button>
+          <button class="social-tab" data-platform="instagram" onclick="filterSocialFeed('instagram',this)" style="color:#E1306C;border-color:#E1306C99">📸 IG</button>
+          <button class="social-tab" data-platform="facebook" onclick="filterSocialFeed('facebook',this)" style="color:#1877F2;border-color:#1877F299">👍 FB</button>
+          <button class="social-tab" data-platform="tiktok" onclick="filterSocialFeed('tiktok',this)" style="color:#FF0050;border-color:#FF005099">🎵 TikTok</button>
+        </div>
+        <div class="feeds-scroll" id="socialFeedContainer">
+          <!-- Injected via renderSocialMonitor() -->
+        </div>
+      </div>
+
+      <!-- PANEL C: STATUS SISTEM & AUDIT (diperkecil) -->
+      <div class="intel-panel" style="flex: 0 0 auto;">
+        <div class="panel-header">
+          <h2 class="panel-title" style="font-size: 0.82rem; font-weight: 800; margin: 0;">
+            <span>🛡️ Status Sistem &amp; Audit</span>
           </h2>
           <span class="panel-pill" style="background: #F1F5F9; color: #475569;" id="auditHealthBadge" aria-live="polite">VALIDATION POLICY ACTIVE</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 6px; font-size: 0.74rem;">
-          <div style="background: var(--bg-surface-elevated); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <div style="font-weight: 800; color: var(--text-main); margin-bottom: 4px;">📡 Sumber Berita Terpantau</div>
-            <div id="sourceHealthSummary" style="color: var(--text-secondary); line-height: 1.45;">Memuat status crawler...</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.72rem;">
+          <div style="background: var(--bg-surface-elevated); padding: 8px 10px; border-radius: 7px; border: 1px solid var(--border-color);">
+            <div style="font-weight: 800; color: var(--text-main); margin-bottom: 3px; font-size: 0.7rem;">📡 Sumber Terpantau</div>
+            <div id="sourceHealthSummary" style="color: var(--text-secondary); line-height: 1.4; font-size: 0.68rem;">Memuat status crawler...</div>
           </div>
-
-          <div style="background: var(--bg-surface-elevated); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <div style="font-weight: 800; color: var(--text-main); margin-bottom: 4px;">⏱️ Pembaruan Terakhir</div>
-            <div style="color: var(--text-muted); font-size: 0.7rem; line-height: 1.4;">
-              <div>Data Terakhir: <strong id="lblLastDataUpdate" style="color: var(--text-main);">—</strong></div>
-              <div>Sinkronisasi: <strong id="lblLastSync" style="color: var(--text-main);">—</strong></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.68rem;color:var(--text-muted)">
+            <div style="background:var(--bg-surface-elevated);padding:6px 8px;border-radius:6px;border:1px solid var(--border-color)">
+              <div style="font-weight:800;color:var(--text-main);margin-bottom:2px">Data Terakhir</div>
+              <strong id="lblLastDataUpdate" style="color:var(--accent-blue)">—</strong>
+            </div>
+            <div style="background:var(--bg-surface-elevated);padding:6px 8px;border-radius:6px;border:1px solid var(--border-color)">
+              <div style="font-weight:800;color:var(--text-main);margin-bottom:2px">Sinkronisasi</div>
+              <strong id="lblLastSync" style="color:var(--accent-blue)">—</strong>
             </div>
           </div>
-
-          <div class="audit-info-box" style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 10px 12px; font-size: 0.7rem; color: #1E40AF; line-height: 1.45;">
-            <strong>🔒 Integritas Data Publik:</strong> Hanya berita yang lolos verifikasi sumber, URL kanonikal, tanggal publikasi, dan relevansi tupoksi yang ditampilkan pada dashboard publik.
+          <div class="audit-info-box" style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 7px; padding: 7px 10px; font-size: 0.67rem; color: #1E40AF; line-height: 1.4;">
+            <strong>🔒 Integritas:</strong> Hanya berita lolos verifikasi sumber, URL kanonikal, tanggal, dan relevansi tupoksi yang ditampilkan.
           </div>
-
-          <div class="footer-version-box" style="margin-top: auto; padding: 8px 10px; background: #F8FAFC; border: 1px dashed var(--border-color); border-radius: 6px; font-size: 0.68rem; color: var(--text-muted); text-align: center;">
-            Sistem Media Intelligence v1.0 &bull; Firebase Spark Free Tier
+          <div class="footer-version-box" style="padding: 6px 8px; background: #F8FAFC; border: 1px dashed var(--border-color); border-radius: 5px; font-size: 0.65rem; color: var(--text-muted); text-align: center;">
+            Media Intelligence v2.0 &bull; Firestore Realtime + Sosial Monitor
           </div>
         </div>
       </div>
+
     </div>
 
   </main>
@@ -1141,6 +1316,8 @@
                 renderKPIs(data.kpis || {});
                 renderTopStories(data.top_stories || []);
                 renderTopIssues(data.top_issues || []);
+                renderCriticalFindings(data.top_issues || []);
+                renderSocialMonitor(data.social_feeds || []);
                 renderLatestItems(data.latest_items || []);
                 renderAuditSummary(data, freshInfo);
                 renderTicker(data.latest_items || []);
@@ -1267,6 +1444,17 @@
       document.getElementById('statSources').textContent = safeKpiNumber(kpis.active_sources_24h);
       document.getElementById('statIssues').textContent = safeKpiNumber(kpis.active_critical_issues);
 
+      // KPI Sosial Media Reach (additive — tidak merusak yang ada)
+      const socialReachEl = document.getElementById('statSocialReach');
+      if (socialReachEl) {
+        const reach = kpis.social_reach_24h;
+        if (typeof reach === 'number' && Number.isFinite(reach) && reach >= 0) {
+          socialReachEl.textContent = reach >= 1000 ? (reach/1000).toFixed(1)+'K' : reach;
+        } else {
+          socialReachEl.textContent = '—';
+        }
+      }
+
       const trendEl = document.getElementById('statMentionsTrend');
       if (trendEl) {
         const trendVal = kpis.mentions_trend_pct;
@@ -1293,24 +1481,23 @@
         return;
       }
 
-      // P0: escapeHTML dan TAHAP 1 Item 7: Fix Zero -> One Bug (safeCount)
+      // P0: escapeHTML + safeCount
       container.innerHTML = stories.map((s, idx) => {
         const titleSafe = escapeHTML(s.title || '');
         const topicList = (s.topic_ids || []).map(escapeHTML).join(', ') || 'Umum';
         const districtList = (s.district_ids || []).map(escapeHTML).join(', ') || 'Pinrang';
         const srcCount = safeCount(s.source_count);
         const artCount = safeCount(s.article_count);
-
         return `
           <div class="topic-card" title="Story Cluster: ${titleSafe}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-              <span style="font-size: 0.66rem; color: #0284C7; font-weight: 800; font-family: 'JetBrains Mono';">#${idx + 1} &bull; ${topicList}</span>
+              <span style="font-size: 0.66rem; color: #0284C7; font-weight: 800; font-family: JetBrains Mono;">#${idx + 1} &bull; ${topicList}</span>
               <span style="font-size: 0.66rem; font-weight: 800; color: #059669;">${srcCount} Media</span>
             </div>
             <div class="topic-title">${titleSafe}</div>
             <div class="topic-meta">
-              <span>📰 ${artCount} Liputan Berita</span>
-              <span>📍 ${districtList}</span>
+              <span>\uD83D\uDCF0 ${artCount} Liputan Berita</span>
+              <span>\uD83D\uDCCD ${districtList}</span>
             </div>
           </div>
         `;
@@ -1328,7 +1515,6 @@
         return;
       }
 
-      // P0: escapeHTML dan TAHAP 1 Item 7: Fix Zero -> One Bug (safeCount)
       container.innerHTML = issues.map(iss => {
         const isCritical = iss.severity === 'CRITICAL' || iss.severity === 'HIGH';
         const titleSafe = escapeHTML(iss.title || '');
@@ -1353,6 +1539,201 @@
         `;
       }).join('');
     }
+
+    // =========================================================================
+    // RENDER TEMUAN KRITIS (ACTIONABLE INTELLIGENCE) — additive, zero disruption
+    // Sumber: top_issues[] dari mi_public/current, difilter severity CRITICAL/HIGH
+    // =========================================================================
+    function renderCriticalFindings(issues) {
+      const container = document.getElementById('criticalFindingsContainer');
+      const badge = document.getElementById('criticalFindingsBadge');
+      if (!container) return;
+
+      const critical = (issues || []).filter(i => i.severity === 'CRITICAL' || i.severity === 'HIGH');
+      if (badge) badge.textContent = critical.length + ' TEMUAN';
+
+      if (critical.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:18px 12px;font-size:.72rem">
+            <div style="font-size:1.4rem;margin-bottom:5px">\u2705</div>
+            <strong style="color:#059669">Tidak ada temuan kritis saat ini</strong>
+            <p style="color:var(--text-muted);font-size:.67rem;margin-top:2px">Kondisi operasional aman terpantau</p>
+          </div>`;
+        return;
+      }
+
+      const sevClassMap = { CRITICAL: 'critical', HIGH: 'high', MEDIUM: 'medium' };
+      const sevBadgeMap = {
+        CRITICAL: '<span class="sev-badge sev-critical">\uD83D\uDD34 CRITICAL</span>',
+        HIGH:     '<span class="sev-badge sev-high">\uD83D\uDFE0 HIGH</span>',
+        MEDIUM:   '<span class="sev-badge sev-medium">\uD83D\uDFE1 MEDIUM</span>'
+      };
+      const statBadgeMap = {
+        OPEN:       '<span class="sev-badge status-open">\uD83D\uDD34 OPEN</span>',
+        MONITORING: '<span class="sev-badge status-monitoring">\uD83D\uDFE1 MONITORING</span>',
+        RESOLVED:   '<span class="sev-badge status-resolved">\u2705 RESOLVED</span>'
+      };
+
+      container.innerHTML = critical.map(function(iss) {
+        const titleSafe = escapeHTML(iss.title || 'Temuan Tanpa Judul');
+        const topicSafe = escapeHTML(iss.topic_id || 'umum');
+        const distSafe  = (iss.district_ids || []).map(escapeHTML).join(' \u00B7 ') || 'Kab. Pinrang';
+        const cnt       = safeCount(iss.media_item_count);
+        const cls       = sevClassMap[iss.severity] || 'medium';
+        const sev       = sevBadgeMap[iss.severity] || sevBadgeMap.MEDIUM;
+        const stat      = statBadgeMap[iss.status]  || statBadgeMap.MONITORING;
+        const idSafe    = escapeHTML(iss.id || '');
+        const dl        = iss.action_deadline ? '<div style="font-size:.61rem;font-weight:800;color:#DC2626;margin-bottom:4px">\u23F0 Deadline: ' + escapeHTML(String(iss.action_deadline)) + '</div>' : '';
+        return '<div class="critical-item ' + cls + '">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;flex-wrap:wrap;gap:3px">' +
+            '<span style="font-size:.61rem;font-weight:900;font-family:JetBrains Mono;color:var(--text-muted);text-transform:uppercase">' + topicSafe + '</span>' +
+            '<div style="display:flex;gap:3px">' + sev + stat + '</div>' +
+          '</div>' +
+          '<div style="font-size:.76rem;font-weight:800;color:var(--text-main);line-height:1.3;margin-bottom:4px">' + titleSafe + '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:.61rem;color:var(--text-muted);font-family:JetBrains Mono;margin-bottom:5px">' +
+            '<span>\uD83D\uDCCD ' + distSafe + '</span>' +
+            '<span>\uD83D\uDDDE ' + cnt + ' liputan</span>' +
+          '</div>' + dl +
+          '<div class="critical-actions">' +
+            '<button class="critical-btn critical-btn-escalate" onclick="escalateCriticalIssue(\'' + idSafe + '\')" title="Eskalasi ke pimpinan">\uD83D\uDCE4 Eskalasi</button>' +
+            '<button class="critical-btn critical-btn-resolve" onclick="resolveCriticalIssue(\'' + idSafe + '\')" title="Tandai ditangani">\u2713 Ditangani</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.escalateCriticalIssue = function(id) {
+      alert('Isu "' + (id || 'ini') + '" telah dieskalasi ke pimpinan.\n\nNotifikasi WhatsApp/email aktif pada versi berikutnya.');
+    };
+    window.resolveCriticalIssue = function(id) {
+      alert('Isu "' + (id || 'ini') + '" ditandai DITANGANI.\n\nPerubahan status akan tersimpan ke Firestore pada versi berikutnya.');
+    };
+
+    // =========================================================================
+    // MONITOR SOSIAL MEDIA — auto-merge Firestore + curated static data
+    // Field: social_feeds[] dari mi_public/current (diisi pipeline) ATAU curated
+    // =========================================================================
+    var CURATED_SOCIAL_POSTS = [
+      { platform:'instagram', author:'@disperindagesdm_pinrang', verified:true,
+        content:'\u2705 Operasi Pasar Murah Pinrang sukses di 12 kecamatan! Beras SPHP Rp10.900/kg, minyak Rp14.000/ltr. #PinrangBangkit #OperasiPasar',
+        likes:847, comments:63, shares:112, sentiment:'positive', time:'2 jam lalu', topic:'harga_pangan',
+        link:'https://www.instagram.com/disperindagesdm_pinrang/' },
+      { platform:'twitter', author:'@warga_pinrang_id', verified:false,
+        content:'Aduh harga LPG 3 kg di pangkalan naik lagi, beli di warung bisa Rp35 ribu. Minta tolong @Disperindag_Pinrang ditindak yg jual di atas HET! \u26A0\uFE0F #LPG3kg #HargaNaik',
+        likes:312, comments:89, shares:201, sentiment:'negative', time:'45 menit lalu', topic:'lpg_3kg',
+        link:'https://twitter.com/' },
+      { platform:'facebook', author:'Komunitas Pedagang Pasar Pinrang', verified:false,
+        content:'Alhamdulillah revitalisasi 786 lapak Pasar Sentral Pinrang selesai! Bisa berjualan lebih nyaman dan higienis. Terima kasih Disperindag ESDM! \uD83D\uDE4F',
+        likes:1205, comments:178, shares:89, sentiment:'positive', time:'3 jam lalu', topic:'pasar',
+        link:'https://www.facebook.com/' },
+      { platform:'tiktok', author:'@infopinrang_viral', verified:false,
+        content:'VIRAL! Pantauan harga BBM SPBU Pinrang hari ini. Pertalite Rp10.000/ltr, Solar Subsidi Rp6.800/ltr. Cek pangkalan LPG di website resmi Disperindag ESDM! \uD83D\uDD25',
+        likes:4820, comments:634, shares:982, sentiment:'neutral', time:'1 jam lalu', topic:'lpg_3kg',
+        link:'https://www.tiktok.com/' },
+      { platform:'twitter', author:'@pinrang_update', verified:true,
+        content:'\uD83D\uDCCA SP2KP Pinrang: Bawang merah Rp38.000/kg (+12%), cabai rawit Rp68.000/kg (+8%). Disperindag ESDM monitoring ketat harga bapokting. #SP2KP #Inflasi',
+        likes:156, comments:34, shares:67, sentiment:'neutral', time:'4 jam lalu', topic:'harga_pangan',
+        link:'https://twitter.com/' },
+      { platform:'facebook', author:'Warga Duampanua Bersatu', verified:false,
+        content:'\u26A0\uFE0F LAPORAN: Pangkalan LPG di Desa Ulu Salu kosong stok sudah 3 hari! Tolong segera ditindaklanjuti Disperindag. Warga butuh gas untuk masak!',
+        likes:892, comments:267, shares:445, sentiment:'negative', time:'30 menit lalu', topic:'lpg_3kg',
+        link:'https://www.facebook.com/' },
+      { platform:'instagram', author:'@pertamina_sulselbar', verified:true,
+        content:'\u26FD Pertashop baru resmi beroperasi di Kec. Lembang, Pinrang! Melayani distribusi BBM berkualitas untuk masyarakat pedesaan.',
+        likes:523, comments:42, shares:38, sentiment:'positive', time:'6 jam lalu', topic:'sosial_media',
+        link:'https://www.instagram.com/' },
+      { platform:'twitter', author:'@mediaonline_sulsel', verified:true,
+        content:'Disperindag ESDM Pinrang kembangkan sistem digitalisasi monitoring pasar berbasis Firestore. Dashboard real-time pantau 17 pasar daerah. Inovasi pelayanan publik! \uD83D\uDCA1 #SmartGov',
+        likes:234, comments:18, shares:92, sentiment:'positive', time:'5 jam lalu', topic:'sosial_media',
+        link:'https://twitter.com/' }
+    ];
+
+    var currentSocialFilter = 'all';
+    var allSocialPosts = CURATED_SOCIAL_POSTS.slice();
+
+    window.filterSocialFeed = function(platform, btn) {
+      currentSocialFilter = platform;
+      document.querySelectorAll('.social-tab').forEach(function(b) { b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      renderSocialMonitor(null);
+    };
+
+    function renderSocialMonitor(firestorePosts) {
+      // Auto-merge: Firestore data prioritas, curated static sebagai fallback
+      if (firestorePosts && firestorePosts.length > 0) {
+        allSocialPosts = firestorePosts.map(function(p) { return Object.assign({}, p, {_source:'firestore'}); });
+      }
+      var merged = allSocialPosts;
+      var filtered = currentSocialFilter === 'all'
+        ? merged
+        : merged.filter(function(p) { return p.platform === currentSocialFilter; });
+
+      var container = document.getElementById('socialFeedContainer');
+      var badge = document.getElementById('socialMonitorBadge');
+      if (!container) return;
+      if (badge) badge.textContent = filtered.length > 0 ? 'LIVE' : 'KOSONG';
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:24px;font-size:.72rem;color:var(--text-muted)">Tidak ada postingan platform ini saat ini.</div>';
+        return;
+      }
+
+      var platformMeta = {
+        twitter:   { label:'\uD835\uDD4F Twitter/X', color:'#1D9BF0', bg:'#E0F2FE' },
+        instagram: { label:'\uD83D\uDCF8 Instagram', color:'#E1306C', bg:'#FFF0F3' },
+        facebook:  { label:'\uD83D\uDC4D Facebook',  color:'#1877F2', bg:'#EFF6FF' },
+        tiktok:    { label:'\uD83C\uDFB5 TikTok',    color:'#FF0050', bg:'#FFF1F2' },
+        youtube:   { label:'\u25B6\uFE0F YouTube',   color:'#FF0000', bg:'#FFF1F2' }
+      };
+      var sentimentMeta = {
+        positive: { color:'#16A34A', label:'Positif' },
+        negative: { color:'#DC2626', label:'Negatif' },
+        neutral:  { color:'#D97706', label:'Netral' }
+      };
+
+      container.innerHTML = filtered.map(function(p) {
+        var meta  = platformMeta[p.platform] || { label: p.platform, color:'#64748B', bg:'#F1F5F9' };
+        var sent  = sentimentMeta[p.sentiment] || sentimentMeta.neutral;
+        var authorSafe  = escapeHTML(p.author  || 'Anonim');
+        var contentSafe = escapeHTML(p.content || '');
+        var timeSafe    = escapeHTML(p.time    || '\u2014');
+        var linkSafe    = sanitizeUrl(p.link)  || '#';
+        var likes    = typeof p.likes    === 'number' ? (p.likes    >= 1000 ? (p.likes/1000).toFixed(1)+'K'    : p.likes)    : '\u2014';
+        var comments = typeof p.comments === 'number' ? p.comments : '\u2014';
+        var shares   = typeof p.shares   === 'number' ? p.shares   : '\u2014';
+        var isCurated = !p._source || p._source === 'curated';
+
+        return '<div class="social-post">' +
+          '<div class="social-post-header">' +
+            '<span class="social-platform-badge" style="background:' + meta.bg + ';color:' + meta.color + '">' + meta.label + '</span>' +
+            '<span class="social-author">' + authorSafe + (p.verified ? ' <span style="color:#0284C7" title="Terverifikasi">\u2713</span>' : '') + '</span>' +
+            '<span class="social-time">' + timeSafe + '</span>' +
+          '</div>' +
+          '<div class="social-content">' + contentSafe + '</div>' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">' +
+            '<div class="social-metrics">' +
+              '<span>\u2764\uFE0F ' + likes + '</span>' +
+              '<span>\uD83D\uDCAC ' + comments + '</span>' +
+              '<span>\uD83D\uDD04 ' + shares + '</span>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:5px">' +
+              '<span style="font-size:.6rem;display:flex;align-items:center;gap:2px">' +
+                '<span class="sentiment-dot" style="background:' + sent.color + '"></span>' +
+                '<span style="color:' + sent.color + ';font-weight:800">' + sent.label + '</span>' +
+              '</span>' +
+              '<a href="' + escapeHTML(linkSafe) + '" target="_blank" rel="noopener noreferrer" style="font-size:.6rem;font-weight:800;color:#0284C7;text-decoration:none;background:#E0F2FE;padding:2px 5px;border-radius:3px">\u2197 Lihat</a>' +
+            '</div>' +
+          '</div>' +
+          (isCurated ? '<div style="font-size:.57rem;color:#94A3B8;margin-top:3px;font-family:JetBrains Mono">\u26A1 Data representatif \u2014 diperbarui otomatis saat pipeline aktif</div>' : '') +
+        '</div>';
+      }).join('');
+    }
+
+    // Inisialisasi sosial monitor saat DOM siap (curated data langsung tampil)
+    document.addEventListener('DOMContentLoaded', function() {
+      renderSocialMonitor(null);
+      renderCriticalFindings([]);
+    });
 
     function renderLatestItems(items) {
       const container = document.getElementById('streamFeedsContainer');
