@@ -29,3 +29,13 @@ __pycache__/
 # IDE configs
 .vscode/
 .idea/
+
+# Credential artifacts
+firebase-sa*.json
+service-account*.json
+*-private-key*.json
+*.pem
+*.key
+*.backup*
+
+dist/

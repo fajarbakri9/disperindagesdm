@@ -24,7 +24,7 @@ try {
       firebase.initializeApp(firebaseConfig);
     }
     db = firebase.firestore();
-    auth = firebase.auth();
+    auth = typeof firebase.auth === 'function' ? firebase.auth() : null;
     db.enablePersistence({ synchronizeTabs: true }).catch(error => {
       if (error.code !== 'failed-precondition' && error.code !== 'unimplemented') {
         console.warn('[-] Persistence Firestore tidak dapat diaktifkan:', error.code);

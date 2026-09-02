@@ -15,7 +15,16 @@ sys.stdout.reconfigure(encoding='utf-8')
 SITE_URL = "https://disperindagesdm-pinrang.web.app"
 DEFAULT_COVER = f"{SITE_URL}/assets/banner/cover_disperindag_esdm_pinrang.jpg"
 FIREBASE_PROJECT_ID = "disperindagesdm-pinrang"
-FIREBASE_WEB_API_KEY = "AIzaSyD4J1kidUcBcz7EdmYRIY66YR5jOEO477I"
+FIREBASE_WEB_API_KEY = os.environ.get("FIREBASE_API_KEY")
+if not FIREBASE_WEB_API_KEY and os.path.exists("js/firebase-config.js"):
+    with open("js/firebase-config.js", "r", encoding="utf-8") as f_cfg:
+        cfg_content = f_cfg.read()
+        key_match = re.search(r'apiKey:\s*["\']([^"\']+)["\']', cfg_content)
+        if key_match and key_match.group(1) != "YOUR_FIREBASE_API_KEY":
+            FIREBASE_WEB_API_KEY = key_match.group(1)
+
+if not FIREBASE_WEB_API_KEY and "--cloud" in sys.argv:
+    raise RuntimeError("FIREBASE_API_KEY wajib diisi melalui environment atau js/firebase-config.js untuk sinkronisasi cloud")
 
 # 1. BACA DATA DEFAULT_NEWS DARI js/data.js SECARA DINAMIS
 with open("js/data.js", "r", encoding="utf-8") as f:
@@ -659,7 +668,7 @@ def generate_article_html(art, canonical_url):
         <li><a href="{SITE_URL}/index.html" class="nav-link">Beranda</a></li>
         <li><a href="{SITE_URL}/profil.html" class="nav-link">Profil</a></li>
         <li><a href="{SITE_URL}/layanan.html" class="nav-link">Layanan Publik</a></li>
-        <li><a href="{SITE_URL}/index.html#transparansi-pelayanan" class="nav-link">Transparansi</a></li>
+        <li><a href="{SITE_URL}/direktori-lpg.html" class="nav-link">Direktori</a></li>
         <li><a href="{SITE_URL}/arsip-berita.html" class="nav-link active">Berita</a></li>
       </ul>
     </div>
@@ -714,15 +723,13 @@ def generate_article_html(art, canonical_url):
               &larr; Kembali ke Arsip Berita
             </a>
             <div style="display: flex; gap: 8px;">
-              <a href="https://api.whatsapp.com/send?text={art['title']}%20{canonical_url}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #25D366; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                <span>💬</span> WhatsApp
+              <a href="https://api.whatsapp.com/send?text={art['title']}%20{canonical_url}" target="_blank" aria-label="Bagikan ke WhatsApp" title="Bagikan ke WhatsApp" rel="noopener noreferrer" class="share-icon-btn share-whatsapp">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.6 5.9L.2 24l6.5-1.7a11.8 11.8 0 0 0 5.4 1.3h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.3-6.1-3.5-8.3ZM12.1 21.6h-.1a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.5 4.7Zm5.4-7.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.5-.7-2.5-1.3-3.5-3-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3.1 4.9 4.3 2.4.9 2.4.6 2.8.6.4 0 1.7-.7 1.9-1.3.2-.6.2-1.2.1-1.3Z"/></svg><span class="sr-only">WhatsApp</span>
               </a>
-              <a href="https://www.facebook.com/sharer/sharer.php?u={canonical_url}" target="_blank" rel="noopener noreferrer" style="padding: 8px 14px; font-size: 0.82rem; background: #1877F2; color: #FFFFFF; border-radius: 6px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                <span>📘</span> Facebook
+              <a href="https://www.facebook.com/sharer/sharer.php?u={canonical_url}" target="_blank" aria-label="Bagikan ke Facebook" title="Bagikan ke Facebook" rel="noopener noreferrer" class="share-icon-btn share-facebook">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8h2.8l.4-3h-3.2V9.1c0-.9.3-1.5 1.6-1.5h1.7V4.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V11H7.3v3h2.8v8h3.4Z"/></svg><span class="sr-only">Facebook</span>
               </a>
-              <button onclick="shareArticle()" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; background: var(--accent-gold, #FACC15); color: #030D1B; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">
-                <span>🔗</span> Salin Tautan
-              </button>
+              <button onclick="shareArticle()" class="share-icon-btn share-copy" aria-label="Salin tautan" title="Salin tautan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1Zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H8V7h11v14Z"/></svg><span class="sr-only">Salin tautan</span></button>
             </div>
           </div>
         </article>
@@ -775,7 +782,7 @@ def generate_article_html(art, canonical_url):
             <li><a href="{SITE_URL}/profil.html">Profil Kedinasan</a></li>
             <li><a href="{SITE_URL}/layanan.html">Standar Pelayanan Publik</a></li>
             <li><a href="{SITE_URL}/arsip-berita.html">Arsip Berita & Publikasi</a></li>
-            <li><a href="{SITE_URL}/dokumen.html">Dokumen & Regulasi</a></li>
+            <li><a href="{SITE_URL}/ppid.html#dokumen-regulasi">PPID Pelaksana &amp; Dokumen Publik</a></li>
             <li><a href="{SITE_URL}/katalog-ikm.html">Katalog Produk IKM</a></li>
           </ul>
         </div>
@@ -918,15 +925,18 @@ def update_sitemap_xml():
         {"loc": f"{SITE_URL}/", "priority": "1.00", "changefreq": "daily"},
         {"loc": f"{SITE_URL}/profil.html", "priority": "0.90", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/layanan.html", "priority": "0.90", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/harga-bahan-pokok.html", "priority": "0.95", "changefreq": "daily"},
         {"loc": f"{SITE_URL}/maklumat-pelayanan.html", "priority": "0.85", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/ppid.html", "priority": "0.90", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/katalog-ikm.html", "priority": "0.85", "changefreq": "daily"},
         {"loc": f"{SITE_URL}/arsip-berita.html", "priority": "0.85", "changefreq": "daily"},
-        {"loc": f"{SITE_URL}/dokumen.html", "priority": "0.80", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/kontak.html", "priority": "0.80", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/search.html", "priority": "0.70", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/command-center.html", "priority": "0.95", "changefreq": "daily"},
         {"loc": f"{SITE_URL}/pasar.html", "priority": "0.90", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/direktori-lpg", "priority": "0.90", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/penyalur-bbm.html", "priority": "0.90", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/penyalur-bbm", "priority": "0.90", "changefreq": "daily"},
     ]
     
     market_slugs = [

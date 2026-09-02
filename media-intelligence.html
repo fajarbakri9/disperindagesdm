@@ -11,10 +11,10 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
   <meta property="og:title" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
-  <meta property="og:description" content="Radar intelijen media dan monitoring isu strategis terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang.">
+  <meta property="og:description" content="Radar intelijen media dan monitoring isu strategis terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang berbasis data aktual dan terverifikasi.">
   <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_media_intelligence.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="945">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:alt" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
   <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/media-intelligence">
@@ -22,7 +22,7 @@
   <!-- TWITTER / X CARDS -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
-  <meta name="twitter:description" content="Radar intelijen media dan monitoring isu strategis terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang.">
+  <meta name="twitter:description" content="Radar intelijen media dan monitoring isu strategis terintegrasi Dinas Perindustrian, Perdagangan, ESDM Kabupaten Pinrang berbasis data aktual dan terverifikasi.">
   <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_media_intelligence.png">
   <!-- Primary Meta Tags -->
   <meta name="title" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
@@ -667,6 +667,9 @@
       }
     }
   </style>
+  <meta property="fb:app_id" content="966242223397117">
+  <meta property="og:image:secure_url" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_media_intelligence.png">
+  <meta name="twitter:image:alt" content="Media Intelligence Hub | Disperindag ESDM Kabupaten Pinrang">
 </head>
 <body>
 
@@ -686,6 +689,7 @@
     </div>
 
     <div class="intel-controls">
+      <div id="miSp2kpStatus" style="font-size:.7rem;font-weight:800;color:#475569;background:#F1F5F9;padding:4px 10px;border-radius:6px;border:1px solid #CBD5E1" title="Konteks harga operasional dari market_prices_latest">SP2KP • MENYINKRONKAN</div>
       <div style="font-size: 0.72rem; font-weight: 700; color: #0284C7; font-family: 'JetBrains Mono'; margin-right: 6px; background: #E0F2FE; padding: 4px 10px; border-radius: 6px; border: 1px solid #BAE6FD;" id="syncCycleIndicator">
         🕒 PEMANTAUAN OTOMATIS • 6X SEHARI
       </div>
@@ -863,6 +867,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="js/firebase-config.js?v=20260830_mi_cutover_v1"></script>
+  <script src="js/price-resolver.js?v=20260831_sp2kp_shared_v3"></script>
 
   <script>
     // =========================================================================
@@ -870,6 +875,8 @@
     // =========================================================================
 
     let currentSnapshotData = null;
+    let miSp2kpRecords = [];
+    let unsubscribeMiSp2kp = null;
     let currentFeedFilter = 'all';
 
     // 1. SECURITY HELPER: Escape HTML untuk mencegah stored XSS dari artikel media
@@ -1048,6 +1055,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       startWitaClock();
       initRealtimeSnapshotListener();
+      initMiSp2kpContext();
 
       // TAHAP 2 Item 4: Re-evaluasi umur data secara mandiri setiap 60 detik TANPA read Firestore tambahan
       setInterval(() => {
@@ -1073,6 +1081,28 @@
         handleSnapshotDisconnected();
       });
     });
+
+    function initMiSp2kpContext() {
+      if (typeof db === 'undefined' || !db || typeof PriceResolver === 'undefined') return;
+      if (unsubscribeMiSp2kp) unsubscribeMiSp2kp();
+      unsubscribeMiSp2kp = db.collection('market_prices_latest').onSnapshot(snapshot => {
+        miSp2kpRecords = [];
+        snapshot.forEach(doc => miSp2kpRecords.push(PriceResolver.normalizeSp2kpItem({ id: doc.id, ...doc.data() })));
+        miSp2kpRecords.sort((a, b) => Number(a.variantId) - Number(b.variantId));
+        const pill = document.getElementById('miSp2kpStatus');
+        const dates = miSp2kpRecords.map(item => item.dataDate).filter(Boolean).sort();
+        if (pill) {
+          pill.textContent = `SP2KP • ${miSp2kpRecords.length} KOMODITAS • ${dates.at(-1) || 'TANGGAL BELUM TERSEDIA'}`;
+          pill.style.color = miSp2kpRecords.length ? '#047857' : '#92400E';
+          pill.style.background = miSp2kpRecords.length ? '#ECFDF5' : '#FEF3C7';
+          pill.style.borderColor = miSp2kpRecords.length ? '#A7F3D0' : '#FCD34D';
+        }
+      }, error => {
+        console.warn('[MI] Sinkronisasi konteks SP2KP:', error);
+        const pill = document.getElementById('miSp2kpStatus');
+        if (pill) pill.textContent = 'SP2KP • TIDAK TERSEDIA';
+      });
+    }
 
     function initRealtimeSnapshotListener(isManualClick = false) {
       const pill = document.getElementById('systemFreshnessPill');

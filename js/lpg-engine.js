@@ -15,74 +15,80 @@ const LPG_STORAGE_KEYS = {
   VERSION: 'disperindag_lpg_db_version'
 };
 
-const LPG_ENGINE_VERSION = "2026_08_30_lpg_local_status_v3";
+const LPG_ENGINE_VERSION = "2026_09_02_firestore_ssot_no_fallback_v2";
+const LPG_REQUIRED_MASTER_VERSION = "2026-08-31-lpg-agent-coordinates-v2";
+const lpgRuntimeStore = new Map();
+let lpgMasterLoadPromise = null;
 
 function isLocallyAppliedLpgEvent(event) {
-  return event && ['POSTED', 'LOCAL_ONLY', 'PENDING_SYNC', 'FIRESTORE_SYNCED'].includes(event.status);
+  return event && ['POSTED', 'FIRESTORE_SYNCED'].includes(event.status);
 }
 
 // 1. INISIALISASI DATABASE LPG
 function initLpgDatabase() {
-  const currentVer = localStorage.getItem(LPG_STORAGE_KEYS.VERSION);
-  if (currentVer !== LPG_ENGINE_VERSION) {
-    // Inisialisasi dari Master Seed Ditjen Migas ESDM Q1 2026
-    const initialAgents = (typeof LPG_SEED_AGENTS !== 'undefined') ? LPG_SEED_AGENTS : [];
-    const initialPangkalan = (typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : [];
-
-    // Migrasi versi tidak boleh menimpa perubahan operasional yang sudah ada.
-    // Seed hanya dipasang untuk instalasi/browser yang benar-benar masih kosong.
-    if (!localStorage.getItem(LPG_STORAGE_KEYS.AGENTS)) {
-      localStorage.setItem(LPG_STORAGE_KEYS.AGENTS, JSON.stringify(initialAgents));
-    }
-    if (!localStorage.getItem(LPG_STORAGE_KEYS.PANGKALAN)) {
-      localStorage.setItem(LPG_STORAGE_KEYS.PANGKALAN, JSON.stringify(initialPangkalan));
-    }
-    
-    // Inisialisasi Saldo Awal (Opening Balance) per Agen
-    if (!localStorage.getItem(LPG_STORAGE_KEYS.BALANCES)) {
-      // Tidak membuat saldo fiktif. Saldo riil harus lahir dari opening balance/
-      // ledger yang diproses backend, bukan dari angka contoh di browser.
-      localStorage.setItem(LPG_STORAGE_KEYS.BALANCES, JSON.stringify({}));
-    }
-
-    if (!localStorage.getItem(LPG_STORAGE_KEYS.EVENTS)) {
-      localStorage.setItem(LPG_STORAGE_KEYS.EVENTS, JSON.stringify([]));
-    } else {
-      // Event lama diposting oleh browser, bukan oleh backend. Tandai secara
-      // jujur sebagai lokal agar tidak disalahartikan sebagai ledger server.
-      const existingEvents = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
-      let migrated = false;
-      existingEvents.forEach(item => {
-        if (item.status === 'POSTED' && !item.processedAt) {
-          item.status = 'LOCAL_ONLY';
-          item.localAppliedAt = item.postedAt || item.createdAt || new Date().toISOString();
-          item.postedAt = null;
-          migrated = true;
-        }
-      });
-      if (migrated) setLpgStore(LPG_STORAGE_KEYS.EVENTS, existingEvents);
-    }
-    if (!localStorage.getItem(LPG_STORAGE_KEYS.AUDIT_LOGS)) {
-      localStorage.setItem(LPG_STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
-    }
-
-    localStorage.setItem(LPG_STORAGE_KEYS.VERSION, LPG_ENGINE_VERSION);
-    refreshLpgDashboardSummary();
-  }
+  // Memori ini hanya proyeksi sesi dari snapshot server. Tidak dipersistenkan
+  // dan tidak pernah digunakan sebagai pengganti ketika Firestore gagal.
+  lpgRuntimeStore.clear();
 }
 
 // 2. HELPER DATA ACCESS
 function getLpgStore(key, defaultVal = []) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : defaultVal;
-  } catch (e) {
-    return defaultVal;
-  }
+  return lpgRuntimeStore.has(key) ? lpgRuntimeStore.get(key) : defaultVal;
 }
 
 function setLpgStore(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
+  lpgRuntimeStore.set(key, data);
+}
+
+async function loadCanonicalLpgMasterOnce() {
+  if (lpgMasterLoadPromise) return lpgMasterLoadPromise;
+  lpgMasterLoadPromise = (async () => {
+    if (typeof db === 'undefined' || !db) throw new Error('Firestore belum tersedia');
+    const [agentSnapshot, pangkalanSnapshot] = await Promise.all([
+      db.collection('lpg_agents').get({ source: 'server' }),
+      db.collection('lpg_pangkalan').get({ source: 'server' })
+    ]);
+    const agents = agentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const pangkalan = pangkalanSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (!pangkalan.length) throw new Error('Koleksi lpg_pangkalan Firestore kosong');
+    setLpgStore(LPG_STORAGE_KEYS.AGENTS, agents);
+    setLpgStore(LPG_STORAGE_KEYS.PANGKALAN, pangkalan);
+    const result = { source: 'FIRESTORE', agents, pangkalan };
+    window.dispatchEvent(new CustomEvent('lpg-master-updated', { detail: { source: result.source, agents: agents.length, pangkalan: pangkalan.length } }));
+    return result;
+  })().catch(error => {
+    lpgMasterLoadPromise = null;
+    lpgRuntimeStore.delete(LPG_STORAGE_KEYS.AGENTS);
+    lpgRuntimeStore.delete(LPG_STORAGE_KEYS.PANGKALAN);
+    window.dispatchEvent(new CustomEvent('lpg-master-load-failed', { detail: { source: 'FIRESTORE', error: error.message } }));
+    throw error;
+  });
+  return lpgMasterLoadPromise;
+}
+
+function subscribeCanonicalLpgMaster(callback) {
+  if (typeof db === 'undefined' || !db) return null;
+  let agents = null;
+  let pangkalan = null;
+  const publish = () => {
+    if (!agents || !pangkalan || !pangkalan.length) return;
+    setLpgStore(LPG_STORAGE_KEYS.AGENTS, agents);
+    setLpgStore(LPG_STORAGE_KEYS.PANGKALAN, pangkalan);
+    const result = { source: 'FIRESTORE_REALTIME', agents, pangkalan };
+    window.dispatchEvent(new CustomEvent('lpg-master-updated', { detail: { source: result.source, agents: agents.length, pangkalan: pangkalan.length } }));
+    if (typeof callback === 'function') callback(result);
+  };
+  const unsubscribeAgents = db.collection('lpg_agents').onSnapshot({ includeMetadataChanges:true }, snapshot => {
+    if (snapshot.metadata.fromCache || snapshot.empty) return;
+    agents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    publish();
+  }, error => console.warn('[LPG Master] Listener agen:', error.code || error.message));
+  const unsubscribePangkalan = db.collection('lpg_pangkalan').onSnapshot({ includeMetadataChanges:true }, snapshot => {
+    if (snapshot.metadata.fromCache || snapshot.empty) return;
+    pangkalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    publish();
+  }, error => console.warn('[LPG Master] Listener pangkalan:', error.code || error.message));
+  return () => { unsubscribeAgents(); unsubscribePangkalan(); };
 }
 
 function generateUUID() {
@@ -104,12 +110,17 @@ function getLpgWitaDateKey(value = new Date()) {
 async function submitLpgLedgerEvent(eventData, userSession) {
   const firebaseUser = typeof auth !== 'undefined' && auth ? auth.currentUser : null;
   if (!firebaseUser || typeof db === 'undefined' || !db) {
-    return { ...processLpgEvent(eventData, userSession), persistence: 'LOCAL_ONLY' };
+    return { success:false, persistence:'SERVER_REQUIRED', message:'Transaksi membutuhkan koneksi dan sesi server yang aktif.' };
   }
+
+  if (!navigator.onLine) return { success:false, persistence:'SERVER_REQUIRED', message:'Transaksi membutuhkan koneksi server. Tidak ada catatan lokal yang dibuat.' };
 
   const quantity = Number(eventData.quantity);
   const delta = eventData.type === 'DISTRIBUTION' ? -quantity : quantity;
-  const clientEventId = eventData.clientEventId || generateUUID();
+  const stableKey = `${eventData.agentId}|${eventData.type}|${eventData.doNumber || eventData.clientEventId || generateUUID()}`;
+  let hash = 2166136261;
+  for (let i=0;i<stableKey.length;i++) { hash ^= stableKey.charCodeAt(i); hash = Math.imul(hash,16777619); }
+  const clientEventId = `EVT-${eventData.agentId}-${eventData.type}-${(hash>>>0).toString(16).padStart(8,'0')}`;
   const payload = {
     agentId: eventData.agentId,
     clientEventId,
@@ -127,15 +138,35 @@ async function submitLpgLedgerEvent(eventData, userSession) {
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
-  // Document ID = clientEventId. Rules melarang update sehingga submit ulang
-  // tidak dapat membuat transaksi kedua atau diam-diam mengganti payload.
-  db.collection('lpg_events').doc(clientEventId).set(payload).catch(error => {
-    console.error('[-] Sinkronisasi ledger LPG ditolak Firestore:', error.code);
-    window.dispatchEvent(new CustomEvent('lpg-ledger-write-error', {
-      detail: { clientEventId, code: error.code || 'unknown' }
-    }));
-  });
-  return { success: true, event: payload, persistence: 'FIRESTORE_QUEUED' };
+  const eventRef = db.collection('lpg_events').doc(clientEventId);
+  const balanceRef = db.collection('lpg_balances').doc(eventData.agentId);
+  const auditRef = db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`);
+  try {
+    const committedBalance = await db.runTransaction(async transaction => {
+      const [existingEvent,balanceDoc] = await Promise.all([transaction.get(eventRef),transaction.get(balanceRef)]);
+      if (existingEvent.exists) throw Object.assign(new Error('Nomor DO/transaksi sudah pernah dibukukan.'),{code:'already-exists'});
+      const before = balanceDoc.exists && Number.isFinite(Number(balanceDoc.data().filledCylinderBalance))
+        ? Number(balanceDoc.data().filledCylinderBalance) : 0;
+      const after = before + delta;
+      if (after < 0) throw Object.assign(new Error('Saldo stok tidak mencukupi untuk distribusi ini.'),{code:'failed-precondition'});
+      transaction.set(eventRef,payload);
+      transaction.set(balanceRef,{
+        agentId:eventData.agentId, filledCylinderBalance:after, lastEventId:clientEventId,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:firebaseUser.uid
+      },{merge:true});
+      transaction.set(auditRef,{
+        action:'LEDGER_POSTED', entityType:'LEDGER_EVENT', entityId:clientEventId,
+        agentId:eventData.agentId, actorUid:firebaseUser.uid, actorRole:userSession?.role || 'lpg_agent',
+        before:{filledCylinderBalance:before}, after:{filledCylinderBalance:after,type:eventData.type,quantity},
+        reason:'Transaksi LPG dibukukan secara atomik', createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      return after;
+    });
+    return { success:true,event:{...payload,id:clientEventId,status:'POSTED'},currentBalance:committedBalance,persistence:'FIRESTORE_COMMITTED' };
+  } catch (error) {
+    console.error('[LPG][FIRESTORE_WRITE_ERROR]',{operation:'submitLedger',agentId:eventData.agentId,code:error.code});
+    return { success:false,persistence:'SERVER_REJECTED',message:error.code==='already-exists'?'Nomor DO atau transaksi ini sudah pernah dibukukan.':error.message || 'Data gagal disimpan. Silakan coba kembali.' };
+  }
 }
 
 function firestoreTimestampToIso(value) {
@@ -143,17 +174,28 @@ function firestoreTimestampToIso(value) {
   return typeof value === 'string' ? value : null;
 }
 
+function getCanonicalLpgPoint(item) {
+  const point=item?.location?.point;
+  const latitude=Number(point?.latitude ?? item?.latitude ?? item?.lat);
+  const longitude=Number(point?.longitude ?? item?.longitude ?? item?.lng);
+  const verificationStatus=item?.location?.verificationStatus || (item?.gpsVerified === true ? 'verified' : item?.verificationStatus === 'VERIFIED' ? 'verified' : item?.verificationStatus === 'PENDING_ADMIN_VERIFICATION' ? 'needs_review' : item?.verificationStatus);
+  return Number.isFinite(latitude)&&Number.isFinite(longitude)&&latitude>=-90&&latitude<=90&&longitude>=-180&&longitude<=180
+    ? {latitude,longitude,accuracyM:Number(item?.location?.accuracyM),source:item?.location?.source || 'firestore_master',verificationStatus}
+    : null;
+}
+
 function subscribeAgentLedgerFirestore(agentId, callback) {
   if (!hasFirebaseLpgSession()) return null;
-  return db.collection('lpg_events').where('agentId', '==', agentId)
+  const unsubscribeEvents = db.collection('lpg_events').where('agentId', '==', agentId)
     .onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      if (snapshot.metadata.fromCache) return;
       const cloudEvents = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
           ...data,
           createdAt: firestoreTimestampToIso(data.createdAt) || data.effectiveAt,
-          status: doc.metadata.hasPendingWrites ? 'PENDING_SYNC' : 'FIRESTORE_SYNCED'
+          status: 'POSTED'
         };
       }).sort((a, b) => String(b.effectiveAt || b.createdAt).localeCompare(String(a.effectiveAt || a.createdAt)));
 
@@ -161,23 +203,24 @@ function subscribeAgentLedgerFirestore(agentId, callback) {
       const otherAgentEvents = allLocal.filter(item => item.agentId !== agentId);
       setLpgStore(LPG_STORAGE_KEYS.EVENTS, [...cloudEvents, ...otherAgentEvents]);
 
-      const balance = cloudEvents.reduce((sum, event) => sum + Number(event.delta || 0), 0);
-      const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
-      balances[agentId] = {
-        agentId,
-        filledCylinderBalance: balance,
-        hasStockAnomaly: balance < 0,
-        updatedAt: new Date().toISOString(),
-        source: 'FIRESTORE_LEDGER_SUM_DELTA'
-      };
-      setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
-      refreshLpgDashboardSummary();
-      if (typeof callback === 'function') callback(cloudEvents, snapshot.metadata.hasPendingWrites);
+      if (typeof callback === 'function') callback(cloudEvents, false);
     }, error => console.error('[-] Listener ledger Firestore gagal:', error.code));
+  const unsubscribeBalance = db.collection('lpg_balances').doc(agentId)
+    .onSnapshot({ includeMetadataChanges:true }, snapshot => {
+      if (snapshot.metadata.fromCache) return;
+      const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
+      if (snapshot.exists) balances[agentId] = {agentId,...snapshot.data(),source:'FIRESTORE_SERVER'};
+      else delete balances[agentId];
+      setLpgStore(LPG_STORAGE_KEYS.BALANCES,balances);
+      if (typeof callback === 'function') callback(getLpgStore(LPG_STORAGE_KEYS.EVENTS,[]),false);
+    }, error => console.error('[LPG][FIRESTORE_READ_ERROR]',{operation:'balance',agentId,code:error.code}));
+  return () => { unsubscribeEvents(); unsubscribeBalance(); };
 }
 
 // 3. LEDGER TRANSACTION PROCESSOR & IDEMPOTENCY
 function processLpgEvent(eventData, userSession) {
+  return { success:false, persistence:'DISABLED', message:'Pencatatan lokal dinonaktifkan. Gunakan transaksi Firestore resmi.' };
+  /* Legacy implementation retained temporarily below for migration review only.
   if (!eventData || !eventData.type || !eventData.agentId) {
     return { success: false, message: "Payload event tidak lengkap." };
   }
@@ -242,7 +285,7 @@ function processLpgEvent(eventData, userSession) {
     agentBalance.lastPostedEventAt = new Date().toISOString();
     agentBalance.updatedAt = new Date().toISOString();
     
-    newEvent.status = "LOCAL_ONLY";
+    newEvent.status = "LEGACY_DISABLED";
     newEvent.localAppliedAt = new Date().toISOString();
   } 
   else if (eventData.type === 'DISTRIBUTION') {
@@ -283,7 +326,7 @@ function processLpgEvent(eventData, userSession) {
       address: targetPangkalan.address
     };
 
-    newEvent.status = "LOCAL_ONLY";
+    newEvent.status = "LEGACY_DISABLED";
     newEvent.localAppliedAt = new Date().toISOString();
   }
 
@@ -308,6 +351,7 @@ function processLpgEvent(eventData, userSession) {
     event: newEvent,
     currentBalance: agentBalance.filledCylinderBalance
   };
+  */
 }
 
 // 4. KELOLA PANGKALAN OLEH AGEN (CRUD + AUDIT DIFF)
@@ -322,7 +366,8 @@ function hasFirebaseLpgSession() {
 
 function subscribeAgentPangkalanFirestore(agentId, callback) {
   if (!hasFirebaseLpgSession()) return null;
-  return db.collection('lpg_pangkalan').where('agentId', '==', agentId).onSnapshot(snapshot => {
+  return db.collection('lpg_pangkalan').where('agentId', '==', agentId).onSnapshot({ includeMetadataChanges:true },snapshot => {
+    if (snapshot.metadata.fromCache) return;
     const cloudItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const allLocal = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
     const otherAgents = allLocal.filter(item => item.agentId !== agentId);
@@ -332,14 +377,14 @@ function subscribeAgentPangkalanFirestore(agentId, callback) {
 }
 
 async function addAgentPangkalanFirestore(agentId, data, session) {
-  if (!hasFirebaseLpgSession()) return { ...addAgentPangkalan(agentId, data, session), persistence: 'LOCAL_ONLY' };
+  if (!hasFirebaseLpgSession() || !navigator.onLine) return { success:false,persistence:'SERVER_REQUIRED',message:'Pengajuan membutuhkan koneksi server.' };
   const user = auth.currentUser;
-  const docId = `PG-${generateUUID()}`;
-  const ref = db.collection('lpg_pangkalan').doc(docId);
+  const docId = `REQ-${generateUUID()}`;
+  const ref = db.collection('lpg_outlet_change_requests').doc(docId);
   const auditRef = db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`);
   const normalizedName = (data.name || '').trim().toUpperCase();
   const payload = {
-    id: docId,
+    requestId: docId, requestType:'CREATE_OUTLET',
     agentId,
     agentName: session.agentName || null,
     name: (data.name || '').trim(),
@@ -350,13 +395,7 @@ async function addAgentPangkalanFirestore(agentId, data, session) {
     kecamatan: data.kecamatan,
     desaKelurahan: (data.desaKelurahan || '').trim(),
     address: (data.address || '').trim(),
-    latitude: Number.isFinite(Number(data.latitude)) ? Number(data.latitude) : null,
-    longitude: Number.isFinite(Number(data.longitude)) ? Number(data.longitude) : null,
-    monthlyAllocation: Number.isSafeInteger(Number(data.monthlyAllocation)) ? Number(data.monthlyAllocation) : null,
-    status: 'ACTIVE',
-    isDeleted: false,
-    verificationStatus: 'PENDING_ADMIN_VERIFICATION',
-    sourceType: 'AGENT_CREATED',
+    status: 'PENDING', verificationStatus: 'PENDING_ADMIN_REVIEW', sourceType: 'AGENT_REQUEST',
     sourceDate: new Date().toISOString().slice(0, 10),
     sourceOriginal: {},
     createdBy: user.uid,
@@ -367,18 +406,18 @@ async function addAgentPangkalanFirestore(agentId, data, session) {
   const batch = db.batch();
   batch.set(ref, payload);
   batch.set(auditRef, {
-    action: 'PANGKALAN_CREATE', entityType: 'PANGKALAN', entityId: docId,
+    action: 'PANGKALAN_CREATE_REQUEST', entityType: 'CHANGE_REQUEST', entityId: docId,
     agentId, actorUid: user.uid, actorRole: session.role, before: null,
     after: { name: payload.name, status: payload.status },
     reason: 'Pendaftaran pangkalan baru oleh agen',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
   await batch.commit();
-  return { success: true, pangkalan: payload, persistence: 'FIRESTORE' };
+  return { success: true, request: payload, message:'Pengajuan pangkalan tersimpan dan menunggu verifikasi administrator.', persistence: 'FIRESTORE_COMMITTED' };
 }
 
 async function editAgentPangkalanFirestore(agentId, pangkalanId, fields, session) {
-  if (!hasFirebaseLpgSession()) return { ...editAgentPangkalan(agentId, pangkalanId, fields, session), persistence: 'LOCAL_ONLY' };
+  if (!hasFirebaseLpgSession() || !navigator.onLine) return { success:false,persistence:'SERVER_REQUIRED',message:'Perubahan membutuhkan koneksi server.' };
   const current = getAgentPangkalanList(agentId).find(item => item.id === pangkalanId);
   if (!current) return { success: false, message: 'Pangkalan tidak ditemukan pada data agen.' };
   const user = auth.currentUser;
@@ -386,7 +425,7 @@ async function editAgentPangkalanFirestore(agentId, pangkalanId, fields, session
     name: fields.name.trim(), normalizedName: fields.name.trim().toUpperCase(),
     ownerName: fields.ownerName || null, phone: fields.phone || null,
     kecamatan: fields.kecamatan, desaKelurahan: fields.desaKelurahan,
-    address: fields.address, monthlyAllocation: Number(fields.monthlyAllocation) || null,
+    address: fields.address,
     updatedBy: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   const batch = db.batch();
@@ -404,26 +443,52 @@ async function editAgentPangkalanFirestore(agentId, pangkalanId, fields, session
 }
 
 async function softDeleteAgentPangkalanFirestore(agentId, pangkalanId, reason, session) {
-  if (!hasFirebaseLpgSession()) return { ...softDeleteAgentPangkalan(agentId, pangkalanId, reason, session), persistence: 'LOCAL_ONLY' };
+  if (!hasFirebaseLpgSession() || !navigator.onLine) return { success:false,persistence:'SERVER_REQUIRED',message:'Pengajuan membutuhkan koneksi server.' };
   const current = getAgentPangkalanList(agentId).find(item => item.id === pangkalanId);
   if (!current) return { success: false, message: 'Pangkalan tidak ditemukan pada data agen.' };
   const user = auth.currentUser;
-  const update = {
-    status: 'DELETED', isDeleted: true, deleteReason: reason.trim(),
-    deletedBy: user.uid, deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedBy: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  const requestId=`REQ-${generateUUID()}`;
+  const update = {requestId,requestType:'DEACTIVATE_OUTLET',outletId:pangkalanId,agentId,status:'PENDING',reason:reason.trim(),createdBy:user.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
   const batch = db.batch();
-  batch.update(db.collection('lpg_pangkalan').doc(pangkalanId), update);
+  batch.set(db.collection('lpg_outlet_change_requests').doc(requestId), update);
   batch.set(db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`), {
-    action: 'PANGKALAN_DELETE', entityType: 'PANGKALAN', entityId: pangkalanId,
+    action: 'PANGKALAN_DEACTIVATE_REQUEST', entityType: 'CHANGE_REQUEST', entityId: requestId,
     agentId, actorUid: user.uid, actorRole: session.role,
     before: { status: current.status, isDeleted: current.isDeleted === true },
-    after: { status: 'DELETED', isDeleted: true }, reason: reason.trim(),
+    after: { outletId:pangkalanId,status:'PENDING' }, reason: reason.trim(),
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
   await batch.commit();
-  return { success: true, message: `Pangkalan "${current.name}" dinonaktifkan dan histori tetap tersimpan.`, persistence: 'FIRESTORE' };
+  return { success: true, message: `Permohonan penonaktifan "${current.name}" dikirim untuk verifikasi administrator.`, persistence: 'FIRESTORE_COMMITTED' };
+}
+
+async function updateLpgLocationFirestore(entityType, entityId, agentId, captured, session) {
+  if (!hasFirebaseLpgSession() || !navigator.onLine) return {success:false,message:'Pembaruan GPS membutuhkan koneksi server.'};
+  if (!captured || !Number.isFinite(captured.latitude) || !Number.isFinite(captured.longitude) || !Number.isFinite(captured.accuracyM)) return {success:false,message:'Hasil GPS tidak valid.'};
+  if (captured.accuracyM > 50) return {success:false,message:'Akurasi GPS terlalu rendah. Silakan ambil ulang di area terbuka.'};
+  const user=auth.currentUser;
+  const collectionName=entityType==='agent'?'lpg_agents':'lpg_pangkalan';
+  const ref=db.collection(collectionName).doc(entityId);
+  const auditRef=db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`);
+  try {
+    await db.runTransaction(async transaction=>{
+      const snapshot=await transaction.get(ref);
+      if(!snapshot.exists) throw Object.assign(new Error('Data tidak ditemukan di server.'),{code:'not-found'});
+      const current=snapshot.data();
+      if(entityType!=='agent' && current.agentId!==agentId) throw Object.assign(new Error('Pangkalan bukan binaan agen ini.'),{code:'permission-denied'});
+      const location={
+        point:new firebase.firestore.GeoPoint(captured.latitude,captured.longitude),accuracyM:captured.accuracyM,
+        source:'device_gps',capturedAt:firebase.firestore.FieldValue.serverTimestamp(),capturedByUid:user.uid,
+        verificationStatus:session?.canAccessAdmin?'admin_captured':'agent_captured'
+      };
+      transaction.update(ref,{location,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:user.uid,version:Number(current.version||0)+1});
+      transaction.set(auditRef,{action:'LOCATION_UPDATE',entityType:entityType==='agent'?'AGENT':'PANGKALAN',entityId,agentId,actorUid:user.uid,actorRole:session?.role||'lpg_agent',before:{location:current.location||null},after:{latitude:captured.latitude,longitude:captured.longitude,accuracyM:captured.accuracyM,verificationStatus:location.verificationStatus},reason:'Lokasi diambil dari GPS perangkat setelah konfirmasi pengguna',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    });
+    return {success:true,persistence:'FIRESTORE_COMMITTED',location:captured,status:session?.canAccessAdmin?'admin_captured':'agent_captured'};
+  } catch(error) {
+    console.error('[LPG][GPS_WRITE_ERROR]',{entityType,entityId,code:error.code});
+    return {success:false,message:error.message||'Lokasi gagal disimpan. Silakan coba kembali.'};
+  }
 }
 
 function addAgentPangkalan(agentId, pangkalanData, userSession) {
@@ -687,11 +752,14 @@ function refreshLpgDashboardSummary() {
   return summary;
 }
 
-// Inisialisasi Otomatis saat skrip dimuat
+// Store hanya diproyeksikan dari Firestore oleh halaman pemakai.
 initLpgDatabase();
 
 if (typeof window !== 'undefined') {
   window.initLpgDatabase = initLpgDatabase;
+  window.loadCanonicalLpgMasterOnce = loadCanonicalLpgMasterOnce;
+  window.subscribeCanonicalLpgMaster = subscribeCanonicalLpgMaster;
+  window.LPG_REQUIRED_MASTER_VERSION = LPG_REQUIRED_MASTER_VERSION;
   window.processLpgEvent = processLpgEvent;
   window.submitLpgLedgerEvent = submitLpgLedgerEvent;
   window.getAgentPangkalanList = getAgentPangkalanList;
@@ -700,11 +768,12 @@ if (typeof window !== 'undefined') {
   window.addAgentPangkalanFirestore = addAgentPangkalanFirestore;
   window.editAgentPangkalanFirestore = editAgentPangkalanFirestore;
   window.softDeleteAgentPangkalanFirestore = softDeleteAgentPangkalanFirestore;
-  window.addAgentPangkalan = addAgentPangkalan;
-  window.editAgentPangkalan = editAgentPangkalan;
-  window.softDeleteAgentPangkalan = softDeleteAgentPangkalan;
+  window.updateLpgLocationFirestore = updateLpgLocationFirestore;
+  // addAgentPangkalan, editAgentPangkalan, softDeleteAgentPangkalan (localStorage legacy)
+  // tidak diekspor karena seluruh operasi pangkalan kini melalui Firestore.
   window.refreshLpgDashboardSummary = refreshLpgDashboardSummary;
   window.getLpgStore = getLpgStore;
   window.LPG_STORAGE_KEYS = LPG_STORAGE_KEYS;
   window.isLocallyAppliedLpgEvent = isLocallyAppliedLpgEvent;
+  window.getCanonicalLpgPoint = getCanonicalLpgPoint;
 }

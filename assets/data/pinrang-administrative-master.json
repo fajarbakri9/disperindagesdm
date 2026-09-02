@@ -1,0 +1,30 @@
+{
+  "version": "2026-09-02-pemkab-statistik-sektoral-2024-v1",
+  "jurisdiction": "Kabupaten Pinrang",
+  "province": "Sulawesi Selatan",
+  "totals": { "kecamatan": 12, "desa": 69, "kelurahan": 40, "desaKelurahan": 109 },
+  "primarySource": {
+    "title": "Statistik Sektoral Kabupaten Pinrang 2024, Tabel 3.6 Daftar Desa/Kelurahan di Kabupaten Pinrang",
+    "publisher": "Pemerintah Kabupaten Pinrang",
+    "url": "https://data.pinrangkab.go.id/dataset/f35dcf04-d820-460d-ac3c-75b53d4326a1/resource/3f64fe10-b19a-47a9-a477-d068ef554505/download/buku-statistik-sektoral-tahun-2024.pdf"
+  },
+  "verificationSource": {
+    "title": "Jumlah Desa/Kelurahan Menurut Kecamatan",
+    "publisher": "BPS Kabupaten Pinrang",
+    "url": "https://pinrangkab.bps.go.id/indicator/101/177/1/jumlah-desa-kelurahan-"
+  },
+  "districts": [
+    {"name":"Watang Sawitto","villages":[["Bentengnge","Kelurahan"],["Jaya","Kelurahan"],["Macorawalie","Kelurahan"],["Penrang","Kelurahan"],["Salo","Kelurahan"],["Sawitto","Kelurahan"],["Siparappe","Kelurahan"],["Sipatokkong","Kelurahan"]]},
+    {"name":"Tiroang","villages":[["Fakkie","Kelurahan"],["Marawi","Kelurahan"],["Mattiro Deceng","Kelurahan"],["Pammase","Kelurahan"],["Samaturue","Kelurahan"],["Tiroang","Kelurahan"]]},
+    {"name":"Paleteang","villages":[["Benteng Sawitto","Kelurahan"],["Laleng Bata","Kelurahan"],["Macinnae","Kelurahan"],["Mamminasae","Kelurahan"],["Pacongang","Kelurahan"],["Temmassarangnge","Kelurahan"]]},
+    {"name":"Mattiro Bulu","villages":[["Alitta","Desa"],["Bunga","Desa"],["Makkawaru","Desa"],["Manarang","Kelurahan"],["Marannu","Desa"],["Padaelo","Desa"],["Padaidi","Kelurahan"],["Padakkalawa","Desa"],["Pananrang","Desa"]]},
+    {"name":"Lanrisang","villages":[["Amassangeng","Desa"],["Barang Palie","Desa"],["Lanrisang","Kelurahan"],["Lerang","Desa"],["Mallongi-Longi","Desa"],["Samaulue","Desa"],["Wae Tuoe","Desa"]]},
+    {"name":"Suppa","villages":[["Lero","Desa"],["Lotang Salo","Desa"],["Maritengngae","Desa"],["Polewali","Desa"],["Tasiwalie","Desa"],["Tellumpanua","Kelurahan"],["Ujung Labuang","Desa"],["Watang Pulu","Desa"],["Watang Suppa","Kelurahan"],["Wiring Tasi","Desa"]]},
+    {"name":"Mattiro Sompe","villages":[["Langnga","Kelurahan"],["Massulowalie","Desa"],["Mattirotasi","Desa"],["Mattombong","Desa"],["Mattongang Tongang","Desa"],["Pallameang","Kelurahan"],["Patobong","Desa"],["Samaenre","Desa"],["Siwolong Polong","Desa"]]},
+    {"name":"Cempa","villages":[["Cempa","Kelurahan"],["Mangki","Desa"],["Mattunru Tunrue","Desa"],["Salipolo","Desa"],["Sikkuale","Desa"],["Tadangpalie","Desa"],["Tanra Tuo","Desa"]]},
+    {"name":"Patampanua","villages":[["Benteng","Kelurahan"],["Leppangang","Desa"],["Maccirinna","Kelurahan"],["Malimpung","Desa"],["Masolo","Desa"],["Mattiro Ade","Desa"],["Padang Loang","Desa"],["Pincara","Desa"],["Sipatuo","Desa"],["Teppo","Kelurahan"],["Tonyamang","Kelurahan"]]},
+    {"name":"Duampanua","villages":[["Bababinanga","Desa"],["Barugae","Desa"],["Battusawe","Desa"],["Bittoeng","Kelurahan"],["Bungi","Desa"],["Data","Kelurahan"],["Kaballangang","Desa"],["Kaliang","Desa"],["Katomporang","Desa"],["Lampa","Kelurahan"],["Maroneng","Desa"],["Massewae","Desa"],["Paria","Desa"],["Pekkabata","Kelurahan"],["Tatae","Kelurahan"]]},
+    {"name":"Lembang","villages":[["Bakaru","Desa"],["Basseang","Desa"],["Benteng Paremba","Desa"],["Betteng","Kelurahan"],["Binanga Karaeng","Desa"],["Kariango","Desa"],["Lembang Mesakada","Desa"],["Letta","Desa"],["Pakeng","Desa"],["Pangaparang","Desa"],["Rajang","Desa"],["Sabbang Paru","Desa"],["Sali-Sali","Desa"],["Suppirang","Desa"],["Tadokkong","Kelurahan"],["Ulusaddang","Desa"]]},
+    {"name":"Batulappa","villages":[["Batulappa","Desa"],["Kassa","Kelurahan"],["Kaseralau","Desa"],["Tapporang","Desa"],["Watang Kassa","Desa"]]}
+  ]
+}

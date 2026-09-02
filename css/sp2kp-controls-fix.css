@@ -1,0 +1,50 @@
+/* Prevent the commodity and date controls from colliding at desktop widths. */
+.sp2kp-visual-head {
+  gap: 32px;
+}
+
+.sp2kp-visual-head > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sp2kp-visual-controls {
+  grid-template-columns: minmax(0, 260px) minmax(150px, 160px);
+  gap: 16px;
+  flex: 0 0 436px;
+  width: 436px;
+  max-width: 100%;
+}
+
+.sp2kp-visual-controls label,
+.sp2kp-visual-controls select,
+.sp2kp-visual-controls input {
+  min-width: 0;
+}
+
+.sp2kp-visual-controls select,
+.sp2kp-visual-controls input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (max-width: 1100px) {
+  .sp2kp-visual-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .sp2kp-visual-controls {
+    width: 100%;
+    flex-basis: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 180px);
+  }
+}
+
+@media (max-width: 560px) {
+  .sp2kp-visual-controls {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

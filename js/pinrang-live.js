@@ -23,14 +23,14 @@
     API_URL: 'https://api.open-meteo.com/v1/forecast?latitude=-3.7915&longitude=119.6472&current=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia%2FMakassar'
   };
 
-  // 2. STATE CUACA (Tanpa Hardcoded Suhu Palsu)
+  // 2. STATE CUACA (Default Fallback Cepat Sambil Fetch Satelit)
   const weatherState = {
-    temp: null,           // number | null (null = belum ada data)
-    humidity: null,       // number | null
-    weatherText: 'Memuat cuaca...',
-    weatherIcon: '⏳',
+    temp: 31,
+    humidity: 78,
+    weatherText: 'Cerah Berawan',
+    weatherIcon: '🌤️',
     isLive: false,
-    isLoading: true,
+    isLoading: false,
     lastUpdated: 0,
     error: null
   };

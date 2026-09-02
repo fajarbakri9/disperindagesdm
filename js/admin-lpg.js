@@ -1,6 +1,6 @@
 // ==============================================================================
 // ADMIN LPG MONITORING CONTROLLER
-// Manajemen 681 Pangkalan, 8 Agen Resmi, Ledger & Audit Trail Disperindag Pinrang
+// Manajemen master LPG resmi, ledger, dan audit trail Disperindag Pinrang
 // ==============================================================================
 
 let adminLpgCurrentPage = 1;
@@ -13,7 +13,8 @@ let unsubscribeAdminLpgEvents = null;
 let unsubscribeAdminLpgAgents = null;
 let unsubscribeAdminLpgAlerts = null;
 let unsubscribeAdminLpgSettings = null;
-const DEFAULT_LPG_SETTINGS = Object.freeze({ reportingNormalHours: 12, reportingLateHours: 24, minimumStockCylinders: 100, noDeliveryAlertDays: 7 });
+let unsubscribeAdminLpgBalances = null;
+const DEFAULT_LPG_SETTINGS = Object.freeze({});
 const LPG_UI_LABELS = Object.freeze({
   OPEN: 'Belum Ditangani', ACKNOWLEDGED: 'Sedang Ditindaklanjuti', RESOLVED: 'Selesai', DISMISSED: 'Diabaikan',
   CRITICAL: 'Kritis', WARNING: 'Peringatan', INFO: 'Informasi',
@@ -29,11 +30,12 @@ function getLpgUiLabel(code) {
   return LPG_UI_LABELS[code] || String(code || '-').replaceAll('_', ' ');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initAdminLpgMonitoring();
-});
+let isLpgMonitoringInitialized = false;
 
-function initAdminLpgMonitoring() {
+window.initAdminLpgMonitoring = function() {
+  if (isLpgMonitoringInitialized) return;
+  isLpgMonitoringInitialized = true;
+
   const todayWita = getLpgWitaDateKey();
   const reportDate = document.getElementById('adminLpgReportDate');
   const distributionDate = document.getElementById('adminLpgDistributionReportDate');
@@ -41,6 +43,7 @@ function initAdminLpgMonitoring() {
   if (reportDate && !reportDate.value) reportDate.value = todayWita;
   if (distributionDate && !distributionDate.value) distributionDate.value = todayWita;
   if (reportMonth && !reportMonth.value) reportMonth.value = todayWita.slice(0, 7);
+  
   refreshAdminLpgStats();
   renderAdminLpgPangkalanTable();
   renderAdminLpgAgentsTable();
@@ -56,26 +59,30 @@ function initAdminLpgMonitoring() {
       if (user && canMonitorLpg && !unsubscribeAdminLpgPangkalan) subscribeAdminLpgFirestore();
     });
   }
-}
+};
 
 function subscribeAdminLpgFirestore() {
   if (typeof db === 'undefined' || !db || !auth.currentUser) return;
 
-  unsubscribeAdminLpgPangkalan = db.collection('lpg_pangkalan').onSnapshot(snapshot => {
+  unsubscribeAdminLpgPangkalan = db.collection('lpg_pangkalan').onSnapshot({includeMetadataChanges:true},snapshot => {
+    if (snapshot.metadata.fromCache || snapshot.empty) return;
     const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setLpgStore(LPG_STORAGE_KEYS.PANGKALAN, items);
     refreshAdminLpgStats();
     renderAdminLpgPangkalanTable();
     renderAdminLpgAgentsTable();
     publishLpgDashboardSnapshot();
+    window.dispatchEvent(new CustomEvent('lpg-master-updated', { detail: { source: 'FIRESTORE_ADMIN', entity: 'pangkalan', count: items.length } }));
   }, error => console.error('[-] Sinkron master pangkalan admin gagal:', error.code));
 
-  unsubscribeAdminLpgAgents = db.collection('lpg_agents').onSnapshot(snapshot => {
+  unsubscribeAdminLpgAgents = db.collection('lpg_agents').onSnapshot({includeMetadataChanges:true},snapshot => {
+    if (snapshot.metadata.fromCache || snapshot.empty) return;
     const agents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setLpgStore(LPG_STORAGE_KEYS.AGENTS, agents);
     refreshAdminLpgStats();
     renderAdminLpgAgentsTable();
     publishLpgDashboardSnapshot();
+    window.dispatchEvent(new CustomEvent('lpg-master-updated', { detail: { source: 'FIRESTORE_ADMIN', entity: 'agents', count: agents.length } }));
   }, error => console.error('[-] Sinkron master agen admin gagal:', error.code));
 
   unsubscribeAdminLpgAudit = db.collection('lpg_audit_logs')
@@ -94,33 +101,33 @@ function subscribeAdminLpgFirestore() {
       renderAdminLpgAuditTable();
     }, error => console.error('[-] Sinkron audit LPG admin gagal:', error.code));
 
-  unsubscribeAdminLpgEvents = db.collection('lpg_events').onSnapshot(snapshot => {
+  unsubscribeAdminLpgEvents = db.collection('lpg_events').onSnapshot({includeMetadataChanges:true},snapshot => {
+    if(snapshot.metadata.fromCache)return;
     const events = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id, ...data,
         createdAt: data.createdAt && typeof data.createdAt.toDate === 'function'
           ? data.createdAt.toDate().toISOString() : data.createdAt,
-        status: doc.metadata.hasPendingWrites ? 'PENDING_SYNC' : 'FIRESTORE_SYNCED'
+        status: 'POSTED'
       };
     }).sort((a, b) => String(b.effectiveAt || b.createdAt).localeCompare(String(a.effectiveAt || a.createdAt)));
     setLpgStore(LPG_STORAGE_KEYS.EVENTS, events);
-    const balances = {};
-    events.forEach(event => {
-      if (!balances[event.agentId]) balances[event.agentId] = { agentId: event.agentId, filledCylinderBalance: 0 };
-      balances[event.agentId].filledCylinderBalance += Number(event.delta || 0);
-    });
-    Object.values(balances).forEach(balance => {
-      balance.hasStockAnomaly = balance.filledCylinderBalance < 0;
-      balance.source = 'FIRESTORE_LEDGER_SUM_DELTA';
-      balance.updatedAt = new Date().toISOString();
-    });
-    setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
     refreshAdminLpgStats();
     renderAdminLpgAgentsTable();
     renderAdminLpgLedgerTable();
     publishLpgDashboardSnapshot();
   }, error => console.error('[-] Sinkron ledger LPG admin gagal:', error.code));
+
+  unsubscribeAdminLpgBalances = db.collection('lpg_balances').onSnapshot({includeMetadataChanges:true}, snapshot => {
+    if (snapshot.metadata.fromCache) return;
+    const balances = {};
+    snapshot.docs.forEach(doc => { balances[doc.id] = { agentId: doc.id, ...doc.data(), source: 'FIRESTORE_SERVER' }; });
+    setLpgStore(LPG_STORAGE_KEYS.BALANCES, balances);
+    refreshAdminLpgStats();
+    renderAdminLpgAgentsTable();
+    publishLpgDashboardSnapshot();
+  }, error => console.error('[LPG][FIRESTORE_READ_ERROR]', { operation:'adminBalances', code:error.code }));
 
   unsubscribeAdminLpgAlerts = db.collection('lpg_alerts').onSnapshot(snapshot => {
     const alerts = snapshot.docs.map(doc => {
@@ -132,8 +139,9 @@ function subscribeAdminLpgFirestore() {
     renderAdminLpgAlertTable();
   }, error => console.error('[-] Sinkron alert LPG admin gagal:', error.code));
 
-  unsubscribeAdminLpgSettings = db.collection('lpg_settings').doc('operational').onSnapshot(doc => {
-    const settings = doc.exists ? { ...DEFAULT_LPG_SETTINGS, ...doc.data() } : { ...DEFAULT_LPG_SETTINGS };
+  unsubscribeAdminLpgSettings = db.collection('lpg_settings').doc('operational').onSnapshot({includeMetadataChanges:true},doc => {
+    if(doc.metadata.fromCache)return;
+    const settings = doc.exists ? doc.data() : {};
     setLpgStore(LPG_STORAGE_KEYS.SETTINGS, settings);
     renderAdminLpgSettings();
     renderAdminLpgAgentsTable();
@@ -249,6 +257,25 @@ function renderAdminLpgAlerts() {
 
 function escapeLpgAlertHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
+
+const ADMIN_PINRANG_COORDINATE_BOUNDS = Object.freeze({ south: -4.35, north: -3.10, west: 119.05, east: 120.20 });
+
+function parseAdminPinrangCoordinatePair(latitudeValue, longitudeValue) {
+  const latitude = Number(latitudeValue);
+  const longitude = Number(longitudeValue);
+  const bounds = ADMIN_PINRANG_COORDINATE_BOUNDS;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    throw new Error('Latitude dan longitude wajib berupa angka desimal yang lengkap.');
+  }
+  if (latitude < bounds.south || latitude > bounds.north || longitude < bounds.west || longitude > bounds.east) {
+    throw new Error('Koordinat berada di luar wilayah valid Kabupaten Pinrang. Periksa kembali titik pada peta.');
+  }
+  return { latitude, longitude };
+}
+
+function buildAdminGoogleMapsUrl(latitude, longitude) {
+  return `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
 }
 
 function getAdminLpgAlertCandidates() {
@@ -445,6 +472,13 @@ window.renderAdminLpgPangkalanTable = function() {
     const isDeleted = p.isDeleted || p.status === 'DELETED';
     const isPending = p.verificationStatus === 'PENDING_ADMIN_VERIFICATION';
     const hasPhuFlag = p.reviewFlag === 'POSSIBLE_PHU_AUG_2026';
+    const hasValidCoordinate = Number.isFinite(Number(p.latitude ?? p.lat)) && Number.isFinite(Number(p.longitude ?? p.lng));
+    const locationVerified = p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED';
+    const locationBadge = !hasValidCoordinate
+      ? '<span style="display:block;margin-top:5px;color:#B91C1C;font-size:.66rem;font-weight:800;">📍 Belum dipetakan</span>'
+      : locationVerified
+        ? '<span style="display:block;margin-top:5px;color:#047857;font-size:.66rem;font-weight:800;">📍 GPS terverifikasi</span>'
+        : '<span style="display:block;margin-top:5px;color:#B45309;font-size:.66rem;font-weight:800;">📍 Titik kandidat</span>';
 
     let statusBadge = `<span style="background:#ECFDF5; color:#059669; font-weight:800; font-size:0.72rem; padding:3px 8px; border-radius:4px;">✓ Terverifikasi</span>`;
     if (isDeleted) {
@@ -479,6 +513,7 @@ window.renderAdminLpgPangkalanTable = function() {
         </td>
         <td>
           ${statusBadge}
+          ${locationBadge}
         </td>
         <td style="text-align: center;">
           <button type="button" onclick="openAdminPangkalanActionMenu('${p.id}')" class="btn-outline" style="padding:6px 11px;font-size:.74rem;white-space:nowrap;">Tindakan ▾</button>
@@ -592,13 +627,14 @@ window.openAdminPangkalanActionMenu = function(pangkalanId) {
   const options = [{ value: 'DETAIL', label: 'Lihat Detail dan Jejak Sumber' }];
   if (isDeleted) options.unshift({ value: 'RESTORE', label: 'Pulihkan Pangkalan' });
   if (!isDeleted && item.verificationStatus === 'PENDING_ADMIN_VERIFICATION') options.unshift({ value: 'VERIFY', label: 'Verifikasi Pangkalan' });
+  if (!isDeleted) options.push({ value: 'LOCATION', label: 'Edit Lokasi & Koordinat' });
   if (!isDeleted) options.push({ value: 'TRANSFER', label: 'Pindahkan ke Agen Lain' });
   if (!isDeleted && item.reviewFlag === 'POSSIBLE_PHU_AUG_2026') options.push({ value: 'PHU', label: 'Tindak Lanjut Review PHU' });
   CustomModal.form({
     title: `Tindakan: ${item.name}`, icon: '⚙️', submitText: 'Lanjutkan',
     fields: [{ name: 'action', label: 'Pilih Tindakan', type: 'select', required: true, options }],
     onSubmit: values => {
-      const handlers = { DETAIL: adminDetailPangkalan, RESTORE: adminRestorePangkalan, VERIFY: adminVerifyPangkalan, TRANSFER: openAdminTransferPangkalan, PHU: adminResolvePhuFlag };
+      const handlers = { DETAIL: adminDetailPangkalan, LOCATION: openAdminEditPangkalanLocation, RESTORE: adminRestorePangkalan, VERIFY: adminVerifyPangkalan, TRANSFER: openAdminTransferPangkalan, PHU: adminResolvePhuFlag };
       if (handlers[values.action]) handlers[values.action](pangkalanId);
     }
   });
@@ -877,18 +913,110 @@ function renderAdminLpgAgentsTable() {
           <div style="font-weight: 800; color: #0F172A; font-size: 0.88rem;">${ag.name}</div>
           <div style="font-size: 0.72rem; color: #1D4ED8; font-weight: 700;">Kode: ${ag.id}</div>
         </td>
-        <td style="font-size: 0.82rem; color: #475569;">${ag.address || 'Kabupaten Pinrang'}</td>
+        <td style="font-size: 0.82rem; color: #475569;">${ag.address || 'Alamat belum dilengkapi'}<br><span style="font-size:.67rem;font-weight:800;color:${Number.isFinite(Number(ag.latitude)) && Number.isFinite(Number(ag.longitude)) ? (ag.gpsVerified ? '#047857' : '#B45309') : '#B91C1C'};">${Number.isFinite(Number(ag.latitude)) && Number.isFinite(Number(ag.longitude)) ? (ag.gpsVerified ? '📍 GPS terverifikasi' : '📍 Titik kandidat') : '📍 Belum dipetakan'}</span></td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #334155;">${agPangkalan.length} Pangkalan</td>
         <td style="font-weight:900;font-size:.95rem;color:${stockColor};">${bal.toLocaleString('id-ID')} Tabung<br><span style="font-size:.68rem;">${getLpgUiLabel(stockStatus)}</span></td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #059669;">+${inToday.toLocaleString('id-ID')}</td>
         <td style="font-weight: 800; font-size: 0.86rem; color: #2563EB;">-${outToday.toLocaleString('id-ID')}</td>
         <td>${statusReportBadge}</td>
+        <td style="text-align:center;"><button type="button" class="btn-outline" onclick="openAdminEditAgentLocation('${ag.id}')" style="padding:6px 10px;font-size:.72rem;white-space:nowrap;">📍 Edit Lokasi</button></td>
       </tr>
     `;
   }).join('');
 }
 
-// 5.1 REGISTRASI AGEN KE-9 / REKONSILIASI AGEN BARU
+window.openAdminEditAgentLocation = function(agentId) {
+  const agent = getLpgStore(LPG_STORAGE_KEYS.AGENTS, []).find(item => item.id === agentId);
+  if (!agent) return;
+  CustomModal.form({
+    title: 'Edit Lokasi Agen LPG 3 Kg', icon: '📍', submitText: 'Simpan & Sinkronkan', width: '680px',
+    fields: [
+      { name: 'address', label: 'Alamat Lengkap', type: 'textarea', rows: 2, required: true, value: agent.address || '' },
+      { name: 'kecamatan', label: 'Kecamatan', type: 'text', required: true, value: agent.kecamatan || '' },
+      { name: 'desaKelurahan', label: 'Kelurahan / Desa', type: 'text', required: true, value: agent.desaKelurahan || agent.kelurahan || agent.desa || '' },
+      { name: 'latitude', label: 'Latitude', type: 'number', required: true, value: agent.latitude ?? '', placeholder: 'Contoh: -3.78521', step: 'any' },
+      { name: 'longitude', label: 'Longitude', type: 'number', required: true, value: agent.longitude ?? '', placeholder: 'Contoh: 119.65218', step: 'any' },
+      { name: 'plusCode', label: 'Plus Code (opsional)', type: 'text', value: agent.plusCode || '' },
+      { name: 'googleMapsUrl', label: 'Tautan Google Maps (opsional)', type: 'url', value: agent.googleMapsUrl || '' },
+      { name: 'coordinateStatus', label: 'Status Verifikasi Titik', type: 'select', required: true, value: agent.coordinateStatus || (agent.gpsVerified ? 'TERVERIFIKASI_FAKTUAL' : 'KANDIDAT_PERLU_VERIFIKASI_FAKTUAL'), options: [
+        { value: 'KANDIDAT_PERLU_VERIFIKASI_FAKTUAL', label: 'Kandidat — perlu verifikasi lapangan' },
+        { value: 'TERVERIFIKASI_FAKTUAL', label: 'Terverifikasi faktual / GPS' }
+      ] },
+      { name: 'coordinateNote', label: 'Dasar Pembaruan / Catatan Verifikasi', type: 'textarea', rows: 3, required: true, value: agent.coordinateNote || '', placeholder: 'Cantumkan sumber koordinat atau hasil verifikasi lapangan.' }
+    ],
+    onSubmit: async values => {
+      if (!auth?.currentUser || !db) throw new Error('Sesi Firebase Admin tidak tersedia. Silakan login ulang.');
+      const coordinates = parseAdminPinrangCoordinatePair(values.latitude, values.longitude);
+      const verified = values.coordinateStatus === 'TERVERIFIKASI_FAKTUAL';
+      const mapsUrl = values.googleMapsUrl?.trim() || buildAdminGoogleMapsUrl(coordinates.latitude, coordinates.longitude);
+      const update = {
+        address: values.address.trim(), kecamatan: values.kecamatan.trim(), desaKelurahan: values.desaKelurahan.trim(),
+        latitude: coordinates.latitude, longitude: coordinates.longitude, plusCode: values.plusCode?.trim() || null,
+        googleMapsUrl: mapsUrl, coordinateStatus: values.coordinateStatus, coordinateNote: values.coordinateNote.trim(),
+        gpsVerified: verified, pointType: verified ? 'AGENT_LOCATION_VERIFIED' : 'AGENT_LOCATION_CANDIDATE',
+        locationVerification: { status: verified ? 'VERIFIED' : 'CANDIDATE_REQUIRES_FIELD_VERIFICATION', note: values.coordinateNote.trim(), actorUid: auth.currentUser.uid },
+        dataVersion: window.LPG_REQUIRED_MASTER_VERSION || '2026-08-31-lpg-agent-coordinates-v2',
+        updatedBy: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      const batch = db.batch();
+      batch.update(db.collection('lpg_agents').doc(agent.id), update);
+      batch.set(db.collection('lpg_audit_logs').doc(`AUDIT-${generateUUID()}`), {
+        action: 'AGENT_LOCATION_UPDATE', entityType: 'AGENT', entityId: agent.id, agentId: agent.id,
+        actorUid: auth.currentUser.uid, actorRole: getCurrentSession()?.role || 'DISPERINDAG_ADMIN',
+        before: { latitude: agent.latitude ?? null, longitude: agent.longitude ?? null, coordinateStatus: agent.coordinateStatus || null },
+        after: { latitude: coordinates.latitude, longitude: coordinates.longitude, coordinateStatus: values.coordinateStatus },
+        reason: values.coordinateNote.trim(), createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await batch.commit();
+      CustomModal.toast('Lokasi agen tersimpan dan otomatis disinkronkan ke seluruh peta.', 'success', 'Lokasi Agen Diperbarui');
+    }
+  });
+};
+
+window.openAdminEditPangkalanLocation = function(pangkalanId) {
+  const pangkalan = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []).find(item => item.id === pangkalanId);
+  if (!pangkalan || pangkalan.isDeleted) return;
+  CustomModal.form({
+    title: 'Edit Lokasi Pangkalan LPG 3 Kg', icon: '📍', submitText: 'Simpan & Sinkronkan', width: '680px',
+    fields: [
+      { name: 'address', label: 'Alamat Lengkap', type: 'textarea', rows: 2, required: true, value: pangkalan.address || pangkalan.alamat || '' },
+      { name: 'kecamatan', label: 'Kecamatan', type: 'text', required: true, value: pangkalan.kecamatan || '' },
+      { name: 'desaKelurahan', label: 'Kelurahan / Desa', type: 'text', required: true, value: pangkalan.desaKelurahan || pangkalan.desa || pangkalan.kelurahan || '' },
+      { name: 'latitude', label: 'Latitude', type: 'number', required: true, value: pangkalan.latitude ?? pangkalan.lat ?? '', placeholder: 'Contoh: -3.78521', step: 'any' },
+      { name: 'longitude', label: 'Longitude', type: 'number', required: true, value: pangkalan.longitude ?? pangkalan.lng ?? '', placeholder: 'Contoh: 119.65218', step: 'any' },
+      { name: 'googleMapsUrl', label: 'Tautan Google Maps (opsional)', type: 'url', value: pangkalan.googleMapsUrl || '' },
+      { name: 'coordinateQuality', label: 'Status Verifikasi Titik', type: 'select', required: true, value: pangkalan.gpsVerified ? 'VERIFIED' : 'CANDIDATE', options: [
+        { value: 'CANDIDATE', label: 'Kandidat — perlu verifikasi lapangan' },
+        { value: 'VERIFIED', label: 'Terverifikasi faktual / GPS' }
+      ] },
+      { name: 'coordinateNote', label: 'Dasar Pembaruan / Catatan Verifikasi', type: 'textarea', rows: 3, required: true, value: pangkalan.locationVerification?.note || '', placeholder: 'Cantumkan sumber koordinat atau hasil verifikasi lapangan.' }
+    ],
+    onSubmit: async values => {
+      const coordinates = parseAdminPinrangCoordinatePair(values.latitude, values.longitude);
+      const verified = values.coordinateQuality === 'VERIFIED';
+      const mapsUrl = values.googleMapsUrl?.trim() || buildAdminGoogleMapsUrl(coordinates.latitude, coordinates.longitude);
+      const update = {
+        address: values.address.trim(), alamat: values.address.trim(), kecamatan: values.kecamatan.trim(), desaKelurahan: values.desaKelurahan.trim(),
+        latitude: coordinates.latitude, longitude: coordinates.longitude, lat: coordinates.latitude, lng: coordinates.longitude,
+        googleMapsUrl: mapsUrl, gpsVerified: verified,
+        locationMatchStatus: verified ? 'GPS_VERIFIED' : 'CANDIDATE',
+        pointType: verified ? 'GPS_PANGKALAN' : 'PANGKALAN_LOCATION_CANDIDATE',
+        locationVerification: { status: verified ? 'VERIFIED' : 'CANDIDATE_REQUIRES_FIELD_VERIFICATION', note: values.coordinateNote.trim(), actorUid: auth.currentUser.uid },
+        dataVersion: window.LPG_REQUIRED_MASTER_VERSION || '2026-08-31-lpg-agent-coordinates-v2'
+      };
+      const result = await commitAdminPangkalanAction(pangkalan, update, {
+        action: 'PANGKALAN_LOCATION_UPDATE',
+        before: { latitude: pangkalan.latitude ?? pangkalan.lat ?? null, longitude: pangkalan.longitude ?? pangkalan.lng ?? null, gpsVerified: Boolean(pangkalan.gpsVerified) },
+        after: { latitude: coordinates.latitude, longitude: coordinates.longitude, gpsVerified: verified },
+        reason: values.coordinateNote.trim()
+      });
+      if (!result.success) throw new Error(result.message);
+      CustomModal.toast('Lokasi pangkalan tersimpan dan otomatis disinkronkan ke seluruh peta.', 'success', 'Lokasi Pangkalan Diperbarui');
+    }
+  });
+};
+
+// 5.1 REGISTRASI / REKONSILIASI AGEN BARU
 async function openAdminAddAgentModalLocalLegacy() {
   const name = await CustomModal.prompt({
     title: "Registrasi Agen Resmi Baru (Rekonsiliasi Agen ke-9)",
@@ -1010,7 +1138,8 @@ window.openAdminAddAgentModal = async function() {
     id: newId, name: cleanName, normalizedName: cleanName.toUpperCase(),
     status: 'ACTIVE', phone: null, address: null, initialCylinderQuota: null,
     sourceType: 'DISPERINDAG_RECONCILED', sourceDate: new Date().toISOString().slice(0, 10),
-    verificationStatus: 'VERIFIED', createdBy: auth.currentUser.uid,
+    verificationStatus: 'VERIFIED', coordinateStatus: 'BELUM_DIPETAKAN', gpsVerified: false,
+    dataVersion: window.LPG_REQUIRED_MASTER_VERSION || '2026-08-31-lpg-agent-coordinates-v2', createdBy: auth.currentUser.uid,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };

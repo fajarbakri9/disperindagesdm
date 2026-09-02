@@ -5,7 +5,7 @@
   },
   "hosting": {
     "site": "disperindagesdm-pinrang",
-    "public": ".",
+    "public": "dist",
     "cleanUrls": true,
     "trailingSlash": false,
     "ignore": [
@@ -40,6 +40,16 @@
       "assets/docs/RKPD-2026-kabupaten-pinrang.pdf"
     ],
     "redirects": [
+      {
+        "source": "/dokumen",
+        "destination": "/ppid#dokumen-regulasi",
+        "type": 301
+      },
+      {
+        "source": "/dokumen.html",
+        "destination": "/ppid#dokumen-regulasi",
+        "type": 301
+      },
       {
         "source": "/intel",
         "destination": "/media-intelligence",

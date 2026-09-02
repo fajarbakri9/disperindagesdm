@@ -38,17 +38,16 @@
   <meta property="og:image:alt" content="CMS Administrator Panel | Disperindag ESDM Kabupaten Pinrang">
   <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/admin">
   <meta property="og:locale" content="id_ID">
-  <!-- TWITTER / X CARDS -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="CMS Administrator Panel | Disperindag ESDM Kabupaten Pinrang">
   <meta name="twitter:description" content="Panel pengelolaan konten resmi, publikasi berita, master data, dan verifikasi aduan publik Disperindag ESDM Pinrang.">
   <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/social/default-share.jpg">
-    <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
-  <link rel="stylesheet" href="css/style.css?v=20260828_sidebar_fit">
-  <link rel="stylesheet" href="css/admin.css?v=20260828_sidebar_fit">
-  <link rel="stylesheet" href="css/modal-system.css?v=20260828_sidebar_fit">
+  <link rel="stylesheet" href="css/style.css?v=20260831_executive_ui_v2">
+  <link rel="stylesheet" href="css/admin.css?v=20260831_executive_ui_v2">
+  <link rel="stylesheet" href="css/modal-system.css?v=20260831_executive_ui_v2">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     /* PENJAMIN ISOLASI TAB PANEL ADMIN */
@@ -118,8 +117,11 @@
 </head>
 <body class="admin-layout">
 
+  <!-- BACKDROP OVERLAY UNTUK MOBILE DRAWER -->
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" onclick="toggleMobileSidebar(false)"></div>
+
   <!-- SIDEBAR NAVIGATION DENGAN KONTRAS TINGGI & AUTO-FIT VIEWPORT -->
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="adminSidebar">
     <div class="admin-sidebar-header">
       <div class="admin-brand">
         <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Pemkab Pinrang">
@@ -127,13 +129,14 @@
           <h4>CMS DISPERINDAG</h4>
           <small>PANEL RESMI DINAS</small>
         </div>
+        <button type="button" class="btn-sidebar-close" onclick="toggleMobileSidebar(false)" style="display: none; background: none; border: none; color: #FFF; font-size: 1.4rem; cursor: pointer; margin-left: auto;" title="Tutup Menu">✕</button>
       </div>
 
-      <div class="admin-quick-links" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px;">
-        <a href="petugas.html" class="btn-quick-nav" style="background: #16A34A; color: #FFFFFF; font-size: 0.72rem; font-weight: 700; padding: 6px 8px; border-radius: 6px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease;">
+      <div class="admin-quick-links">
+        <a href="petugas.html" class="btn-quick-nav" style="background: #16A34A; color: #FFFFFF;" title="Aplikasi Lapangan HP">
           <span>📱</span> Petugas HP
         </a>
-        <a href="media-intelligence.html" target="_blank" class="btn-quick-nav" style="background: #0284C7; color: #FFFFFF; font-size: 0.72rem; font-weight: 700; padding: 6px 8px; border-radius: 6px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease;">
+        <a href="media-intelligence.html" target="_blank" class="btn-quick-nav" style="background: #0284C7; color: #FFFFFF;" title="Radar Media & Berita Real-Time">
           <span>📡</span> Radar Live
         </a>
       </div>
@@ -160,8 +163,14 @@
         <button class="admin-tab-btn" data-tab="tabIkm">
           <span>🏭</span> Etalase Produk IKM
         </button>
+        <button class="admin-tab-btn" data-tab="tabMarkets">
+          <span>🏬</span> Direktori Pasar
+        </button>
         <button class="admin-tab-btn" data-tab="tabLpgMonitoring">
           <span>🔥</span> Pengawasan LPG 3 Kg
+        </button>
+        <button class="admin-tab-btn" data-tab="tabBbm">
+          <span>⛽</span> Penyalur BBM (SPBU)
         </button>
         <button class="admin-tab-btn" data-tab="tabReports">
           <span>📨</span> Pengaduan &amp; Tiket
@@ -191,7 +200,7 @@
         </div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
-        <a href="profil-petugas.html" class="btn-primary" style="font-size: 0.72rem; padding: 6px 4px; background: var(--accent-gold); color: #030D1B; border: none; justify-content: center; text-decoration: none; border-radius: 6px; font-weight: 800; display: flex; align-items: center; gap: 3px;" title="Profil &amp; Sandi Saya">
+        <a href="profil-petugas.html" class="btn-primary" style="font-size: 0.72rem; padding: 6px 4px; background: var(--admin-gold); color: #030D1B; border: none; justify-content: center; text-decoration: none; border-radius: 6px; font-weight: 800; display: flex; align-items: center; gap: 3px;" title="Profil &amp; Sandi Saya">
           <span>✏️</span> Profil
         </a>
         <a href="index.html" class="btn-outline" style="font-size: 0.72rem; padding: 6px 4px; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.25); justify-content: center; text-decoration: none; border-radius: 6px; font-weight: 700; display: flex; align-items: center; gap: 3px;" title="Lihat Portal Publik">
@@ -207,46 +216,63 @@
   <!-- KONTEN UTAMA CMS -->
   <main class="admin-main">
     
-    <!-- TOP HEADER BAR -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: #FFFFFF; padding: 16px 24px; border-radius: var(--radius-md); border: 1.5px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
-      <div>
-        <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 2px;" id="adminCurrentTabTitle">
-          Dashboard Manajemen Portal Kedinasan
-        </h2>
-        <p style="font-size: 0.8rem; color: #64748B;">Sistem Manajemen Konten Terintegrasi Disperindag ESDM Pinrang</p>
+    <!-- TOP HEADER BAR (EXECUTIVE DESIGN) -->
+    <div class="admin-top-bar">
+      <div class="admin-top-left">
+        <div class="admin-title">
+          <h2 id="adminCurrentTabTitle">Dashboard Manajemen Portal Kedinasan</h2>
+          <p>Sistem Manajemen Konten Terintegrasi Disperindag ESDM Kabupaten Pinrang</p>
+        </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span class="verified-badge">✓ Lingkungan Sistem Aman</span>
-        <span style="font-size: 0.76rem; color: #64748B;" id="adminClockDisplay">26 Agustus 2026</span>
+      <div class="admin-top-right">
+        <div class="system-live-pill" id="systemLivePill">
+          <span class="pulse-dot-green"></span>
+          <span id="systemLiveStatusText">Cloud Sync Aktif</span>
+        </div>
+        <div class="admin-clock-pill">
+          <span>🕒</span>
+          <span id="adminLiveClockDisplay">--:--:-- WITA</span>
+        </div>
       </div>
     </div>
 
     <!-- 1. TAB: DASHBOARD & STATISTIK -->
     <div class="admin-panel admin-tab-content active" id="tabDashboard">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px;">
+      <div class="kpi-dashboard-grid">
         
-        <div class="admin-card" style="margin-bottom: 0; background: linear-gradient(135deg, #0F2C59 0%, #1E3A8A 100%); color: #FFFFFF;">
-          <div style="font-size: 0.78rem; color: var(--accent-gold); font-weight: 800;">HARGA PASAR TERPANTAU</div>
-          <div style="font-size: 2rem; font-weight: 900; margin: 6px 0;" id="statPriceCount">12</div>
-          <div style="font-size: 0.74rem; color: #CBD5E1;">Pasar Sentral & Pekkabata</div>
+        <div class="kpi-metric-card" style="background: linear-gradient(135deg, #0F2C59 0%, #1E3A8A 100%);">
+          <div class="kpi-label">HARGA PASAR TERPANTAU</div>
+          <div class="kpi-value" id="statPriceCount">17</div>
+          <div class="kpi-sub">SP2KP Kemendag &bull; Pinrang</div>
+          <div class="kpi-floating-icon">📊</div>
         </div>
 
-        <div class="admin-card" style="margin-bottom: 0; background: linear-gradient(135deg, #065F46 0%, #059669 100%); color: #FFFFFF;">
-          <div style="font-size: 0.78rem; color: #A7F3D0; font-weight: 800;">BERITA KEDINASAN</div>
-          <div style="font-size: 2rem; font-weight: 900; margin: 6px 0;" id="statNewsCount">6</div>
-          <div style="font-size: 0.74rem; color: #E2E8F0;">Rilis kegiatan & pengawasan</div>
+        <div class="kpi-metric-card" style="background: linear-gradient(135deg, #065F46 0%, #059669 100%);">
+          <div class="kpi-label">BERITA KEDINASAN</div>
+          <div class="kpi-value" id="statNewsCount">15</div>
+          <div class="kpi-sub">Rilis kegiatan resmi &amp; sidak</div>
+          <div class="kpi-floating-icon">📰</div>
         </div>
 
-        <div class="admin-card" style="margin-bottom: 0; background: linear-gradient(135deg, #B45309 0%, #D97706 100%); color: #FFFFFF;">
-          <div style="font-size: 0.78rem; color: #FEF08A; font-weight: 800;">DOKUMEN & REGULASI</div>
-          <div style="font-size: 2rem; font-weight: 900; margin: 6px 0;" id="statDocCount">7</div>
-          <div style="font-size: 0.74rem; color: #FEF9C3;">Renstra, Renja, Perbup Tupoksi</div>
+        <div class="kpi-metric-card" style="background: linear-gradient(135deg, #B45309 0%, #D97706 100%);">
+          <div class="kpi-label">DOKUMEN &amp; REGULASI</div>
+          <div class="kpi-value" id="statDocCount">7</div>
+          <div class="kpi-sub">Renstra, Renja, Perbup Tupoksi</div>
+          <div class="kpi-floating-icon">📂</div>
         </div>
 
-        <div class="admin-card" style="margin-bottom: 0; background: linear-gradient(135deg, #6B21A8 0%, #7C3AED 100%); color: #FFFFFF;">
-          <div style="font-size: 0.78rem; color: #DDD6FE; font-weight: 800;">ETALASE PRODUK IKM</div>
-          <div style="font-size: 2rem; font-weight: 900; margin: 6px 0;" id="statIkmCount">6</div>
-          <div style="font-size: 0.74rem; color: #EDE9FE;">Tenun, Anyaman, Kopi, Olahan</div>
+        <div class="kpi-metric-card" style="background: linear-gradient(135deg, #6B21A8 0%, #7C3AED 100%);">
+          <div class="kpi-label">ETALASE PRODUK IKM</div>
+          <div class="kpi-value" id="statIkmCount">6</div>
+          <div class="kpi-sub">Sentra Tenun, Kopi, Olahan</div>
+          <div class="kpi-floating-icon">🏭</div>
+        </div>
+
+        <div class="kpi-metric-card" style="background: linear-gradient(135deg, #991B1B 0%, #DC2626 100%);">
+          <div class="kpi-label">PENYALUR BBM TERPANTAU</div>
+          <div class="kpi-value" id="statBbmCount">27</div>
+          <div class="kpi-sub">SPBU, APMS &amp; Pertashop Resmi</div>
+          <div class="kpi-floating-icon">⛽</div>
         </div>
 
       </div>
@@ -254,54 +280,204 @@
       <!-- Quick Action Shortcuts -->
       <div class="admin-card">
         <div class="admin-card-header">
-          <h3>Aksi Cepat Manajemen Konten</h3>
+          <h3>⚡ Aksi Cepat Manajemen Konten</h3>
         </div>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <button onclick="switchAdminTab('tabPrices')" class="btn-primary" style="padding: 10px 18px; font-size: 0.86rem;">
-            <span>📊</span> Update Harga Pangan Hari Ini
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+          <button onclick="switchAdminTab('tabPrices')" class="btn-primary" style="padding: 12px 14px; font-size: 0.84rem; justify-content: center;">
+            <span>📊</span> Monitoring Harga SP2KP
           </button>
-          <button onclick="switchAdminTab('tabNews')" class="btn-primary" style="padding: 10px 18px; font-size: 0.86rem; background: #059669; border: none;">
+          <button onclick="switchAdminTab('tabNews')" class="btn-primary" style="padding: 12px 14px; font-size: 0.84rem; background: #059669; border: none; justify-content: center;">
             <span>✍️</span> Buat Rilis Berita Baru
           </button>
-          <button onclick="switchAdminTab('tabBanners')" class="btn-primary" style="padding: 10px 18px; font-size: 0.86rem; background: #D97706; border: none;">
-            <span>🖼️</span> Tambah Banner Carousel
+          <button onclick="switchAdminTab('tabBbm')" class="btn-primary" style="padding: 12px 14px; font-size: 0.84rem; background: #DC2626; border: none; justify-content: center;">
+            <span>⛽</span> Kelola Penyalur BBM
           </button>
-          <button onclick="switchAdminTab('tabReports')" class="btn-primary" style="padding: 10px 18px; font-size: 0.86rem; background: #7C3AED; border: none;">
-            <span>📨</span> Periksa Kotak Pengaduan
+          <button onclick="switchAdminTab('tabBanners')" class="btn-primary" style="padding: 12px 14px; font-size: 0.84rem; background: #D97706; border: none; justify-content: center;">
+            <span>🖼️</span> Kelola Banner Carousel
+          </button>
+          <button onclick="switchAdminTab('tabReports')" class="btn-primary" style="padding: 12px 14px; font-size: 0.84rem; background: #7C3AED; border: none; justify-content: center;">
+            <span>📨</span> Periksa Kotak Aduan
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 2. TAB: HARGA PASAR & BAPOKTING -->
+    <!-- 2. TAB: HARGA PASAR & BAPOKTING (SP2KP KEMENDAG MONITOR & OVERRIDE) -->
     <div class="admin-panel admin-tab-content" id="tabPrices">
-      <div class="admin-card">
-        <div class="admin-card-header">
+      
+      <!-- HEADER MONITORING SP2KP KEMENDAG -->
+      <div class="admin-card" style="margin-bottom: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
           <div>
-            <h3>Pemantauan Harga Komoditas Pasar Harian</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Survei harga 12 bahan pokok penting di Pasar Sentral Pinrang & pasar kecamatan.</p>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; margin-bottom: 8px;">
+              <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10B981;"></span>
+              TERHUBUNG KE SP2KP KEMENDAG RI (PINRANG - 7315)
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep); margin: 0 0 4px;">
+              📊 Monitoring Harga Bahan Pokok (SP2KP Kemendag)
+            </h3>
+            <p style="font-size: 0.82rem; color: #64748B; margin: 0; max-width: 760px; line-height: 1.45;">
+              Sumber data otomatis dari Sistem Pemantauan Pasar dan Kebutuhan Pokok (SP2KP) Kementerian Perdagangan RI untuk wilayah Kabupaten Pinrang.
+            </p>
+          </div>
+
+          <!-- TOMBOL AKSI SYNC -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <button id="btnSyncSp2kp" onclick="triggerManualSp2kpSync()" class="btn-primary" style="padding: 9px 16px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; font-weight: 800;">
+              <span id="syncSp2kpIcon">🔄</span> <span id="syncSp2kpText">Sinkronkan Harga SP2KP Sekarang</span>
+            </button>
           </div>
         </div>
 
-        <div style="overflow-x: auto;">
+        <!-- STATS BARIS INFO DATA SP2KP -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #E2E8F0;">
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px;">
+            <div style="font-size: 0.70rem; color: #64748B; font-weight: 800; text-transform: uppercase;">Tanggal Data Faktual</div>
+            <div style="font-size: 1.05rem; font-weight: 900; color: #0F172A; margin-top: 2px;" id="sp2kpStatDataDate">-</div>
+          </div>
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px;">
+            <div style="font-size: 0.70rem; color: #64748B; font-weight: 800; text-transform: uppercase;">Total Komoditas</div>
+            <div style="font-size: 1.05rem; font-weight: 900; color: #2563EB; margin-top: 2px;" id="sp2kpStatTotalItems">17 Komoditas</div>
+          </div>
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px;">
+            <div style="font-size: 0.70rem; color: #64748B; font-weight: 800; text-transform: uppercase;">Koreksi / Override Aktif</div>
+            <div style="font-size: 1.05rem; font-weight: 900; color: #D97706; margin-top: 2px;" id="sp2kpStatOverrideCount">0 Item</div>
+          </div>
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px;">
+            <div style="font-size: 0.70rem; color: #64748B; font-weight: 800; text-transform: uppercase;">Waktu Sinkron Terakhir</div>
+            <div style="font-size: 0.82rem; font-weight: 800; color: #334155; margin-top: 5px;" id="sp2kpStatLastSync">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABEL DAFTAR HARGA SP2KP & CONTROLLED OVERRIDE -->
+      <div class="admin-card">
+        <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h4 style="font-size: 1.05rem; font-weight: 800; color: #0F2C59; margin: 0;">
+              📋 Daftar Harga Rata-rata Komoditas Bahan Pokok Kabupaten Pinrang
+            </h4>
+            <p style="font-size: 0.78rem; color: #64748B; margin: 2px 0 0;">
+              Harga asli SP2KP tidak pernah ditimpa. Intervensi/koreksi lokal dicatat sebagai controlled exception dengan batas waktu.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" id="sp2kpSearchInput" class="form-input" placeholder="🔍 Cari nama komoditas..." oninput="filterSp2kpTable()" style="max-width: 240px; font-size: 0.8rem; padding: 6px 10px;">
+          </div>
+        </div>
+
+        <div class="admin-table-container">
           <table class="admin-table">
             <thead>
               <tr>
-                <th>Komoditas</th>
-                <th>Pasar</th>
-                <th>Harga Hari Ini</th>
-                <th>Perubahan</th>
-                <th>Jam Pantau</th>
-                <th>Status</th>
-                <th>Aksi</th>
+                <th style="width: 65px; min-width: 65px; text-align: center; white-space: nowrap;">ID</th>
+                <th style="min-width: 200px;">Komoditas</th>
+                <th style="width: 75px; min-width: 75px; text-align: center; white-space: nowrap;">Satuan</th>
+                <th style="width: 140px; min-width: 140px; text-align: right; white-space: nowrap;">Harga Asli SP2KP</th>
+                <th style="width: 155px; min-width: 155px; text-align: right; white-space: nowrap;">Harga Efektif (Publik)</th>
+                <th style="width: 130px; min-width: 130px; text-align: center; white-space: nowrap;">Perubahan H-1</th>
+                <th style="width: 160px; min-width: 160px; text-align: center; white-space: nowrap;">Sumber &amp; Status</th>
+                <th style="width: 130px; min-width: 130px; text-align: center; white-space: nowrap;">Aksi</th>
               </tr>
             </thead>
-            <tbody id="adminPriceTableBody">
-              <!-- Injected via JavaScript -->
+            <tbody id="adminSp2kpTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; color: #94A3B8; padding: 24px;">Memuat data harga SP2KP...</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
+
+      <!-- MODAL CONTROLLED LOCAL OVERRIDE -->
+      <div id="modalSp2kpOverride" class="custom-modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 9999; place-items: center; padding: 16px;">
+        <div style="background: #FFFFFF; border-radius: 16px; width: 100%; max-width: 540px; overflow: hidden; box-shadow: 0 20px 60px rgba(15,23,42,0.3); animation: adminTabFadeIn 0.2s ease-out;">
+          <div style="background: linear-gradient(135deg, #0F2C59, #1E3A8A); color: #FFF; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800;">⚖️ Controlled Local Override Harga</h4>
+              <p style="margin: 2px 0 0; font-size: 0.72rem; color: #93C5FD;">Koreksi administratif sementara tanpa menimpa data asli SP2KP Kemendag</p>
+            </div>
+            <button type="button" onclick="closeSp2kpOverrideModal()" style="background: none; border: none; color: #FFF; font-size: 1.2rem; cursor: pointer;">✕</button>
+          </div>
+
+          <form id="formSp2kpOverride" onsubmit="handleSaveSp2kpOverride(event)" style="padding: 20px;">
+            <input type="hidden" id="overrideVariantId" value="">
+            <input type="hidden" id="overrideCommodityName" value="">
+            <input type="hidden" id="overrideUnit" value="">
+            <input type="hidden" id="overrideSourcePrice" value="">
+
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+              <div style="font-size: 0.72rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Komoditas Terpilih</div>
+              <div style="font-size: 1.05rem; font-weight: 800; color: #0F172A; margin: 2px 0;" id="overrideLabelCommodity">Beras Medium</div>
+              <div style="font-size: 0.8rem; color: #2563EB; font-weight: 700;">
+                Harga Asli SP2KP: <span id="overrideLabelSourcePrice" style="font-weight: 900;">Rp 13.300 / kg</span> (Read-Only)
+              </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label class="form-label" style="font-weight: 800; font-size: 0.84rem; color: #0F2C59;">
+                Harga Koreksi / Override (Rp) <span style="color: #DC2626;">*</span>
+              </label>
+              <input type="number" id="overridePriceInput" class="form-input" required min="100" step="50" placeholder="Masukkan harga koreksi terverifikasi..." style="font-size: 1rem; font-weight: 800; color: #0F172A;">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label class="form-label" style="font-weight: 800; font-size: 0.84rem; color: #0F2C59;">
+                Alasan Koreksi Terstruktur <span style="color: #DC2626;">*</span>
+              </label>
+              <select id="overrideReasonSelect" class="form-input" required onchange="handleOverrideReasonChange(this.value)">
+                <option value="Hasil verifikasi lapangan pasar daerah">Hasil verifikasi lapangan pasar daerah</option>
+                <option value="Data SP2KP belum closing / belum diperbarui">Data SP2KP belum closing / belum diperbarui</option>
+                <option value="Kesalahan input enumerator SP2KP">Kesalahan input enumerator SP2KP</option>
+                <option value="Perubahan kondisi pasokan pasar lokal">Perubahan kondisi pasokan pasar lokal</option>
+                <option value="Kesalahan konversi satuan">Kesalahan konversi satuan</option>
+                <option value="Lainnya">Lainnya (Wajib cantumkan keterangan)</option>
+              </select>
+            </div>
+
+            <div id="overrideOtherReasonWrap" style="margin-bottom: 14px; display: none;">
+              <label class="form-label" style="font-weight: 800; font-size: 0.84rem; color: #0F2C59;">
+                Keterangan Tambahan Alasan <span style="color: #DC2626;">*</span>
+              </label>
+              <input type="text" id="overrideOtherReasonInput" class="form-input" placeholder="Tuliskan alasan spesifik koreksi...">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label class="form-label" style="font-weight: 800; font-size: 0.84rem; color: #0F2C59;">
+                Sumber / Nomor Berita Acara Verifikasi <span style="color: #DC2626;">*</span>
+              </label>
+              <input type="text" id="overrideEvidenceInput" class="form-input" required placeholder="Contoh: BA Survei Tim Pengendalian Inflasi Daerah (TPID) Pinrang">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <label class="form-label" style="font-weight: 800; font-size: 0.84rem; color: #0F2C59;">
+                Masa Berlaku Koreksi (Batas Kedaluwarsa)
+              </label>
+              <select id="overrideExpirySelect" class="form-input">
+                <option value="24h">24 Jam (Otomatis kembali ke SP2KP)</option>
+                <option value="end_of_day">Hingga Akhir Hari Ini (23:59 WITA)</option>
+                <option value="48h">48 Jam (2 Hari Kerja)</option>
+                <option value="manual">Manual (Hingga dicabut administrator)</option>
+              </select>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid #E2E8F0; padding-top: 16px;">
+              <button type="button" id="btnDeleteOverride" onclick="handleDeleteSp2kpOverride()" class="btn-danger" style="font-size: 0.8rem; padding: 8px 14px; display: none;">
+                <span>🗑️</span> Cabut Override
+              </button>
+              <div style="display: flex; gap: 8px; margin-left: auto;">
+                <button type="button" onclick="closeSp2kpOverrideModal()" class="btn-outline" style="font-size: 0.8rem; padding: 8px 14px;">
+                  Batal
+                </button>
+                <button type="submit" class="btn-primary" style="font-size: 0.8rem; padding: 8px 18px; font-weight: 800;">
+                  <span>💾</span> Terapkan Koreksi
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
     </div>
 
     <!-- 3. TAB: PUBLIKASI BERITA DINAS (ENTERPRISE NEWSROOM CMS) -->
@@ -324,7 +500,7 @@
           <button id="btnOpenNewsEditor" onclick="openNewsEditor()" class="btn-primary" style="padding: 9px 18px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
             <span>➕</span> Tulis Berita Baru
           </button>
-          <button id="btnCloseNewsEditor" onclick="closeNewsEditor()" class="btn-outline" style="display: none; padding: 9px 16px; font-size: 0.84rem;">
+          <button id="btnCloseNewsEditor" onclick="closeNewsEditor()" class="btn-none" style="display: none; padding: 9px 16px; font-size: 0.84rem;">
             <span>📋</span> Kembali ke Daftar
           </button>
         </div>
@@ -378,16 +554,15 @@
 
         <!-- TABEL BERITA -->
         <div class="admin-card">
-          <div style="overflow-x: auto;">
+          <div class="admin-table-container">
             <table class="admin-table">
               <thead>
                 <tr>
-                  <th style="width: 70px;">Media</th>
-                  <th>Judul & Ringkasan</th>
-                  <th style="width: 180px;">Kategori & Tags</th>
-                  <th style="width: 130px;">Tanggal & Penulis</th>
-                  <th style="width: 100px;">Status</th>
-                  <th style="width: 160px; text-align: center;">Aksi</th>
+                  <th style="width: 75px; text-align: center;">Media</th>
+                  <th>Judul, Ringkasan &amp; Aksi Cepat</th>
+                  <th style="width: 175px;">Kategori &amp; Topik</th>
+                  <th style="width: 140px;">Tanggal &amp; Penulis</th>
+                  <th style="width: 110px; text-align: center;">Status</th>
                 </tr>
               </thead>
               <tbody id="adminNewsTableBody">
@@ -650,10 +825,11 @@
 
                   <div class="news-media-dropzone" onclick="document.getElementById('newsFeaturedFileInput').click()" style="background: #F8FAFC; border: 2px dashed #CBD5E1; border-radius: 10px; padding: 16px 10px; text-align: center; cursor: pointer;">
                     <div style="font-size: 1.6rem; margin-bottom: 4px;">📸</div>
-                    <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary);">Unggah Foto Utama Baru</div>
-                    <div style="font-size: 0.7rem; color: #64748B;">JPG, PNG, WEBP (Maks 1200px)</div>
+                    <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary);">Siapkan Foto Utama</div>
+                    <div style="font-size: 0.7rem; color: #64748B;">Otomatis menjadi JPEG 1200×630 untuk web &amp; OG</div>
                   </div>
                   <input type="file" id="newsFeaturedFileInput" accept="image/*" style="display: none;" onchange="handleFeaturedImageUpload(this)">
+                  <p style="font-size:0.68rem;line-height:1.45;color:#64748B;margin:7px 0 0;">Berkas terkompresi akan diunduh. Simpan ke <code>assets/news</code> dan deploy portal sebelum artikel diterbitkan. Tidak ada foto Base64 yang disimpan.</p>
 
                   <div style="margin-top: 10px;">
                     <label style="font-size: 0.74rem; color: #64748B; font-weight: 700;">Atau pilih dari arsip media dinas:</label>
@@ -817,20 +993,20 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>Repositori Dokumen Hukum & Status Keberlakuan</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Penetapan status [BERLAKU], [DICABUT], atau [ARSIP] sesuai hukum.</p>
+            <h3>📚 Repositori Dokumen Hukum &amp; Status Keberlakuan</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Penetapan status [BERLAKU], [DICABUT], atau [ARSIP] sesuai ketentuan perundang-undangan.</p>
           </div>
         </div>
 
-        <div style="overflow-x: auto;">
+        <div class="admin-table-container">
           <table class="admin-table">
             <thead>
               <tr>
                 <th>Judul Dokumen</th>
-                <th>Nomor & Tahun</th>
-                <th>Kategori</th>
-                <th>Status Hukum</th>
-                <th>Aksi</th>
+                <th style="width: 160px;">Nomor &amp; Tahun</th>
+                <th style="width: 140px;">Kategori</th>
+                <th style="width: 130px; text-align: center;">Status Hukum</th>
+                <th style="width: 130px; text-align: center;">Aksi</th>
               </tr>
             </thead>
             <tbody id="adminDocsTableBody">
@@ -846,7 +1022,7 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>🏭 Daftar & Etalase Produk IKM Binaan Daerah</h3>
+            <h3>🏭 Daftar &amp; Etalase Produk IKM Binaan Daerah</h3>
             <p style="font-size: 0.82rem; color: #64748B;">Kelola etalase komoditas unggulan IKM binaan Disperindag ESDM dan Dekranasda Pinrang.</p>
           </div>
           <button onclick="openAddIkmModal()" class="btn-primary" style="padding: 9px 16px; font-size: 0.82rem;">
@@ -854,15 +1030,15 @@
           </button>
         </div>
 
-        <div style="overflow-x: auto;">
+        <div class="admin-table-container">
           <table class="admin-table">
             <thead>
               <tr>
-                <th>Foto</th>
-                <th>Nama Produk</th>
+                <th style="width: 70px; text-align: center;">Foto</th>
+                <th>Nama Produk IKM</th>
                 <th>Sentra / Pengrajin</th>
                 <th>Sertifikasi Mutu</th>
-                <th>Aksi</th>
+                <th style="width: 140px; text-align: center;">Aksi</th>
               </tr>
             </thead>
             <tbody id="adminIkmTableBody">
@@ -878,25 +1054,142 @@
       <div class="admin-card">
         <div class="admin-card-header">
           <div>
-            <h3>Kotak Masuk Pengaduan Masyarakat (Ber-Nomor Tiket)</h3>
-            <p style="font-size: 0.82rem; color: #64748B;">Aduan pangkalan LPG 3 kg, takaran SPBU/timbangan, dan harga sembako.</p>
+            <h3>📨 Kotak Masuk Pengaduan Masyarakat (Ber-Nomor Tiket)</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Aduan pangkalan LPG 3 kg, takaran SPBU/timbangan, dan harga sembako terintegrasi.</p>
           </div>
         </div>
 
-        <div style="overflow-x: auto;">
+        <div class="admin-table-container">
           <table class="admin-table">
             <thead>
               <tr>
-                <th>No. Tiket</th>
-                <th>Waktu</th>
-                <th>Pelapor</th>
-                <th>Kategori & Lokasi</th>
-                <th>Unit Penangan</th>
-                <th>Status</th>
-                <th>Aksi</th>
+                <th style="width: 140px; white-space: nowrap;">No. Tiket &amp; Kanal</th>
+                <th style="width: 120px; white-space: nowrap;">Waktu Masuk</th>
+                <th style="width: 140px; white-space: nowrap;">Identitas Pelapor</th>
+                <th style="min-width: 180px;">Kategori &amp; Lokasi Aduan</th>
+                <th style="width: 150px; white-space: nowrap;">Unit Penangan</th>
+                <th style="width: 140px; text-align: center; white-space: nowrap;">Status Alur</th>
+                <th style="width: 180px; text-align: center; white-space: nowrap;">Aksi Verifikasi</th>
               </tr>
             </thead>
             <tbody id="adminReportsTableBody">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MASTER DATA DIREKTORI PASAR -->
+    <div class="admin-panel admin-tab-content" id="tabMarkets">
+      <div class="lpg-summary-grid" aria-label="Ringkasan master pasar">
+        <div class="lpg-summary-card"><div class="lpg-summary-card__label">Total Pasar</div><div class="lpg-summary-card__value" id="adminMarketTotal">0</div><div class="lpg-summary-card__detail">Master direktori kabupaten</div></div>
+        <div class="lpg-summary-card" style="--accent:#059669;--surface:#ECFDF5"><div class="lpg-summary-card__label">Sudah Dipetakan</div><div class="lpg-summary-card__value" id="adminMarketMapped">0</div><div class="lpg-summary-card__detail">Memiliki koordinat valid</div></div>
+        <div class="lpg-summary-card" style="--accent:#D97706;--surface:#FFFBEB"><div class="lpg-summary-card__label">Perlu Ditinjau</div><div class="lpg-summary-card__value" id="adminMarketNeedsReview">0</div><div class="lpg-summary-card__detail">Status/koordinat belum final</div></div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-header"><div><h3>🏬 Master Data Pasar Kabupaten Pinrang</h3><p style="font-size:.82rem;color:#64748B">Kelola identitas, pengelola, status, jadwal, koordinat, tautan Google Maps, dan foto pasar.</p></div><a href="pasar.html" target="_blank" rel="noopener" class="btn-outline" style="padding:8px 14px;text-decoration:none">Lihat Direktori Publik ↗</a></div>
+        <div style="padding:12px 0"><input id="adminMarketSearch" class="form-input" type="search" placeholder="Cari nama pasar, kecamatan, desa, atau pengelola..." style="max-width:430px"></div>
+        <div class="admin-table-container"><table class="admin-table"><thead><tr><th>Nama Pasar</th><th>Wilayah</th><th>Pengelolaan</th><th>Status</th><th>Koordinat</th><th>Aksi</th></tr></thead><tbody id="adminMarketsTableBody"><tr><td colspan="6" style="text-align:center;padding:28px">Buka menu untuk memuat master pasar.</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- 7.6. TAB: DIREKTORI & PENGAWASAN PENYALUR BBM (SPBU & PERTASHOP) -->
+    <div class="admin-panel admin-tab-content" id="tabBbm">
+      <!-- STATISTIK RINGKAS PENYALUR BBM -->
+      <div class="lpg-summary-grid" aria-label="Ringkasan Penyalur BBM">
+        <div class="lpg-summary-card" style="--accent:#0F2C59;--surface:#EFF6FF;">
+          <div class="lpg-summary-card__label">Total Penyalur BBM</div>
+          <div class="lpg-summary-card__value" id="adminBbmStatTotal">27</div>
+          <div class="lpg-summary-card__detail">SPBU, APMS, SPBUN, Pertashop</div>
+        </div>
+
+        <div class="lpg-summary-card" style="--accent:#DC2626;--surface:#FEF2F2;">
+          <div class="lpg-summary-card__label">SPBU Reguler (Seri 74)</div>
+          <div class="lpg-summary-card__value" id="adminBbmStatSpbu">10</div>
+          <div class="lpg-summary-card__detail">Outlet Kapasitas Besar</div>
+        </div>
+
+        <div class="lpg-summary-card" style="--accent:#0284C7;--surface:#F0F9FF;">
+          <div class="lpg-summary-card__label">SPBU Kompak / APMS (76)</div>
+          <div class="lpg-summary-card__value" id="adminBbmStatApms">7</div>
+          <div class="lpg-summary-card__detail">Wilayah Pesisir &amp; Pertanian</div>
+        </div>
+
+        <div class="lpg-summary-card" style="--accent:#16A34A;--surface:#F0FDF4;">
+          <div class="lpg-summary-card__label">Pertashop Resmi (7P)</div>
+          <div class="lpg-summary-card__value" id="adminBbmStatPertashop">9</div>
+          <div class="lpg-summary-card__detail">Penyalur Non-Subsidi Pedesaan</div>
+        </div>
+
+        <div class="lpg-summary-card" style="--accent:#7C3AED;--surface:#F5F3FF;">
+          <div class="lpg-summary-card__label">SPBUN Nelayan (78)</div>
+          <div class="lpg-summary-card__value" id="adminBbmStatSpbun">1</div>
+          <div class="lpg-summary-card__detail">Solar Subsidi Khusus Kapal</div>
+        </div>
+      </div>
+
+      <!-- KARTU TABEL DATA PENYALUR BBM -->
+      <div class="admin-card">
+        <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3>⛽ Direktori &amp; Pengawasan Titik Penyalur BBM</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Kelola profil 27 outlet penyalur BBM, jam operasional, ketersediaan produk, koordinat GIS, dan foto titik lokasi.</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" onclick="openAddBbmModal()" class="btn-primary" style="padding: 9px 16px; font-size: 0.82rem;">
+              <span>➕</span> Tambah Penyalur BBM Baru
+            </button>
+            <a href="penyalur-bbm.html" target="_blank" class="btn-outline" style="padding: 9px 14px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+              <span>🌐</span> Lihat Direktori Publik
+            </a>
+          </div>
+        </div>
+
+        <!-- TOOLBAR FILTER CMS BBM -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; padding: 12px; background: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0;">
+          <input type="text" id="adminBbmSearch" class="form-input" placeholder="🔍 Cari nama/kode/alamat penyalur..." style="max-width: 280px; font-size: 0.82rem; padding: 8px 12px;">
+          <select id="adminBbmFilterKategori" class="form-select" style="max-width: 220px; font-size: 0.82rem; padding: 8px 12px;">
+            <option value="all">Semua Jenis Penyalur</option>
+            <option value="spbu_reguler">SPBU Reguler (10)</option>
+            <option value="spbu_kompak">SPBU Kompak / APMS (7)</option>
+            <option value="pertashop">Pertashop Resmi (9)</option>
+            <option value="spbun">SPBUN Nelayan (1)</option>
+          </select>
+          <select id="adminBbmFilterKecamatan" class="form-select" style="max-width: 200px; font-size: 0.82rem; padding: 8px 12px;">
+            <option value="all">Semua Kecamatan (12)</option>
+            <option value="Watang Sawitto">Watang Sawitto</option>
+            <option value="Paleteang">Paleteang</option>
+            <option value="Tiroang">Tiroang</option>
+            <option value="Suppa">Suppa</option>
+            <option value="Mattiro Sompe">Mattiro Sompe</option>
+            <option value="Lanrisang">Lanrisang</option>
+            <option value="Cempa">Cempa</option>
+            <option value="Duampanua">Duampanua</option>
+            <option value="Patampanua">Patampanua</option>
+            <option value="Lembang">Lembang</option>
+            <option value="Mattiro Bulu">Mattiro Bulu</option>
+            <option value="Batulappa">Batulappa</option>
+          </select>
+          <button type="button" onclick="resetAdminBbmFilter()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem;">
+            Reset Filter
+          </button>
+        </div>
+
+        <!-- TABEL PENYALUR BBM -->
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 75px; text-align: center;">Media</th>
+                <th style="min-width: 240px;">Nama Outlet &amp; Badan Usaha</th>
+                <th style="width: 170px;">Kategori &amp; Lokasi</th>
+                <th style="min-width: 200px;">Alamat &amp; Produk BBM</th>
+                <th style="width: 140px;">Jam &amp; Kontak</th>
+                <th style="width: 120px; text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminBbmTableBody">
               <!-- Injected via JavaScript -->
             </tbody>
           </table>
@@ -911,13 +1204,13 @@
       <div class="lpg-summary-grid" aria-label="Ringkasan pengawasan LPG 3 Kg">
         <div class="lpg-summary-card" style="--accent:#2563EB;--surface:#EFF6FF;">
           <div class="lpg-summary-card__label">Agen Penyalur Resmi</div>
-          <div class="lpg-summary-card__value" id="adminLpgStatAgents">8 Agen</div>
+          <div class="lpg-summary-card__value" id="adminLpgStatAgents">9 Agen</div>
           <div class="lpg-summary-card__detail">Agen aktif di Kabupaten Pinrang</div>
         </div>
 
         <div class="lpg-summary-card" style="--accent:#15803D;--surface:#F0FDF4;">
           <div class="lpg-summary-card__label">Total Pangkalan Binaan</div>
-          <div class="lpg-summary-card__value" id="adminLpgStatPangkalan">681 Pangkalan</div>
+          <div class="lpg-summary-card__value" id="adminLpgStatPangkalan">—</div>
           <div class="lpg-summary-card__detail">Cakupan pembinaan Kabupaten Pinrang</div>
         </div>
 
@@ -971,7 +1264,7 @@
             </button>
             </div>
             <div class="lpg-utility-actions"><span class="lpg-utility-label">Unduh Data</span>
-            <button onclick="exportLpgPangkalanCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #059669; color: #059669;" title="Download Master 681 Pangkalan (Excel / CSV)">
+            <button onclick="exportLpgPangkalanCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #059669; color: #059669;" title="Download master pangkalan aktif (Excel / CSV)">
               <span>📥</span> Ekspor CSV Pangkalan
             </button>
             <button onclick="exportLpgLedgerCSV()" class="btn-outline" style="padding: 8px 14px; font-size: 0.8rem; border-color: #1D4ED8; color: #1D4ED8;" title="Download Buku Besar Ledger (Excel / CSV)">
@@ -1083,6 +1376,7 @@
                   <th>Stok Masuk Hari Ini</th>
                   <th>Distribusi Hari Ini</th>
                   <th>Status Pelaporan</th>
+                  <th style="text-align:center;">Lokasi</th>
                 </tr>
               </thead>
               <tbody id="adminLpgAgentsTableBody">
@@ -1260,6 +1554,46 @@
 
     <!-- 8.5 TAB: COMMAND CENTER & TV WALLBOARD SYNC -->
     <div class="admin-panel admin-tab-content" id="tabCommandCenter">
+      <div class="admin-card" id="tvPublicServiceSettings" style="margin-bottom:24px;border-top:4px solid #0EA5E9;">
+        <div class="admin-card-header">
+          <div>
+            <h3>📡 TV Informasi Layanan Publik</h3>
+            <p style="font-size:.82rem;color:#64748B;">Kelola pengumuman, ticker, urutan dan durasi tayangan Front Office. Data harga, LPG, BBM, pasar, produk dan berita tetap berasal dari master Firestore masing-masing.</p>
+          </div>
+          <a href="tv-layanan.html" target="_blank" class="btn-primary" style="font-size:.8rem;text-decoration:none;padding:8px 14px;background:#0284C7;">Buka TV Layanan ↗</a>
+        </div>
+        <form id="formTvPublicService">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin-bottom:18px;">
+            <section style="padding:17px;border:1px solid #BAE6FD;border-radius:12px;background:#F0F9FF;">
+              <h4 style="margin:0 0 13px;color:#075985;">📣 Pengumuman Utama</h4>
+              <label class="form-label">Judul pengumuman</label><input id="tvAnnouncementTitle" class="form-input" maxlength="120" placeholder="Contoh: Operasi Pasar Murah Besok">
+              <label class="form-label" style="margin-top:10px;">Isi pengumuman</label><textarea id="tvAnnouncementMessage" class="form-input" rows="4" maxlength="420" placeholder="Tuliskan informasi singkat dan mudah dipahami masyarakat."></textarea>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;"><label><span class="form-label">Mulai tayang</span><input id="tvAnnouncementStart" type="datetime-local" class="form-input"></label><label><span class="form-label">Berakhir</span><input id="tvAnnouncementEnd" type="datetime-local" class="form-input"></label></div>
+              <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.8rem;font-weight:800;"><input id="tvAnnouncementEnabled" type="checkbox"> Aktifkan pengumuman</label>
+              <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.8rem;font-weight:800;color:#B45309;"><input id="tvAnnouncementPriority" type="checkbox"> Jadikan pengumuman prioritas setelah pembuka</label>
+            </section>
+            <section style="padding:17px;border:1px solid #C7D2FE;border-radius:12px;background:#EEF2FF;">
+              <h4 style="margin:0 0 13px;color:#3730A3;">📰 Ticker Informasi</h4>
+              <p style="margin:-5px 0 10px;color:#64748B;font-size:.75rem;">Satu informasi per baris. Maksimal 8 baris.</p>
+              <textarea id="tvTickerItems" class="form-input" rows="7" maxlength="800" placeholder="Pelayanan transparan dan bebas pungutan liar&#10;WhatsApp 0823 1600 2226"></textarea>
+              <label class="form-label" style="margin-top:10px;">Kecepatan ticker</label><select id="tvTickerSpeed" class="form-input"><option value="55">Lambat</option><option value="42">Normal</option><option value="30">Cepat</option></select>
+            </section>
+            <section style="padding:17px;border:1px solid #D1FAE5;border-radius:12px;background:#F0FDF4;">
+              <h4 style="margin:0 0 13px;color:#166534;">⚙️ Perilaku Layar</h4>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;font-weight:800;"><input id="tvAutoplay" type="checkbox"> Putar slide otomatis</label>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;font-weight:800;"><input id="tvShowControls" type="checkbox"> Tampilkan kontrol navigasi</label>
+              <label class="form-label">Durasi bawaan slide</label><input id="tvDefaultDuration" type="number" min="6" max="60" class="form-input" value="12">
+              <label class="form-label" style="margin-top:10px;">Muat ulang otomatis</label><select id="tvRefreshMinutes" class="form-input"><option value="0">Tidak perlu — realtime</option><option value="30">Setiap 30 menit</option><option value="60">Setiap 60 menit</option><option value="120">Setiap 2 jam</option></select>
+            </section>
+          </div>
+          <section style="border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;margin-bottom:16px;">
+            <div style="padding:13px 15px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;"><strong style="color:#0F2C59;">Urutan dan Durasi Slide</strong><small style="display:block;margin-top:3px;color:#64748B;">Nonaktifkan slide yang tidak diperlukan. Data operasional di dalam slide tidak disalin ke modul ini.</small></div>
+            <div style="overflow:auto;"><table class="admin-table" style="min-width:720px;margin:0;"><thead><tr><th>Aktif</th><th>Slide</th><th>Urutan</th><th>Durasi (detik)</th></tr></thead><tbody id="tvSlideSettingsBody"></tbody></table></div>
+          </section>
+          <div id="tvSettingsStatus" style="color:#64748B;font-size:.78rem;font-weight:700;">Menunggu data konfigurasi cloud…</div>
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;"><button type="button" id="tvResetForm" class="btn-outline">Kembalikan Form ke Standar</button><button type="submit" class="btn-primary">💾 Simpan & Sinkronkan ke TV Layanan</button></div>
+        </form>
+      </div>
       <div class="admin-card" style="margin-bottom: 24px;">
         <div class="admin-card-header">
           <div>
@@ -1590,20 +1924,193 @@
 
     </div>
 
+    <!-- Salinan konfigurasi lama dipertahankan sementara sebagai template
+         nonaktif agar tidak masuk DOM dan tidak bentrok dengan panel kanonis. -->
+    <template id="legacyDuplicatedSettings" hidden>
+    <!-- 10. TAB: KONFIGURASI & AUDIT SISTEM TERPADU -->
+    <div class="admin-panel admin-tab-content" id="tabSettings">
+      
+      <!-- 1. Form Konfigurasi Identitas & Kontak Portal -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h3>⚙️ Konfigurasi Identitas, Kontak & Jam Pelayanan Portal</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Perbarui data kontak dinas, nomor hotline aduan, jam kerja pelayanan publik, dan akun media sosial yang tampil di seluruh portal.</p>
+          </div>
+        </div>
+
+        <form id="formSiteSettings" onsubmit="saveSiteSettings(event)">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-bottom: 20px;">
+            
+            <div class="form-group">
+              <label class="form-label">📍 Alamat Kantor Dinas:</label>
+              <input type="text" id="set_office_address" class="form-input" required placeholder="Contoh: Jl. Bintang No. 1, Kab. Pinrang">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📞 Hotline / WhatsApp Resmi:</label>
+              <input type="text" id="set_contact_wa" class="form-input" required placeholder="Contoh: 0823 1600 2226">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">✉️ Email Resmi Dinas:</label>
+              <input type="email" id="set_contact_email" class="form-input" required placeholder="Contoh: dinasperindagesdm.pinrang@gmail.com">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🕒 Jam Layanan Tatap Muka (Senin - Kamis):</label>
+              <input type="text" id="set_hours_weekday" class="form-input" required placeholder="Contoh: 07.30 - 16.00 WITA">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🕒 Jam Layanan Tatap Muka (Jumat):</label>
+              <input type="text" id="set_hours_friday" class="form-input" required placeholder="Contoh: 07.30 - 16.30 WITA">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📸 Akun Instagram Resmi:</label>
+              <input type="text" id="set_social_ig" class="form-input" placeholder="Contoh: @disperindagesdm_pinrang">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📘 Akun Facebook Resmi:</label>
+              <input type="text" id="set_social_fb" class="form-input" placeholder="Contoh: Disperindag ESDM Pinrang">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📺 Saluran YouTube Resmi:</label>
+              <input type="text" id="set_social_yt" class="form-input" placeholder="Contoh: Disperindag ESDM Pinrang Official">
+            </div>
+
+          </div>
+
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn-primary" style="padding: 10px 24px; font-size: 0.88rem;">
+              <span>💾</span> Simpan & Terapkan Konfigurasi Portal
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 2. Pusat Backup & Pemulihan Data Master -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h3>💾 Pusat Ekspor, Cadangan (Backup) & Pemulihan Master Data</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Unduh seluruh basis data dinas (harga, berita, banner, aduan, dokumen, pengguna) atau pulihkan dari berkas cadangan JSON.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h4 style="font-size: 0.92rem; font-weight: 800; color: #0F2C59; margin-bottom: 6px;">
+                📥 Cadangkan Master Data (Export JSON)
+              </h4>
+              <p style="font-size: 0.8rem; color: #475569; line-height: 1.5; margin-bottom: 14px;">
+                Unduh snapshot lengkap seluruh data portal ke komputer lokal dalam format JSON terenkripsi aman.
+              </p>
+            </div>
+            <button onclick="exportAllDataJSON()" class="btn-primary" style="font-size: 0.82rem; padding: 9px 14px; background: #0284C7;">
+              <span>📥</span> Unduh Berkas Backup (.json)
+            </button>
+          </div>
+
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h4 style="font-size: 0.92rem; font-weight: 800; color: #059669; margin-bottom: 6px;">
+                📤 Pulihkan Master Data (Import JSON)
+              </h4>
+              <p style="font-size: 0.8rem; color: #475569; line-height: 1.5; margin-bottom: 14px;">
+                Unggah berkas JSON cadangan yang pernah diunduh untuk memulihkan seluruh data sistem seketika.
+              </p>
+            </div>
+            <div>
+              <input type="file" id="importBackupFileInput" accept=".json" style="display: none;" onchange="importDataJSON(event)">
+              <button onclick="document.getElementById('importBackupFileInput').click()" class="btn-primary" style="font-size: 0.82rem; padding: 9px 14px; background: #059669; width: 100%;">
+                <span>📤</span> Unggah & Pulihkan Data
+              </button>
+            </div>
+          </div>
+
+          <div style="background: #FFFBEB; border: 1px solid #FDE68A; padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h4 style="font-size: 0.92rem; font-weight: 800; color: #B45309; margin-bottom: 6px;">
+                🔄 Reset ke Master Data Resmi Standar
+              </h4>
+              <p style="font-size: 0.8rem; color: #92400E; line-height: 1.5; margin-bottom: 14px;">
+                Kembalikan seluruh basis data ke setelan pabrik kedinasan resmi (*Default Dataset Pinrang*).
+              </p>
+            </div>
+            <button onclick="resetMasterDataToDefault()" class="btn-outline" style="font-size: 0.82rem; padding: 9px 14px; color: #B45309; border-color: #F59E0B;">
+              <span>🔄</span> Reset ke Data Standar Resmi
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 3. Riwayat Audit Log & Aktivitas Administrator -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h3>📋 Catatan Audit Integritas & Riwayat Aktivitas Sistem</h3>
+            <p style="font-size: 0.82rem; color: #64748B;">Log transparansi riwayat pembaruan harga, publikasi berita, pengaduan, dan aktivitas sesi aparatur.</p>
+          </div>
+          <button onclick="clearAuditLogs()" class="btn-outline" style="font-size: 0.78rem; padding: 6px 12px;">
+            <span>🧹</span> Bersihkan Log Riwayat
+          </button>
+        </div>
+
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Waktu (WITA)</th>
+                <th style="width: 160px;">Pengguna ASN</th>
+                <th style="width: 150px;">Kategori Modul</th>
+                <th>Aksi Aktivitas</th>
+                <th style="width: 100px; text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminAuditLogsTableBody">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    </template>
+
+    <!-- FLOATING MOBILE MENU FAB (ONE-TAP DRAWER ACCESS) -->
+    <button type="button" id="btnFloatingMobileMenu" class="btn-floating-mobile-menu" onclick="toggleMobileSidebar()" title="Buka Menu Navigasi CMS">
+      <span style="font-size: 1.15rem; line-height: 1;">☰</span>
+      <span>Menu CMS</span>
+    </button>
+
   </main>
 
   <script src="js/data.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-engine.js?v=20260830_lpg_settings_v6"></script>
+  <script src="js/lpg-engine.js?v=20260902_firestore_only_admin_v1"></script>
+  <script src="js/lpg-geolocation.js?v=20260902_ssot_v1"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/lpg-gis-map.js?v=20260830_big_boundary_v5"></script>
-  <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
+  <script src="js/lpg-gis-map.js?v=20260831_agent_coords_v2"></script>
+  <script src="js/modal-system.js?v=20260831_cms_map_sync_v1"></script>
   <script src="js/auth.js?v=20260830_functional_rbac_v4"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260829_sync15_v1"></script>
-  <script src="js/admin.js?v=20260830_password_policy_v4"></script>
-  <script src="js/admin-lpg.js?v=20260830_lpg_cards_v18"></script>
+  <script src="js/image-compressor.js"></script>
+  <script src="js/price-resolver.js?v=20260831_sp2kp_v1"></script>
+  <script src="js/market-engine.js?v=20260831_cms_map_sync_v1"></script>
+  <script src="js/admin-markets.js?v=20260831_cms_map_sync_v1"></script>
+  <script src="js/bbm-engine.js?v=20260902_palia_plus_code_v3"></script>
+  <script src="js/admin-bbm.js?v=20260902_firestore_only_v1"></script>
+  <script src="js/admin-lpg.js?v=20260831_cms_map_sync_v1"></script>
+  <script src="js/admin.js?v=20260831_cms_loading_fix_v2"></script>
+  <script src="js/admin-tv-layanan.js?v=20260902_tv_cms_v1"></script>
 </body>
 </html>

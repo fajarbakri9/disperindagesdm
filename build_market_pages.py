@@ -142,8 +142,9 @@ def build_market_pages():
         <li><a href="../../profil.html" class="nav-link">Profil</a></li>
         <li><a href="../../layanan.html" class="nav-link">Layanan Publik</a></li>
         <li><a href="../../pasar.html" class="nav-link active">Direktori Pasar</a></li>
+        <li><a href="../../penyalur-bbm.html" class="nav-link">Penyalur BBM</a></li>
         <li><a href="../../katalog-ikm.html" class="nav-link">Katalog IKM</a></li>
-        <li><a href="../../dokumen.html" class="nav-link">Dokumen</a></li>
+        <li><a href="../../ppid.html#dokumen-regulasi" class="nav-link">PPID &amp; Dokumen Publik</a></li>
         <li><a href="../../arsip-berita.html" class="nav-link">Berita</a></li>
         <li><a href="../../kontak.html" class="nav-link">Kontak</a></li>
       </ul>
@@ -341,6 +342,7 @@ def build_market_pages():
   </footer>
 
   <script src="../../js/data.js?v=20260828_upload_web_v2"></script>
+  <script src="../../js/pinrang-live.js"></script>
   <script src="../../js/modal-system.js?v=20260828_upload_web_v2"></script>
   <script src="../../js/app.js?v=20260828_upload_web_v2"></script>
 </body>

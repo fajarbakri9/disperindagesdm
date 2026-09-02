@@ -333,6 +333,7 @@ const DEFAULT_SYSTEM_USERS = [
 
 // Inisialisasi Database Pengguna (Versi Terkini 2026)
 function initAuthStore() {
+  if (isProduction()) return;
   const targetAuthVer = "2026_08_30_auth_nondestructive_v2";
   const currentVer = localStorage.getItem("disperindag_users_version");
   if (currentVer !== targetAuthVer) {
@@ -414,7 +415,7 @@ async function authenticateFirebaseUser(email, password) {
 
   try {
     const credential = await auth.signInWithEmailAndPassword(email.trim().toLowerCase(), password);
-    const profileSnapshot = await db.collection('users').doc(credential.user.uid).get();
+    const profileSnapshot = await db.collection('users').doc(credential.user.uid).get({ source: 'server' });
     if (!profileSnapshot.exists) {
       await auth.signOut();
       return { success: false, message: "Akun berhasil diautentikasi tetapi belum mempunyai profil akses Disperindag." };
@@ -463,6 +464,32 @@ async function authenticateFirebaseUser(email, password) {
       'auth/invalid-api-key': 'Konfigurasi Firebase tidak valid. Hubungi administrator.'
     };
     return { success: false, message: friendly[error.code] || (error.code === 'permission-denied' ? 'Login berhasil, tetapi profil akses tidak dapat dibaca. Periksa aturan akses Firebase.' : 'Login Firebase gagal. Periksa koneksi dan kredensial Anda.') };
+  }
+}
+
+async function requireFirebaseLpgSession() {
+  if (typeof auth === 'undefined' || !auth || typeof db === 'undefined' || !db) return null;
+  const user = auth.currentUser || await new Promise(resolve => {
+    const stop = auth.onAuthStateChanged(value => { stop(); resolve(value || null); });
+  });
+  if (!user || !navigator.onLine) return null;
+  try {
+    const snapshot = await db.collection('users').doc(user.uid).get({ source: 'server' });
+    if (!snapshot.exists) return null;
+    const profile = snapshot.data();
+    const allowedRoles = ['LPG_AGENT_ADMIN', 'LPG_AGENT_OPERATOR'];
+    if (profile.status !== 'ACTIVE' || !allowedRoles.includes(profile.role) || !profile.agentId) return null;
+    return {
+      uid: user.uid, email: user.email, authProvider: 'FIREBASE',
+      username: profile.username || user.email, name: profile.name || user.displayName || user.email,
+      agentId: profile.agentId, agentName: profile.agentName || profile.name,
+      role: profile.role, roleLabel: profile.roleLabel || profile.role,
+      canAccessAdmin: false, canAccessLpgAgen: true,
+      permissions: Array.isArray(profile.permissions) ? profile.permissions : []
+    };
+  } catch (error) {
+    console.error('[LPG][AUTH_SERVER_PROFILE_ERROR]', { code: error.code || 'unknown' });
+    return null;
   }
 }
 

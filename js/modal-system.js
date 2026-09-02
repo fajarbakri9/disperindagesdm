@@ -202,24 +202,44 @@ const CustomModal = {
   form({ title = "Formulir Input", icon = "📝", fields = [], onSubmit = null, submitText = "Simpan Data", cancelText = "Batal", width = "580px" }) {
     this.init();
     return new Promise((resolve) => {
+      const escapeAttr = (str) => {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      };
+
+      const escapeText = (str) => {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      };
+
       const renderField = (f) => {
         const reqAttr = f.required ? 'required' : '';
-        const val = f.value !== undefined && f.value !== null ? f.value : '';
-        const ph = f.placeholder || '';
+        const rawVal = f.value !== undefined && f.value !== null ? f.value : '';
+        const valAttr = escapeAttr(rawVal);
+        const valText = escapeText(rawVal);
+        const ph = escapeAttr(f.placeholder || '');
 
         if (f.type === 'select') {
           const opts = (f.options || []).map(opt => {
             const optVal = typeof opt === 'object' ? opt.value : opt;
             const optLbl = typeof opt === 'object' ? opt.label : opt;
-            const selected = String(optVal) === String(val) ? 'selected' : '';
-            return `<option value="${optVal}" ${selected}>${optLbl}</option>`;
+            const selected = String(optVal) === String(rawVal) ? 'selected' : '';
+            return `<option value="${escapeAttr(optVal)}" ${selected}>${escapeText(optLbl)}</option>`;
           }).join('');
           return `
             <div class="form-group" style="margin-bottom: 14px;">
               <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: #0F2C59; margin-bottom: 4px; display: block;">
-                ${f.label} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
+                ${escapeText(f.label)} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
               </label>
-              <select name="${f.name}" class="form-select" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF;" ${reqAttr}>
+              <select name="${escapeAttr(f.name)}" class="form-select" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF;" ${reqAttr}>
                 ${opts}
               </select>
             </div>
@@ -230,9 +250,9 @@ const CustomModal = {
           return `
             <div class="form-group" style="margin-bottom: 14px;">
               <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: #0F2C59; margin-bottom: 4px; display: block;">
-                ${f.label} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
+                ${escapeText(f.label)} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
               </label>
-              <textarea name="${f.name}" rows="${f.rows || 3}" class="form-textarea" placeholder="${ph}" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF; resize: vertical;" ${reqAttr}>${val}</textarea>
+              <textarea name="${escapeAttr(f.name)}" rows="${f.rows || 3}" class="form-textarea" placeholder="${ph}" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF; resize: vertical;" ${reqAttr}>${valText}</textarea>
             </div>
           `;
         }
@@ -240,9 +260,9 @@ const CustomModal = {
         return `
           <div class="form-group" style="margin-bottom: 14px;">
             <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: #0F2C59; margin-bottom: 4px; display: block;">
-              ${f.label} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
+              ${escapeText(f.label)} ${f.required ? '<span style="color:#EF4444;">*</span>' : ''}
             </label>
-            <input type="${f.type || 'text'}" name="${f.name}" value="${val}" placeholder="${ph}" class="form-input" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF;" ${reqAttr}>
+            <input type="${escapeAttr(f.type || 'text')}" name="${escapeAttr(f.name)}" value="${valAttr}" placeholder="${ph}" class="form-input" style="width: 100%; padding: 9px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-family: inherit; font-size: 0.86rem; background: #FFFFFF;" ${f.step != null ? `step="${escapeAttr(f.step)}"` : ''} ${f.min != null ? `min="${escapeAttr(f.min)}"` : ''} ${f.max != null ? `max="${escapeAttr(f.max)}"` : ''} ${reqAttr}>
           </div>
         `;
       };
@@ -261,6 +281,7 @@ const CustomModal = {
           </div>
           <form id="customModalDynamicForm" style="margin: 0;">
             <div class="custom-modal-body" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+              <div id="customModalFormError" role="alert" aria-live="assertive" hidden style="margin:0 0 14px;padding:10px 12px;border:1px solid #FCA5A5;border-left:4px solid #DC2626;border-radius:8px;background:#FEF2F2;color:#991B1B;font-size:.82rem;font-weight:700;"></div>
               ${fields.map(renderField).join('')}
             </div>
             <div class="custom-modal-footer" style="padding: 14px 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0; display: flex; justify-content: flex-end; gap: 10px;">
@@ -286,19 +307,45 @@ const CustomModal = {
       document.getElementById('btnModalFormCancel').onclick = closeFormModal;
 
       const formEl = document.getElementById('customModalDynamicForm');
-      formEl.onsubmit = (e) => {
+      formEl.onsubmit = async (e) => {
         e.preventDefault();
+        const submitBtn = document.getElementById('btnModalFormSubmit');
+        const cancelBtn = document.getElementById('btnModalFormCancel');
+        const errorBox = document.getElementById('customModalFormError');
+        const originalBtnText = submitBtn ? submitBtn.innerHTML : '✓ Simpan';
+
+        if (errorBox) { errorBox.hidden = true; errorBox.textContent = ''; }
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '⏳ Menyimpan...';
+        }
+        if (cancelBtn) cancelBtn.disabled = true;
+
         const formData = new FormData(formEl);
         const values = {};
         for (const [key, value] of formData.entries()) {
           values[key] = value;
         }
 
-        this.backdropEl.classList.remove('active');
-        if (typeof onSubmit === 'function') {
-          onSubmit(values);
+        try {
+          if (typeof onSubmit === 'function') {
+            await onSubmit(values);
+          }
+          this.backdropEl.classList.remove('active');
+          resolve(values);
+        } catch (err) {
+          console.error('[CustomModal.form] Gagal saat onSubmit:', err);
+          if (errorBox) {
+            errorBox.textContent = err?.message || 'Data tidak dapat disimpan. Periksa kembali isian formulir.';
+            errorBox.hidden = false;
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+          }
+          if (cancelBtn) cancelBtn.disabled = false;
         }
-        resolve(values);
       };
     });
   },
@@ -715,7 +762,7 @@ function openSearchModal() {
     { title: "Fasilitasi Sertifikasi TKDN, IKM, Halal & P-IRT", type: "Layanan Publik", url: "layanan.html#srv_tkdn_halal", desc: "Pendampingan legalitas, sertifikasi halal gratis, dan kurasi mutu produk lokal.", icon: "🏷️" },
     { title: "Informasi Publik & Pemantauan Harga Pasar (PIHPS)", type: "Layanan Publik", url: "layanan.html#srv_pihps", desc: "Data komoditas pangan pokok Pasar Sentral dan pantauan stabilitas harga.", icon: "📊" },
     { title: "Konsultasi & Layanan Informasi Publik (PPID Pelaksana)", type: "Layanan Publik", url: "layanan.html#srv_ppid", desc: "Permohonan informasi publik kedinasan berbasis UU KIP No. 14/2008.", icon: "🏛️" },
-    { title: "Pengawasan Tata Kelola Gas LPG 3 Kg Bersubsidi", type: "Layanan Publik", url: "layanan.html#srv_lpg", desc: "Monitoring pangkalan, evaluasi kepatuhan HET resmi Rp 20.000.", icon: "🔥" },
+    { title: "Pengawasan Tata Kelola Gas LPG 3 Kg Bersubsidi", type: "Layanan Publik", url: "layanan.html#srv_lpg", desc: "Monitoring pangkalan dan evaluasi kepatuhan terhadap HET resmi yang berlaku.", icon: "🔥" },
     { title: "Layanan Aspirasi & Pengaduan Konsumen / Masyarakat", type: "Layanan Publik", url: "layanan.html#srv_pengaduan", desc: "Saluran pengaduan terpadu dan penanganan aduan masyarakat.", icon: "📢" },
     { title: "Pantauan Harga Beras Medium SPHP & Premium Lokal Lasinrang", type: "Harga Pasar", url: "#sembako", desc: "Informasi harga beras per kilogram di Pasar Sentral Pinrang.", icon: "🌾" },
     { title: "Pantauan Harga Minyak Goreng Minyakita & Kemasan Premium", type: "Harga Pasar", url: "#sembako", desc: "Update harga minyak goreng curah dan kemasan pasar daerah.", icon: "🛢️" },
@@ -723,7 +770,7 @@ function openSearchModal() {
     { title: "Tindak Lanjut Aduan Warga, Pangkalan LPG 3 Kg Nakal Dijatuhi Sanksi PHU", type: "Berita Kedinasan", url: "arsip-berita.html", desc: "Penindakan tegas bersama Pertamina terhadap pelanggaran HET gas melon di Duampanua.", icon: "📰" },
     { title: "Kawal Kepatuhan HET, Disperindag Gelar Rakor Bersama Agen LPG", type: "Berita Kedinasan", url: "arsip-berita.html", desc: "Evaluasi distribusi kuota dan usulan kuota khusus petani di musim tanam.", icon: "📰" },
     { title: "Jamin Transaksi Adil, Bidang Kemetrologian Gelar Sidang Tera Ulang Pasar", type: "Berita Kedinasan", url: "arsip-berita.html", desc: "Pengujian timbangan pedagang dan takaran SPBU di jalur poros Pinrang.", icon: "📰" },
-    { title: "Perbup Pinrang No. 35 Tahun 2023 tentang Kedudukan, Tupoksi Disperindag", type: "Regulasi Dokumen", url: "dokumen.html?id=doc_01", desc: "Dasar hukum struktur organisasi dan uraian tugas kedinasan.", icon: "📄" },
+    { title: "Perbup Pinrang No. 35 Tahun 2023 tentang Kedudukan, Tupoksi Disperindag", type: "Regulasi Dokumen", url: "ppid.html?id=doc_01#dokumen-regulasi", desc: "Dasar hukum struktur organisasi dan uraian tugas kedinasan.", icon: "📄" },
     { title: "Katalog Produk Unggulan Tenun Sutra Corak Lasinrang", type: "Produk IKM", url: "katalog-ikm.html", desc: "Koleksi kerajinan tenun sutra tradisional binaan Dekranasda Pinrang.", icon: "🧵" },
     { title: "Katalog Kopi Basseang & Olahan Pangan Lokal", type: "Produk IKM", url: "katalog-ikm.html", desc: "Produk kopi robusta pegunungan dan aneka olahan laut khas Pinrang.", icon: "☕" }
   ];
@@ -783,5 +830,3 @@ function openSearchModal() {
 window.openInfographicModal = openInfographicModal;
 window.openComplaintDetailModal = openComplaintDetailModal;
 window.openSearchModal = openSearchModal;
-
-

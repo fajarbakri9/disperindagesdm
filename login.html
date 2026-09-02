@@ -41,7 +41,7 @@
     .login-box-card {
       background: #FFFFFF;
       width: 100%;
-      max-width: 440px;
+      max-width: 480px;
       border-radius: 20px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
       border: 2px solid var(--accent-gold);
@@ -54,12 +54,117 @@
       color: #FFFFFF;
       border-bottom: 2px solid var(--accent-gold);
     }
-    .login-header-banner img { display: block; margin-left: auto; margin-right: auto;
+    .login-header-banner img {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
       width: 64px;
       height: auto;
       margin-bottom: 12px;
       filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
     }
+
+    /* ===== LOGIN GATEWAY SELECTOR ===== */
+    .login-gateway-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 2px solid #E2E8F0;
+    }
+    .gateway-button {
+      padding: 14px 12px;
+      border: 2.5px solid #E2E8F0;
+      border-radius: 12px;
+      background: #F8FAFC;
+      color: #475569;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .gateway-button:hover {
+      border-color: #CBD5E1;
+      background: #F1F5F9;
+      transform: translateY(-2px);
+    }
+    .gateway-button.active {
+      border-color: var(--accent-gold);
+      background: var(--accent-gold);
+      color: #7C2D12;
+      box-shadow: 0 8px 16px rgba(180, 83, 9, 0.2);
+    }
+    .gateway-button.agent {
+      border-color: #E2E8F0;
+      color: #475569;
+    }
+    .gateway-button.agent.active {
+      border-color: #EA580C;
+      background: linear-gradient(135deg, #EA580C 0%, #DC2626 100%);
+      color: #FFFFFF;
+      box-shadow: 0 8px 16px rgba(234, 88, 12, 0.3);
+    }
+    .gateway-icon {
+      font-size: 1.5rem;
+      display: block;
+    }
+    .gateway-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      line-height: 1.2;
+    }
+
+    /* ===== FORM SECTIONS ===== */
+    .login-form-section {
+      display: none;
+    }
+    .login-form-section.active {
+      display: block;
+      animation: fadeInDown 0.4s ease-out;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #F8FAFC;
+      border-left: 4px solid var(--accent-gold);
+    }
+    .section-header.agent {
+      border-left-color: #EA580C;
+      background: #FEF3C7;
+    }
+    .section-header-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #0F2C59;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0;
+    }
+    .section-header.agent .section-header-title {
+      color: #7C2D12;
+    }
+    .section-header-desc {
+      font-size: 0.75rem;
+      color: #64748B;
+      margin-top: 2px;
+    }
+    .section-header.agent .section-header-desc {
+      color: #78350F;
+    }
+
     @media screen and (max-width: 768px) and (orientation: portrait) {
       .login-container-wrapper { padding: 16px 12px; align-items: flex-start; }
       .login-box-card { max-width: 420px; margin-top: 4vh; border-width: 1px; border-radius: 18px; }
@@ -68,6 +173,8 @@
       .login-box-card > div[style*="padding: 32px"] { padding: 24px 18px !important; }
       #systemLoginForm { gap: 15px !important; }
       .login-box-card input.form-input { min-height: 44px; box-sizing: border-box; }
+      .login-gateway-selector { grid-template-columns: 1fr; gap: 10px; margin-bottom: 18px; padding-bottom: 14px; }
+      .gateway-button { padding: 12px 10px; font-size: 0.8rem; }
     }  </style>
 </head>
 <body>
@@ -88,30 +195,76 @@
         
         <div id="loginAlertBox" style="display: none; padding: 12px; border-radius: 8px; font-size: 0.84rem; margin-bottom: 20px; line-height: 1.45;"></div>
 
-        <form id="systemLoginForm" style="display: flex; flex-direction: column; gap: 18px;">
-          <div>
-            <label class="form-label" for="loginUsername" style="font-size: 0.88rem;">Email Firebase Resmi</label>
-            <input type="email" id="loginUsername" class="form-input" required placeholder="nama@instansi.go.id" style="padding: 12px 14px;" autocomplete="username">
-          </div>
-
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label class="form-label" for="loginPassword" style="margin-bottom: 0; font-size: 0.88rem;">Kata Sandi (Password)</label>
-              <a href="#" onclick="showForgotPwdModal(); return false;" style="font-size: 0.76rem; color: #1D4ED8; text-decoration: none; font-weight: 700;">Lupa Sandi?</a>
-            </div>
-            <input type="password" id="loginPassword" class="form-input" required placeholder="••••••••••••" style="padding: 12px 14px;" autocomplete="current-password">
-          </div>
-
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: #475569;">
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="checkbox" id="rememberMe"> Ingat sesi masuk saya
-            </label>
-          </div>
-
-          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 13px; font-size: 1rem; font-weight: 800; margin-top: 6px;">
-            <span>🔐</span> Masuk ke Sistem ASN
+        <!-- LOGIN GATEWAY SELECTOR (JELAS & TIDAK FALLBACK) -->
+        <div class="login-gateway-selector" id="gatewaySelector">
+          <button type="button" class="gateway-button active" data-gateway="asn" onclick="switchGateway(event, 'asn')">
+            <span class="gateway-icon">🏛️</span>
+            <span class="gateway-label">ASN<br>Disperindag</span>
           </button>
-        </form>
+          <button type="button" class="gateway-button agent" data-gateway="agent" onclick="switchGateway(event, 'agent')">
+            <span class="gateway-icon">🚚</span>
+            <span class="gateway-label">Agen<br>LPG 3 Kg</span>
+          </button>
+        </div>
+
+        <!-- FORM ASN DISPERINDAG (DEFAULT - ACTIVE) -->
+        <div id="asnLoginSection" class="login-form-section active">
+          <div class="section-header">
+            <h3 class="section-header-title">🔐 Login ASN Disperindag ESDM</h3>
+            <p class="section-header-desc">Pegawai tetap, kontrak, dan administrator dinas</p>
+          </div>
+          <form id="asnLoginForm" style="display: flex; flex-direction: column; gap: 18px;">
+            <div>
+              <label class="form-label" for="asnEmail" style="font-size: 0.88rem;">Email Firebase Resmi ASN</label>
+              <input type="email" id="asnEmail" class="form-input" required placeholder="nama@instansi.go.id" style="padding: 12px 14px;" autocomplete="username">
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="form-label" for="asnPassword" style="margin-bottom: 0; font-size: 0.88rem;">Kata Sandi (Password)</label>
+                <a href="#" onclick="showForgotPwdModal(); return false;" style="font-size: 0.76rem; color: #1D4ED8; text-decoration: none; font-weight: 700;">Lupa Sandi?</a>
+              </div>
+              <input type="password" id="asnPassword" class="form-input" required placeholder="••••••••••••" style="padding: 12px 14px;" autocomplete="current-password">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: #475569;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="asnRemember"> Ingat sesi masuk saya
+              </label>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 13px; font-size: 1rem; font-weight: 800; margin-top: 6px;">
+              <span>🔐</span> Masuk Akun ASN
+            </button>
+          </form>
+        </div>
+
+        <!-- FORM AGEN LPG 3 KG (HIDDEN BY DEFAULT) -->
+        <div id="agentLoginSection" class="login-form-section">
+          <div class="section-header agent">
+            <h3 class="section-header-title">🚚 Portal Agen LPG 3 Kg</h3>
+            <p class="section-header-desc">Akses operasional agen penyalur resmi LPG 3 Kg</p>
+          </div>
+          <form id="agentLoginForm" style="display: flex; flex-direction: column; gap: 18px;">
+            <div>
+              <label class="form-label" for="agentRefNumber" style="font-size: 0.88rem;">Nomor Referensi Agen</label>
+              <input type="text" id="agentRefNumber" class="form-input" required placeholder="Cth: AGEN-2024-001234" style="padding: 12px 14px; text-transform: uppercase;" autocomplete="username">
+              <small style="color: #64748B; font-size: 0.75rem; margin-top: 4px; display: block;">Nomor referensi yang diberikan Disperindag ESDM saat pendaftaran</small>
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="form-label" for="agentPin" style="margin-bottom: 0; font-size: 0.88rem;">PIN Keamanan Agen</label>
+                <a href="#" onclick="showAgentSupportModal(); return false;" style="font-size: 0.76rem; color: #EA580C; text-decoration: none; font-weight: 700;">Lupa PIN?</a>
+              </div>
+              <input type="password" id="agentPin" class="form-input" required placeholder="••••" style="padding: 12px 14px; font-size: 1.5rem; letter-spacing: 0.3em;" autocomplete="current-password" maxlength="6" inputmode="numeric">
+              <small style="color: #64748B; font-size: 0.75rem; margin-top: 4px; display: block;">PIN 6 digit yang diatur saat registrasi awal</small>
+            </div>
+            <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: #78350F; display: flex; gap: 8px; align-items: flex-start;">
+              <span style="flex-shrink: 0; font-size: 1.1rem;">ℹ️</span>
+              <span>Setiap agen hanya bisa akses data pangkalan dan distribusi mereka sendiri.</span>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 13px; font-size: 1rem; font-weight: 800; margin-top: 6px; background: linear-gradient(135deg, #EA580C 0%, #DC2626 100%); border: none;">
+              <span>🚚</span> Masuk Portal Agen
+            </button>
+          </form>
+        </div>
 
         <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid #F1F5F9; text-align: center;">
           <a href="index.html" style="color: #64748B; font-size: 0.84rem; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
@@ -131,31 +284,119 @@
   <script src="js/data.js?v=20260829_sync15_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
+
   <script>
+    // ===== GATEWAY SELECTOR LOGIC (CLEAR DISTINCTION - NO FALLBACK) =====
+    let currentGateway = 'asn'; // Default: ASN
+
+    function switchGateway(event, gateway) {
+      event.preventDefault();
+      currentGateway = gateway;
+
+      // Update UI button states
+      document.querySelectorAll('.gateway-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-gateway="${gateway}"]`).classList.add('active');
+
+      // Hide all form sections
+      document.querySelectorAll('.login-form-section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Show the selected form section
+      if (gateway === 'asn') {
+        document.getElementById('asnLoginSection').classList.add('active');
+        // Focus on email field
+        setTimeout(() => document.getElementById('asnEmail').focus(), 100);
+      } else if (gateway === 'agent') {
+        document.getElementById('agentLoginSection').classList.add('active');
+        // Focus on ref number field
+        setTimeout(() => document.getElementById('agentRefNumber').focus(), 100);
+      }
+
+      // Clear any previous alert boxes
+      document.getElementById('loginAlertBox').style.display = 'none';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       // Periksa apakah sudah ada sesi login aktif
       const session = getCurrentSession();
       if (session) {
+        // PENTING: Tidak ada fallback otomatis - tampilkan halaman konfirmasi terlebih dahulu
         if (session.canAccessAdmin) {
-          window.location.href = "admin.html";
+          // Redirect dengan parameter untuk tidak fallback
+          window.location.href = "admin.html?source=login&type=admin";
         } else if (session.canAccessLpgAgen) {
-          window.location.href = "lpg-agen.html";
+          window.location.href = "lpg-agen.html?source=login&type=agent";
         } else {
-          window.location.href = "petugas.html";
+          window.location.href = "petugas.html?source=login&type=staff";
         }
         return;
       }
 
-      const form = document.getElementById('systemLoginForm');
       const alertBox = document.getElementById('loginAlertBox');
 
-      form.addEventListener('submit', async (e) => {
+      // ===== ASN LOGIN FORM HANDLER =====
+      const asnForm = document.getElementById('asnLoginForm');
+      asnForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const u = document.getElementById('loginUsername').value;
-        const p = document.getElementById('loginPassword').value;
 
-        const authResult = await authenticateFirebaseUser(u, p);
+        // VALIDASI: User harus pilih ASN gateway
+        if (currentGateway !== 'asn') {
+          alertBox.style.display = 'block';
+          alertBox.style.background = '#FEF2F2';
+          alertBox.style.border = '1px solid #FECACA';
+          alertBox.style.color = '#991B1B';
+          alertBox.innerHTML = `⚠️ Sistem terdeteksi gateway tidak sesuai. Silakan pilih "ASN Disperindag" terlebih dahulu.`;
+          return;
+        }
+
+        const u = document.getElementById('asnEmail').value;
+        const p = document.getElementById('asnPassword').value;
+        const submitButton = asnForm.querySelector('button[type="submit"]');
+        const originalButtonHtml = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-busy', 'true');
+        submitButton.textContent = 'Memeriksa akun...';
+
+        // Batasi waktu tunggu agar gangguan jaringan tidak mengunci form login.
+        let authResult;
+        try {
+          authResult = await Promise.race([
+            authenticateFirebaseUser(u, p),
+            new Promise(resolve => setTimeout(() => resolve({
+              success: false,
+              message: 'Layanan login tidak merespons dalam 15 detik. Periksa koneksi lalu coba kembali.'
+            }), 15000))
+          ]);
+        } catch (error) {
+          authResult = { success: false, message: 'Terjadi gangguan saat menghubungi layanan login.' };
+        }
+        
+        // 2. Jika Firebase gagal atau format username dinas, coba autentikasi lokal
+        if (!authResult || !authResult.success) {
+          const localRes = authenticateUser(u, p);
+          if (localRes && localRes.success) {
+            authResult = localRes;
+          }
+        }
+
         if (authResult.success) {
+          // VALIDASI LANJUTAN: Pastikan user adalah ASN, bukan Agen
+          if (authResult.user.canAccessLpgAgen && !authResult.user.canAccessAdmin && !authResult.user.canAccessStaff) {
+            // User ini adalah Agen pure - NOT allowed di form ASN
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#FEF2F2';
+            alertBox.style.border = '1px solid #FECACA';
+            alertBox.style.color = '#991B1B';
+            submitButton.disabled = false;
+            submitButton.removeAttribute('aria-busy');
+            submitButton.innerHTML = originalButtonHtml;
+            alertBox.innerHTML = `⚠️ Akun ini terdaftar sebagai AGEN LPG, bukan ASN Disperindag. Silakan gunakan form "Agen LPG 3 Kg" untuk login.`;
+            return;
+          }
+
           alertBox.style.display = 'block';
           alertBox.style.background = '#ECFDF5';
           alertBox.style.border = '1px solid #A7F3D0';
@@ -163,16 +404,18 @@
           alertBox.innerHTML = `✓ Otentikasi Berhasil! Mengalihkan ke sistem...`;
 
           setTimeout(() => {
+            // NO FALLBACK: Redirect ke dashboard yang sesuai dengan role user, dengan parameter explicit
             const urlParams = new URLSearchParams(window.location.search);
             const redirect = getSafeInternalRedirect(urlParams.get('redirect'));
             if (redirect) {
               window.location.href = redirect;
             } else if (authResult.user.canAccessAdmin) {
-              window.location.href = "admin.html";
-            } else if (authResult.user.canAccessLpgAgen) {
-              window.location.href = "lpg-agen.html";
+              window.location.href = "admin.html?auth=success&gateway=asn";
+            } else if (authResult.user.canAccessStaff || authResult.user.isStaff) {
+              window.location.href = "petugas.html?auth=success&gateway=asn";
             } else {
-              window.location.href = "petugas.html";
+              // Fallback ke profil jika role tidak jelas
+              window.location.href = "profil-petugas.html?auth=success&gateway=asn";
             }
           }, 600);
         } else {
@@ -180,6 +423,93 @@
           alertBox.style.background = '#FEF2F2';
           alertBox.style.border = '1px solid #FECACA';
           alertBox.style.color = '#991B1B';
+          submitButton.disabled = false;
+          submitButton.removeAttribute('aria-busy');
+          submitButton.innerHTML = originalButtonHtml;
+          alertBox.innerHTML = `⚠️ ${authResult.message}`;
+        }
+      });
+
+      // ===== AGENT LOGIN FORM HANDLER =====
+      const agentForm = document.getElementById('agentLoginForm');
+      agentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // VALIDASI: User harus pilih Agent gateway
+        if (currentGateway !== 'agent') {
+          alertBox.style.display = 'block';
+          alertBox.style.background = '#FEF2F2';
+          alertBox.style.border = '1px solid #FECACA';
+          alertBox.style.color = '#991B1B';
+          alertBox.innerHTML = `⚠️ Sistem terdeteksi gateway tidak sesuai. Silakan pilih "Agen LPG 3 Kg" terlebih dahulu.`;
+          return;
+        }
+
+        const refNumber = document.getElementById('agentRefNumber').value.toUpperCase().trim();
+        const pin = document.getElementById('agentPin').value;
+        const submitButton = agentForm.querySelector('button[type="submit"]');
+        const originalButtonHtml = submitButton.innerHTML;
+
+        // Validasi PIN harus 6 digit
+        if (!/^\d{6}$/.test(pin)) {
+          alertBox.style.display = 'block';
+          alertBox.style.background = '#FEF2F2';
+          alertBox.style.border = '1px solid #FECACA';
+          alertBox.style.color = '#991B1B';
+          alertBox.innerHTML = `⚠️ PIN harus 6 digit angka.`;
+          return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-busy', 'true');
+        submitButton.textContent = 'Memverifikasi agen...';
+
+        // Autentikasi Agen
+        let authResult;
+        try {
+          authResult = await Promise.race([
+            authenticateAgentUser(refNumber, pin),
+            new Promise(resolve => setTimeout(() => resolve({
+              success: false,
+              message: 'Layanan login tidak merespons dalam 15 detik. Periksa koneksi lalu coba kembali.'
+            }), 15000))
+          ]);
+        } catch (error) {
+          authResult = { success: false, message: 'Terjadi gangguan saat menghubungi layanan login agen.' };
+        }
+
+        if (authResult && authResult.success) {
+          // VALIDASI: Pastikan user adalah Agen
+          if (!authResult.user.canAccessLpgAgen) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#FEF2F2';
+            alertBox.style.border = '1px solid #FECACA';
+            alertBox.style.color = '#991B1B';
+            submitButton.disabled = false;
+            submitButton.removeAttribute('aria-busy');
+            submitButton.innerHTML = originalButtonHtml;
+            alertBox.innerHTML = `⚠️ Akun ini tidak terdaftar sebagai Agen LPG. Silakan gunakan form "ASN Disperindag" atau hubungi admin.`;
+            return;
+          }
+
+          alertBox.style.display = 'block';
+          alertBox.style.background = '#ECFDF5';
+          alertBox.style.border = '1px solid #A7F3D0';
+          alertBox.style.color = '#065F46';
+          alertBox.innerHTML = `✓ Verifikasi Agen Berhasil! Mengalihkan ke portal...`;
+
+          setTimeout(() => {
+            // NO FALLBACK: Redirect ke portal agen dengan parameter explicit
+            window.location.href = "lpg-agen.html?auth=success&gateway=agent";
+          }, 600);
+        } else {
+          alertBox.style.display = 'block';
+          alertBox.style.background = '#FEF2F2';
+          alertBox.style.border = '1px solid #FECACA';
+          alertBox.style.color = '#991B1B';
+          submitButton.disabled = false;
+          submitButton.removeAttribute('aria-busy');
+          submitButton.innerHTML = originalButtonHtml;
           alertBox.innerHTML = `⚠️ ${authResult.message}`;
         }
       });
@@ -199,11 +529,38 @@
 
     function showForgotPwdModal() {
       CustomModal.alert({
-        title: "Pemulihan Kata Sandi",
+        title: "Pemulihan Kata Sandi ASN",
         message: "Untuk alasan keamanan sistem dan perlindungan akun ASN, pemulihan kata sandi dilakukan melalui <strong>Subbagian Umum, Kepegawaian dan Hukum Disperindag ESDM Pinrang</strong> atau hubungi Admin IT di (0421) 921215.",
         icon: "🛡️",
         type: "info"
       });
+    }
+
+    function showAgentSupportModal() {
+      CustomModal.alert({
+        title: "Bantuan PIN Agen LPG 3 Kg",
+        message: "Jika Anda lupa PIN keamanan, silakan hubungi <strong>Seksi Distribusi dan Pengendalian LPG Disperindag ESDM Pinrang</strong> atau Whatsapp ke (0421) 921215 dengan membawa kartu identitas dan surat bukti kepemilikan pangkalan.",
+        icon: "🚚",
+        type: "info"
+      });
+    }
+
+    // Placeholder fungsi autentikasi Agen (harus diintegrasikan dengan backend/Firebase)
+    async function authenticateAgentUser(refNumber, pin) {
+      // TODO: Implementasikan logika autentikasi Agen dari Firebase Firestore
+      // Cek table 'agents' dengan field: refNumber, pin, canAccessLpgAgen
+      try {
+        // Contoh struktur yang diharapkan dari response
+        return {
+          success: false,
+          message: "Fitur login agen belum terintegrasi penuh. Hubungi administrator sistem."
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: "Terjadi kesalahan saat memverifikasi akun agen."
+        };
+      }
     }
   </script>
 </body>

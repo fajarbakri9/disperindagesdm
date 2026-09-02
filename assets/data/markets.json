@@ -5,18 +5,18 @@
     "namaAlternatif": "Pasar Sentral Kabupaten Pinrang",
     "slug": "pasar-sentral-pinrang",
     "kecamatan": "Watang Sawitto",
-    "desaKelurahan": "Sawitto",
-    "alamat": "Jl. Sultan Hasanuddin, Sawitto, Kec. Watang Sawitto, Kabupaten Pinrang",
+    "desaKelurahan": "Penrang",
+    "alamat": "6J6X+56M, Jl. Kemuning, Penrang, Kec. Watang Sawitto, Kabupaten Pinrang, Sulawesi Selatan 91212, Indonesia",
     "statusOperasional": "aktif",
     "statusLabel": "Aktif",
     "tingkatKeyakinanStatus": "Tinggi",
     "buktiOperasionalTerakhir": "Pemantauan harian harga Bapokting Disperindag ESDM 2026 & aktivitas distribusi aktif.",
     "klasifikasiHistoris": "Tipe A",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pasar Wilayah I",
+    "unitPengelola": "UPTD Pasar Wilayah II",
     "statusVerifikasiUnitPengelola": "Terverifikasi Sesuai Nomenklatur",
     "hariPasar": [
-      "Setiap Hari"
+      "Setiap hari"
     ],
     "jamOperasional": "05.30 – 17.30 WITA",
     "luasLahanM2": null,
@@ -40,8 +40,8 @@
       "Area Parkir",
       "Bak Penampungan Sampah"
     ],
-    "latitude": -3.7885,
-    "longitude": 119.6482,
+    "latitude": -3.7895375,
+    "longitude": 119.648046875,
     "fotoUtama": "assets/pasar/pasar_sentral_pinrang.jpg",
     "galeri": [
       "assets/pasar/pasar_sentral_pinrang.jpg"
@@ -60,11 +60,25 @@
         "tahun": 2025
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Aktivitas perdagangan berlangsung harian dengan pemantauan enumerator setiap pagi.",
     "published": true,
-    "showAsActive": true
+    "showAsActive": true,
+    "namaGoogleMaps": "Pasar Sentral Pinrang",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Terkonfirmasi operasional Pemda 2026",
+    "plusCode": "6J6X+56M",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Setiap hari 05:00–18:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJz46KNQBNlC0Rb4Gkf7Vfvc8",
+    "dasarReferensiMaster": "Perda 1/2024 + bukti operasional UPTD II 2026",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-pekkabata",
@@ -72,19 +86,20 @@
     "namaAlternatif": "Pasar Rakyat Pekkabata",
     "slug": "pasar-pekkabata",
     "kecamatan": "Duampanua",
-    "desaKelurahan": "Pekkabata",
-    "alamat": "Jl. Poros Pinrang – Polman, Pekkabata, Kec. Duampanua, Kabupaten Pinrang",
+    "desaKelurahan": "Pekkabata / Lampa",
+    "alamat": "Listing utama: Lampa, Kec. Duampanua, Kabupaten Pinrang, Sulawesi Selatan 91253; listing kedua: 8G5X+H9H, Pekkabata, Kec. Duampanua, Kabupaten Pinrang, Sulawesi Selatan 91253, Indonesia",
     "statusOperasional": "aktif",
     "statusLabel": "Aktif",
     "tingkatKeyakinanStatus": "Tinggi",
     "buktiOperasionalTerakhir": "Aktivitas hari pasar rutin Rabu & Sabtu dan dokumentasi pemantauan 2025–2026.",
     "klasifikasiHistoris": "Tipe B",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pengelola Pasar",
+    "unitPengelola": "UPTD Pasar Wilayah I",
     "statusVerifikasiUnitPengelola": "Perlu Konfirmasi Internal",
     "hariPasar": [
+      "Senin",
       "Rabu",
-      "Sabtu"
+      "Jumat"
     ],
     "jamOperasional": "06.00 – 13.00 WITA",
     "luasLahanM2": null,
@@ -103,8 +118,8 @@
       "Toilet Umum",
       "Area Parkir"
     ],
-    "latitude": -3.6189,
-    "longitude": 119.5542,
+    "latitude": -3.6910625,
+    "longitude": 119.548484375,
     "fotoUtama": "assets/pasar/pasar_pekkabata.jpg",
     "galeri": [
       "assets/pasar/pasar_pekkabata.jpg"
@@ -118,11 +133,25 @@
         "tahun": 2025
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Beroperasi aktif pada hari pasar resmi (Rabu dan Sabtu).",
     "published": true,
-    "showAsActive": true
+    "showAsActive": true,
+    "namaGoogleMaps": "Pasar Pekkabata",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Terkonfirmasi langsung 2026",
+    "plusCode": "8G5X+H9H",
+    "statusKoordinat": "Perlu perhatian — dua listing Google",
+    "jadwalGoogleMaps": "Senin/Rabu/Jumat 05:00–11:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJbX8bXz9alC0RGCJMmMYuY1g",
+    "dasarReferensiMaster": "Perda 1/2024 + bukti UPTD I 28/08/2026",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-bungi",
@@ -131,14 +160,14 @@
     "slug": "pasar-bungi",
     "kecamatan": "Duampanua",
     "desaKelurahan": "Bungi",
-    "alamat": "Desa Bungi, Kec. Duampanua, Kabupaten Pinrang",
+    "alamat": "CGQP+6CJ, Bungi, Kec. Duampanua, Kabupaten Pinrang, Sulawesi Selatan 91254, Indonesia",
     "statusOperasional": "aktif",
     "statusLabel": "Aktif",
     "tingkatKeyakinanStatus": "Tinggi",
     "buktiOperasionalTerakhir": "Aktivitas transaksi pedagang dan dokumentasi survei lapangan 2025.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pengelola Pasar",
+    "unitPengelola": "UPTD Pasar Wilayah I",
     "statusVerifikasiUnitPengelola": "Perlu Konfirmasi Internal",
     "hariPasar": [
       "Kamis",
@@ -158,8 +187,8 @@
       "Los Pasar",
       "Area Parkir"
     ],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.5619125,
+    "longitude": 119.536015625,
     "fotoUtama": "assets/pasar/pasar_bungi.jpg",
     "galeri": [
       "assets/pasar/pasar_bungi.jpg"
@@ -173,31 +202,45 @@
         "tahun": 2025
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Hari pasar aktif: Kamis dan Minggu.",
     "published": true,
-    "showAsActive": true
+    "showAsActive": true,
+    "namaGoogleMaps": "Pasar Bungi",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "CGQP+6CJ",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Kamis/Minggu 05:00–12:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJFcZknr9dlC0R8u0zkc5Fcdc",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-langnga",
-    "nama": "Pasar Langnga",
-    "namaAlternatif": "Pasar Rakyat Langnga",
+    "nama": "Pasar Rakyat Langnga",
+    "namaAlternatif": "Pasar Langnga",
     "slug": "pasar-langnga",
     "kecamatan": "Mattiro Sompe",
     "desaKelurahan": "Langnga",
-    "alamat": "Kelurahan Langnga, Kec. Mattiro Sompe, Kabupaten Pinrang",
+    "alamat": "5G5C+X5R, Langnga, Kec. Mattiro Sompe, Kabupaten Pinrang, Sulawesi Selatan 91261, Indonesia",
     "statusOperasional": "aktif",
     "statusLabel": "Aktif",
     "tingkatKeyakinanStatus": "Tinggi",
     "buktiOperasionalTerakhir": "Dokumentasi transaksi perikanan dan hasil bumi masyarakat pesisir 2025.",
     "klasifikasiHistoris": "Tipe B",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pengelola Pasar",
+    "unitPengelola": "UPTD Pasar Wilayah I",
     "statusVerifikasiUnitPengelola": "Perlu Konfirmasi Internal",
     "hariPasar": [
-      "Selasa",
-      "Jumat"
+      "Rabu",
+      "Sabtu"
     ],
     "jamOperasional": "06.00 – 12.30 WITA",
     "luasLahanM2": null,
@@ -215,8 +258,8 @@
       "Los Kering",
       "Area Parkir"
     ],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.8400125,
+    "longitude": 119.520390625,
     "fotoUtama": "assets/pasar/pasar_langnga.jpg",
     "galeri": [
       "assets/pasar/pasar_langnga.jpg"
@@ -230,31 +273,45 @@
         "tahun": 2025
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Pasar aktif melayani distribusi hasil laut dan kebutuhan harian.",
     "published": true,
-    "showAsActive": true
+    "showAsActive": true,
+    "namaGoogleMaps": "Pasar Rakyat Langnga",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "5G5C+X5R",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Rabu/Sabtu 06:00–13:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJs1j67KSslS0RM78dPJiNjPA",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-teppo-benteng",
-    "nama": "Pasar Teppo/Benteng",
-    "namaAlternatif": "Pasar Teppo Patampanua",
+    "nama": "Pasar Teppo",
+    "namaAlternatif": "Pasar Teppo/Benteng",
     "slug": "pasar-teppo-benteng",
     "kecamatan": "Patampanua",
-    "desaKelurahan": "Teppo",
-    "alamat": "Kelurahan Teppo, Kec. Patampanua, Kabupaten Pinrang",
+    "desaKelurahan": "Teppo / Benteng",
+    "alamat": "7MW9+2FF, Teppo, Kec. Patampanua, Kabupaten Pinrang, Sulawesi Selatan 91252, Indonesia",
     "statusOperasional": "aktif",
     "statusLabel": "Aktif",
     "tingkatKeyakinanStatus": "Tinggi",
     "buktiOperasionalTerakhir": "Survei perdagangan komoditas pertanian dan pedagang pasar 2025.",
     "klasifikasiHistoris": "Tipe B",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pengelola Pasar",
+    "unitPengelola": "UPTD Pasar Wilayah I",
     "statusVerifikasiUnitPengelola": "Perlu Konfirmasi Internal",
     "hariPasar": [
-      "Senin",
-      "Kamis"
+      "Kamis",
+      "Minggu"
     ],
     "jamOperasional": "06.00 – 12.00 WITA",
     "luasLahanM2": null,
@@ -271,8 +328,8 @@
       "Los Pasar",
       "Area Parkir"
     ],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.7049375,
+    "longitude": 119.668671875,
     "fotoUtama": "assets/pasar/pasar_teppo_benteng.jpg",
     "galeri": [
       "assets/pasar/pasar_teppo_benteng.jpg"
@@ -286,11 +343,25 @@
         "tahun": 2025
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Status operasional aktif diverifikasi melalui catatan statistik daerah.",
     "published": true,
-    "showAsActive": true
+    "showAsActive": true,
+    "namaGoogleMaps": "Pasar Teppo/ Benteng",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "7MW9+2FF",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Kamis/Minggu ±05:05–12:12",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJpzFnIhdPlC0RPwt_uvQVGrQ",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-kariango",
@@ -298,19 +369,19 @@
     "namaAlternatif": "Pasar Rakyat Kariango",
     "slug": "pasar-kariango",
     "kecamatan": "Mattiro Bulu",
-    "desaKelurahan": "Kariango",
-    "alamat": "Desa Kariango, Kec. Mattiro Bulu, Kabupaten Pinrang",
+    "desaKelurahan": "Pananrang / Dusun Kariango",
+    "alamat": "4J8J+4WC, Pananrang, Kec. Mattiro Bulu, Kabupaten Pinrang, Sulawesi Selatan 91271, Indonesia",
     "statusOperasional": "aktif",
     "statusLabel": "Aktif",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Dokumentasi riset pedagang pasar lokal 2025.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pengelola Pasar",
+    "unitPengelola": "UPTD Pasar Wilayah II",
     "statusVerifikasiUnitPengelola": "Perlu Konfirmasi Internal",
     "hariPasar": [
-      "Rabu",
-      "Sabtu"
+      "Selasa",
+      "Jumat"
     ],
     "jamOperasional": "06.30 – 12.00 WITA",
     "luasLahanM2": null,
@@ -325,8 +396,8 @@
     "fasilitas": [
       "Los Pasar"
     ],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.8846875,
+    "longitude": 119.632265625,
     "fotoUtama": "assets/pasar/pasar_kariango.jpg",
     "galeri": [
       "assets/pasar/pasar_kariango.jpg"
@@ -340,11 +411,25 @@
         "tahun": 2025
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Aktivitas berkala pada hari pasar tertentu.",
     "published": true,
-    "showAsActive": true
+    "showAsActive": true,
+    "namaGoogleMaps": "Pasar Kariango",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "4J8J+4WC",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Selasa/Jumat 06:00–12:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJAesUrT6ylS0RnQLI_H2PbVo",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-pajalele",
@@ -352,19 +437,18 @@
     "namaAlternatif": "Pasar Rakyat Pajalele",
     "slug": "pasar-pajalele",
     "kecamatan": "Lembang",
-    "desaKelurahan": "Pajalele",
-    "alamat": "Desa Pajalele, Kec. Lembang, Kabupaten Pinrang",
+    "desaKelurahan": "Binanga Karaeng / Pajalele",
+    "alamat": "FFVP+H9V, Binanga Karaeng, Kec. Lembang, Kabupaten Pinrang, Sulawesi Selatan 91254, Indonesia",
     "statusOperasional": "aktif",
     "statusLabel": "Aktif",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Studi pedagang komoditas perdesaan 2025 di wilayah Lembang.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pengelola Pasar",
+    "unitPengelola": "Non-Pemda / belum terverifikasi",
     "statusVerifikasiUnitPengelola": "Perlu Konfirmasi Internal",
     "hariPasar": [
-      "Senin",
-      "Jumat"
+      "setiap hari"
     ],
     "jamOperasional": "06.00 – 11.30 WITA",
     "luasLahanM2": null,
@@ -380,8 +464,8 @@
     "fasilitas": [
       "Los Sederhana"
     ],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.5060125,
+    "longitude": 119.485921875,
     "fotoUtama": "assets/pasar/pasar_pajalele.jpg",
     "galeri": [
       "assets/pasar/pasar_pajalele.jpg"
@@ -395,11 +479,25 @@
         "tahun": 2025
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Aktivitas perdagangan berfokus pada hasil bumi dan kebutuhan pokok mingguan.",
     "published": true,
-    "showAsActive": true
+    "showAsActive": true,
+    "namaGoogleMaps": "Pasar Pajalele Lembang",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Rakyat Lainnya",
+    "statusKewenangan": "Pasar rakyat; bukan master Pasar Pemda saat ini",
+    "plusCode": "FFVP+H9V",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Listing menunjukkan setiap hari 06:00–23:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJP8SKCh9hlC0R6pHmbHodVcc",
+    "dasarReferensiMaster": "Perda 2/2017 (referensi historis nama)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-marawi",
@@ -408,18 +506,18 @@
     "slug": "pasar-marawi",
     "kecamatan": "Tiroang",
     "desaKelurahan": "Marawi",
-    "alamat": "Kelurahan Marawi, Kec. Tiroang, Kabupaten Pinrang",
+    "alamat": "Jl. Poros Pinrang–Rappang KM 9, Marawi, Kec. Tiroang, Kabupaten Pinrang",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Tercatat dalam dokumen historis Perda 2/2017 & jadwal pemantauan bergilir.",
     "klasifikasiHistoris": "Tipe B",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "UPTD Pengelola Pasar",
+    "unitPengelola": "UPTD Pasar Wilayah II",
     "statusVerifikasiUnitPengelola": "Perlu Konfirmasi Internal",
     "hariPasar": [
-      "Senin",
-      "Kamis"
+      "Rabu",
+      "Sabtu"
     ],
     "jamOperasional": "Data sedang diperbarui",
     "luasLahanM2": null,
@@ -435,8 +533,8 @@
     "fasilitas": [
       "Los Pedagang"
     ],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.8166921,
+    "longitude": 119.7233924,
     "fotoUtama": "assets/pasar/pasar_marawi_tiroang.jpg",
     "galeri": [
       "assets/pasar/pasar_marawi_tiroang.jpg"
@@ -450,29 +548,51 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Status operasional dan data detail sarana sedang dalam proses verifikasi lapangan lanjutan.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Marawi",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "6P8X5PMF+89",
+    "statusKoordinat": "Titik listing Google Maps; berada di Desa Marawi — perlu konfirmasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Rabu / Sabtu 05:00–13:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJsVB3JjRLlC0RlMa66qXuxrE",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "GOOGLE_MAPS_LISTING_AND_PLUS_CODE",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif",
+    "coordinateConfidence": "tinggi-digital",
+    "coordinateSources": [
+      "Google Maps listing Pasar Marawi",
+      "Plus Code 6P8X5PMF+89",
+      "Overlay batas indikatif BIG"
+    ]
   },
   {
     "id": "pasar-kampoeng-djaja",
-    "nama": "Pasar Kampoeng Djaja / Kampung Jaya",
+    "nama": "Pasar Kampoeng Djaja",
     "namaAlternatif": "Pasar Kampung Jaya",
     "slug": "pasar-kampoeng-djaja",
     "kecamatan": "Watang Sawitto",
-    "desaKelurahan": "Watang Sawitto",
-    "alamat": "Kecamatan Watang Sawitto, Kabupaten Pinrang",
+    "desaKelurahan": "Jaya",
+    "alamat": "6M43+25W, Jaya, Kec. Watang Sawitto, Kabupaten Pinrang, Sulawesi Selatan 91213, Indonesia",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Rendah",
     "buktiOperasionalTerakhir": "Tercantum dalam Perda Nomor 2 Tahun 2017.",
     "klasifikasiHistoris": "Tipe B",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "",
+    "unitPengelola": "UPTD Pasar Wilayah II",
     "statusVerifikasiUnitPengelola": "Belum Dikonfirmasi",
-    "hariPasar": [],
+    "hariPasar": [
+      "Setiap hari"
+    ],
     "jamOperasional": "Data sedang diperbarui",
     "luasLahanM2": null,
     "jumlahKios": null,
@@ -480,8 +600,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.7948875,
+    "longitude": 119.652953125,
     "fotoUtama": "assets/pasar/pasar_placeholder_verified.jpg",
     "galeri": [
       "assets/pasar/pasar_placeholder_verified.jpg"
@@ -495,11 +615,25 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Data operasional, alamat presisi, dan jadwal sedang diperbarui.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Kampoeng Djaja",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "6M43+25W",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Setiap hari 14:00–19:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJ9aouA_1MlC0R5eMgTFulcbI",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-cempa",
@@ -508,16 +642,19 @@
     "slug": "pasar-cempa",
     "kecamatan": "Cempa",
     "desaKelurahan": "Cempa",
-    "alamat": "Kecamatan Cempa, Kabupaten Pinrang",
+    "alamat": "7H3P+CWV, Cempa, Kec. Cempa, Kabupaten Pinrang, Sulawesi Selatan 91262, Indonesia",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Tercantum dalam dokumen pembagian sarana perdagangan daerah.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "",
+    "unitPengelola": "UPTD Pasar Wilayah I",
     "statusVerifikasiUnitPengelola": "Belum Dikonfirmasi",
-    "hariPasar": [],
+    "hariPasar": [
+      "Selasa",
+      "Jumat"
+    ],
     "jamOperasional": "Data sedang diperbarui",
     "luasLahanM2": null,
     "jumlahKios": null,
@@ -525,8 +662,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.7463875,
+    "longitude": 119.587296875,
     "fotoUtama": "assets/pasar/pasar_placeholder_verified.jpg",
     "galeri": [
       "assets/pasar/pasar_placeholder_verified.jpg"
@@ -540,11 +677,25 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Data operasional dan jadwal pasar dalam verifikasi lapangan.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Cempa",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "7H3P+CWV",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Selasa/Jumat 07:00–12:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJ0eDv6_FRlC0RYVi1XTsDBRw",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-leppangang",
@@ -552,17 +703,20 @@
     "namaAlternatif": "Pasar Rakyat Leppangang",
     "slug": "pasar-leppangang",
     "kecamatan": "Patampanua",
-    "desaKelurahan": "Leppangang",
-    "alamat": "Desa Leppangang, Kec. Patampanua, Kabupaten Pinrang",
+    "desaKelurahan": "Mattiro Ade",
+    "alamat": "8M5G+8WW, Mattiro Ade, Kec. Patampanua, Kabupaten Pinrang, Sulawesi Selatan 91252, Indonesia",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Tercatat dalam dokumen regulasi retribusi pasar daerah.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "",
+    "unitPengelola": "UPTD Pasar Wilayah I",
     "statusVerifikasiUnitPengelola": "Belum Dikonfirmasi",
-    "hariPasar": [],
+    "hariPasar": [
+      "Rabu",
+      "Sabtu"
+    ],
     "jamOperasional": "Data sedang diperbarui",
     "luasLahanM2": null,
     "jumlahKios": null,
@@ -570,8 +724,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.6916375,
+    "longitude": 119.677328125,
     "fotoUtama": "assets/pasar/pasar_placeholder_verified.jpg",
     "galeri": [
       "assets/pasar/pasar_placeholder_verified.jpg"
@@ -585,29 +739,46 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Status operasional dan jadwal pasar dalam proses pemutakhiran.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Leppangang",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "8M5G+8WW",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Rabu/Sabtu 06:00–11:30",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJB6y0rGpOlC0RBpUwQt0xtcY",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-lanrisang-jampue",
-    "nama": "Pasar Lanrisang/Jampue",
-    "namaAlternatif": "Pasar Jampue Lanrisang",
+    "nama": "Pasar Lanrisang",
+    "namaAlternatif": "Pasar Jampue / Djampue",
     "slug": "pasar-lanrisang-jampue",
     "kecamatan": "Lanrisang",
-    "desaKelurahan": "Jampue",
-    "alamat": "Kecamatan Lanrisang, Kabupaten Pinrang",
+    "desaKelurahan": "Lanrisang / Jampue",
+    "alamat": "3GVW+4MX, Unnamed Road, Lanrisang, Kabupaten Pinrang, Sulawesi Selatan 91272, Indonesia",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Tercatat dalam dokumen administratif Perda 2/2017.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "",
+    "unitPengelola": "UPTD Pasar Wilayah II",
     "statusVerifikasiUnitPengelola": "Belum Dikonfirmasi",
-    "hariPasar": [],
+    "hariPasar": [
+      "Kamis",
+      "Minggu"
+    ],
     "jamOperasional": "Data sedang diperbarui",
     "luasLahanM2": null,
     "jumlahKios": null,
@@ -615,8 +786,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.9071375,
+    "longitude": 119.546734375,
     "fotoUtama": "assets/pasar/pasar_placeholder_verified.jpg",
     "galeri": [
       "assets/pasar/pasar_placeholder_verified.jpg"
@@ -630,11 +801,25 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Data operasional dan jadwal pasar sedang diperbarui.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Djampue Lanrisang",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Pemda",
+    "statusKewenangan": "Master kerja — perlu sinkron register retribusi/aset",
+    "plusCode": "3GVW+4MX",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Kamis/Minggu 05:00–12:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJ42hV8NSvlS0R5Jt4mjxrKxk",
+    "dasarReferensiMaster": "Perda 1/2024 (kerangka Pemda)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-suppa",
@@ -642,8 +827,8 @@
     "namaAlternatif": "Pasar Rakyat Suppa",
     "slug": "pasar-suppa",
     "kecamatan": "Suppa",
-    "desaKelurahan": "Suppa",
-    "alamat": "Kecamatan Suppa, Kabupaten Pinrang",
+    "desaKelurahan": "Watang Suppa",
+    "alamat": "Watang Suppa, Kec. Suppa, Kabupaten Pinrang",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Perlu Verifikasi Khusus",
@@ -660,8 +845,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.9639013,
+    "longitude": 119.6046165,
     "fotoUtama": "assets/pasar/pasar_suppa_evaluasi.jpg",
     "galeri": [
       "assets/pasar/pasar_suppa_evaluasi.jpg"
@@ -679,7 +864,19 @@
     "tahunData": "2026",
     "catatanVerifikasi": "Status operasional tidak diaktifkan langsung sebelum ada konfirmasi data pemanfaatan lapangan terbaru yang valid.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "masterDataStatus": "SUPPLEMENTAL_PERLU_VERIFIKASI",
+    "masterDataNote": "Tidak tercantum pada workbook Google Maps 31 Agustus 2026.",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif",
+    "metodeKoordinat": "GOOGLE_MAPS_LISTING",
+    "statusKoordinat": "Titik listing Google Maps; berada di Watang Suppa — perlu konfirmasi GPS pintu masuk",
+    "coordinateConfidence": "menengah-digital",
+    "coordinateSources": [
+      "Google Maps search Pasar Rakyat Suppa",
+      "Overlay batas indikatif BIG"
+    ],
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Pasar+Rakyat+Suppa+Pinrang"
   },
   {
     "id": "pasar-malimpung",
@@ -688,16 +885,19 @@
     "slug": "pasar-malimpung",
     "kecamatan": "Patampanua",
     "desaKelurahan": "Malimpung",
-    "alamat": "Desa Malimpung, Kec. Patampanua, Kabupaten Pinrang",
+    "alamat": "7P8M+875, Malimpung, Kec. Patampanua, Kabupaten Pinrang, Sulawesi Selatan 91252, Indonesia",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Tercantum dalam Perda Kabupaten Pinrang Nomor 2 Tahun 2017.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "",
+    "unitPengelola": "Non-Pemda / belum terverifikasi",
     "statusVerifikasiUnitPengelola": "Belum Dikonfirmasi",
-    "hariPasar": [],
+    "hariPasar": [
+      "Rabu",
+      "Sabtu"
+    ],
     "jamOperasional": "Data sedang diperbarui",
     "luasLahanM2": null,
     "jumlahKios": null,
@@ -705,8 +905,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.7342375,
+    "longitude": 119.733234375,
     "fotoUtama": "assets/pasar/pasar_placeholder_verified.jpg",
     "galeri": [
       "assets/pasar/pasar_placeholder_verified.jpg"
@@ -720,11 +920,25 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Jadwal dan aktivitas pasar sedang diperbarui.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Malimpung",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Rakyat Lainnya",
+    "statusKewenangan": "Pasar rakyat; bukan master Pasar Pemda saat ini",
+    "plusCode": "7P8M+875",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": "Rabu/Sabtu 06:00–12:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJtR-uSHJJlC0R3cfTZQTL_V4",
+    "dasarReferensiMaster": "Perda 2/2017 (referensi historis nama)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-labolong",
@@ -732,15 +946,15 @@
     "namaAlternatif": "Pasar Rakyat Labolong",
     "slug": "pasar-labolong",
     "kecamatan": "Mattiro Sompe",
-    "desaKelurahan": "Mattiro Sompe",
-    "alamat": "Kecamatan Mattiro Sompe, Kabupaten Pinrang",
+    "desaKelurahan": "Mattongang-Tongang / Dusun Labolong",
+    "alamat": "6H27+MCM, Unnamed Road, Mattongang Tongang, Kec. Mattiro Sompe, Kabupaten Pinrang, Sulawesi Selatan 91261, Indonesia",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Tercantum dalam dokumen regulasi retribusi pasar daerah 2017.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "",
+    "unitPengelola": "Non-Pemda / belum terverifikasi",
     "statusVerifikasiUnitPengelola": "Belum Dikonfirmasi",
     "hariPasar": [],
     "jamOperasional": "Data sedang diperbarui",
@@ -750,8 +964,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.7982875,
+    "longitude": 119.563546875,
     "fotoUtama": "assets/pasar/pasar_placeholder_verified.jpg",
     "galeri": [
       "assets/pasar/pasar_placeholder_verified.jpg"
@@ -765,11 +979,25 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Data operasional dan jadwal pasar dalam verifikasi lapangan.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Labolong",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Rakyat Lainnya",
+    "statusKewenangan": "Pasar rakyat; bukan master Pasar Pemda saat ini",
+    "plusCode": "6H27+MCM",
+    "statusKoordinat": "Titik tengah sel Plus Code — perlu validasi GPS pintu masuk",
+    "jadwalGoogleMaps": null,
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJHf7BFCNTlC0R1H7CFt6wn-c",
+    "dasarReferensiMaster": "Perda 2/2017 (referensi historis nama)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   },
   {
     "id": "pasar-tuppu",
@@ -777,17 +1005,20 @@
     "namaAlternatif": "Pasar Rakyat Tuppu",
     "slug": "pasar-tuppu",
     "kecamatan": "Lembang",
-    "desaKelurahan": "Tuppu",
-    "alamat": "Kelurahan Tadokkong / Tuppu, Kec. Lembang, Kabupaten Pinrang",
+    "desaKelurahan": "Tadokkong / Tuppu",
+    "alamat": "FG4H+2VH, Taddokong, Kec. Lembang, Kabupaten Pinrang, Sulawesi Selatan 91254, Indonesia",
     "statusOperasional": "perlu-verifikasi",
     "statusLabel": "Perlu Verifikasi",
     "tingkatKeyakinanStatus": "Sedang",
     "buktiOperasionalTerakhir": "Tercantum dalam inventaris regulasi retribusi pasar daerah.",
     "klasifikasiHistoris": "Tipe C",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017",
-    "unitPengelola": "",
+    "unitPengelola": "Non-Pemda / belum terverifikasi",
     "statusVerifikasiUnitPengelola": "Belum Dikonfirmasi",
-    "hariPasar": [],
+    "hariPasar": [
+      "Selasa",
+      "Jumat"
+    ],
     "jamOperasional": "Data sedang diperbarui",
     "luasLahanM2": null,
     "jumlahKios": null,
@@ -795,8 +1026,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": null,
-    "longitude": null,
+    "latitude": -3.5449458,
+    "longitude": 119.5297239,
     "fotoUtama": "assets/pasar/pasar_placeholder_verified.jpg",
     "galeri": [
       "assets/pasar/pasar_placeholder_verified.jpg"
@@ -810,29 +1041,53 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Data operasional dan jadwal pasar dalam pemutakhiran berkala.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Tradisional Tuppu",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Rakyat Lainnya",
+    "statusKewenangan": "Pasar rakyat; bukan master Pasar Pemda saat ini",
+    "plusCode": "FG4H+2VH",
+    "statusKoordinat": "Terverifikasi silang digital; berada di Desa Tadokkong — konfirmasi GPS pintu masuk tetap disarankan",
+    "jadwalGoogleMaps": "Selasa/Jumat 05:00–11:00",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJI9--SfRdlC0RG7ufewALyfQ",
+    "dasarReferensiMaster": "Perda 2/2017 (referensi historis nama)",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "GOOGLE_MAPS_AND_DOCUMENT_CROSSCHECK",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif",
+    "coordinateConfidence": "tinggi-digital",
+    "coordinateSources": [
+      "Google Maps listing Pasar Tradisional Tuppu",
+      "Dokumen pemetaan TPS Pinrang",
+      "Overlay batas indikatif BIG"
+    ]
   },
   {
     "id": "pasar-paleteang",
     "nama": "Pasar Paleteang",
-    "namaAlternatif": "Pasar Inpres Paleteang",
+    "namaAlternatif": "Kandidat kecocokan — belum terbukti objek yang sama",
     "slug": "pasar-paleteang",
     "kecamatan": "Paleteang",
-    "desaKelurahan": "Paleteang",
-    "alamat": "Kecamatan Paleteang, Kabupaten Pinrang",
+    "desaKelurahan": "Temmassarangnge",
+    "alamat": "6MC2+J9H Temmassarangnge, Kabupaten Pinrang, Sulawesi Selatan",
     "statusOperasional": "tidak-aktif",
     "statusLabel": "Tidak Aktif",
     "tingkatKeyakinanStatus": "Tinggi",
     "buktiOperasionalTerakhir": "Data lapangan dan statistik menunjukkan lokasi ini sudah tidak beroperasi sebagai pasar aktif.",
     "klasifikasiHistoris": "Tipe A (Berdasarkan Regulasi Historis Perda 2/2017)",
     "dasarKlasifikasi": "Perda Kabupaten Pinrang Nomor 2 Tahun 2017 (Klasifikasi Historis)",
-    "unitPengelola": "",
+    "unitPengelola": "Non-Pemda / belum terverifikasi",
     "statusVerifikasiUnitPengelola": "Aset / Non-Operasional",
-    "hariPasar": [],
+    "hariPasar": [
+      "Selasa",
+      "Kamis",
+      "Minggu malam"
+    ],
     "jamOperasional": "Tidak Beroperasi",
     "luasLahanM2": null,
     "jumlahKios": null,
@@ -840,8 +1095,8 @@
     "jumlahPedagang": null,
     "komoditasUtama": [],
     "fasilitas": [],
-    "latitude": -3.7794,
-    "longitude": 119.6521,
+    "latitude": -3.77842302192501,
+    "longitude": 119.651104130629,
     "fotoUtama": "assets/pasar/pasar_paleteang_inpres.jpg",
     "galeri": [
       "assets/pasar/pasar_paleteang_inpres.jpg"
@@ -860,10 +1115,24 @@
         "tahun": 2017
       }
     ],
-    "tanggalVerifikasi": "28 Agustus 2026",
+    "tanggalVerifikasi": "31 Agustus 2026",
     "tahunData": "2026",
     "catatanVerifikasi": "Nama Pasar Paleteang masih ditemukan pada dokumen/regulasi lama. Status operasional saat ini berbeda dengan status administratif historis.",
     "published": true,
-    "showAsActive": false
+    "showAsActive": false,
+    "namaGoogleMaps": "Pasar Paleteang",
+    "jenisPasar": "Pasar Rakyat",
+    "kategoriPengelolaan": "Pasar Rakyat Lainnya",
+    "statusKewenangan": "Pasar rakyat; bukan master Pasar Pemda saat ini",
+    "plusCode": "6MC2+J9H",
+    "statusKoordinat": "Kandidat — jangan dianggap final",
+    "jadwalGoogleMaps": "Selasa/Kamis/Minggu malam",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJaRDUW-5NlC0Ra9CiLqACrbg",
+    "dasarReferensiMaster": "Perda 2/2017 + kandidat Google Maps",
+    "masterDataStatus": "TERVERIFIKASI_WORKBOOK_GOOGLE_MAPS",
+    "masterDataSource": "Master_Data_Pasar_Pinrang_Google_Maps_2026-08-31.xlsx",
+    "metodeKoordinat": "PLUS_CODE_CELL_CENTER",
+    "dataVersion": "2026-08-31-market-single-source-v3",
+    "boundaryReference": "BIG/Batas Administrasi — batas desa/kelurahan bersifat indikatif"
   }
 ]

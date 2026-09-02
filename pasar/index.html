@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direktori Pasar & Sarana Perdagangan | Disperindag ESDM Kabupaten Pinrang</title>
+  <meta name="description" content="Direktori resmi pasar rakyat dan sarana perdagangan Kabupaten Pinrang. Informasi pasar aktif, status verifikasi operasional, dan lokasi pasar per kecamatan.">
+  <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/pasar">
+
+  <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:title" content="Direktori Pasar &amp; Sarana Perdagangan | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:description" content="Direktori resmi pasar rakyat dan sarana perdagangan Kabupaten Pinrang. Informasi pasar aktif, status verifikasi operasional, dan lokasi pasar per kecamatan.">
+  <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/news/pasar_sentral_pinrang_clean_hd.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:alt" content="Direktori Pasar &amp; Sarana Perdagangan | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/pasar">
+  <meta property="og:locale" content="id_ID">
+
+  <!-- TWITTER / X CARDS -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Direktori Pasar &amp; Sarana Perdagangan | Disperindag ESDM Kabupaten Pinrang">
+  <meta name="twitter:description" content="Direktori resmi pasar rakyat dan sarana perdagangan Kabupaten Pinrang. Informasi pasar aktif, status verifikasi operasional, dan lokasi pasar per kecamatan.">
+  <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/news/pasar_sentral_pinrang_clean_hd.jpg">
+
+  <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="stylesheet" href="css/style.css?v=20260902_directory_nav_v1">
+  <link rel="stylesheet" href="css/modal-system.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    .pasar-hero {
+      background: radial-gradient(circle at top, #0F2C59 0%, #030D1B 100%);
+      color: #FFFFFF;
+      padding: 50px 0 40px;
+      border-bottom: 3px solid var(--accent-gold);
+    }
+    .pasar-hero-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .pasar-hero-subtitle {
+      font-size: 1.05rem;
+      color: #CBD5E1;
+      max-width: 800px;
+      line-height: 1.6;
+    }
+    .stats-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 30px;
+    }
+    .stat-pill-box {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      backdrop-filter: blur(8px);
+    }
+    .stat-pill-icon {
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .stat-pill-val {
+      font-size: 2rem;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+    }
+    .stat-pill-lbl {
+      font-size: 0.82rem;
+      color: #94A3B8;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+    .pasar-filter-bar {
+      background: #FFFFFF;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: -24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      border: 1.5px solid var(--border-subtle);
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+    .market-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-aktif { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+    .badge-tidak-aktif { background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; }
+    .badge-verifikasi { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+    
+    .market-card {
+      background: #FFFFFF;
+      border-radius: 14px;
+      border: 1.5px solid var(--border-subtle);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+    .market-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+    .market-thumb {
+      height: 190px;
+      position: relative;
+      background: #0F2C59;
+      overflow: hidden;
+    }
+    .market-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .market-card:hover .market-thumb img {
+      transform: scale(1.05);
+    }
+    .market-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .market-map-card { margin: 28px 0 8px; overflow: hidden; border: 1px solid #CBD5E1; border-radius: 16px; background: #FFF; box-shadow: 0 8px 24px rgba(15,23,42,.08); }
+    .market-map-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:15px 18px; background:#0F2C59; color:#FFF; }
+    .market-map-head h2 { margin:0; color:#FFF; font-size:1.05rem; }
+    .market-map-legend { display:flex; gap:12px; flex-wrap:wrap; font-size:.75rem; }
+    .market-map-dot { display:inline-block; width:9px; height:9px; margin-right:4px; border-radius:50%; }
+    #marketDistributionMap { width:100%; height:500px; background:#E2E8F0; }
+    @media (max-width: 900px) {
+      .pasar-filter-bar { grid-template-columns: 1fr; }
+      .pasar-hero-title { font-size: 1.75rem; }
+    }
+  </style>
+  <meta property="fb:app_id" content="966242223397117">
+  <meta property="og:image:secure_url" content="https://disperindagesdm-pinrang.web.app/assets/news/pasar_sentral_pinrang_clean_hd.jpg">
+  <meta name="twitter:image:alt" content="Direktori Pasar &amp; Sarana Perdagangan | Disperindag ESDM Kabupaten Pinrang">
+  <meta name="title" content="Direktori Pasar &amp; Sarana Perdagangan | Disperindag ESDM Kabupaten Pinrang">
+</head>
+<body>
+
+  <!-- 1. TOP UTILITY BAR (JAM WITA & CUACA LIVE) -->
+  <div class="top-bar">
+    <div class="container top-bar-container">
+      <div class="top-bar-left">
+        <span class="live-clock" id="liveClockWita">
+          📅 Memuat Waktu WITA...
+        </span>
+        <span class="top-bar-divider">•</span>
+        <span class="live-weather" id="liveWeatherPinrang">
+          🌤️  Memuat Cuaca...
+        </span>
+      </div>
+      <div class="top-bar-right">
+        <span style="color: var(--accent-gold); font-weight: 800; font-size: 0.76rem; letter-spacing: 0.02em;">#BanggaMelayaniBangsa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MAIN HEADER & NAVBAR -->
+  <header class="main-header">
+    <div class="container navbar-container">
+      
+      <!-- Brand Logo & Title -->
+      <a href="/index.html" class="brand-logo" aria-label="Beranda Dinas Perindag ESDM Pinrang">
+        <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" class="logo-img">
+        <div class="brand-text">
+          <span class="brand-title">DISPERINDAG ESDM</span>
+          <span class="brand-subtitle">KABUPATEN PINRANG</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <ul class="nav-menu">
+        <li><a href="/index.html" class="nav-link">Beranda</a></li>
+
+        <li class="nav-dropdown">
+          <a href="/profil.html" class="nav-link nav-dropdown-toggle">
+            Profil <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="/profil.html#berakhlak" class="dropdown-item">
+              <div class="dropdown-icon">🎯</div><div class="dropdown-text"><span class="dropdown-title">Core Values ASN BerAKHLAK</span><span class="dropdown-desc">Tata nilai budaya kerja ASN</span></div>
+            </a>
+            <a href="/maklumat-pelayanan.html" class="dropdown-item">
+              <div class="dropdown-icon">📜</div><div class="dropdown-text"><span class="dropdown-title">Maklumat Pelayanan</span><span class="dropdown-desc">Piagam komitmen moral aparatur dinas</span></div>
+            </a>
+            <a href="/profil.html" class="dropdown-item">
+              <div class="dropdown-icon">🏛️</div><div class="dropdown-text"><span class="dropdown-title">Profil &amp; Organisasi Resmi</span><span class="dropdown-desc">Visi, misi, struktur &amp; tupoksi Perbup 35/2023</span></div>
+            </a>
+          </div>
+        </li>
+
+        <li class="nav-dropdown">
+          <a href="/layanan.html" class="nav-link nav-dropdown-toggle">
+            Layanan Publik <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="/kontak.html" class="dropdown-item">
+              <div class="dropdown-icon">📞</div><div class="dropdown-text"><span class="dropdown-title">Kontak &amp; Lokasi Kantor</span><span class="dropdown-desc">Alamat, peta &amp; WhatsApp dinas</span></div>
+            </a>
+            <a href="/index.html#pengaduan" class="dropdown-item">
+              <div class="dropdown-icon">📨</div><div class="dropdown-text"><span class="dropdown-title">Pengaduan Online</span><span class="dropdown-desc">Kanal resmi dan SP4N-LAPOR!</span></div>
+            </a>
+            <a href="/layanan.html" class="dropdown-item">
+              <div class="dropdown-icon">⚡</div><div class="dropdown-text"><span class="dropdown-title">Standar Pelayanan &amp; SOP</span><span class="dropdown-desc">Standar layanan publik resmi</span></div>
+            </a>
+          </div>
+        </li>
+
+        <li class="nav-dropdown">
+          <a href="/layanan.html#transparansi-pelayanan" class="nav-link nav-dropdown-toggle active">
+            Transparansi <span class="dropdown-arrow">▾</span>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="/direktori-lpg.html" class="dropdown-item">
+              <div class="dropdown-icon">🔥</div><div class="dropdown-text"><span class="dropdown-title">Direktori Agen &amp; Pangkalan LPG</span><span class="dropdown-desc">Agen dan pangkalan LPG 3 kg resmi</span></div>
+            </a>
+            <a href="/pasar.html" class="dropdown-item">
+              <div class="dropdown-icon">🏬</div><div class="dropdown-text"><span class="dropdown-title">Direktori Pasar Daerah</span><span class="dropdown-desc">Sarana pasar dan status operasional</span></div>
+            </a>
+            <a href="/penyalur-bbm.html" class="dropdown-item">
+              <div class="dropdown-icon">⛽</div><div class="dropdown-text"><span class="dropdown-title">Direktori Penyalur BBM</span><span class="dropdown-desc">Sebaran SPBU &amp; Pertashop Pinrang</span></div>
+            </a>
+            <a href="/harga-bahan-pokok.html" class="dropdown-item">
+              <div class="dropdown-icon">🛒</div><div class="dropdown-text"><span class="dropdown-title">Harga Pasar &amp; Bapokting</span><span class="dropdown-desc">Pantauan komoditas harian</span></div>
+            </a>
+            <a href="/katalog-ikm.html" class="dropdown-item">
+              <div class="dropdown-icon">🏭</div><div class="dropdown-text"><span class="dropdown-title">Katalog Produk IKM</span><span class="dropdown-desc">Produk unggulan Pinrang</span></div>
+            </a>
+            <a href="/ppid.html" class="dropdown-item">
+              <div class="dropdown-icon">📋</div><div class="dropdown-text"><span class="dropdown-title">PPID Pelaksana</span><span class="dropdown-desc">Informasi publik dan dokumen resmi</span></div>
+            </a>
+            <a href="/layanan.html#transparansi-pelayanan" class="dropdown-item">
+              <div class="dropdown-icon">📊</div><div class="dropdown-text"><span class="dropdown-title">Transparansi Pelayanan</span><span class="dropdown-desc">SKM, IKM, dan rekapitulasi layanan</span></div>
+            </a>
+          </div>
+        </li>
+
+        <li><a href="/arsip-berita.html" class="nav-link">Berita</a></li>
+      </ul>
+
+      <!-- Action Buttons Kanan -->
+      <div class="header-actions">
+        <button class="search-toggle-btn" id="searchToggleBtn" aria-label="Buka Pencarian" onclick="openSearchModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #F1F5F9; border: 1.5px solid #CBD5E1; color: #334155; padding: 7px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: var(--transition);">
+          <span>🔍</span> <span>Cari Informasi...</span>
+        </button>
+
+        <!-- PORTAL PEGAWAI GATEWAY DROPDOWN -->
+        <div class="login-gateway-wrapper">
+          <button class="btn-topbar-login" type="button" title="Pintu Masuk Sistem Pegawai & Administrator" style="background: #0F2C59; color: #FFFFFF; border: 1.5px solid #0F2C59; padding: 7px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-family: inherit;">
+            <span>🔐</span> <span>Portal Pegawai</span> <span class="caret-down">▾</span>
+          </button>
+          <div class="login-dropdown-menu">
+            <a href="/login.html" class="login-drop-item">
+              <div class="drop-item-icon" style="background: #FEF3C7; color: #B45309;">🔐</div>
+              <div><strong>Masuk / Ganti Akun</strong><small>Autentikasi keamanan RBAC</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/petugas.html" class="login-drop-item">
+              <div class="drop-item-icon mobile-badge">📱</div>
+              <div><strong>Aplikasi Petugas Lapangan</strong><small>Input harga pasar, sidak LPG & tera</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/admin.html" class="login-drop-item">
+              <div class="drop-item-icon desktop-badge">💻</div>
+              <div><strong>CMS Administrator</strong><small>Kelola berita, dokumen, dan banner</small></div>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/profil-petugas.html" class="login-drop-item">
+              <div class="drop-item-icon" style="background: #F1F5F9; color: #475569;">👤</div>
+              <div><strong>Profil Pegawai & Password</strong><small>Kelola akun ASN mandiri</small></div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hamburger Button (Mobile) -->
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Buka Menu Navigasi" aria-controls="mobileDrawer" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+    </div>
+  </header>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <!-- MOBILE DRAWER -->
+  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay" aria-hidden="true"></div>
+  <div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang">
+        <div class="drawer-brand-text"><h4>DISPERINDAG ESDM</h4><p>KABUPATEN PINRANG</p></div>
+      </div>
+      <button class="drawer-close-btn" id="drawerCloseBtn" type="button" aria-label="Tutup menu">✕</button>
+    </div>
+    <div class="drawer-nav">
+      <div class="mobile-nav-group-title">MENU UTAMA</div>
+      <a href="index.html" class="drawer-link"><span>🏠</span> Beranda</a>
+      <a href="arsip-berita.html" class="drawer-link"><span>📰</span> Berita &amp; Publikasi</a>
+      <a href="layanan.html" class="drawer-link"><span>⚡</span> Layanan Publik</a>
+      <a href="profil.html" class="drawer-link"><span>🏛️</span> Profil &amp; Tupoksi</a>
+      <div class="mobile-nav-group-title">INFORMASI &amp; LAYANAN</div>
+      <a href="direktori-lpg.html" class="drawer-link"><span>🔥</span> Direktori Agen &amp; Pangkalan LPG</a>
+      <a href="penyalur-bbm.html" class="drawer-link"><span>⛽</span> Direktori Penyalur BBM</a>
+      <a href="pasar.html" class="drawer-link active"><span>🏬</span> Direktori Pasar</a>
+      <a href="harga-bahan-pokok.html" class="drawer-link"><span>🛒</span> Harga Bahan Pokok SP2KP</a>
+      <a href="katalog-ikm.html" class="drawer-link"><span>🏭</span> Katalog Produk IKM</a>
+      <a href="kontak.html" class="drawer-link"><span>📞</span> Kontak &amp; Lokasi</a>
+      <a href="index.html#pengaduan" class="drawer-link"><span>📨</span> Pengaduan Online</a>
+      <a href="ppid.html" class="drawer-link"><span>📋</span> PPID Pelaksana</a>
+      <a href="layanan.html#transparansi-pelayanan" class="drawer-link"><span>📊</span> Transparansi Pelayanan</a>
+      <div class="drawer-divider"></div>
+      <a href="login.html" class="drawer-link drawer-portal-btn"><span>🔐</span> Login Pegawai ASN</a>
+    </div>
+  </div>
+
+  <!-- 3. HERO DIREKTORI PASAR -->
+  <header class="pasar-hero">
+    <div class="container">
+      <div style="display: flex; gap: 8px; font-size: 0.84rem; color: #94A3B8; margin-bottom: 12px;">
+        <a href="index.html" style="color: var(--accent-gold); text-decoration: none;">Beranda</a>
+        <span>&rsaquo;</span>
+        <span style="color: #FFFFFF;">Direktori Pasar & Sarana Perdagangan</span>
+      </div>
+
+      <h1 class="pasar-hero-title">Pasar dan Sarana Perdagangan</h1>
+      <p class="pasar-hero-subtitle">
+        Informasi pasar rakyat dan sarana perdagangan dalam lingkup pembinaan Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berbasis data verifikasi faktual.
+      </p>
+
+      <!-- STATISTIK DINAMIS BERBASIS DATABASE -->
+      <div class="stats-card-grid">
+        <div class="stat-pill-box">
+          <div class="stat-pill-icon" style="color: #10B981;">🟢</div>
+          <div>
+            <div class="stat-pill-val" id="statAktifCount" style="color: #10B981;">--</div>
+            <div class="stat-pill-lbl">Pasar Beroperasi Aktif</div>
+          </div>
+        </div>
+
+        <div class="stat-pill-box">
+          <div class="stat-pill-icon" style="color: #94A3B8;">⚫</div>
+          <div>
+            <div class="stat-pill-val" id="statTidakAktifCount" style="color: #E2E8F0;">--</div>
+            <div class="stat-pill-lbl">Tidak Beroperasi / Aset</div>
+          </div>
+        </div>
+
+        <div class="stat-pill-box">
+          <div class="stat-pill-icon" style="color: #F59E0B;">🟠</div>
+          <div>
+            <div class="stat-pill-val" id="statVerifikasiCount" style="color: #FBBF24;">--</div>
+            <div class="stat-pill-lbl">Perlu Verifikasi Lapangan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="container" aria-labelledby="marketMapTitle">
+    <div class="market-map-card">
+      <div class="market-map-head"><div><h2 id="marketMapTitle">🗺️ Peta Sebaran Pasar Kabupaten Pinrang</h2><small id="marketMapSummary">Memuat titik referensi pasar…</small></div><div class="market-map-legend"><span><i class="market-map-dot" style="background:#059669"></i>Aktif</span><span><i class="market-map-dot" style="background:#D97706"></i>Perlu verifikasi</span><span><i class="market-map-dot" style="background:#64748B"></i>Tidak aktif</span></div></div>
+      <div id="marketDistributionMap" role="application" aria-label="Peta interaktif sebaran pasar"></div>
+      <div style="padding:8px 14px;background:#F8FAFC;border-top:1px solid #E2E8F0;font-size:.72rem;color:#64748B;line-height:1.45">
+        Batas administrasi: dataset geospasial BIG/Satu Data Pinrang. Batas desa/kelurahan ditampilkan sebagai batas indikatif dan bukan dasar penetapan hukum batas wilayah.
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. KONTEN UTAMA & FILTER -->
+  <main class="container" style="padding-bottom: 60px;">
+    
+    <!-- FILTER BAR -->
+    <div class="pasar-filter-bar">
+      <!-- Search Input -->
+      <div>
+        <label for="searchMarketInput" style="font-size: 0.78rem; font-weight: 800; color: #475569; display: block; margin-bottom: 6px;">PENCARIAN PASAR</label>
+        <input type="text" id="searchMarketInput" placeholder="Cari nama pasar atau kecamatan..." class="form-control" style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label for="filterStatusSelect" style="font-size: 0.78rem; font-weight: 800; color: #475569; display: block; margin-bottom: 6px;">STATUS OPERASIONAL</label>
+        <select id="filterStatusSelect" class="form-control" style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem; font-weight: 700;">
+          <option value="all">Semua Status Pasar</option>
+          <option value="aktif">🟢 Pasar Aktif</option>
+          <option value="tidak-aktif">⚫ Tidak Aktif</option>
+          <option value="perlu-verifikasi">🟠 Perlu Verifikasi</option>
+        </select>
+      </div>
+
+      <!-- District Filter -->
+      <div>
+        <label for="filterDistrictSelect" style="font-size: 0.78rem; font-weight: 800; color: #475569; display: block; margin-bottom: 6px;">KECAMATAN</label>
+        <select id="filterDistrictSelect" class="form-control" style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem; font-weight: 700;">
+          <option value="all">Semua Kecamatan (12 Wilayah)</option>
+          <option value="Watang Sawitto">Watang Sawitto</option>
+          <option value="Duampanua">Duampanua</option>
+          <option value="Mattiro Sompe">Mattiro Sompe</option>
+          <option value="Patampanua">Patampanua</option>
+          <option value="Mattiro Bulu">Mattiro Bulu</option>
+          <option value="Lembang">Lembang</option>
+          <option value="Tiroang">Tiroang</option>
+          <option value="Cempa">Cempa</option>
+          <option value="Lanrisang">Lanrisang</option>
+          <option value="Suppa">Suppa</option>
+          <option value="Paleteang">Paleteang</option>
+          <option value="Batu Lappa">Batu Lappa</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- COUNT LABEL -->
+    <div style="margin: 28px 0 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <div id="marketCountLabel" style="font-size: 0.95rem; font-weight: 800; color: var(--primary-deep);">
+        Menampilkan Seluruh Direktori Pasar
+      </div>
+      <div style="font-size: 0.78rem; color: #64748B;">
+        Standar Verifikasi: <strong>Perbup 35/2023 &amp; Hasil Evaluasi Lapangan 2026</strong>
+      </div>
+    </div>
+
+    <!-- GRID CARD PASAR -->
+    <div id="marketCardGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+      <!-- Dynamic Injected by JS -->
+    </div>
+
+    <!-- DISCLAIMER RESMI KEDINASAN (POIN 17) -->
+    <div style="margin-top: 48px; background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: 12px; padding: 18px 24px; font-size: 0.82rem; color: #475569; line-height: 1.6;">
+      <strong style="color: #0F172A;">📌 Catatan Transparansi Data:</strong> Informasi pada Direktori Pasar diperbarui secara bertahap berdasarkan data administratif, statistik resmi (BPS Pinrang), dan hasil verifikasi lapangan Disperindag ESDM Kabupaten Pinrang. Beberapa informasi jadwal dan sarana dapat mengalami penyesuaian sesuai perkembangan pengelolaan pasar di lapangan.
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
+       ========================================================================== -->
+  
+
+
+
+  <!-- ==========================================================================
+       FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
+       ========================================================================== -->
+  
+
+
+
+  <!-- 5. FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- 13. FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN) -->
+  
+
+  <script src="js/data.js?v=20260828_upload_web_v2"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/pinrang-administrative-overlay.js?v=20260831_overlay_v2"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260831_market_single_source_v3"></script>
+  <script src="js/market-engine.js?v=20260831_market_single_source_v3"></script>
+  <script src="js/pinrang-live.js"></script>
+  <script src="js/modal-system.js?v=20260828_upload_web_v2"></script>
+  <script src="js/app.js?v=20260828_upload_web_v2"></script>
+  <script>
+    function initMarketsPage() {
+      const grid = document.getElementById('marketCardGrid');
+      const searchInput = document.getElementById('searchMarketInput');
+      const statusSelect = document.getElementById('filterStatusSelect');
+      const districtSelect = document.getElementById('filterDistrictSelect');
+      const countLabel = document.getElementById('marketCountLabel');
+
+      const statAktif = document.getElementById('statAktifCount');
+      const statTidakAktif = document.getElementById('statTidakAktifCount');
+      const statVerifikasi = document.getElementById('statVerifikasiCount');
+
+      let markets = typeof MarketEngine !== 'undefined' ? MarketEngine.getAll() : ((typeof PINRANG_ALL_MARKETS !== 'undefined' && Array.isArray(PINRANG_ALL_MARKETS)) ? PINRANG_ALL_MARKETS : []);
+      let marketMap = null;
+      let marketMarkerLayer = null;
+      let districtBoundaryLayer = null;
+      let villageBoundaryLayer = null;
+
+      function initMarketMap() {
+        if (!window.L || !document.getElementById('marketDistributionMap')) return;
+        marketMap = L.map('marketDistributionMap', {
+          scrollWheelZoom:false,
+          maxBounds:[[-4.25,119.15],[-3.15,120.15]],
+          maxBoundsViscosity:0.8
+        }).setView([-3.79,119.64],10);
+        marketMap.createPane('marketBoundaryPane');
+        marketMap.getPane('marketBoundaryPane').style.zIndex='350';
+        marketMap.getPane('marketBoundaryPane').style.pointerEvents='none';
+        marketMap.createPane('marketVillagePane');
+        marketMap.getPane('marketVillagePane').style.zIndex='360';
+        marketMap.getPane('marketVillagePane').style.pointerEvents='none';
+        marketMap.createPane('marketDataPane');
+        marketMap.getPane('marketDataPane').style.zIndex='650';
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(marketMap);
+        marketMarkerLayer=L.layerGroup().addTo(marketMap);
+        loadAdministrativeBoundaries();
+      }
+
+      async function loadAdministrativeBoundaries() {
+        if (window.PinrangAdministrativeOverlay) {
+          try {
+            const layers = await PinrangAdministrativeOverlay.addTo(marketMap, { collapsed: false, villageMinZoom: 12, districtPane:'marketBoundaryPane', villagePane:'marketVillagePane' });
+            districtBoundaryLayer = layers.districtLayer;
+            villageBoundaryLayer = layers.villageLayer;
+          } catch (error) {
+            console.warn('[Peta Pasar] Overlay administrasi tidak dapat dimuat:', error.message);
+          }
+          return;
+        }
+        try {
+          const [districtResponse,villageResponse]=await Promise.all([
+            fetch('/geo/pinrang/2026-06/kecamatan.geojson'),
+            fetch('/geo/pinrang/2026-06/desa-kelurahan.geojson')
+          ]);
+          if (!districtResponse.ok || !villageResponse.ok) throw new Error('GeoJSON batas administrasi tidak tersedia');
+          const [districts,villages]=await Promise.all([districtResponse.json(),villageResponse.json()]);
+          districtBoundaryLayer=L.geoJSON(districts,{
+            style:{color:'#0F2C59',weight:2,fillColor:'#2563EB',fillOpacity:.19},
+            onEachFeature:(feature,layer)=>layer.bindTooltip(`Kecamatan ${feature.properties.WADMKC || feature.properties.NAMOBJ}`,{sticky:true})
+          }).addTo(marketMap);
+          villageBoundaryLayer=L.geoJSON(villages,{
+            style:{color:'#D97706',weight:1,opacity:.8,fillColor:'#F59E0B',fillOpacity:.12},
+            onEachFeature:(feature,layer)=>layer.bindTooltip(`${feature.properties.WADMKD || feature.properties.NAMOBJ} · Kec. ${feature.properties.WADMKC || '-'}`,{sticky:true})
+          });
+          L.control.layers(null,{
+            'Batas Kecamatan':districtBoundaryLayer,
+            'Batas Desa/Kelurahan (indikatif)':villageBoundaryLayer
+          },{collapsed:false,position:'topright'}).addTo(marketMap);
+        } catch(error) {
+          console.warn('[Peta Pasar] Overlay administrasi tidak dapat dimuat:',error.message);
+        }
+      }
+
+      function updateMarketMap(list) {
+        if (!marketMap || !marketMarkerLayer) return;
+        marketMarkerLayer.clearLayers(); const bounds=[];
+        const mapped=list.filter(m => typeof MarketEngine !== 'undefined' ? MarketEngine.validCoordinate(m.latitude,m.longitude) : Number.isFinite(Number(m.latitude)) && Number.isFinite(Number(m.longitude)));
+        mapped.forEach(m => {
+          const color=m.statusOperasional==='aktif'?'#059669':m.statusOperasional==='tidak-aktif'?'#64748B':'#D97706';
+          const icon=L.divIcon({className:'',html:`<div style="width:32px;height:32px;border-radius:10px 10px 10px 3px;transform:rotate(-45deg);display:grid;place-items:center;background:${color};border:2px solid #fff;box-shadow:0 4px 12px rgba(15,23,42,.4)"><span style="transform:rotate(45deg);font-size:15px">🏬</span></div>`,iconSize:[34,34],iconAnchor:[17,33],popupAnchor:[0,-31]});
+          const marker=L.marker([Number(m.latitude),Number(m.longitude)],{pane:'marketDataPane',icon,zIndexOffset:1000,riseOnHover:true}).addTo(marketMarkerLayer);
+          marker.bindPopup(`<strong>${m.nama}</strong><br>${m.kecamatan} · ${m.desaKelurahan || '-'}<br><small>${m.jadwalGoogleMaps || m.statusLabel || ''}</small><br><small>Ketelitian: ${m.statusKoordinat || 'belum dinilai'}</small><br><a href="${m.googleMapsUrl || `https://www.google.com/maps?q=${m.latitude},${m.longitude}`}" target="_blank" rel="noopener">Buka Google Maps ↗</a>`);
+          bounds.push([Number(m.latitude),Number(m.longitude)]);
+        });
+        if (bounds.length) marketMap.fitBounds(bounds,{padding:[28,28],maxZoom:13});
+        const summary=document.getElementById('marketMapSummary'); if(summary) summary.textContent=`${mapped.length} dari ${list.length} pasar memiliki titik referensi; validasi GPS pintu masuk tetap diperlukan`;
+      }
+
+      initMarketMap();
+
+      // Hitung Statistik Otomatis dari Database
+      const aktifCount = markets.filter(m => m.statusOperasional === 'aktif').length;
+      const tidakAktifCount = markets.filter(m => m.statusOperasional === 'tidak-aktif').length;
+      const verifikasiCount = markets.filter(m => m.statusOperasional === 'perlu-verifikasi').length;
+
+      if (statAktif) statAktif.textContent = aktifCount;
+      if (statTidakAktif) statTidakAktif.textContent = tidakAktifCount;
+      if (statVerifikasi) statVerifikasi.textContent = verifikasiCount;
+
+      function renderMarketCards() {
+        if (statAktif) statAktif.textContent = markets.filter(m => m.statusOperasional === 'aktif').length;
+        if (statTidakAktif) statTidakAktif.textContent = markets.filter(m => m.statusOperasional === 'tidak-aktif').length;
+        if (statVerifikasi) statVerifikasi.textContent = markets.filter(m => m.statusOperasional === 'perlu-verifikasi').length;
+        const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const statusVal = statusSelect ? statusSelect.value : 'all';
+        const districtVal = districtSelect ? districtSelect.value : 'all';
+
+        const filtered = markets.filter(m => {
+          const matchQ = !q || (m.nama && m.nama.toLowerCase().includes(q)) ||
+                               (m.namaAlternatif && m.namaAlternatif.toLowerCase().includes(q)) ||
+                               (m.kecamatan && m.kecamatan.toLowerCase().includes(q)) ||
+                               (m.deskripsi && m.deskripsi.toLowerCase().includes(q));
+          const matchStatus = statusVal === 'all' || m.statusOperasional === statusVal;
+          const matchDistrict = districtVal === 'all' || m.kecamatan === districtVal;
+          return matchQ && matchStatus && matchDistrict;
+        });
+
+        if (countLabel) {
+          countLabel.textContent = `Menampilkan ${filtered.length} Pasar & Sarana Perdagangan`;
+        }
+        updateMarketMap(filtered);
+
+        if (!grid) return;
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; background: #FFFFFF; border-radius: 16px; border: 1.5px dashed #CBD5E1;">
+              <div style="font-size: 2.5rem; margin-bottom: 12px;">🏪</div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #0F172A; margin-bottom: 6px;">Tidak ada pasar yang cocok</h3>
+              <p style="color: #64748B; font-size: 0.9rem; max-width: 450px; margin: 0 auto 16px;">
+                Coba ubah kata kunci pencarian atau pilih filter status operasional / kecamatan lainnya.
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(m => {
+          let badgeHtml = '';
+          let actionLabel = 'Lihat Profil &rarr;';
+          let scheduleText = '';
+
+          if (m.statusOperasional === 'aktif') {
+            badgeHtml = `<span class="market-badge badge-aktif">🟢 Aktif</span>`;
+            scheduleText = (m.hariPasar && m.hariPasar.length > 0) ? `Hari Pasar: <strong>${m.hariPasar.join(', ')}</strong>` : 'Aktivitas: <strong>Setiap Hari</strong>';
+          } else if (m.statusOperasional === 'tidak-aktif') {
+            badgeHtml = `<span class="market-badge badge-tidak-aktif">⚫ Tidak Aktif</span>`;
+            actionLabel = 'Lihat Riwayat &rarr;';
+            scheduleText = `<span style="color: #64748B;">Status: <em>Tidak Beroperasi</em></span>`;
+          } else {
+            badgeHtml = `<span class="market-badge badge-verifikasi">🟠 Perlu Verifikasi</span>`;
+            scheduleText = `<span style="color: #B45309;">Data operasional sedang diperbarui</span>`;
+          }
+
+          const altName = m.namaAlternatif ? `<div style="font-size: 0.78rem; color: #64748B; margin-top: 2px;">Dikenal: ${m.namaAlternatif}</div>` : '';
+          const stallsInfo = (m.jumlahKios && m.statusOperasional === 'aktif') ? `<div style="font-size: 0.78rem; color: #0F766E; margin-top: 4px; font-weight: 700;">🏢 ${m.jumlahKios} Lapak/Kios Terdata</div>` : '';
+
+          return `
+            <article class="market-card">
+              <div class="market-thumb">
+                <img src="${m.fotoUtama || 'assets/banner/pasar_sentral_pinrang_clean_hd.jpg'}" alt="${m.nama}" onerror="this.src='assets/banner/pasar_sentral_pinrang_clean_hd.jpg'">
+                <div style="position: absolute; top: 12px; left: 12px;">
+                  ${badgeHtml}
+                </div>
+                <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.65); color: #FFFFFF; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">
+                  📍 Kec. ${m.kecamatan}
+                </div>
+              </div>
+              <div class="market-body">
+                <h3 style="font-size: 1.15rem; font-weight: 900; color: var(--primary-deep); line-height: 1.35; margin-bottom: 4px;">
+                  ${m.nama}
+                </h3>
+                ${altName}
+                
+                <div style="font-size: 0.84rem; color: #475569; line-height: 1.5; margin: 12px 0 16px; flex: 1;">
+                  ${m.deskripsi}
+                </div>
+
+                <div style="padding-top: 12px; border-top: 1px solid #F1F5F9; font-size: 0.82rem; margin-bottom: 14px;">
+                  ${scheduleText}
+                  ${stallsInfo}
+                </div>
+
+                <a href="pasar/${m.slug}/index.html" class="btn-primary" style="text-align: center; text-decoration: none; padding: 8px 16px; font-size: 0.86rem; border-radius: 8px;">
+                  ${actionLabel}
+                </a>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      if (searchInput) searchInput.addEventListener('input', renderMarketCards);
+      if (statusSelect) statusSelect.addEventListener('change', renderMarketCards);
+      if (districtSelect) districtSelect.addEventListener('change', renderMarketCards);
+
+      renderMarketCards();
+      if (typeof MarketEngine !== 'undefined') MarketEngine.initRealtimeSync(items => { markets=items; renderMarketCards(); });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMarketsPage);
+    } else {
+      initMarketsPage();
+    }
+  </script>
+
+
+  <!-- ==========================================================================
+       FOOTER RESMI KEDINASAN (100% IDENTIK & KONSISTEN SE-WEBSITE)
+       ========================================================================== -->
+  
+
+
+  <!-- FOOTER RESMI KEDINASAN KABUPATEN PINRANG -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+    <!-- FOOTER RESMI KEDINASAN -->
+  <footer class="main-footer" aria-label="Footer portal resmi">
+  <div class="container">
+    <div class="footer-grid">
+      <section class="footer-col footer-brand-col" aria-label="Identitas instansi">
+        <div class="footer-brand-lockup">
+          <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" class="footer-brand-logo">
+          <div>
+            <h3>DISPERINDAG ESDM</h3>
+            <p>Kabupaten Pinrang</p>
+          </div>
+        </div>
+        <p class="footer-summary">Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen memberikan pelayanan publik yang transparan, tertib, dan profesional.</p>
+        <div class="footer-motto">
+          <span class="footer-motto-icon">🎯</span>
+          <span><small>Motto Pelayanan</small><strong>MANTAP</strong><em>Melayani Anda dengan Transparan, Adil &amp; Profesional</em></span>
+        </div>
+      </section>
+
+      <nav class="footer-col" aria-label="Standar pelayanan">
+        <h4>Standar Pelayanan</h4>
+        <ul class="footer-links">
+          <li><a href="/layanan.html">Standar Pelayanan &amp; SOP</a></li>
+          <li><a href="/layanan.html#srv_oss_industri">Verifikasi Perizinan OSS Industri</a></li>
+          <li><a href="/layanan.html#srv_oss_perdagangan">Fasilitasi Perizinan OSS Perdagangan</a></li>
+          <li><a href="/layanan.html#srv_pupuk_subsidi">Keterangan Distributor Pupuk</a></li>
+          <li><a href="/layanan.html#srv_tera">Pelayanan Tera &amp; Tera Ulang UTTP</a></li>
+          <li><a href="/#pengaduan">Formulir Pengaduan Online</a></li>
+          <li><a href="/ppid.html#dokumen-regulasi">PPID Pelaksana &amp; Dokumen Publik</a></li>
+          <li><a href="/layanan.html#transparansi-pelayanan">Transparansi Pelayanan Publik</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer-col" aria-label="Direktori">
+        <h4>Direktori</h4>
+        <ul class="footer-links">
+          <li><a href="/direktori-lpg.html">Direktori Pangkalan LPG 3 Kg</a></li>
+          <li><a href="/pasar.html">Direktori Pasar Daerah</a></li>
+          <li><a href="/penyalur-bbm.html">Direktori Penyalur BBM (SPBU)</a></li>
+          <li><a href="/peta-gis.html">Peta GIS Disperindag ESDM</a></li>
+          <li><a href="/harga-bahan-pokok.html">Harga Pasar &amp; Bapokting</a></li>
+          <li><a href="/katalog-ikm.html">Katalog Produk IKM Binaan</a></li>
+        </ul>
+      </nav>
+
+      <section class="footer-col footer-contact-col" aria-label="Kontak dan jam layanan">
+        <h4>Kontak &amp; Jam Layanan</h4>
+        <address class="footer-contact-list">
+          <a href="https://maps.google.com/?q=Jalan+Bintang+No.+1+Pinrang+Sulawesi+Selatan" target="_blank" rel="noopener noreferrer"><span>📍</span><span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span></a>
+          <a href="https://wa.me/6282316002226" target="_blank" rel="noopener noreferrer"><span>🟢</span><strong>0823 1600 2226</strong></a>
+          <a href="mailto:dinasperindagem.pinrang@gmail.com"><span>✉️</span><span>dinasperindagem.pinrang@gmail.com</span></a>
+        </address>
+        <div class="footer-hours"><span>◷</span><div><strong>Jam Pelayanan Tatap Muka</strong><p>Senin–Kamis: 08.00–16.00 WITA<br>Jumat: 08.00–16.30 WITA</p></div></div>
+      </section>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang — <a href="https://www.instagram.com/maroaproject/" target="_blank" rel="noopener noreferrer">MAROA Project</a></p>
+      <strong>#BanggaMelayaniBangsa</strong>
+    </div>
+  </div>
+</footer>
+
+  <script src="js/pinrang-live.js"></script>
+</body>
+</html>

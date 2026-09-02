@@ -1,7 +1,9 @@
-import json, urllib.request, urllib.error
+import json, os, urllib.request, urllib.error
 
 PROJECT_ID = 'disperindagesdm-pinrang'
-API_KEY    = 'AIzaSyD4J1kidUcBcz7EdmYRIJ66YR5jOEO477I'
+API_KEY    = os.environ.get('FIREBASE_API_KEY')
+if not API_KEY:
+  raise RuntimeError('FIREBASE_API_KEY wajib diisi melalui environment, bukan source code')
 BASE_URL   = f'https://firestore.googleapis.com/v1/projects/{PROJECT_ID}/databases/(default)/documents'
 
 DEMO_NEWS = [

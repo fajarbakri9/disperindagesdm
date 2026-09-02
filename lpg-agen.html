@@ -41,73 +41,181 @@
       background: var(--lpg-card);
       box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
-    /* Header Agen */
+    /* Header Topbar Modern & Elegan */
     .lpg-topbar {
-      background: linear-gradient(135deg, #0F2C59 0%, #030D1B 100%);
+      background: linear-gradient(135deg, #0A192F 0%, #0F2C59 100%);
       color: #FFFFFF;
-      padding: 16px 20px;
+      padding: 12px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-sizing: border-box;
     }
     .lpg-brand {
       display: flex;
       align-items: center;
       gap: 10px;
+      min-width: 0;
+      flex: 1 1 auto;
     }
     .lpg-brand img {
       width: 36px;
       height: auto;
+      flex: 0 0 36px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+    .lpg-brand-text {
+      min-width: 0;
     }
     .lpg-brand-text h1 {
-      font-size: 0.95rem;
+      font-size: 0.88rem;
       margin: 0;
       font-weight: 800;
       color: #FFFFFF;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .lpg-brand-text p {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       margin: 2px 0 0;
-      color: #FCD34D;
+      color: #38BDF8;
       font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lpg-topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
     }
     .btn-logout-lpg {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.2);
-      color: #FFFFFF;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.76rem;
+      color: #F8FAFC;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
     }
-    .btn-install-lpg { display:none; background:#FACC15; border:0; color:#422006; padding:6px 10px; border-radius:7px; font-size:.72rem; font-weight:900; cursor:pointer; }
-    .lpg-topbar-actions { display:flex; align-items:center; gap:7px; }
-    /* Info Card Agen */
+    .btn-logout-lpg:hover {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #FECACA;
+    }
+    .btn-install-lpg {
+      display: none;
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      border: 0;
+      color: #FFFFFF;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      cursor: pointer;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(217,119,6,0.35);
+      transition: all 0.15s ease;
+    }
+    .btn-install-lpg:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    /* Info Card Agen Modern & Anti-Tabrakan */
     .lpg-agent-header-card {
-      background: #EFF6FF;
-      border-bottom: 1px solid #DBEAFE;
-      padding: 14px 20px;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      margin: 14px 16px 8px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 16px rgba(15,44,89,0.05);
+      box-sizing: border-box;
+    }
+    .lpg-agent-avatar {
+      display: grid;
+      place-items: center;
+      flex: 0 0 44px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284C7 0%, #0F2C59 100%);
+      color: #FFFFFF;
+      font-size: 0.85rem;
+      font-weight: 900;
+      border: 2px solid #E0F2FE;
+      box-shadow: 0 2px 8px rgba(2,132,199,0.2);
+    }
+    .lpg-agent-info {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .lpg-agent-top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
-    .lpg-agent-name {
-      font-size: 0.86rem;
-      font-weight: 800;
-      color: #1E3A8A;
+    .lpg-agent-role-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #0284C7;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .lpg-agent-role-badge::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #059669;
     }
     .lpg-agent-code {
-      font-size: 0.7rem;
-      background: #1D4ED8;
-      color: #FFFFFF;
-      padding: 2px 8px;
-      border-radius: 4px;
+      font-size: 0.68rem;
       font-weight: 800;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace, sans-serif;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .lpg-agent-name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.25;
+      margin: 0;
+      word-break: break-word;
     }
     /* Saldo Card */
     .lpg-stock-hero {
@@ -406,115 +514,64 @@
     @keyframes lpgPanelIn { from{opacity:.5;transform:translateY(3px)} to{opacity:1;transform:none} }
     @media (prefers-reduced-motion:reduce) { .lpg-panel.active{animation:none}.btn-lpg-action{transition:none} }
     @media (max-width:390px) { .lpg-brand-text p{display:none}.btn-install-lpg{font-size:0;width:34px}.btn-install-lpg::after{content:"↓";font-size:1rem}.lpg-actions-wrapper{gap:6px}.btn-lpg-action{font-size:.66rem}.lpg-mini-date{display:none!important} }
-    @media screen and (max-width: 768px) and (orientation: portrait) {
-      .lpg-topbar { padding: 12px; gap: 8px; }
-      .lpg-brand { min-width: 0; flex: 1 1 auto; gap: 8px; }
-      .lpg-brand img { width: 32px; flex: 0 0 32px; }
-      .lpg-brand-text { min-width: 0; }
-      .lpg-brand-text h1 { font-size: .78rem; line-height: 1.15; }
-      .lpg-brand-text p { font-size: .58rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .lpg-topbar-actions { flex: 0 0 auto; gap: 5px !important; }
-      .btn-install-lpg, .btn-logout-lpg { min-height: 36px !important; padding: 7px 9px !important; border-radius: 8px !important; font-size: .62rem !important; line-height: 1.1; white-space: nowrap; }
-      .btn-install-lpg { max-width: 68px; }
-      .btn-logout-lpg { max-width: 48px; font-size: 0 !important; }
-      .btn-logout-lpg::after { content: 'Keluar'; font-size: .62rem; }
+    /* Responsive Media Queries Bersih, Elegan & Presisi */
+    @media (max-width: 480px) {
+      .lpg-topbar {
+        padding: 10px 14px;
+        gap: 8px;
+      }
+      .lpg-brand {
+        gap: 8px;
+      }
+      .lpg-brand img {
+        width: 32px;
+        flex: 0 0 32px;
+      }
+      .lpg-brand-text h1 {
+        font-size: 0.78rem;
+      }
+      .lpg-brand-text p {
+        font-size: 0.62rem;
+      }
+      .btn-install-lpg, .btn-logout-lpg {
+        padding: 6px 10px;
+        font-size: 0.68rem;
+      }
+      .lpg-agent-header-card {
+        margin: 10px 12px 6px;
+        padding: 12px 14px;
+        gap: 10px;
+      }
+      .lpg-agent-avatar {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        font-size: 0.8rem;
+      }
+      .lpg-agent-name {
+        font-size: 0.86rem;
+      }
     }
-    @media screen and (max-width: 360px) and (orientation: portrait) {
-      .lpg-brand-text p { display: none; }
-      .btn-install-lpg { font-size: 0 !important; width: 36px; padding: 7px !important; }
-      .btn-install-lpg::after { content: '↓'; font-size: 1rem; }
-    }      /* Final portrait polish: keep the LPG header stable on narrow screens. */
-    @media screen and (max-width: 768px) and (orientation: portrait) {
-      .lpg-topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 11px 12px; }
-      .lpg-brand { width: 100%; }
-      .lpg-brand-text h1 { font-size: .76rem; letter-spacing: .015em; }
-      .lpg-topbar-actions { justify-content: flex-end; }
-      .lpg-agent-header-card { margin: 10px 14px 0 !important; padding: 12px !important; }
-      .lpg-agent-code { min-width: 44px !important; padding: 6px 8px !important; border-radius: 7px !important; font-size: .68rem !important; }
+
+    @media (max-width: 360px) {
+      .lpg-brand-text p {
+        display: none;
+      }
+      .lpg-brand-text h1 {
+        font-size: 0.74rem;
+      }
+      .btn-install-lpg span:last-child {
+        display: none;
+      }
+      .btn-install-lpg {
+        padding: 6px 8px;
+      }
+      .btn-logout-lpg {
+        padding: 6px 9px;
+        font-size: 0.64rem;
+      }
     }
-    @media screen and (max-width: 430px) and (orientation: portrait) {
-      .lpg-topbar { grid-template-columns: 1fr; gap: 8px; }
-      .lpg-brand { justify-content: center; }
-      .lpg-brand-text { text-align: left; }
-      .lpg-topbar-actions { width: 100%; display: grid !important; grid-template-columns: 1fr 1fr; gap: 7px !important; }
-      .btn-install-lpg, .btn-logout-lpg { width: 100% !important; max-width: none !important; font-size: .68rem !important; min-height: 34px !important; }
-      .btn-install-lpg::after, .btn-logout-lpg::after { content: none !important; }
-      .btn-install-lpg { font-size: .68rem !important; }
-    }      /* Portrait visual system aligned with the supplied reference. */
-    @media screen and (min-width: 431px) and (max-width: 768px) and (orientation: portrait) {
-      .lpg-app-container { max-width: 624px; }
-      .lpg-topbar { padding: 15px 20px; gap: 18px; }
-      .lpg-brand { gap: 12px; }
-      .lpg-brand img { width: 44px; }
-      .lpg-brand-text h1 { font-size: 1.15rem; letter-spacing: .01em; }
-      .lpg-brand-text p { font-size: .84rem; margin-top: 4px; }
-      .lpg-topbar-actions { gap: 9px !important; }
-      .btn-install-lpg, .btn-logout-lpg { min-height: 48px !important; padding: 10px 17px !important; border-radius: 9px !important; font-size: .9rem !important; }
-      .lpg-agent-header-card { margin: 15px 18px 0 !important; padding: 15px !important; border-radius: 9px !important; box-shadow: 0 2px 7px rgba(15,23,42,.10) !important; }
-      .lpg-agent-avatar { flex-basis: 48px; width: 48px; height: 48px; }
-      .lpg-agent-name { font-size: 1rem; color: #111827; }
-      .lpg-agent-code { min-width: auto !important; padding: 6px 11px !important; border-radius: 999px !important; background: #E0F2FE; color: #164E63; border: 1px solid #BAE6FD; font-size: .8rem !important; }
-      .lpg-welcome-strip { margin: 20px 22px 10px !important; padding: 0 !important; }
-      .lpg-welcome-strip strong { font-size: 1.2rem; }
-      .lpg-welcome-strip span { font-size: .82rem; }
-      #lpgPersistenceNotice { margin: 12px 18px 18px !important; padding: 10px 12px !important; border-radius: 6px !important; font-size: .78rem !important; }
-      .lpg-tabs-bar { margin: 0 18px !important; border: 0 !important; border-bottom: 1px solid #CBD5E1 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; }
-      .lpg-tab-btn { min-height: 50px; font-size: .95rem; border-radius: 0 !important; }
-      .lpg-tab-btn.active { background: transparent !important; box-shadow: inset 0 -3px #2563EB !important; }
-      .lpg-panel { padding: 18px !important; }
-      .lpg-stock-hero { padding: 23px 21px; border-radius: 9px; }
-      .lpg-stock-label { font-size: .9rem; }
-      .lpg-stock-val { font-size: 3.2rem; }
-      .lpg-today-box { padding: 15px; border: 1px solid #D1D5DB; border-radius: 8px; }
-      .lpg-actions-wrapper { gap: 10px; padding: 16px 0 18px; }
-      .btn-lpg-action { min-height: 91px; border-radius: 8px; font-size: .88rem; box-shadow: none; }
-      .btn-lpg-action span { width: 32px; height: 32px; font-size: 1.25rem; }
-      .lpg-dashboard-card { border-radius: 9px; box-shadow: none; border: 1px solid #E5E7EB; }
-      .lpg-section-heading strong { font-size: .98rem; }
-      #lpgRecentActivityFeed { border-radius: 8px !important; box-shadow: none !important; }
-    }
-    @media screen and (max-width: 430px) and (orientation: portrait) {
-      .lpg-topbar { padding: 12px 14px; }
-      .lpg-brand { justify-content: flex-start; }
-      .lpg-brand img { width: 36px; }
-      .lpg-brand-text h1 { font-size: .88rem; }
-      .lpg-brand-text p { font-size: .66rem; }
-      .lpg-topbar-actions { display: flex !important; width: auto; }
-      .btn-install-lpg, .btn-logout-lpg { min-height: 38px !important; padding: 8px 10px !important; font-size: .68rem !important; }
-      .btn-install-lpg { max-width: 82px !important; }
-      .btn-logout-lpg { max-width: 58px !important; }
-      .lpg-agent-code { border-radius: 999px !important; padding: 5px 7px !important; }
-    }      /* Final narrow portrait correction: compact single-row header. */
-    @media screen and (max-width: 430px) and (orientation: portrait) {
-      .lpg-topbar { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 7px !important; padding: 10px 12px !important; min-height: 62px; box-sizing: border-box; }
-      .lpg-brand { flex: 1 1 auto !important; min-width: 0 !important; justify-content: flex-start !important; gap: 7px !important; }
-      .lpg-brand img { width: 31px !important; flex: 0 0 31px !important; }
-      .lpg-brand-text h1 { font-size: .72rem !important; line-height: 1.15 !important; white-space: nowrap; }
-      .lpg-brand-text p { display: block !important; font-size: .54rem !important; white-space: nowrap; }
-      .lpg-topbar-actions { width: auto !important; flex: 0 0 auto !important; display: flex !important; gap: 4px !important; }
-      .btn-install-lpg, .btn-logout-lpg { width: auto !important; max-width: none !important; min-height: 36px !important; padding: 7px 8px !important; font-size: .6rem !important; white-space: nowrap !important; }
-      .btn-install-lpg::after, .btn-logout-lpg::after { content: none !important; }
-      .lpg-agent-header-card { margin-top: 10px !important; }
-    }
-    @media screen and (max-width: 350px) and (orientation: portrait) {
-      .lpg-brand-text p { display: none !important; }
-      .lpg-brand-text h1 { font-size: .66rem !important; }
-      .btn-install-lpg { font-size: 0 !important; width: 32px !important; }
-      .btn-install-lpg::before { content: '↓'; font-size: 1rem; }
-      .btn-logout-lpg { font-size: 0 !important; width: 32px !important; }
-      .btn-logout-lpg::before { content: '↪'; font-size: 1rem; }
-    }      @media screen and (max-width: 430px) and (orientation: portrait) {
-      .btn-install-lpg { display: inline-flex !important; align-items: center; justify-content: center; gap: 5px; text-align: center; }
-      .btn-install-lpg > span { display: inline-flex; align-items: center; justify-content: center; }
-      .lpg-agent-copy { min-width: 0; flex: 1 1 auto; overflow: hidden; }
-      .lpg-agent-name-wrap { overflow: hidden; white-space: nowrap; position: relative; }
-      .lpg-agent-name { display: inline-block; max-width: none !important; white-space: nowrap; }
-      .lpg-agent-name.is-marquee { animation: lpgNameMarquee 8s linear infinite alternate; padding-right: 18px; }
-      .lpg-agent-name-wrap:hover .lpg-agent-name { animation-play-state: paused; }
-      .lpg-agent-code { flex: 0 0 auto !important; width: 48px; min-width: 48px !important; box-sizing: border-box; text-align: center; white-space: nowrap !important; }
-    }
-    @keyframes lpgNameMarquee { from { transform: translateX(0); } to { transform: translateX(calc(-100% + 160px)); } }
-    @media (prefers-reduced-motion: reduce) { .lpg-agent-name.is-marquee { animation: none; } }  </style>
+  </style>
 </head>
 <body>
 
@@ -529,25 +586,32 @@
           <p>Disperindag ESDM Pinrang</p>
         </div>
       </div>
-      <div class="lpg-topbar-actions"><button type="button" class="btn-install-lpg" id="btnInstallLpgApp"><span aria-hidden="true">⇩</span><span>Pasang Aplikasi</span></button><button type="button" class="btn-logout-lpg" onclick="logoutUser()">🚪 Keluar</button></div>
+      <div class="lpg-topbar-actions">
+        <button type="button" class="btn-install-lpg" id="btnInstallLpgApp">
+          <span aria-hidden="true">⇩</span><span>Pasang Aplikasi</span>
+        </button>
+        <button type="button" class="btn-logout-lpg" onclick="logoutUser()">
+          <span>🚪</span><span>Keluar</span>
+        </button>
+      </div>
     </header>
 
     <!-- 2. IDENTITAS AGEN AKTIF -->
     <div class="lpg-agent-header-card">
-      <div class="lpg-agent-profile">
-        <div class="lpg-agent-avatar" id="lpgAgentAvatar">AG</div>
-        <div style="min-width:0;">
-          <div class="lpg-agent-name" id="lpgAgentHeaderName">Memuat Agen...</div>
-          <div style="font-size:0.7rem;color:#64748B;margin-top:2px;">Penyalur resmi LPG 3 Kg</div>
+      <div class="lpg-agent-avatar" id="lpgAgentAvatar">AD</div>
+      <div class="lpg-agent-info">
+        <div class="lpg-agent-top-row">
+          <span class="lpg-agent-role-badge">Penyalur resmi LPG 3 Kg</span>
+          <span class="lpg-agent-code" id="lpgAgentHeaderCode">—</span>
         </div>
+        <div class="lpg-agent-name" id="lpgAgentHeaderName">Memuat Agen...</div>
       </div>
-      <span class="lpg-agent-code" id="lpgAgentHeaderCode">AG-000</span>
     </div>
 
     <div class="lpg-welcome-strip"><div><strong id="lpgWelcomeText">Selamat bekerja</strong><span>Catat distribusi dengan cepat dan tertib.</span></div><span class="lpg-mini-date" id="lpgTodayLabel">Hari ini</span></div>
 
     <div id="lpgPersistenceNotice" style="margin:0 16px 12px;padding:10px 12px;border:1px solid #F59E0B;background:#FFFBEB;color:#92400E;border-radius:9px;font-size:0.76rem;line-height:1.45;">
-      <strong>Mode penyimpanan lokal.</strong> Catatan pada perangkat ini belum merupakan ledger server dan tidak ikut indikator resmi Command Center.
+      <strong>Menghubungkan ke Firestore…</strong> Data operasional hanya ditampilkan setelah diterima dari server.
     </div>
 
     <!-- 3. TABS NAVIGATION -->
@@ -564,7 +628,7 @@
       <section class="lpg-dashboard-card" aria-label="Ringkasan stok dan aktivitas hari ini">
       <div class="lpg-stock-hero" id="lpgStockHero">
         <div class="lpg-stock-label">Saldo Stok Terhitung Saat Ini</div>
-        <div class="lpg-stock-val" id="lpgCurrentStockVal">0</div>
+        <div class="lpg-stock-val" id="lpgCurrentStockVal">—</div>
         <div class="lpg-stock-unit">Tabung Isi 3 Kg</div>
         <div class="lpg-stock-status" id="lpgStockStatus">Saldo ledger normal</div>
       </div>
@@ -573,11 +637,11 @@
       <div class="lpg-today-grid">
         <div class="lpg-today-box">
           <div class="lpg-today-title">Stok Masuk Hari Ini</div>
-          <div class="lpg-today-num num-in" id="lpgTodayStockIn">+0</div>
+          <div class="lpg-today-num num-in" id="lpgTodayStockIn">—</div>
         </div>
         <div class="lpg-today-box">
           <div class="lpg-today-title">Tersalur Hari Ini</div>
-          <div class="lpg-today-num num-out" id="lpgTodayDistributed">-0</div>
+          <div class="lpg-today-num num-out" id="lpgTodayDistributed">—</div>
         </div>
       </div>
       </section>
@@ -617,7 +681,7 @@
           <h3 style="font-size: 0.95rem; font-weight: 800; margin: 0; color: #0F172A;">Daftar Pangkalan Binaan</h3>
           <p style="font-size: 0.72rem; color: #64748B; margin: 2px 0 0;" id="pangkalanCountSummary">Memuat pangkalan...</p>
         </div>
-        <button type="button" class="btn-float-add" onclick="openModalAddPangkalan()">+ Tambah</button>
+        <button type="button" class="btn-float-add" onclick="openModalAddPangkalan()">+ Ajukan Pangkalan Baru</button>
       </div>
 
       <!-- SEARCH PANGKALAN -->
@@ -780,10 +844,7 @@
           <textarea id="pangkalanAddress" class="form-input" required rows="2" placeholder="Nama jalan, RT/RW, patokan lokasi"></textarea>
         </div>
 
-        <div style="margin-bottom: 12px;">
-          <label class="form-label" style="font-size: 0.8rem;">Alokasi Bulanan (Tabung)</label>
-          <input type="number" id="pangkalanAllocation" class="form-input" placeholder="560" value="560">
-        </div>
+        <input type="hidden" id="pangkalanAllocation" value="">
 
         <div id="editReasonBox" style="display: none; margin-bottom: 12px;">
           <label class="form-label" style="font-size: 0.8rem; color: #B45309;">Alasan Pembaruan Data *</label>
@@ -803,8 +864,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260830_spark_ledger_v1"></script>
-  <script src="js/lpg-data-seed.js?v=20260829_sync15_v1"></script>
-  <script src="js/lpg-engine.js?v=20260830_lpg_alerts_v4"></script>
+  <script src="js/lpg-engine.js?v=20260902_firestore_only_admin_v1"></script>
+  <script src="js/lpg-geolocation.js?v=20260902_ssot_v1"></script>
   <script src="js/modal-system.js?v=20260829_sync15_v1"></script>
   <script src="js/auth.js?v=20260830_auth_integrity_v2"></script>
   <script src="js/lpg-agen.js?v=20260830_lpg_social_v7"></script>

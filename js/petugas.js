@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAppForRole();
   initMobileCamera();
   updateHeaderUserInfo();
+  initPetugasSp2kpSync();
 });
 
 function updateHeaderUserInfo() {
@@ -150,15 +151,89 @@ function renderAppForRole() {
   }
 }
 
-// 4. MODUL 1: PETUGAS PASAR (UPDATE HARGA SEMBAKO DENGAN CUSTOM MODAL)
+// 4. MODUL 1: PETUGAS PASAR (MONITORING SP2KP KEMENDAG & VERIFIKASI LAPANGAN TPID)
+let mobileSp2kpCache = [];
+let mobileOverridesCache = {};
+
+function initPetugasSp2kpSync() {
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      db.collection('market_prices_latest').onSnapshot(snapshot => {
+        if (!snapshot.empty) {
+          const items = [];
+          snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+          mobileSp2kpCache = items.sort((a, b) => (Number(a.sp2kpCommodityId || 0) - Number(b.sp2kpCommodityId || 0)));
+          const container = document.getElementById('dynamicRoleModule');
+          if (container && currentRole === 'petugas_pasar') {
+            renderMarketModule(container);
+          }
+        }
+      }, err => console.warn("Petugas SP2KP sync error:", err));
+
+      db.collection('price_overrides').onSnapshot(snapshot => {
+        const overrides = {};
+        snapshot.forEach(doc => {
+          overrides[doc.id] = { id: doc.id, ...doc.data() };
+        });
+        mobileOverridesCache = overrides;
+        const container = document.getElementById('dynamicRoleModule');
+        if (container && currentRole === 'petugas_pasar') {
+          renderMarketModule(container);
+        }
+      }, err => console.warn("Petugas Overrides sync error:", err));
+    } catch(e) {}
+  }
+}
+
+function getPetugasResolvedPrices() {
+  if (mobileSp2kpCache.length > 0) {
+    return mobileSp2kpCache.map(item => {
+      const vId = item.variantId || item.id;
+      let resolved = null;
+      if (typeof PriceResolver !== 'undefined') {
+        resolved = PriceResolver.normalizeSp2kpItem(item);
+      } else {
+        const sourcePrice = Number(item.sourcePrice || item.price || 0);
+        resolved = {
+          effectivePrice: sourcePrice,
+          effectiveFormatted: 'Rp ' + sourcePrice.toLocaleString('id-ID'),
+          isOverridden: false,
+          diff: Number(item.delta || item.diff || 0),
+          trend: Number(item.delta || item.diff || 0) > 0 ? 'up' : (Number(item.delta || item.diff || 0) < 0 ? 'down' : 'stable')
+        };
+      }
+
+      return {
+        id: vId,
+        commodity_name: item.commodityName || item.commodity_name || 'Komoditas',
+        unit: item.unit || 'kg',
+        price: resolved.price != null ? resolved.price : resolved.effectivePrice,
+        sourcePrice: Number(item.sourcePrice || item.price || 0),
+        diff: Number(resolved.delta != null ? resolved.delta : resolved.diff || 0),
+        trend: resolved.trend,
+        isOverridden: false,
+        overrideReason: null,
+        dataDate: item.dataDate || null,
+        market_name: item.market_name || 'Pasar Sentral & Pekkabata'
+      };
+    });
+  }
+
+  return [];
+}
+
 function renderMarketModule(container) {
-  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-  const pricesList = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
+  const pricesList = getPetugasResolvedPrices();
 
   container.innerHTML = `
-    <div class="app-section-title">
-      <h3>Daftar Harga Sembako Hari Ini</h3>
-      <span>${pricesList.length} Komoditas Terpantau</span>
+    <div class="app-section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div>
+        <h3 style="margin: 0; font-size: 1.05rem; color: var(--primary-deep);">Harga Bahan Pokok (SP2KP)</h3>
+        <span style="font-size: 0.76rem; color: #64748B;">Kabupaten Pinrang &bull; ${pricesList.length} Komoditas</span>
+      </div>
+      <span style="display: inline-flex; align-items: center; gap: 4px; background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; font-size: 0.72rem; font-weight: 800; padding: 4px 8px; border-radius: 999px;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10B981;"></span> Kemendag RI
+      </span>
     </div>
     <div style="margin-bottom: 14px;">
       <input type="text" id="mobileSearchSembako" class="mobile-form-input" placeholder="🔍 Cari nama bahan pokok (Beras, Minyak, Cabai, Daging, Telur)...">
@@ -191,84 +266,99 @@ function renderSembakoItems(list) {
   return list.map(item => {
     const name = item.commodity_name || item.name || 'Komoditas Pangan';
     const unit = item.unit || 'Kg';
-    const price = item.price || 0;
+    const price = Number(item.price || 0);
     const trend = item.trend || 'stable';
-    const diff = item.diff || 0;
-    const market = item.market_name || 'Pasar Sentral Pinrang';
+    const diff = Number(item.diff || 0);
+    const isOverridden = !!item.isOverridden;
 
-    const trendText = trend === 'up' ? `▲ +Rp ${(Math.abs(diff)).toLocaleString('id-ID')}` : (trend === 'down' ? `▼ -Rp ${(Math.abs(diff)).toLocaleString('id-ID')}` : '— Tetap');
-    const trendColor = trend === 'up' ? '#DC2626' : (trend === 'down' ? '#16A34A' : '#64748B');
+    const trendText = diff > 0 ? `▲ +Rp ${diff.toLocaleString('id-ID')}` : (diff < 0 ? `▼ -Rp ${(Math.abs(diff)).toLocaleString('id-ID')}` : '— Tetap');
+    const trendColor = diff > 0 ? '#DC2626' : (diff < 0 ? '#16A34A' : '#64748B');
 
     return `
-      <div class="market-item-card">
+      <div class="market-item-card" style="${isOverridden ? 'border-left: 4px solid #D97706; background: #FFFBEB;' : ''}">
         <div class="market-item-info">
-          <div class="market-item-emoji">${item.icon || '🌾'}</div>
+          <div class="market-item-emoji">${item.icon || (name.includes('Beras') ? '🌾' : name.includes('Minyak') ? '🛢️' : name.includes('Cabai') ? '🌶️' : name.includes('Bawang') ? '🧅' : name.includes('Daging') ? '🥩' : name.includes('Gula') ? '🍚' : '🥚')}</div>
           <div>
-            <div class="market-item-name">${name}</div>
-            <div class="market-item-unit">${market} &bull; Per 1 ${unit} &bull; <span style="color: ${trendColor}; font-weight: 700;">${trendText}</span></div>
+            <div class="market-item-name" style="font-weight: 800; color: #0F2C59;">${name}</div>
+            <div class="market-item-unit">
+              Per 1 ${unit} &bull; <span style="color: ${trendColor}; font-weight: 700;">${trendText}</span>
+              ${isOverridden ? `<br><span style="color: #92400E; font-weight: 800; font-size: 0.7rem;">⚖️ Koreksi Lapangan Aktif</span>` : ''}
+            </div>
           </div>
         </div>
         <div class="market-price-action">
-          <span class="market-price-val">Rp ${price.toLocaleString('id-ID')}</span>
-          <button type="button" class="btn-quick-edit" onclick="mobileEditPrice('${item.id}', '${name.replace(/'/g, "\\'")}', ${price}, '${unit}')">✏️ Ubah</button>
+          <span class="market-price-val" style="font-size: 0.96rem; color: ${isOverridden ? '#D97706' : '#1E40AF'}; font-weight: 900;">
+            Rp ${price.toLocaleString('id-ID')}
+          </span>
+          <button type="button" class="btn-quick-edit" style="font-size: 0.74rem; padding: 6px 10px;" onclick="mobileVerifyPrice('${item.id}', '${name.replace(/'/g, "\\'")}', ${price}, '${unit}', ${isOverridden})">
+            ${isOverridden ? '⚙️ Koreksi' : '⚖️ Verifikasi'}
+          </button>
         </div>
       </div>
     `;
   }).join('');
 }
 
-window.mobileEditPrice = async function(id, name, currentPrice, unit = 'Kg') {
+window.mobileVerifyPrice = async function(id, name, currentPrice, unit = 'Kg', isOverridden = false) {
   const newVal = await CustomModal.prompt({
-    title: `Perbarui Harga Komoditas`,
-    message: `Masukkan nominal harga baru untuk <strong>${name}</strong> per 1 ${unit} (Harga saat ini: Rp ${currentPrice.toLocaleString('id-ID')}):`,
+    title: `Verifikasi Lapangan: ${name}`,
+    message: `Masukkan nominal harga hasil verifikasi survei pasar langsung untuk <strong>${name}</strong> per 1 ${unit} (Harga saat ini: Rp ${currentPrice.toLocaleString('id-ID')}):`,
     defaultValue: currentPrice.toString(),
     placeholder: "Contoh: 14500",
     inputType: "number",
     icon: "🌾",
-    confirmText: "Simpan & Sinkronkan"
+    confirmText: "Simpan Koreksi Terverifikasi"
   });
 
   if (newVal === null || newVal === undefined || newVal.toString().trim() === '') return;
 
-  const parsed = parseInt(newVal.toString().replace(/[^0-9]/g, ''));
+  const parsed = parseInt(newVal.toString().replace(/[^0-9]/g, ''), 10);
   if (isNaN(parsed) || parsed <= 0) {
     CustomModal.alert({ title: "Input Tidak Valid", message: "Nominal harga harus berupa angka positif.", icon: "⚠️", type: "warning" });
     return;
   }
 
-  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-  const prices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
-  const item = prices.find(p => p.id === id);
-  if (item) {
-    const prevPrice = item.price;
-    item.previous_price = prevPrice;
-    item.price = parsed;
-    item.diff = parsed - prevPrice;
-    item.trend = item.diff > 0 ? 'up' : (item.diff < 0 ? 'down' : 'stable');
-    item.observed_date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    item.observed_time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
+  const session = (typeof getSession === 'function' ? getSession() : null) || { name: 'Petugas Lapangan', role: 'petugas_pasar' };
 
-    setStorage('disperindag_prices', prices);
-    renderMarketModule(document.getElementById('dynamicRoleModule'));
+  const overrideDoc = {
+    variantId: id,
+    commodityName: name,
+    unit: unit,
+    sourcePrice: currentPrice,
+    overridePrice: parsed,
+    reason: "Hasil verifikasi survei pasar langsung (Petugas Lapangan TPID)",
+    evidenceRef: "Laporan Lapangan Petugas: " + (session.name || "Enumerator"),
+    expiryOption: "24h",
+    expiresAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+    status: "active",
+    appliedBy: session.name || "Petugas Pasar",
+    appliedAt: new Date().toISOString()
+  };
 
-    if (typeof db !== 'undefined' && db !== null) {
-      db.collection('prices').doc(id).set(item, { merge: true }).catch(() => {});
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      await db.collection('price_overrides').doc(id).set(overrideDoc, { merge: true });
+    } catch(e) {
+      console.error("Firestore override save error:", e);
     }
-
-    CustomModal.alert({
-      title: "Harga Berhasil Diperbarui",
-      message: `Harga <strong>${name}</strong> kini tercatat: <strong>Rp ${parsed.toLocaleString('id-ID')}/${unit}</strong>. Sinkronisasi Cloud aktif!`,
-      icon: "✅",
-      type: "info"
-    });
   }
+
+  mobileOverridesCache[id] = overrideDoc;
+  renderMarketModule(document.getElementById('dynamicRoleModule'));
+
+  CustomModal.alert({
+    title: "Verifikasi Lapangan Tersimpan",
+    message: `Koreksi harga terstruktur untuk <strong>${name}</strong> berhasil dicatat sebesar <strong>Rp ${parsed.toLocaleString('id-ID')}/${unit}</strong> dan tersinkronisasi ke Dashboard Pimpinan.`,
+    icon: "✅",
+    type: "info"
+  });
 };
 
 // 5. MODUL 2: PENGAWAS ESDM (INPUT HASIL SIDAK PANGKALAN LPG 3 KG & GPS LOCATION)
 function renderEsdmModule(container) {
   const pangkalanList = (typeof getLpgStore === 'function') 
     ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []) 
-    : ((typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : []);
+    : [];
 
   const activePangkalan = pangkalanList.filter(p => !p.isDeleted);
 
@@ -279,7 +369,7 @@ function renderEsdmModule(container) {
       </h4>
       <form id="formSidakLpg">
         <div class="mobile-form-group">
-          <label class="mobile-form-label">Pilih Pangkalan Terdaftar (681 Pangkalan) *</label>
+          <label class="mobile-form-label">Pilih Pangkalan Terdaftar (${activePangkalan.length.toLocaleString('id-ID')} data dari Firestore) *</label>
           <select id="sidakPangkalanSelect" required class="mobile-form-select" onchange="handleSelectPangkalanSidak(this.value)">
             <option value="">-- Pilih Pangkalan Terdaftar --</option>
             ${activePangkalan.slice(0, 150).map(p => `
@@ -303,14 +393,14 @@ function renderEsdmModule(container) {
         </div>
 
         <div class="mobile-form-group">
-          <label class="mobile-form-label">Harga Jual Real di Pangkalan (HET Resmi: Rp 18.500 / Rp 20.000)</label>
-          <input type="number" id="sidakHarga" required class="mobile-form-input" placeholder="18500" value="18500">
+          <label class="mobile-form-label">Harga Jual Faktual di Pangkalan <span id="sidakHetReference">(memuat HET resmi…)</span></label>
+          <input type="number" id="sidakHarga" required class="mobile-form-input" placeholder="Masukkan harga hasil pemeriksaan">
         </div>
 
         <div class="mobile-form-group">
           <label class="mobile-form-label">Status Kepatuhan Pangkalan</label>
           <select id="sidakStatus" class="mobile-form-select">
-            <option value="Patuh Sesuai HET">✓ Patuh Sesuai HET (Rp 18.500)</option>
+            <option value="Patuh Sesuai HET">✓ Patuh Sesuai HET resmi</option>
             <option value="Pelanggaran HET Ringan">⚠️ Di Atas HET (Teguran Lisan / Peringatan)</option>
             <option value="Pelanggaran Berat / Penimbunan">🚨 Pelanggaran Berat (Rekomendasi Sanksi / PHU)</option>
           </select>

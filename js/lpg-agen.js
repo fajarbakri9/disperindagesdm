@@ -25,6 +25,11 @@ function formatLpgAgentTime(value) {
   }).format(date).replace('.', ':');
 }
 
+function lpgLocationStatus(item) {
+  const status = item?.location?.verificationStatus;
+  return ({verified:'GPS Terverifikasi',agent_captured:'GPS Agen — Menunggu Verifikasi',admin_captured:'GPS Petugas — Menunggu Verifikasi',manual_admin:'Titik Diperbarui Administrator',needs_review:'Perlu Verifikasi',indicative:'Titik Indikatif'})[status] || 'Belum tersedia';
+}
+
 window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault();
   deferredLpgInstallPrompt = event;
@@ -38,7 +43,7 @@ window.addEventListener('appinstalled', () => {
   if (button) button.style.display = 'none';
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/lpg-sw.js').catch(error => console.warn('Service worker LPG gagal didaftarkan:', error));
   document.getElementById('btnInstallLpgApp')?.addEventListener('click', async () => {
     if (!deferredLpgInstallPrompt) return;
@@ -49,10 +54,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (button) button.style.display = 'none';
   });
   // 1. Guard Autentikasi Khusus Agen LPG
-  currentAgentSession = requireAuth(['lpg_agen']);
-  if (!currentAgentSession) return;
+  currentAgentSession = await requireFirebaseLpgSession();
+  if (!currentAgentSession) {
+    updateLpgPersistenceNotice('SERVER_AUTH_REQUIRED');
+    window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+    return;
+  }
 
-  currentAgentId = currentAgentSession.agentId || 'AG-001';
+  currentAgentId = currentAgentSession.agentId;
+  if (!currentAgentId) {
+    document.getElementById('lpgAgentHeaderName').textContent = 'Profil agen tidak ditemukan. Hubungi administrator.';
+    updateLpgPersistenceNotice('PROFILE_MISSING');
+    return;
+  }
 
   // 2. Set Informasi Header
   const nameEl = document.getElementById('lpgAgentHeaderName');
@@ -114,22 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function updateLpgPersistenceNotice() {
+function updateLpgPersistenceNotice(forcedState) {
   const notice = document.getElementById('lpgPersistenceNotice');
   if (!notice) return;
   const connected = typeof auth !== 'undefined' && auth && auth.currentUser;
   const feedSyncLabel = document.getElementById('lpgFeedSyncLabel');
-  if (connected && navigator.onLine) {
+  if (forcedState === 'PROFILE_MISSING') {
+    notice.textContent = 'Profil agen tidak ditemukan pada akun ini. Hubungi administrator.';
+    if (feedSyncLabel) feedSyncLabel.textContent = 'Data tidak tersedia';
+  } else if (connected && navigator.onLine) {
     notice.style.cssText += 'border-color:#10B981;background:#ECFDF5;color:#065F46;';
-    notice.textContent = 'Firestore online/offline aktif. Transaksi dikirim sebagai immutable ledger dan akan tersinkron otomatis.';
-    if (feedSyncLabel) feedSyncLabel.textContent = 'Tersinkron otomatis';
+    notice.textContent = 'Terhubung ke server. Transaksi hanya dinyatakan berhasil setelah commit Firestore.';
+    if (feedSyncLabel) feedSyncLabel.textContent = 'Tersinkron dengan server';
   } else if (connected) {
     notice.style.cssText += 'border-color:#F59E0B;background:#FFFBEB;color:#92400E;';
-    notice.textContent = 'Perangkat sedang offline. Transaksi baru berstatus pending dan akan dikirim otomatis saat koneksi kembali.';
-    if (feedSyncLabel) feedSyncLabel.textContent = 'Menunggu koneksi';
+    notice.textContent = 'Server tidak tersedia. Transaksi membutuhkan koneksi server dan tidak akan disimpan di perangkat.';
+    if (feedSyncLabel) feedSyncLabel.textContent = 'Server tidak tersedia';
   } else {
-    notice.textContent = 'Mode penyimpanan lokal. Catatan pada perangkat ini belum merupakan ledger Firestore dan tidak ikut indikator resmi Command Center.';
-    if (feedSyncLabel) feedSyncLabel.textContent = 'Tersimpan lokal';
+    notice.textContent = 'Sesi Firestore tidak tersedia. Silakan masuk kembali; tidak ada data lokal pengganti.';
+    if (feedSyncLabel) feedSyncLabel.textContent = 'Tidak dapat dimuat';
   }
 }
 
@@ -169,16 +186,15 @@ function refreshAgentDashboardUI() {
   if (!currentAgentId) return;
 
   const balances = getLpgStore(LPG_STORAGE_KEYS.BALANCES, {});
-  const currentBal = (balances[currentAgentId] && balances[currentAgentId].filledCylinderBalance !== undefined)
-    ? balances[currentAgentId].filledCylinderBalance
-    : 0;
+  const hasBalance = balances[currentAgentId] && balances[currentAgentId].filledCylinderBalance !== undefined;
+  const currentBal = hasBalance ? Number(balances[currentAgentId].filledCylinderBalance) : null;
 
   const stockValEl = document.getElementById('lpgCurrentStockVal');
-  if (stockValEl) stockValEl.textContent = currentBal.toLocaleString('id-ID');
+  if (stockValEl) stockValEl.textContent = currentBal === null ? '—' : currentBal.toLocaleString('id-ID');
   const stockHeroEl = document.getElementById('lpgStockHero');
   const stockStatusEl = document.getElementById('lpgStockStatus');
-  if (stockHeroEl) stockHeroEl.classList.toggle('is-anomaly', currentBal < 0);
-  if (stockStatusEl) stockStatusEl.textContent = currentBal < 0 ? 'Perlu rekonsiliasi' : 'Saldo ledger normal';
+  if (stockHeroEl) stockHeroEl.classList.toggle('is-anomaly', currentBal !== null && currentBal < 0);
+  if (stockStatusEl) stockStatusEl.textContent = currentBal === null ? 'Data belum tersedia' : (currentBal < 0 ? 'Perlu rekonsiliasi' : 'Saldo ledger resmi');
 
   // Rekap Hari Ini
   const events = getLpgStore(LPG_STORAGE_KEYS.EVENTS, []);
@@ -295,10 +311,8 @@ window.handleStockInSubmit = async function(e) {
     currentStockInEventId = null;
     closeModal('modalStockIn');
     CustomModal.alert({
-      title: res.persistence === 'FIRESTORE_QUEUED' ? "Menunggu Sinkronisasi" : "Tersimpan di Perangkat",
-      message: res.persistence === 'FIRESTORE_QUEUED'
-        ? `Penerimaan <strong>${qty.toLocaleString('id-ID')} tabung</strong> masuk antrean Firestore. Status akan tersinkron otomatis saat koneksi tersedia.`
-        : `Penerimaan <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>. Data ini belum menjadi ledger Firestore.`,
+      title: "Transaksi Berhasil Dibukukan",
+      message: `Penerimaan <strong>${qty.toLocaleString('id-ID')} tabung</strong> telah tersimpan di server.<br><br>Saldo resmi: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>.`,
       icon: "📦",
       type: "info"
     });
@@ -363,10 +377,8 @@ window.handleDistributionSubmit = async function(e) {
     currentDistributionEventId = null;
     closeModal('modalDistribution');
     CustomModal.alert({
-      title: res.persistence === 'FIRESTORE_QUEUED' ? "Menunggu Sinkronisasi" : "Tersimpan di Perangkat",
-      message: res.persistence === 'FIRESTORE_QUEUED'
-        ? `Penyaluran <strong>${qty.toLocaleString('id-ID')} tabung</strong> masuk antrean immutable ledger Firestore.`
-        : `Penyaluran <strong>${qty.toLocaleString('id-ID')} tabung</strong> tersimpan sebagai catatan lokal.<br><br>Sisa saldo lokal: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>.`,
+      title: "Distribusi Berhasil Dibukukan",
+      message: `Penyaluran <strong>${qty.toLocaleString('id-ID')} tabung</strong> telah tersimpan di server.<br><br>Sisa saldo resmi: <strong>${res.currentBalance.toLocaleString('id-ID')} tabung</strong>.`,
       icon: "🚚",
       type: "info"
     });
@@ -438,9 +450,11 @@ function renderAgentPangkalanListUI() {
         <div class="pangkalan-loc">📍 ${p.desaKelurahan}, Kec. ${p.kecamatan}</div>
         <div style="font-size:0.75rem; color:#475569; display:flex; justify-content:space-between;">
           <span>👤 ${p.ownerName || 'Pemilik'}</span>
-          <span>📦 Alokasi: <strong>${p.monthlyAllocation || 560}</strong> tbg</span>
+          <span>📦 Alokasi: <strong>${p.monthlyAllocation ?? '—'}</strong> tbg</span>
         </div>
+        <div style="font-size:.7rem;color:#64748B;margin-top:6px;">📍 ${escapeLpgAgentText(lpgLocationStatus(p))}${Number.isFinite(Number(p.location?.accuracyM)) ? ` · ±${Math.round(Number(p.location.accuracyM))} m` : ''}</div>
         <div class="pangkalan-actions-row">
+          <button type="button" class="btn-p-edit" onclick="captureOutletGps('${p.id}')">📍 Perbarui GPS</button>
           <button type="button" class="btn-p-edit" onclick="openModalEditPangkalan('${p.id}')">✏️ Edit</button>
           <button type="button" class="btn-p-del" onclick="confirmDeletePangkalan('${p.id}')">🗑️ Hapus</button>
         </div>
@@ -450,6 +464,21 @@ function renderAgentPangkalanListUI() {
 }
 
 // 7. TAMBAH / EDIT PANGKALAN HANDLERS
+window.captureOutletGps = async function(pangkalanId) {
+  const item = getAgentPangkalanList(currentAgentId).find(row => row.id === pangkalanId);
+  if (!item || !window.confirm(`Saya sedang berada di lokasi pangkalan “${item.name}” dan ingin mengambil GPS perangkat sekarang.`)) return;
+  try {
+    const captured = await LpgGeolocation.capture();
+    const detail = `Latitude ${captured.latitude.toFixed(6)}\nLongitude ${captured.longitude.toFixed(6)}\nAkurasi ±${Math.round(captured.accuracyM)} m (${LpgGeolocation.quality(captured.accuracyM)})`;
+    if (!window.confirm(`${detail}\n\nSimpan lokasi ini ke Firestore?`)) return;
+    const result = await updateLpgLocationFirestore('outlet', pangkalanId, currentAgentId, captured, currentAgentSession);
+    if (!result.success) throw new Error(result.message);
+    CustomModal.alert({title:'Lokasi Berhasil Diperbarui',message:`GPS pangkalan tersimpan di server dengan akurasi ±${Math.round(captured.accuracyM)} meter. Status: GPS Agen — Menunggu Verifikasi.`,icon:'📍',type:'info'});
+  } catch (error) {
+    CustomModal.alert({title:'Lokasi Belum Berhasil Diperoleh',message:error.message || 'Pastikan GPS aktif lalu coba kembali.',icon:'⚠',type:'warning'});
+  }
+};
+
 window.openModalAddPangkalan = function() {
   document.getElementById('modalPangkalanTitle').textContent = "Tambah Pangkalan Baru";
   document.getElementById('pangkalanEditId').value = "";
@@ -459,7 +488,7 @@ window.openModalAddPangkalan = function() {
   document.getElementById('pangkalanKecamatan').value = "";
   document.getElementById('pangkalanDesa').value = "";
   document.getElementById('pangkalanAddress').value = "";
-  document.getElementById('pangkalanAllocation').value = "560";
+  document.getElementById('pangkalanAllocation').value = "";
   document.getElementById('editReasonBox').style.display = 'none';
   document.getElementById('modalPangkalanForm').style.display = 'flex';
 };
@@ -477,7 +506,7 @@ window.openModalEditPangkalan = function(pangkalanId) {
   document.getElementById('pangkalanKecamatan').value = p.kecamatan;
   document.getElementById('pangkalanDesa').value = p.desaKelurahan;
   document.getElementById('pangkalanAddress').value = p.address;
-  document.getElementById('pangkalanAllocation').value = p.monthlyAllocation || 560;
+  document.getElementById('pangkalanAllocation').value = p.monthlyAllocation ?? '';
   document.getElementById('pangkalanEditReason').value = '';
   document.getElementById('editReasonBox').style.display = 'block';
   document.getElementById('modalPangkalanForm').style.display = 'flex';
@@ -492,7 +521,6 @@ window.handlePangkalanFormSubmit = async function(e) {
   const kec = document.getElementById('pangkalanKecamatan').value;
   const desa = document.getElementById('pangkalanDesa').value.trim();
   const address = document.getElementById('pangkalanAddress').value.trim();
-  const allocation = parseInt(document.getElementById('pangkalanAllocation').value, 10) || 560;
   const editReason = document.getElementById('pangkalanEditReason').value.trim();
 
   if (editId) {
@@ -505,7 +533,7 @@ window.handlePangkalanFormSubmit = async function(e) {
     let res;
     try {
       res = await editAgentPangkalanFirestore(currentAgentId, editId, {
-        name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address, monthlyAllocation: allocation, editReason
+        name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address, editReason
       }, currentAgentSession);
     } catch (error) {
       res = { success: false, message: `Firestore menolak perubahan (${error.code || 'unknown'}).` };
@@ -524,7 +552,7 @@ window.handlePangkalanFormSubmit = async function(e) {
     let res;
     try {
       res = await addAgentPangkalanFirestore(currentAgentId, {
-        name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address, monthlyAllocation: allocation
+        name, ownerName: owner, phone, kecamatan: kec, desaKelurahan: desa, address
       }, currentAgentSession);
     } catch (error) {
       res = { success: false, message: `Firestore menolak pendaftaran (${error.code || 'unknown'}).` };
@@ -593,12 +621,9 @@ function renderLedgerHistoryUI() {
   container.innerHTML = agentEvents.map(e => {
     const isStockIn = e.type === 'STOCK_IN';
     const isRejected = e.status === 'REJECTED';
-    const isLocalOnly = e.status === 'LOCAL_ONLY';
-    const isPendingSync = e.status === 'PENDING_SYNC';
     const dateFormatted = new Date(e.effectiveAt || e.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const color = isRejected ? '#DC2626' : (isStockIn ? '#059669' : '#1D4ED8');
-    const badgeText = isRejected ? 'Ditolak'
-      : (isLocalOnly ? 'Lokal • Belum Sinkron' : (isPendingSync ? 'Pending Sinkron' : 'Tersinkron Firestore'));
+    const badgeText = isRejected ? 'Ditolak' : 'Tersimpan di Firestore';
     const sign = isStockIn ? '+' : '-';
 
     return `

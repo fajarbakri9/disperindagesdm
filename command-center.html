@@ -9,24 +9,24 @@
   <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
-  <meta property="og:title" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:title" content="Command Center &amp; Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
   <meta property="og:description" content="Executive Wallboard real-time: Pantauan harga 12 komoditas pangan pokok, metrologi legal, pengawasan gas LPG 3 kg, dan data industri 12 kecamatan Pinrang.">
   <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="945">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:image:alt" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:image:alt" content="Command Center &amp; Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
   <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/command-center">
   <meta property="og:locale" content="id_ID">
   <!-- TWITTER / X CARDS -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta name="twitter:title" content="Command Center &amp; Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
   <meta name="twitter:description" content="Executive Wallboard real-time: Pantauan harga 12 komoditas pangan pokok, metrologi legal, pengawasan gas LPG 3 kg, dan data industri 12 kecamatan Pinrang.">
   <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
   <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
   <!-- TWITTER / X CARDS -->
   <!-- Primary Meta Tags -->
-  <meta name="title" content="Command Center & Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
+  <meta name="title" content="Command Center &amp; Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
   <meta name="robots" content="index, follow">
   <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
@@ -40,6 +40,9 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <!-- Command Center Modular Stylesheet -->
   <link rel="stylesheet" href="css/command-center.css?v=20260830_mi_stage13_v1">
+  <meta property="fb:app_id" content="966242223397117">
+  <meta property="og:image:secure_url" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
+  <meta name="twitter:image:alt" content="Command Center &amp; Executive Wallboard | Disperindag ESDM Kabupaten Pinrang">
 </head>
 <body>
 
@@ -99,12 +102,13 @@
   <!-- 2. SUB-NAV STRIP (TAB NAVIGATION & AUTO-SLIDE CONTROLLER) -->
   <nav class="cc-nav-strip">
     <div class="cc-tab-group">
-      <button class="cc-tab-btn active" onclick="showSlide(0)"><span>🌐</span> 1. Ikhtisar Lengkap</button>
-      <button class="cc-tab-btn" onclick="showSlide(1)"><span>📊</span> 2. Bursa Harga Pasar</button>
-      <button class="cc-tab-btn" onclick="showSlide(2)"><span>⚖️</span> 3. Kemetrologian &amp; Tera</button>
-      <button class="cc-tab-btn" onclick="showSlide(3)"><span>⚡</span> 4. Gas LPG 3 Kg &amp; ESDM</button>
-      <button class="cc-tab-btn" onclick="showSlide(4)"><span>🏭</span> 5. Industri &amp; SP4N-LAPOR!</button>
-      <button class="cc-tab-btn" onclick="showSlide(5)"><span>🗺️</span> 6. Peta Distribusi LPG</button>
+      <button class="cc-tab-btn active" data-slide="0" onclick="showSlide(0)"><span>🌐</span> 1. Ikhtisar Lengkap</button>
+      <button class="cc-tab-btn" data-slide="1" onclick="showSlide(1)"><span>📊</span> 2. Bursa Harga Pasar</button>
+      <button class="cc-tab-btn" data-slide="2" onclick="showSlide(2)"><span>⚖️</span> 3. Kemetrologian &amp; Tera</button>
+      <button class="cc-tab-btn" data-slide="3" onclick="showSlide(3)"><span>⚡</span> 4. Gas LPG 3 Kg &amp; ESDM</button>
+      <button class="cc-tab-btn" data-slide="4" onclick="showSlide(4)"><span>🏭</span> 5. Industri &amp; SP4N-LAPOR!</button>
+      <button class="cc-tab-btn" data-slide="5" onclick="showSlide(5)"><span>⛽</span> 6. Penyalur BBM (SPBU)</button>
+      <button class="cc-tab-btn" data-slide="6" onclick="showSlide(6)"><span>🗺️</span> 7. Peta GIS Disperindag ESDM</button>
     </div>
 
     <div class="cc-autoslide-box">
@@ -504,14 +508,14 @@
       </div>
     </div>
 
-    <div class="slide-panel" id="slidePanel5">
+    <div class="slide-panel" id="slidePanel6">
       <div class="cc-map-layout">
         <div class="cc-map-heading">
-          <div><strong>PETA MONITORING DISTRIBUSI LPG 3 KG</strong><span>Firestore • OpenStreetMap • Batas administrasi BIG edisi Juni 2026</span></div>
+          <div><strong>PETA GIS DISPERINDAG ESDM KABUPATEN PINRANG</strong><span>Satu peta terpadu: pangkalan LPG, pasar rakyat, SPBU/Pertashop, dan batas administrasi</span></div>
           <div class="cc-map-quality" id="gisMapResultSummary">Memuat data lokasi…</div>
         </div>
         <div class="cc-map-toolbar">
-          <input id="gisSearch" type="search" placeholder="Cari pangkalan, alamat, desa, atau ID…" oninput="renderLpgGisMarkers()">
+          <input id="gisSearch" type="search" placeholder="Cari pangkalan LPG, alamat, desa, atau ID…" oninput="renderLpgGisMarkers()">
           <select id="gisFilterKecamatan" onchange="renderLpgGisMarkers()"><option value="">Semua kecamatan</option></select>
           <select id="gisFilterAgen" onchange="renderLpgGisMarkers()"><option value="">Semua agen</option></select>
           <select id="gisFilterStatus" onchange="renderLpgGisMarkers()"><option value="">Semua kualitas lokasi</option><option value="GPS">GPS lapangan</option><option value="INDICATIVE">Menunggu verifikasi GPS</option></select>
@@ -519,7 +523,85 @@
           <button type="button" onclick="toggleLpgGisFullscreen()" title="Peta layar penuh">⛶</button>
         </div>
         <div class="cc-map-stage"><div id="adminLpgGisMapContainer"></div></div>
-        <div class="cc-map-legend"><span><i style="background:#059669"></i>Lokasi GPS tervalidasi</span><span><i style="background:#2563EB"></i>Overlay kecamatan</span><span><i style="background:#94A3B8"></i>Desa/kelurahan pada zoom ≥12</span><small>Marker pangkalan hanya setelah validasi GPS.</small></div>
+        <div class="cc-map-legend"><span><i style="background:#2563EB"></i>Agen LPG (<b data-cc-gis-count="agent">0</b>)</span><span><i style="background:#059669"></i>Pangkalan LPG (<b data-cc-gis-count="base">0</b>)</span><span><i style="background:#F59E0B"></i>Pasar rakyat (<b data-cc-gis-count="market">0</b>)</span><span><i style="background:#DC2626"></i>SPBU Reguler (<b data-cc-gis-count="spbu_reguler">0</b>)</span><span><i style="background:#0284C7"></i>Compact/APMS (<b data-cc-gis-count="spbu_kompak">0</b>)</span><span><i style="background:#7C3AED"></i>SPBUN (<b data-cc-gis-count="spbun">0</b>)</span><span><i style="background:#16A34A"></i>Pertashop (<b data-cc-gis-count="pertashop">0</b>)</span><span><i style="background:#2563EB"></i>Overlay 12 kecamatan</span><span><i style="background:#94A3B8"></i>Desa/kelurahan pada zoom ≥12</span><small>Setiap layer dapat dinyalakan atau dimatikan melalui kontrol layer peta.</small></div>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         SLIDE 6: PENGAWASAN PENYALUR BBM (SPBU, APMS, PERTASHOP, SPBUN)
+         ========================================================================== -->
+    <div class="slide-panel" id="slidePanel5">
+      <div style="flex: 1; display: grid; grid-template-columns: 1.15fr 1.35fr; gap: 16px; overflow: hidden;">
+        
+        <!-- Left: KPI & Ringkasan Sebaran BBM -->
+        <div style="display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+          <div class="card-box" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="card-box-header">
+              <div class="card-box-title"><span>⛽</span> MONITORING DISTRIBUSI BBM RESMI PINRANG</div>
+              <span class="card-badge badge-gold">DITJEN MIGAS ESDM</span>
+            </div>
+
+            <!-- Grid 4 KPI BBM -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0;">
+              <div style="background: var(--bg-card-inner); padding: 14px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 900;">SPBU REGULER (74)</div>
+                <div style="font-size: 2.5rem; font-weight: 900; color: var(--accent-rose); font-family: 'Chakra Petch', monospace;" id="cc_s6_stat_spbu">10</div>
+                <div style="font-size: 0.78rem; color: var(--accent-emerald); font-weight: 800;">Kapasitas Pelayanan Besar</div>
+              </div>
+
+              <div style="background: var(--bg-card-inner); padding: 14px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 900;">SPBU KOMPAK / APMS</div>
+                <div style="font-size: 2.5rem; font-weight: 900; color: var(--accent-cyan); font-family: 'Chakra Petch', monospace;" id="cc_s6_stat_apms">7</div>
+                <div style="font-size: 0.78rem; color: var(--accent-emerald); font-weight: 800;">Wilayah Pesisir &amp; Tani</div>
+              </div>
+
+              <div style="background: var(--bg-card-inner); padding: 14px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 900;">PERTASHOP RESMI (7P)</div>
+                <div style="font-size: 2.5rem; font-weight: 900; color: var(--accent-emerald); font-family: 'Chakra Petch', monospace;" id="cc_s6_stat_pertashop">9</div>
+                <div style="font-size: 0.78rem; color: var(--accent-emerald); font-weight: 800;">Penyalur Non-Subsidi Desa</div>
+              </div>
+
+              <div style="background: var(--bg-card-inner); padding: 14px; border-radius: 10px; text-align: center; border: 2px solid var(--border-card);">
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 900;">SPBUN NELAYAN (78)</div>
+                <div style="font-size: 2.5rem; font-weight: 900; color: #A855F7; font-family: 'Chakra Petch', monospace;" id="cc_s6_stat_spbun">1</div>
+                <div style="font-size: 0.78rem; color: var(--accent-emerald); font-weight: 800;">Solar Subsidi Kapal Maroneng</div>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card-inner); padding: 12px 16px; border-radius: 10px; border-left: 5px solid var(--accent-gold);">
+              <div style="font-size: 0.9rem; font-weight: 900; color: var(--accent-gold); margin-bottom: 2px;">⚡ KETERSEDIAAN PRODUK BBM SUBSIDI &amp; NON-SUBSIDI:</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+                Solar Subsidi (JBT) dan Pertalite (JBKP) terpantau stabil pada seluruh SPBU/APMS resmi di bawah koordinasi Tim Pengawas Terpadu Disperindag ESDM dan Pertamina Patra Niaga.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Tabel Real-Time 27 Titik Penyalur BBM -->
+        <div class="card-box" style="display: flex; flex-direction: column; overflow: hidden;">
+          <div class="card-box-header">
+            <div class="card-box-title"><span>📋</span> SEBARAN 27 TITIK PENYALUR RESMI DI 12 KECAMATAN</div>
+            <span class="card-badge badge-green">STATUS AKTIF OPERASIONAL</span>
+          </div>
+          
+          <div style="flex: 1; overflow-y: auto;">
+            <table class="table-price-lg" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th style="width: 100px;">Kode &amp; Jenis</th>
+                  <th>Nama Penyalur &amp; Badan Usaha</th>
+                  <th style="width: 130px;">Kecamatan</th>
+                  <th style="width: 160px;">Produk Tersedia</th>
+                  <th style="width: 100px; text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="ccBbmOutletsTableBody">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -537,14 +619,16 @@
 
   <!-- Core Scripts & Firebase Integration -->
   <script src="js/data.js?v=20260830_cc_integrity_v1"></script>
-  <script src="js/lpg-data-seed.js?v=20260830_cc_integrity_v1"></script>
-  <script src="js/lpg-engine.js?v=20260830_pangkalan_crud_v1"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="js/firebase-config.js?v=20260830_cc_integrity_v1"></script>
+  <script src="js/firebase-config.js?v=20260831_cc_gis_sync_v2"></script>
+  <script src="js/market-engine.js?v=20260831_cms_map_sync_v1"></script>
+  <script src="js/lpg-engine.js?v=20260902_firestore_only_admin_v1"></script>
+  <script src="js/price-resolver.js?v=20260831_sp2kp_v1"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/lpg-gis-map.js?v=20260830_big_boundary_v5"></script>
-  <script src="js/command-center.js?v=20260830_mi_stage13_v1"></script>
+  <script src="js/lpg-gis-map.js?v=20260831_agent_coords_v2"></script>
+  <script src="js/bbm-engine.js?v=20260902_palia_plus_code_v3"></script>
+  <script src="js/command-center.js?v=20260902_bbm_layers_v1"></script>
 </body>
 </html>

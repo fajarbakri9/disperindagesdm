@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Peta GIS Disperindag ESDM Kabupaten Pinrang</title>
+  <meta name="description" content="Peta GIS terpadu pasar rakyat, agen dan pangkalan LPG 3 kg, serta SPBU dan Pertashop Kabupaten Pinrang.">
+  <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/peta-gis">
+  <meta name="robots" content="index,follow">
+  <meta property="fb:app_id" content="966242223397117">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:title" content="Peta GIS Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:description" content="Peta GIS terpadu pasar rakyat, agen dan pangkalan LPG 3 kg, serta SPBU dan Pertashop Kabupaten Pinrang.">
+  <meta property="og:url" content="https://disperindagesdm-pinrang.web.app/peta-gis">
+  <meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="css/peta-gis.css?v=20260902_mobile_optimized_v6">
+  <meta name="title" content="Peta GIS Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:image:secure_url" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
+  <meta property="og:image:alt" content="Peta GIS Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:locale" content="id_ID">
+  <meta name="twitter:title" content="Peta GIS Disperindag ESDM Kabupaten Pinrang">
+  <meta name="twitter:description" content="Peta GIS terpadu pasar rakyat, agen dan pangkalan LPG 3 kg, serta SPBU dan Pertashop Kabupaten Pinrang.">
+  <meta name="twitter:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_command_center.png">
+  <meta name="twitter:image:alt" content="Peta GIS Disperindag ESDM Kabupaten Pinrang">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="945">
+  <meta property="og:image:type" content="image/png">
+</head>
+<body>
+  <main class="gis-shell">
+    <header class="gis-header">
+      <div class="gis-brand"><img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang"><div><h1>Peta GIS Disperindag ESDM</h1><p>Kabupaten Pinrang • Sulawesi Selatan</p></div></div>
+      <div class="gis-summary" id="gisSummary" aria-live="polite">Menyiapkan data geospasial…</div>
+      <div class="gis-actions"><button id="gisHome" title="Tampilkan seluruh wilayah">⌂</button><button id="gisFullscreen" title="Layar penuh">⛶</button><a href="index.html" title="Kembali ke portal">Portal ↗</a></div>
+    </header>
+    <section class="gis-toolbar" aria-label="Pencarian dan filter peta">
+      <label><span>🔎</span><input id="gisSearchAll" type="search" placeholder="Cari pasar, agen, pangkalan, SPBU, Pertashop, desa atau kecamatan…"></label>
+      <select id="gisCategory"><option value="all">Semua kategori</option><option value="market">Pasar rakyat</option><option value="agent">Agen LPG</option><option value="base">Pangkalan LPG 3 kg</option><option value="spbu_reguler">SPBU Reguler</option><option value="spbu_kompak">SPBU Compact / APMS</option><option value="spbun">SPBUN</option><option value="pertashop">Pertashop</option></select>
+      <select id="gisDistrict"><option value="all">Semua kecamatan</option></select>
+      <select id="gisVillage"><option value="all">Semua desa/kelurahan</option></select>
+      <nav class="gis-view-tabs" aria-label="Pilihan tampilan data"><button class="active" data-gis-view="map" aria-selected="true">🗺️ Peta</button><button data-gis-view="table" aria-selected="false">▦ Tabel</button><button data-gis-view="chart" aria-selected="false">📊 Grafik</button></nav>
+      <span class="gis-source">Sumber terintegrasi CMS • Ditjen Migas • BIG/Satu Data</span>
+    </section>
+    <section class="gis-view-stage">
+      <div class="gis-view-panel active gis-map-wrap" data-gis-panel="map"><div class="gis-floating-export"><button id="gisExportMapPdf">⬇ PDF Peta</button></div><div id="pinrangIntegratedMap" role="application" aria-label="Peta GIS terpadu Kabupaten Pinrang"></div></div>
+      <div class="gis-view-panel gis-data-panel" data-gis-panel="table"><div class="gis-panel-head"><div><strong>Tabel Data Geospasial</strong><small id="gisTableSummary">0 titik</small></div><div class="gis-export-actions"><button id="gisExportExcel">▦ Excel</button><button id="gisExportTablePdf">⬇ PDF Siap Cetak</button></div></div><div class="gis-table-scroll"><table><thead><tr><th>Jenis</th><th>Nama/Identitas</th><th>Kecamatan</th><th>Desa/Kelurahan</th><th>Status</th><th>Koordinat</th><th>Aksi</th></tr></thead><tbody id="gisTableBody"></tbody></table></div></div>
+      <div class="gis-view-panel gis-data-panel" data-gis-panel="chart"><div class="gis-panel-head"><div><strong>Infografis Sebaran Data</strong><small id="gisChartSummary">Ringkasan berdasarkan filter aktif</small></div><button id="gisExportChartPdf">⬇ PDF Infografis</button></div><div id="gisInfographic" class="gis-infographic"><div id="gisKpis" class="gis-kpis"></div><div class="gis-charts"><article><div class="gis-chart-title"><div><span>Komposisi layanan</span><h2>Jenis Titik Geospasial</h2></div><b id="gisCategoryTotal">0 titik</b></div><div id="gisCategoryChart" class="gis-bar-chart"></div></article><article><div class="gis-chart-title"><div><span>Cakupan wilayah</span><h2>Sebaran per Kecamatan</h2></div><b id="gisDistrictTotal">0 wilayah</b></div><div id="gisDistrictChart" class="gis-bar-chart"></div></article></div><div class="gis-insight" id="gisInsight">Ringkasan informasi akan tampil setelah data cloud diterima.</div></div></div>
+    </section>
+    <footer class="gis-legend">
+      <span><i class="legend-icon market">🏬</i>Pasar <b data-gis-count="market">0</b></span><span><i class="legend-icon agent">🚚</i>Agen LPG <b data-gis-count="agent">0</b></span><span><i class="legend-icon base">🔥</i>Pangkalan LPG <b data-gis-count="base">0</b></span><span><i class="legend-icon spbu_reguler">⛽</i>SPBU Reguler <b data-gis-count="spbu_reguler">0</b></span><span><i class="legend-icon spbu_kompak">🛢️</i>Compact/APMS <b data-gis-count="spbu_kompak">0</b></span><span><i class="legend-icon spbun">⚓</i>SPBUN <b data-gis-count="spbun">0</b></span><span><i class="legend-icon pertashop">🏪</i>Pertashop <b data-gis-count="pertashop">0</b></span><small>Marker selalu ditampilkan di atas overlay administratif. Titik indikatif bukan hasil ukur GPS pintu masuk.</small>
+    </footer>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260831_gis_v1"></script>
+  <script src="js/lpg-engine.js?v=20260902_firestore_only_admin_v1"></script>
+  <script src="js/bbm-engine.js?v=20260902_palia_plus_code_v3"></script>
+  <script src="js/pinrang-administrative-overlay.js?v=20260831_overlay_v3"></script>
+  <script src="js/peta-gis.js?v=20260902_mobile_optimized_v6"></script>
+</body>
+</html>

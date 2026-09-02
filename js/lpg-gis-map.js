@@ -1,6 +1,6 @@
 /**
  * Disperindag ESDM Pinrang - GIS Interactive Map Engine
- * Peta Sebaran 681 Pangkalan LPG 3 Kg, 8 Agen Resmi, dan Rute Distribusi
+ * Peta Sebaran 681 Pangkalan LPG 3 Kg, 9 Agen Resmi, dan Rute Distribusi
  */
 
 const PINRANG_KECAMATAN_COORDS = {
@@ -18,16 +18,7 @@ const PINRANG_KECAMATAN_COORDS = {
   "Batulappa": { lat: -3.5321, lng: 119.7423, pangkalanCount: 6 }
 };
 
-const LPG_AGENT_LOCATIONS = {
-  "AG-001": { name: "PT. GASIFA MULYA PERSADA", verified: false },
-  "AG-002": { name: "PT. HAMISA SUKRAH MULYA", verified: false },
-  "AG-003": { name: "PT. H. ABD RAHMAN HASYIM", verified: false },
-  "AG-004": { name: "PT. NURCAHAYA ENERGI ABADI", verified: false },
-  "AG-005": { name: "PT. WAHYU DWI KENCANA MANDIRI", verified: false },
-  "AG-006": { name: "PT. NASMAN HAFID MANDIRI", verified: false },
-  "AG-007": { name: "PT. H. AMIRUDDIN RAHMAN", verified: false },
-  "AG-008": { name: "PT. KAKA MIGAS UTAMA", verified: false }
-};
+const LPG_AGENT_LOCATIONS = {};
 
 let lpgGisMapInstance = null;
 let lpgGisHomeBounds = null;
@@ -36,6 +27,7 @@ let lpgGisLayers = {
   districts: null,
   routes: null,
   verifiedPangkalan: null,
+  fallbackPangkalan: null,
   kecamatanBoundary: null,
   desaBoundary: null
 };
@@ -59,9 +51,11 @@ function ensureLpgMapStyles() {
     .custom-gis-agent-icon,.custom-gis-district-icon,.custom-gis-pkl-icon{background:transparent!important;border:0!important}
     .lpg-agent-pin{position:relative;width:34px;height:42px;filter:drop-shadow(0 5px 5px rgba(15,23,42,.32))}
     .lpg-agent-pin__head{display:grid;place-items:center;width:34px;height:34px;border:3px solid #FACC15;border-radius:50% 50% 50% 8px;background:#0F2C59;color:#FFF;font:900 12px/1 sans-serif;transform:rotate(-45deg)}
+    .lpg-agent-pin.candidate .lpg-agent-pin__head{border-color:#FFF;background:#D97706}
     .lpg-agent-pin__head span{transform:rotate(45deg)}
     .lpg-district-pin{display:grid;place-items:center;width:34px;height:34px;border:3px solid #FFF;border-radius:50%;background:#334155;color:#FFF;font:900 11px/1 sans-serif;box-shadow:0 4px 10px rgba(15,23,42,.32)}
     .lpg-pangkalan-pin{width:17px;height:17px;border:3px solid #FFF;border-radius:50%;background:#059669;box-shadow:0 3px 7px rgba(5,150,105,.45)}
+    .lpg-fallback-pin{display:grid;place-items:center;min-width:25px;height:25px;padding:0 5px;border:2px solid #FFF;border-radius:14px;background:#D97706;color:#FFF;font:900 10px/1 sans-serif;box-shadow:0 3px 8px rgba(180,83,9,.4)}
     .lpg-map-tooltip{padding:6px 9px!important;border:0!important;border-radius:7px!important;background:#0F172A!important;color:#FFF!important;font:800 11px/1.25 sans-serif!important;box-shadow:0 4px 12px rgba(15,23,42,.28)!important}
     .lpg-map-tooltip:before{display:none!important}
     .lpg-region-label{padding:4px 7px!important;border:1px solid rgba(255,255,255,.9)!important;border-radius:6px!important;background:rgba(15,44,89,.88)!important;color:#FFF!important;font:900 10px/1.15 sans-serif!important;text-align:center!important;box-shadow:0 3px 9px rgba(15,23,42,.2)!important}
@@ -72,7 +66,7 @@ function ensureLpgMapStyles() {
   document.head.appendChild(style);
 }
 
-window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
+window.initLpgGisMap = async function(containerId = 'adminLpgGisMapContainer') {
   const container = document.getElementById(containerId);
   if (!container || typeof L === 'undefined') return;
   ensureLpgMapStyles();
@@ -89,6 +83,15 @@ window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
     zoomControl: true
   });
 
+  lpgGisMapInstance.createPane('lpgBoundaryPane');
+  lpgGisMapInstance.getPane('lpgBoundaryPane').style.zIndex = 350;
+  lpgGisMapInstance.getPane('lpgBoundaryPane').style.pointerEvents = 'none';
+  lpgGisMapInstance.createPane('lpgVillagePane');
+  lpgGisMapInstance.getPane('lpgVillagePane').style.zIndex = 360;
+  lpgGisMapInstance.getPane('lpgVillagePane').style.pointerEvents = 'none';
+  lpgGisMapInstance.createPane('lpgDataPane');
+  lpgGisMapInstance.getPane('lpgDataPane').style.zIndex = 650;
+
   // Base Layer OpenStreetMap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
@@ -100,7 +103,13 @@ window.initLpgGisMap = function(containerId = 'adminLpgGisMapContainer') {
   lpgGisLayers.districts = L.layerGroup().addTo(lpgGisMapInstance);
   lpgGisLayers.routes = L.layerGroup().addTo(lpgGisMapInstance);
   lpgGisLayers.verifiedPangkalan = L.layerGroup().addTo(lpgGisMapInstance);
+  lpgGisLayers.fallbackPangkalan = L.layerGroup().addTo(lpgGisMapInstance);
 
+  try {
+    if (typeof loadCanonicalLpgMasterOnce === 'function') await loadCanonicalLpgMasterOnce();
+  } catch (error) {
+    console.error('[LPG GIS] Master Firestore tidak dapat dimuat:', error.message);
+  }
   populateLpgGisFilters();
   renderLpgGisMarkers();
   loadLpgAdministrativeBoundaries();
@@ -117,6 +126,7 @@ async function loadLpgAdministrativeBoundaries() {
     const pangkalan = getLpgMapData().filter(item => !item.isDeleted);
     const districtCounts = pangkalan.reduce((acc, item) => { acc[item.kecamatan] = (acc[item.kecamatan] || 0) + 1; return acc; }, {});
     lpgGisLayers.kecamatanBoundary = L.geoJSON(districts, {
+      pane: 'lpgBoundaryPane',
       style: feature => {
         const name = feature.properties.WADMKC || feature.properties.NAMOBJ;
         const index = Math.max(0, Object.keys(PINRANG_KECAMATAN_COORDS).indexOf(name));
@@ -129,16 +139,29 @@ async function loadLpgAdministrativeBoundaries() {
       }
     }).addTo(lpgGisMapInstance);
     lpgGisLayers.desaBoundary = L.geoJSON(villages, {
-      style: { color:'#475569', weight:.8, opacity:.65, dashArray:'3 3', fillColor:'#94A3B8', fillOpacity:.035 },
+      pane: 'lpgVillagePane',
+      style: feature => {
+        const district = feature.properties.WADMKC || '-';
+        const village = feature.properties.WADMKD || feature.properties.NAMOBJ || '-';
+        const districtIndex = Math.max(0, Object.keys(PINRANG_KECAMATAN_COORDS).indexOf(district));
+        const color = LPG_DISTRICT_COLORS[districtIndex % LPG_DISTRICT_COLORS.length];
+        const villageColor = LPG_DISTRICT_COLORS[Array.from(village).reduce((sum, char) => sum + char.charCodeAt(0), districtIndex) % LPG_DISTRICT_COLORS.length];
+        return { color, weight:1, opacity:.8, fillColor:villageColor, fillOpacity:.12 };
+      },
       onEachFeature: (feature, layer) => {
         const village = feature.properties.WADMKD || feature.properties.NAMOBJ;
         const district = feature.properties.WADMKC || '-';
         layer.bindTooltip(`${escapeLpgMapText(village)} • Kec. ${escapeLpgMapText(district)}`, { sticky:true, className:'lpg-map-tooltip' });
-        layer.on({ mouseover:e => e.target.setStyle({ weight:1.7, color:'#F59E0B', fillOpacity:.12 }), mouseout:e => lpgGisLayers.desaBoundary.resetStyle(e.target) });
+        layer.on({ mouseover:e => e.target.setStyle({ weight:2, fillOpacity:.25 }), mouseout:e => lpgGisLayers.desaBoundary.resetStyle(e.target) });
       }
     });
-    lpgGisMapInstance.getPanes().overlayPane.style.zIndex = 400;
-    L.control.layers(null, { 'Batas kecamatan': lpgGisLayers.kecamatanBoundary, 'Batas desa/kelurahan': lpgGisLayers.desaBoundary }, { collapsed:true, position:'topright' }).addTo(lpgGisMapInstance);
+    L.control.layers(null, {
+      'Pangkalan LPG (GPS Terverifikasi)': lpgGisLayers.verifiedPangkalan,
+      'Pangkalan LPG (Referensi Wilayah)': lpgGisLayers.fallbackPangkalan,
+      'Agen LPG': lpgGisLayers.agents,
+      'Batas kecamatan': lpgGisLayers.kecamatanBoundary,
+      'Batas desa/kelurahan': lpgGisLayers.desaBoundary
+    }, { collapsed:true, position:'topright' }).addTo(lpgGisMapInstance);
     const syncVillageLayer = () => {
       if (lpgGisMapInstance.getZoom() >= 12) {
         if (!lpgGisMapInstance.hasLayer(lpgGisLayers.desaBoundary)) lpgGisLayers.desaBoundary.addTo(lpgGisMapInstance);
@@ -157,13 +180,15 @@ async function loadLpgAdministrativeBoundaries() {
 function getLpgMapData() {
   return (typeof getLpgStore === 'function')
     ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, [])
-    : ((typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : []);
+    : [];
 }
 
-function populateLpgGisFilters() {
+function populateLpgGisFilters(forceRefresh = false) {
   const items = getLpgMapData().filter(item => !item.isDeleted);
   const districtSelect = document.getElementById('gisFilterKecamatan');
   const agentSelect = document.getElementById('gisFilterAgen');
+  if (forceRefresh && districtSelect) districtSelect.length = 1;
+  if (forceRefresh && agentSelect) agentSelect.length = 1;
   if (districtSelect && districtSelect.options.length <= 1) {
     [...new Set(items.map(item => item.kecamatan).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'id')).forEach(name => {
       const option = document.createElement('option'); option.value = name; option.textContent = name; districtSelect.appendChild(option);
@@ -185,6 +210,7 @@ window.renderLpgGisMarkers = function() {
   lpgGisLayers.districts.clearLayers();
   lpgGisLayers.routes.clearLayers();
   lpgGisLayers.verifiedPangkalan.clearLayers();
+  lpgGisLayers.fallbackPangkalan.clearLayers();
 
   const filterKec = document.getElementById('gisFilterKecamatan') ? document.getElementById('gisFilterKecamatan').value : '';
   const filterAgent = document.getElementById('gisFilterAgen') ? document.getElementById('gisFilterAgen').value : '';
@@ -197,41 +223,45 @@ window.renderLpgGisMarkers = function() {
   let awaitingGpsCount = 0;
   let visibleAgentCount = 0;
   const matchesFilters = p => {
-    const isGps = p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED';
+    const isGps = p.location?.verificationStatus === 'verified';
     const haystack = [p.id,p.name,p.address,p.desaKelurahan,p.kecamatan,p.agentName,p.agentId].join(' ').toLocaleLowerCase('id');
     return !p.isDeleted && (!filterKec || p.kecamatan === filterKec) && (!filterAgent || p.agentId === filterAgent)
       && (!filterStatus || (filterStatus === 'GPS' ? isGps : !isGps)) && (!search || haystack.includes(search));
   };
   const matchedPangkalan = pangkalanList.filter(matchesFilters);
-  awaitingGpsCount = matchedPangkalan.filter(p => !(p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED')).length;
+  awaitingGpsCount = matchedPangkalan.filter(p => p.location?.verificationStatus !== 'verified').length;
 
-  // 1. Render Titik 8 Agen Resmi
-  Object.keys(LPG_AGENT_LOCATIONS).forEach(agId => {
+  // 1. Render agen dari koordinat master agen. Koordinat kandidat diberi gaya
+  // berbeda dan tidak pernah diganti centroid/fallback jaringan pangkalan.
+  const canonicalAgents = (typeof getLpgStore === 'function') ? getLpgStore(LPG_STORAGE_KEYS.AGENTS, []) : [];
+  canonicalAgents.forEach(agent => {
+    const agId = agent.id;
     if (filterAgent && filterAgent !== agId) return;
 
-    const ag = LPG_AGENT_LOCATIONS[agId];
-    // Jangan plot koordinat perkiraan sebagai lokasi resmi agen.
-    if (!ag.verified || !Number.isFinite(ag.lat) || !Number.isFinite(ag.lng)) return;
+    const agentPoint=getCanonicalLpgPoint(agent);if(!agentPoint)return;
+    const ag = { ...agent, lat:agentPoint.latitude, lng:agentPoint.longitude, verified:agentPoint.verificationStatus === 'verified' };
+    if (!Number.isFinite(ag.lat) || !Number.isFinite(ag.lng)) return;
     const agPangkalan = pangkalanList.filter(p => p.agentId === agId && !p.isDeleted);
 
     const agentIcon = L.divIcon({
       className: 'custom-gis-agent-icon',
-      html: '<div class="lpg-agent-pin"><div class="lpg-agent-pin__head"><span>A</span></div></div>',
+      html: `<div class="lpg-agent-pin${ag.verified ? '' : ' candidate'}"><div class="lpg-agent-pin__head"><span>A</span></div></div>`,
       iconSize: [34, 42],
       iconAnchor: [17, 40],
       popupAnchor: [0, -36]
     });
 
-    const marker = L.marker([ag.lat, ag.lng], { icon: agentIcon })
+    const marker = L.marker([ag.lat, ag.lng], { pane:'lpgDataPane', icon: agentIcon, zIndexOffset:1000, riseOnHover:true })
       .bindTooltip(`${escapeLpgMapText(ag.name)} • ${agId}`, { className: 'lpg-map-tooltip', direction: 'top', offset: [0, -32] })
       .bindPopup(`
         <div style="font-size:0.84rem; line-height:1.5;">
           <strong style="color:#1E3A8A; font-size:0.92rem;">${escapeLpgMapText(ag.name)}</strong><br>
           <span style="font-size:0.75rem; color:#059669; font-weight:800;">KODE: ${agId}</span><br>
-          📍 Wilayah: Kec. ${ag.kec}<br>
+          📍 Wilayah: Kec. ${escapeLpgMapText(ag.kecamatan || '-')}<br>
           🏪 Membina: <strong>${agPangkalan.length} Pangkalan</strong><br>
           <hr style="margin:6px 0; border:0; border-top:1px solid #E2E8F0;">
-          <span style="font-size:0.72rem; color:#64748B;">Penyalur Resmi SK Ditjen Migas ESDM</span>
+          <span style="font-size:0.72rem;color:${ag.verified?'#059669':'#B45309'};font-weight:800;">${ag.verified?'KOORDINAT TERVERIFIKASI':'KOORDINAT KANDIDAT — PERLU VERIFIKASI FAKTUAL'}</span><br>
+          <a href="${escapeLpgMapText(ag.googleMapsUrl || `https://www.google.com/maps?q=${ag.lat},${ag.lng}`)}" target="_blank" rel="noopener">Buka Google Maps ↗</a>
         </div>
       `);
 
@@ -257,7 +287,7 @@ window.renderLpgGisMarkers = function() {
       popupAnchor: [0, -14]
     });
 
-    const marker = L.marker([kecMeta.lat, kecMeta.lng], { icon: districtIcon })
+    const marker = L.marker([kecMeta.lat, kecMeta.lng], { pane:'lpgDataPane', icon: districtIcon, zIndexOffset:800, riseOnHover:true })
       .bindTooltip(`Kecamatan ${escapeLpgMapText(kecName)} • ${count} pangkalan`, { className: 'lpg-map-tooltip', direction: 'top', offset: [0, -14] })
       .bindPopup(`
         <div style="font-size:0.84rem; line-height:1.5;">
@@ -293,11 +323,10 @@ window.renderLpgGisMarkers = function() {
   // 3. Marker individual hanya untuk koordinat dengan bukti verifikasi GPS.
   // Koordinat seed lama tidak ditampilkan karena tidak merepresentasikan alamat usaha.
   matchedPangkalan.forEach(p => {
-    const latitude = Number(p.latitude);
-    const longitude = Number(p.longitude);
-    const hasValidCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
-      && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
-    const isGpsVerified = p.gpsVerified === true || p.locationVerification?.status === 'VERIFIED';
+    const canonicalPoint=getCanonicalLpgPoint(p);
+    const latitude=canonicalPoint?.latitude,longitude=canonicalPoint?.longitude;
+    const hasValidCoordinates=Boolean(canonicalPoint);
+    const isGpsVerified = canonicalPoint?.verificationStatus === 'verified';
     if (hasValidCoordinates && isGpsVerified) {
       gpsCount += 1;
       const markerColor = '#059669';
@@ -309,7 +338,7 @@ window.renderLpgGisMarkers = function() {
         iconAnchor: [9, 9]
       });
 
-      const pMarker = L.marker([latitude, longitude], { icon: pklIcon })
+      const pMarker = L.marker([latitude, longitude], { pane:'lpgDataPane', icon: pklIcon, zIndexOffset:1000, riseOnHover:true })
         .bindTooltip(escapeLpgMapText(p.name), { className: 'lpg-map-tooltip', direction: 'top', offset: [0, -8] })
         .bindPopup(`
           <div style="font-size:0.82rem; line-height:1.45;">
@@ -327,8 +356,31 @@ window.renderLpgGisMarkers = function() {
     }
   });
 
+  // 4. Titik administratif dikelompokkan berdasarkan koordinat yang sama.
+  // Marker ini tidak boleh dibaca sebagai lokasi bangunan pangkalan.
+  const fallbackGroups = new Map();
+  matchedPangkalan.forEach(p => {
+    const point=getCanonicalLpgPoint(p),lat=point?.latitude,lng=point?.longitude;
+    const isGps=point?.verificationStatus==='verified';
+    if (isGps || !point || !['indicative','needs_review','agent_captured','admin_captured','manual_admin'].includes(point.verificationStatus)) return;
+    const key=`${lat.toFixed(6)},${lng.toFixed(6)}`;
+    if (!fallbackGroups.has(key)) fallbackGroups.set(key,{lat,lng,items:[]});
+    fallbackGroups.get(key).items.push(p);
+  });
+  fallbackGroups.forEach(group => {
+    const sample=group.items[0];
+    const icon=L.divIcon({className:'custom-gis-pkl-icon',html:`<div class="lpg-fallback-pin">${group.items.length}</div>`,iconSize:[32,28],iconAnchor:[16,14]});
+    const names=group.items.slice(0,8).map(p=>escapeLpgMapText(p.name)).join('<br>');
+    const more=group.items.length>8?`<br><em>+${group.items.length-8} pangkalan lainnya</em>`:'';
+    const marker=L.marker([group.lat,group.lng],{pane:'lpgDataPane',icon,zIndexOffset:900,riseOnHover:true})
+      .bindTooltip(`${escapeLpgMapText(sample.desaKelurahan)} · ${group.items.length} pangkalan fallback`,{className:'lpg-map-tooltip',direction:'top'})
+      .bindPopup(`<div style="font-size:.78rem;line-height:1.45"><strong>${escapeLpgMapText(sample.desaKelurahan)}, Kec. ${escapeLpgMapText(sample.kecamatan)}</strong><br><span style="color:#B45309;font-weight:900">TITIK REFERENSI AREA — BUKAN GPS PANGKALAN</span><hr style="border:0;border-top:1px solid #E2E8F0">${names}${more}<br><br><small>Verifikasi GPS agen/lapangan masih diperlukan.</small></div>`);
+    lpgGisLayers.fallbackPangkalan.addLayer(marker);
+    visibleBounds.push([group.lat,group.lng]);
+  });
+
   const summary = document.getElementById('gisMapResultSummary');
-  if (summary) summary.textContent = `${matchedPangkalan.length} pangkalan • ${visibleAgentCount} agen GPS • ${gpsCount} pangkalan GPS • ${awaitingGpsCount} menunggu validasi`;
+  if (summary) summary.textContent = `${matchedPangkalan.length} pangkalan · ${canonicalAgents.length} agen resmi · ${gpsCount} GPS · ${fallbackGroups.size} titik fallback area · ${awaitingGpsCount} perlu verifikasi`;
   if (!filterKec && !filterAgent && !search && !filterStatus && visibleBounds.length) lpgGisHomeBounds = L.latLngBounds(visibleBounds);
 };
 
@@ -344,6 +396,10 @@ window.toggleLpgGisFullscreen = async function() {
 };
 
 document.addEventListener('fullscreenchange', () => setTimeout(() => lpgGisMapInstance?.invalidateSize({ pan: false }), 100));
+window.addEventListener('lpg-master-updated', () => {
+  populateLpgGisFilters(true);
+  if (lpgGisMapInstance) renderLpgGisMarkers();
+});
 
 window.filterTableByKec = function(kecName) {
   const tabSelect = document.getElementById('adminLpgFilterKecamatan');

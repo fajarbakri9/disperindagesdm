@@ -1,6 +1,8 @@
 import os
+import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -24,12 +26,31 @@ def run_step(cmd, desc, allow_failure=False):
         print(f"❌ Exception pada langkah: {desc} ({e})")
         return False
 
+def sync_hosting_artifact():
+    root = Path(__file__).resolve().parent
+    dist = root / "dist"
+    excluded = {".git", ".firebase", "dist", "engine", "scripts", "scratch", "test-results", "docs", "__pycache__"}
+    for source in root.iterdir():
+        if source.name in excluded or source.name.startswith("."):
+            continue
+        target = dist / source.name
+        if source.is_dir():
+            shutil.copytree(source, target, dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.md", "*.py", "*.bat", "*.cmd", "*.sh"))
+        elif source.is_file() and source.suffix.lower() not in {".md", ".py", ".bat", ".cmd", ".sh"}:
+            shutil.copy2(source, target)
+    print("✓ Artefak hosting disinkronkan dari source root ke dist.")
+
 def main():
     print_header("SINKRONISASI RILIS BERITA & DEPLOY PORTAL DISPERINDAG ESDM")
     
     # 1. Generate seluruh halaman statis Open Graph & Sitemap
     if not run_step("python build_static_pages.py --cloud", "1. Sinkronisasi Firestore dan compile halaman OG statis"):
         print("❌ Gagal meng-compile halaman statis. Proses dibatalkan.")
+        sys.exit(1)
+
+    sync_hosting_artifact()
+
+    if not run_step("python scripts/sync_public_navigation.py && python scripts/sync_og_metadata.py", "1b. Normalisasi navigasi, canonical, Open Graph, Twitter Card, dan metadata single post"):
         sys.exit(1)
         
     # 2. Validasi sintaks sebelum menyentuh produksi

@@ -6,20 +6,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentSession = requireAuth(['admin']);
   if (!currentSession) return;
 
-  displayUserInfo(currentSession);
-  initAdminTabs();
-  applyAdminPermissionVisibility(currentSession);
-  renderDashboardStats();
-  renderAdminPrices();
-  renderAdminNews();
-  renderAdminBanners();
-  renderAdminDocs();
-  renderAdminIkm();
-  renderAdminReports();
-  renderAdminUsers();
-  renderAdminCommandCenter();
-  renderAdminSettings();
-  initBannerUploader();
+  const safeInit = (name, fn) => {
+    try {
+      if (typeof fn === 'function') fn();
+    } catch (err) {
+      console.warn(`[Admin CMS] Peringatan inisialisasi modul "${name}":`, err);
+    }
+  };
+
+  safeInit('displayUserInfo', () => displayUserInfo(currentSession));
+  safeInit('initAdminTabs', initAdminTabs);
+  safeInit('applyAdminPermissionVisibility', () => applyAdminPermissionVisibility(currentSession));
+  safeInit('renderDashboardStats', renderDashboardStats);
+  safeInit('initAdminSp2kpPrices', initAdminSp2kpPrices);
+  safeInit('renderAdminNews', renderAdminNews);
+  safeInit('renderAdminBanners', renderAdminBanners);
+  safeInit('renderAdminDocs', renderAdminDocs);
+  safeInit('renderAdminIkm', renderAdminIkm);
+  safeInit('initAdminMarkets', () => { if (typeof initAdminMarkets === 'function') initAdminMarkets(); });
+  safeInit('renderAdminReports', renderAdminReports);
+  safeInit('renderAdminUsers', renderAdminUsers);
+  safeInit('renderAdminCommandCenter', renderAdminCommandCenter);
+  safeInit('renderAdminSettings', renderAdminSettings);
+  safeInit('initBannerUploader', initBannerUploader);
+  safeInit('initAdminBbm', () => { if (typeof initAdminBbm === 'function') initAdminBbm(); });
 
   // Real-Time Cloud Firestore Sync di CMS Admin
   if (typeof db !== 'undefined' && db !== null) {
@@ -48,9 +58,53 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
   }
 
-  // Buka tab Dashboard secara default dan sembunyikan semua panel lainnya
-  switchAdminTab('tabDashboard');
+  // Buka tab Dashboard secara default dan aktifkan jam WITA
+  safeInit('switchAdminTab', () => switchAdminTab('tabDashboard'));
+  safeInit('startAdminLiveClock', startAdminLiveClock);
 });
+
+// CLOCK & WITA TIME TICKER CONTROLLER
+function startAdminLiveClock() {
+  const clockEl = document.getElementById('adminLiveClockDisplay');
+  if (!clockEl) return;
+
+  const updateClock = () => {
+    const now = new Date();
+    const formatted = new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'Asia/Makassar'
+    }).format(now);
+    clockEl.textContent = `${formatted} WITA`;
+  };
+
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
+// MOBILE SIDEBAR DRAWER CONTROLLER
+window.toggleMobileSidebar = function(forceState) {
+  const sidebar = document.getElementById('adminSidebar');
+  const backdrop = document.getElementById('adminSidebarBackdrop');
+  if (!sidebar) return;
+
+  const isOpen = sidebar.classList.contains('mobile-open');
+  const shouldOpen = forceState !== undefined ? forceState : !isOpen;
+
+  if (shouldOpen) {
+    sidebar.classList.add('mobile-open');
+    if (backdrop) backdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  } else {
+    sidebar.classList.remove('mobile-open');
+    if (backdrop) backdrop.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+};
 
 function displayUserInfo(session) {
   const nameEl = document.getElementById('adminUserDisplayName');
@@ -72,17 +126,21 @@ function initAdminTabs() {
 
 const ADMIN_TAB_PERMISSIONS = {
   tabDashboard: 'dashboard', tabPrices: 'prices', tabNews: 'news',
-  tabBanners: 'banners', tabDocs: 'documents', tabIkm: 'ikm',
-  tabLpgMonitoring: 'lpg', tabReports: 'reports', tabUsers: 'users',
+  tabBanners: 'banners', tabDocs: 'documents', tabIkm: 'ikm', tabMarkets: 'prices',
+  tabLpgMonitoring: 'lpg', tabBbm: 'lpg', tabReports: 'reports', tabUsers: 'users',
   tabCommandCenter: 'command_center', tabMediaIntelligence: 'media',
   tabSettings: 'settings'
 };
 
 function hasAdminTabPermission(session, tabId) {
   if (!session) return false;
+  const role = (session.role || '').toUpperCase();
+  if (role === 'SUPER_ADMIN' || role === 'DISPERINDAG_ADMIN' || role === 'LPG_ADMIN' || role === 'ADMINISTRATOR') return true;
   const permissions = Array.isArray(session.permissions) ? session.permissions : [];
-  return session.role === 'SUPER_ADMIN' || permissions.includes('all') ||
-    permissions.includes(ADMIN_TAB_PERMISSIONS[tabId]);
+  if (permissions.includes('all')) return true;
+  const required = ADMIN_TAB_PERMISSIONS[tabId];
+  if (!required) return true;
+  return permissions.includes(required) || (tabId === 'tabBbm' && (permissions.includes('lpg') || permissions.includes('esdm') || permissions.includes('all')));
 }
 
 function applyAdminPermissionVisibility(session) {
@@ -125,13 +183,26 @@ window.switchAdminTab = function(tabId) {
     activePanel.style.display = 'block';
   }
 
+  if (tabId === 'tabBbm' && typeof renderAdminBbmTable === 'function') {
+    renderAdminBbmTable();
+  } else if (tabId === 'tabMarkets' && typeof window.initAdminMarkets === 'function') {
+    window.initAdminMarkets();
+  } else if (tabId === 'tabLpgMonitoring' && typeof window.initAdminLpgMonitoring === 'function') {
+    window.initAdminLpgMonitoring();
+  }
+
   // 5. Perbarui judul header
   const titleEl = document.getElementById('adminCurrentTabTitle');
   if (titleEl && activeBtn) {
     titleEl.textContent = activeBtn.textContent.trim();
   }
 
-  // 6. Reset scroll posisi ke atas
+  // 6. Tutup mobile drawer jika sedang terbuka di layar kecil
+  if (typeof toggleMobileSidebar === 'function') {
+    toggleMobileSidebar(false);
+  }
+
+  // 7. Reset scroll posisi ke atas
   window.scrollTo({ top: 0, behavior: 'smooth' });
   const mainEl = document.querySelector('.admin-main');
   if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'smooth' });
@@ -151,83 +222,512 @@ function renderDashboardStats() {
   const rawIkm = getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []);
   const ikm = Array.isArray(rawIkm) ? rawIkm : [];
 
+  const rawBbm = typeof BbmEngine !== 'undefined' ? BbmEngine.getAll() : [];
+  const bbm = Array.isArray(rawBbm) ? rawBbm : [];
+
   if (document.getElementById('statPriceCount')) document.getElementById('statPriceCount').textContent = prices.length;
   if (document.getElementById('statNewsCount')) document.getElementById('statNewsCount').textContent = news.length;
   if (document.getElementById('statDocCount')) document.getElementById('statDocCount').textContent = docs.length;
   if (document.getElementById('statIkmCount')) document.getElementById('statIkmCount').textContent = ikm.length;
+  if (document.getElementById('statBbmCount')) document.getElementById('statBbmCount').textContent = bbm.length;
 }
 
-// 2. TABEL HARGA PASAR & EDIT HARGA
-function renderAdminPrices() {
-  const tbody = document.getElementById('adminPriceTableBody');
-  if (!tbody) return;
+// ==============================================================================
+// 2. MODUL HARGA BAHAN POKOK - INTEGRASI SP2KP KEMENDAG & CONTROLLED OVERRIDE
+// ==============================================================================
+let sp2kpLatestCache = [];
+let sp2kpOverridesCache = {};
+let sp2kpSearchKeyword = '';
+let lastSp2kpManualSyncTime = 0;
 
-  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-  const prices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
+function initAdminSp2kpPrices() {
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      // 1. Real-time listener data harga SP2KP terbaru
+      db.collection('market_prices_latest').onSnapshot(snapshot => {
+        if (!snapshot.empty) {
+          const items = [];
+          snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+          sp2kpLatestCache = items.sort((a, b) => (Number(a.sp2kpCommodityId || 0) - Number(b.sp2kpCommodityId || 0)));
+          renderAdminSp2kpTable();
+          updateSp2kpStats();
+        }
+      }, err => {
+        console.warn("Firestore market_prices_latest snapshot error:", err);
+      });
 
-  tbody.innerHTML = prices.map(item => `
-    <tr>
-      <td><strong>${item.commodity_name}</strong><br><small style="color: #64748B;">Satuan: 1 ${item.unit}</small></td>
-      <td>${item.market_name}</td>
-      <td><strong style="color: #1E40AF; font-size: 1rem;">Rp ${Number(item.price || 0).toLocaleString('id-ID')}</strong></td>
-      <td>
-        <span class="trend-badge ${item.trend}">
-          ${item.trend === 'up' ? `▲ +${item.diff || 0}` : item.trend === 'down' ? `▼ ${item.diff || 0}` : '— Tetap'}
-        </span>
-      </td>
-      <td>${item.observed_date || 'Hari Ini'}<br><small style="color: #94A3B8;">${item.observed_time || '09:00 WITA'}</small></td>
-      <td><span class="verified-badge">✓ ${item.verification_status || 'Terverifikasi'}</span></td>
-      <td style="text-align: center;">
-        <button onclick="editPriceModal('${item.id}')" class="btn-action-item btn-action-edit" style="font-size: 0.78rem;">
-          ✏️ Edit Harga
-        </button>
-      </td>
-    </tr>
-  `).join('');
+      // 2. Real-time listener controlled local overrides
+      db.collection('price_overrides').onSnapshot(snapshot => {
+        const overrides = {};
+        snapshot.forEach(doc => {
+          overrides[doc.id] = { id: doc.id, ...doc.data() };
+        });
+        sp2kpOverridesCache = overrides;
+        renderAdminSp2kpTable();
+        updateSp2kpStats();
+      }, err => {
+        console.warn("Firestore price_overrides snapshot error:", err);
+      });
+    } catch(e) {
+      console.warn("SP2KP Firestore Init Exception:", e);
+    }
+  }
+
+  // CMS tidak menggunakan seed/localStorage sebagai pengganti snapshot SP2KP.
+  renderAdminSp2kpTable();
+  updateSp2kpStats();
 }
 
-window.editPriceModal = async function(priceId) {
-  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-  const prices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
-  const item = prices.find(p => p.id === priceId);
-  if (!item) return;
+function updateSp2kpStats() {
+  const dateEl = document.getElementById('sp2kpStatDataDate');
+  const countEl = document.getElementById('sp2kpStatTotalItems');
+  const overrideCountEl = document.getElementById('sp2kpStatOverrideCount');
+  const syncEl = document.getElementById('sp2kpStatLastSync');
+  const statDashPrice = document.getElementById('statPriceCount');
 
-  const newVal = await CustomModal.prompt({
-    title: `Perbarui Harga: ${item.commodity_name}`,
-    message: `Masukkan harga baru untuk <strong>${item.commodity_name}</strong> di ${item.market_name} (Harga saat ini: Rp ${Number(item.price).toLocaleString('id-ID')} / ${item.unit}):`,
-    defaultValue: item.price.toString(),
-    inputType: "number",
-    confirmText: "Simpan & Sinkronkan"
+  let activeOverrideCount = 0;
+  let latestDataDate = '-';
+  let latestSyncIso = null;
+
+  sp2kpLatestCache.forEach(item => {
+    const override = sp2kpOverridesCache[item.variantId || item.id];
+    if (typeof PriceResolver !== 'undefined') {
+      const resolved = PriceResolver.resolveEffectivePrice(item, override);
+      if (resolved.isOverridden) activeOverrideCount++;
+    } else if (override && override.status === 'active') {
+      activeOverrideCount++;
+    }
+
+    if (item.dataDate && item.dataDate !== '-') {
+      latestDataDate = item.dataDate;
+    }
+    if (item.syncedAt) {
+      latestSyncIso = item.syncedAt;
+    }
   });
 
-  if (newVal === null || newVal === undefined || newVal.toString().trim() === '') return;
+  if (dateEl) {
+    if (latestDataDate && latestDataDate.includes('-')) {
+      const parts = latestDataDate.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        dateEl.textContent = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      } else {
+        dateEl.textContent = latestDataDate;
+      }
+    } else {
+      dateEl.textContent = latestDataDate || '28 Agustus 2026';
+    }
+  }
 
-  const parsed = parseInt(newVal.toString().replace(/[^0-9]/g, ''), 10);
-  if (isNaN(parsed) || parsed <= 0) {
-    CustomModal.alert({ title: "Input Tidak Valid", message: "Nominal harga harus berupa angka positif.", icon: "⚠️", type: "warning" });
+  if (countEl) countEl.textContent = `${sp2kpLatestCache.length} Komoditas`;
+  if (overrideCountEl) overrideCountEl.textContent = `${activeOverrideCount} Item Aktif`;
+  if (statDashPrice) statDashPrice.textContent = sp2kpLatestCache.length;
+
+  if (syncEl) {
+    if (latestSyncIso) {
+      try {
+        const syncDate = new Date(latestSyncIso);
+        syncEl.textContent = syncDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA (' + syncDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ')';
+      } catch(e) {
+        syncEl.textContent = 'Otomatis SP2KP';
+      }
+    } else {
+      syncEl.textContent = 'Otomatis SP2KP Kemendag';
+    }
+  }
+}
+
+function renderAdminSp2kpTable() {
+  const tbody = document.getElementById('adminSp2kpTableBody');
+  if (!tbody) return;
+
+  if (!sp2kpLatestCache || sp2kpLatestCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; color: #64748B; padding: 32px 16px;">
+          <div style="font-size: 1.5rem; margin-bottom: 6px;">📊</div>
+          <strong>Belum ada data harga SP2KP termuat.</strong><br>
+          <small>Tekan tombol "Sinkronkan Harga SP2KP Sekarang" di atas untuk memuat data.</small>
+        </td>
+      </tr>
+    `;
     return;
   }
 
-  const prevPrice = item.price;
-  item.previous_price = prevPrice;
-  item.price = parsed;
-  item.diff = parsed - prevPrice;
-  item.trend = item.diff > 0 ? 'up' : (item.diff < 0 ? 'down' : 'stable');
-  item.observed_date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-  item.observed_time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
+  let filtered = sp2kpLatestCache;
+  if (sp2kpSearchKeyword) {
+    const q = sp2kpSearchKeyword.toLowerCase();
+    filtered = sp2kpLatestCache.filter(item => 
+      (item.commodityName || item.commodity_name || '').toLowerCase().includes(q) ||
+      (item.variantName || '').toLowerCase().includes(q) ||
+      (item.variantId || item.id || '').toLowerCase().includes(q)
+    );
+  }
 
-  setStorage('disperindag_prices', prices);
-  renderAdminPrices();
-  renderDashboardStats();
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; color: #64748B; padding: 24px;">
+          Tidak ada komoditas yang sesuai dengan kata kunci "<strong>${sp2kpSearchKeyword}</strong>".
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(item => {
+    const vId = item.variantId || item.sp2kpCommodityId || item.id;
+    const vIdStr = String(vId);
+    const override = sp2kpOverridesCache[vIdStr] || sp2kpOverridesCache[item.id] || sp2kpOverridesCache[item.variantId];
+    
+    let resolved = null;
+    if (typeof PriceResolver !== 'undefined') {
+      resolved = PriceResolver.resolveEffectivePrice(item, override);
+    } else {
+      const sourcePrice = Number(item.sourcePrice || item.price || 0);
+      const isOverridden = !!(override && override.status === 'active');
+      const effectivePrice = isOverridden ? Number(override.overridePrice || 0) : sourcePrice;
+      resolved = {
+        effectivePrice,
+        effectiveFormatted: effectivePrice > 0 ? 'Rp ' + effectivePrice.toLocaleString('id-ID') : 'Belum Tersedia',
+        sourceFormatted: sourcePrice > 0 ? 'Rp ' + sourcePrice.toLocaleString('id-ID') : 'Belum Tersedia',
+        isOverridden,
+        diff: Number(item.delta || item.diff || 0),
+        trend: Number(item.delta || item.diff || 0) > 0 ? 'up' : (Number(item.delta || item.diff || 0) < 0 ? 'down' : 'stable')
+      };
+    }
+
+    const name = item.commodityName || item.commodity_name || 'Komoditas';
+    const unit = item.unit || 'kg';
+    const rawSource = Number(item.sourcePrice || item.price || 0);
+    const sourceFmt = rawSource > 0 ? ('Rp ' + rawSource.toLocaleString('id-ID')) : '<span style="color: #94A3B8; font-style: italic; font-size: 0.78rem;">Belum Tersedia</span>';
+    const effectiveDisplay = resolved.effectiveFormatted || (resolved.effectivePrice > 0 ? ('Rp ' + Number(resolved.effectivePrice).toLocaleString('id-ID')) : '<span style="color: #94A3B8; font-style: italic; font-size: 0.78rem;">Belum Tersedia</span>');
+    const diffVal = Number(item.delta || resolved.diff || 0);
+
+    let trendBadge = `<span class="trend-badge stable" style="font-size: 0.74rem;">— Tetap</span>`;
+    if (diffVal > 0) {
+      trendBadge = `<span class="trend-badge up" style="font-size: 0.74rem;">▲ +${diffVal.toLocaleString('id-ID')}</span>`;
+    } else if (diffVal < 0) {
+      trendBadge = `<span class="trend-badge down" style="font-size: 0.74rem;">▼ ${diffVal.toLocaleString('id-ID')}</span>`;
+    }
+
+    let sourceBadge = `
+      <span style="display: inline-flex; align-items: center; gap: 5px; background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10B981;"></span> SP2KP Kemendag
+      </span>
+    `;
+
+    if (resolved.isOverridden) {
+      sourceBadge = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; background: #FEF3C7; border: 1px solid #FCD34D; color: #92400E; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap;" title="${override ? (override.reason || 'Koreksi Administratif') : 'Koreksi Administratif'}">
+          <span>⚖️</span> Local Override
+        </span>
+      `;
+    }
+
+    return `
+      <tr style="${resolved.isOverridden ? 'background: #FFFBEB;' : ''}">
+        <td style="font-weight: 800; color: #64748B; font-size: 0.82rem; white-space: nowrap; width: 65px; min-width: 65px; text-align: center;">
+          #${item.sp2kpCommodityId || item.variantId || item.id}
+        </td>
+        <td>
+          <strong style="color: #0F2C59; font-size: 0.90rem; display: block;">${name}</strong>
+          ${item.market_name ? `<small style="color: #64748B; font-size: 0.74rem;">📍 ${item.market_name}</small>` : ''}
+        </td>
+        <td style="color: #475569; font-weight: 700; font-size: 0.84rem; white-space: nowrap; width: 75px; min-width: 75px; text-align: center;">
+          /${unit}
+        </td>
+        <td style="color: #64748B; font-weight: 700; font-size: 0.86rem; white-space: nowrap; text-align: right;">
+          ${sourceFmt}
+        </td>
+        <td style="white-space: nowrap; text-align: right;">
+          <strong style="font-size: 0.98rem; color: ${resolved.isOverridden ? '#D97706' : '#1E40AF'}; font-family: 'JetBrains Mono', monospace, sans-serif;">
+            ${effectiveDisplay}
+          </strong>
+          ${resolved.isOverridden ? `<br><small style="color: #B45309; font-size: 0.68rem; font-weight: 800; text-transform: uppercase;">(Koreksi Aktif)</small>` : ''}
+        </td>
+        <td style="white-space: nowrap; text-align: center;">
+          ${trendBadge}
+        </td>
+        <td style="white-space: nowrap; text-align: center;">
+          ${sourceBadge}
+        </td>
+        <td style="white-space: nowrap; text-align: center;">
+          <button type="button" onclick="openSp2kpOverrideModal('${vId}')" class="btn-action-item ${resolved.isOverridden ? 'btn-action-view' : 'btn-action-edit'}" style="font-size: 0.78rem; padding: 6px 12px; font-weight: 800; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+            ${resolved.isOverridden ? '⚙️ Edit Koreksi' : '⚖️ Koreksi Lokal'}
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterSp2kpTable() {
+  const input = document.getElementById('sp2kpSearchInput');
+  sp2kpSearchKeyword = input ? input.value.trim() : '';
+  renderAdminSp2kpTable();
+}
+
+window.triggerManualSp2kpSync = async function() {
+  const now = Date.now();
+  const cooldownMs = 60 * 1000; // 1 menit cooldown UI
+  if (now - lastSp2kpManualSyncTime < cooldownMs) {
+    const sisa = Math.ceil((cooldownMs - (now - lastSp2kpManualSyncTime)) / 1000);
+    CustomModal.toast(`Mohon tunggu ${sisa} detik sebelum melakukan sinkronisasi ulang.`, "warning");
+    return;
+  }
+
+  const btn = document.getElementById('btnSyncSp2kp');
+  const icon = document.getElementById('syncSp2kpIcon');
+  const text = document.getElementById('syncSp2kpText');
+
+  if (icon) icon.textContent = '⏳';
+  if (text) text.textContent = 'Menghubungi SP2KP Kemendag...';
+  if (btn) btn.disabled = true;
+
+  try {
+    // Membaca koleksi terbaru dari Firestore
+    if (typeof db !== 'undefined' && db !== null) {
+      const snap = await db.collection('market_prices_latest').get();
+      if (!snap.empty) {
+        const items = [];
+        snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+        sp2kpLatestCache = items.sort((a, b) => (Number(a.sp2kpCommodityId || 0) - Number(b.sp2kpCommodityId || 0)));
+        renderAdminSp2kpTable();
+        updateSp2kpStats();
+      }
+    }
+    lastSp2kpManualSyncTime = Date.now();
+    logAdminActivity('Harga Bapok SP2KP', 'Penyegaran data harga bahan pokok dari SP2KP Kemendag RI.');
+    CustomModal.toast("Data harga SP2KP Kabupaten Pinrang berhasil diperbarui secara real-time!", "success");
+  } catch(e) {
+    console.error("Manual sync error:", e);
+    CustomModal.toast("Gagal melakukan sinkronisasi: " + e.message, "danger");
+  } finally {
+    if (icon) icon.textContent = '🔄';
+    if (text) text.textContent = 'Sinkronkan Harga SP2KP Sekarang';
+    if (btn) btn.disabled = false;
+  }
+};
+
+window.openSp2kpOverrideModal = function(variantId) {
+  if (variantId === undefined || variantId === null) return;
+  const vIdStr = String(variantId).trim();
+
+  const item = sp2kpLatestCache.find(p => 
+    String(p.variantId) === vIdStr || 
+    String(p.id) === vIdStr || 
+    String(p.sp2kpCommodityId) === vIdStr ||
+    String(p.id) === ('sp2kp_' + vIdStr)
+  );
+
+  if (!item) {
+    console.warn("Item tidak ditemukan untuk variantId:", variantId, sp2kpLatestCache);
+    CustomModal.toast("Komoditas tidak ditemukan di cache lokal.", "warning");
+    return;
+  }
+
+  const modal = document.getElementById('modalSp2kpOverride');
+  if (!modal) {
+    console.error("Modal #modalSp2kpOverride tidak ditemukan di DOM!");
+    return;
+  }
+
+  const vIdInput = document.getElementById('overrideVariantId');
+  const commInput = document.getElementById('overrideCommodityName');
+  const unitInput = document.getElementById('overrideUnit');
+  const srcPriceInput = document.getElementById('overrideSourcePrice');
+
+  const lblComm = document.getElementById('overrideLabelCommodity');
+  const lblSrcPrice = document.getElementById('overrideLabelSourcePrice');
+
+  const priceInp = document.getElementById('overridePriceInput');
+  const reasonSel = document.getElementById('overrideReasonSelect');
+  const otherWrap = document.getElementById('overrideOtherReasonWrap');
+  const otherInp = document.getElementById('overrideOtherReasonInput');
+  const evidenceInp = document.getElementById('overrideEvidenceInput');
+  const expirySel = document.getElementById('overrideExpirySelect');
+  const btnDel = document.getElementById('btnDeleteOverride');
+
+  const vId = item.variantId || item.sp2kpCommodityId || item.id;
+  const name = item.commodityName || item.commodity_name || 'Komoditas';
+  const unit = item.unit || 'kg';
+  const rawPrice = Number(item.sourcePrice || item.price || 0);
+
+  if (vIdInput) vIdInput.value = vId;
+  if (commInput) commInput.value = name;
+  if (unitInput) unitInput.value = unit;
+  if (srcPriceInput) srcPriceInput.value = rawPrice;
+
+  if (lblComm) lblComm.textContent = `${name} (Satuan: ${unit})`;
+  if (lblSrcPrice) lblSrcPrice.textContent = rawPrice > 0 ? `Rp ${rawPrice.toLocaleString('id-ID')} / ${unit}` : `Belum Tersedia / ${unit}`;
+
+  // Periksa apakah override saat ini sudah aktif
+  const existing = sp2kpOverridesCache[String(vId)] || sp2kpOverridesCache[item.id] || sp2kpOverridesCache[item.variantId];
+  if (existing && existing.status === 'active') {
+    if (priceInp) priceInp.value = existing.overridePrice || '';
+    if (reasonSel) {
+      const knownReasons = [
+        'Hasil verifikasi lapangan pasar daerah',
+        'Data SP2KP belum closing / belum diperbarui',
+        'Kesalahan input enumerator SP2KP',
+        'Perubahan kondisi pasokan pasar lokal',
+        'Kesalahan konversi satuan'
+      ];
+      if (knownReasons.includes(existing.reason)) {
+        reasonSel.value = existing.reason;
+        if (otherWrap) otherWrap.style.display = 'none';
+      } else {
+        reasonSel.value = 'Lainnya';
+        if (otherWrap) otherWrap.style.display = 'block';
+        if (otherInp) otherInp.value = existing.reason || '';
+      }
+    }
+    if (evidenceInp) evidenceInp.value = existing.evidenceRef || '';
+    if (expirySel) expirySel.value = existing.expiryOption || '24h';
+    if (btnDel) btnDel.style.display = 'inline-flex';
+  } else {
+    if (priceInp) priceInp.value = rawPrice > 0 ? rawPrice : '';
+    if (reasonSel) reasonSel.value = 'Hasil verifikasi lapangan pasar daerah';
+    if (otherWrap) otherWrap.style.display = 'none';
+    if (otherInp) otherInp.value = '';
+    if (evidenceInp) evidenceInp.value = 'BA Survei Tim Pengendalian Inflasi Daerah (TPID) Pinrang';
+    if (expirySel) expirySel.value = '24h';
+    if (btnDel) btnDel.style.display = 'none';
+  }
+
+  modal.style.display = 'flex';
+};
+
+window.closeSp2kpOverrideModal = function() {
+  const modal = document.getElementById('modalSp2kpOverride');
+  if (modal) modal.style.display = 'none';
+};
+
+window.handleOverrideReasonChange = function(val) {
+  const wrap = document.getElementById('overrideOtherReasonWrap');
+  if (wrap) {
+    wrap.style.display = val === 'Lainnya' ? 'block' : 'none';
+  }
+};
+
+window.handleSaveSp2kpOverride = async function(event) {
+  event.preventDefault();
+  const vId = document.getElementById('overrideVariantId').value;
+  const name = document.getElementById('overrideCommodityName').value;
+  const unit = document.getElementById('overrideUnit').value;
+  const sourcePrice = Number(document.getElementById('overrideSourcePrice').value || 0);
+
+  const priceInp = document.getElementById('overridePriceInput');
+  const overridePrice = parseInt(priceInp.value, 10);
+  if (isNaN(overridePrice) || overridePrice <= 0) {
+    CustomModal.toast("Nominal harga koreksi harus berupa angka valid di atas 0.", "warning");
+    return;
+  }
+
+  const reasonSel = document.getElementById('overrideReasonSelect').value;
+  let reason = reasonSel;
+  if (reasonSel === 'Lainnya') {
+    const other = document.getElementById('overrideOtherReasonInput').value.trim();
+    if (!other) {
+      CustomModal.toast("Harap isi keterangan alasan koreksi.", "warning");
+      return;
+    }
+    reason = other;
+  }
+
+  const evidence = document.getElementById('overrideEvidenceInput').value.trim();
+  if (!evidence) {
+    CustomModal.toast("Nomor Berita Acara atau Sumber Verifikasi wajib diisi.", "warning");
+    return;
+  }
+
+  const expiryOption = document.getElementById('overrideExpirySelect').value;
+  const now = new Date();
+  let expiresAtIso = null;
+
+  if (expiryOption === '24h') {
+    expiresAtIso = new Date(now.getTime() + 24 * 3600 * 1000).toISOString();
+  } else if (expiryOption === '48h') {
+    expiresAtIso = new Date(now.getTime() + 48 * 3600 * 1000).toISOString();
+  } else if (expiryOption === 'end_of_day') {
+    const eod = new Date(now);
+    eod.setHours(23, 59, 59, 999);
+    expiresAtIso = eod.toISOString();
+  } else {
+    expiresAtIso = null; // Manual expiry
+  }
+
+  const authSession = (typeof getSession === 'function' ? getSession() : null) || { name: 'Administrator', email: 'admin@pinrangkab.go.id' };
+
+  const overrideDoc = {
+    variantId: vId,
+    commodityName: name,
+    unit: unit,
+    sourcePrice: sourcePrice,
+    overridePrice: overridePrice,
+    reason: reason,
+    evidenceRef: evidence,
+    expiryOption: expiryOption,
+    expiresAt: expiresAtIso,
+    status: 'active',
+    appliedBy: authSession.name || authSession.email,
+    appliedAt: now.toISOString()
+  };
+
+  const vIdStr = String(vId);
+
+  // Simpan ke Firestore
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      await db.collection('price_overrides').doc(vIdStr).set(overrideDoc, { merge: true });
+    } catch(err) {
+      console.error("Firestore override write error:", err);
+    }
+  }
+
+  // Update Cache Lokal
+  sp2kpOverridesCache[vIdStr] = overrideDoc;
+  renderAdminSp2kpTable();
+  updateSp2kpStats();
+  closeSp2kpOverrideModal();
+
+  logAdminActivity('Koreksi Harga Bapok', `Koreksi lokal diterapkan untuk ${name}: Rp ${overridePrice.toLocaleString('id-ID')}/${unit}. Alasan: ${reason}. Bukti: ${evidence}`);
+  CustomModal.toast(`Koreksi lokal untuk komoditas ${name} berhasil disimpan!`, "success");
+};
+
+window.handleDeleteSp2kpOverride = async function() {
+  const vId = document.getElementById('overrideVariantId').value;
+  const name = document.getElementById('overrideCommodityName').value;
+  const vIdStr = String(vId);
+
+  const confirmed = await CustomModal.confirm({
+    title: "Cabut Koreksi Lokal?",
+    message: `Apakah Anda yakin ingin mencabut koreksi harga untuk <strong>${name}</strong>? Harga publik akan otomatis kembali ke data resmi SP2KP Kemendag.`,
+    confirmText: "Ya, Cabut Koreksi",
+    cancelText: "Batal",
+    type: "warning"
+  });
+
+  if (!confirmed) return;
 
   if (typeof db !== 'undefined' && db !== null) {
     try {
-      db.collection('prices').doc(item.id).set(item, { merge: true });
-    } catch(e) {}
+      await db.collection('price_overrides').doc(vIdStr).delete();
+    } catch(err) {
+      console.error("Firestore override delete error:", err);
+    }
   }
 
-  logAdminActivity('Harga Pangan', `Perbarui harga ${item.commodity_name} menjadi Rp ${parsed.toLocaleString('id-ID')}`);
-  CustomModal.toast(`Harga ${item.commodity_name} berhasil diperbarui menjadi Rp ${parsed.toLocaleString('id-ID')}/${item.unit}!`, "success");
+  delete sp2kpOverridesCache[vIdStr];
+  delete sp2kpOverridesCache[vId];
+  renderAdminSp2kpTable();
+  updateSp2kpStats();
+  closeSp2kpOverrideModal();
+
+  logAdminActivity('Pencabutan Koreksi Harga', `Koreksi lokal untuk ${name} telah dicabut. Harga kembali ke SP2KP Kemendag.`);
+  CustomModal.toast(`Koreksi lokal untuk ${name} berhasil dicabut.`, "info");
 };
 
 // ==============================================================================
@@ -236,6 +736,8 @@ window.editPriceModal = async function(priceId) {
 let currentNewsTags = [];
 let currentNewsGallery = [];
 let currentFeaturedImage = "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+let currentFeaturedPreviewImage = currentFeaturedImage;
+const pendingNewsMediaUploads = new Set();
 
 function renderAdminNews(filterSearch = '', filterCat = '') {
   const tbody = document.getElementById('adminNewsTableBody');
@@ -293,55 +795,55 @@ function renderAdminNews(filterSearch = '', filterCat = '') {
 
     return `
       <tr>
-        <td>
-          <div style="position: relative; width: 62px; height: 44px; border-radius: 6px; overflow: hidden; border: 1px solid #CBD5E1; background: #030D1B;">
+        <td style="text-align: center; width: 75px; vertical-align: top; padding-top: 14px;">
+          <div style="position: relative; width: 62px; height: 46px; border-radius: 6px; overflow: hidden; border: 1px solid #CBD5E1; background: #030D1B; margin: 0 auto;">
             <img src="${item.img || 'assets/brand/cover_arsip_berita.png'}" style="width: 100%; height: 100%; object-fit: cover;" alt="Thumbnail" onerror="this.src='assets/brand/cover_arsip_berita.png'">
             ${isFeatured ? '<span style="position:absolute; bottom:2px; right:2px; font-size:0.65rem;" title="Berita Sorotan Beranda">🌟</span>' : ''}
           </div>
         </td>
-        <td>
-          <div style="font-weight: 800; color: var(--primary-deep); line-height: 1.35; margin-bottom: 4px; font-size: 0.92rem;">
+        <td style="vertical-align: top;">
+          <div style="font-weight: 800; color: var(--admin-navy-deep); line-height: 1.35; margin-bottom: 4px; font-size: 0.94rem;">
             ${item.title}
+            ${isFeatured ? '<span style="font-size:0.70rem; margin-left: 6px; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; border: 1px solid #FCD34D; font-weight: 800; display: inline-flex; align-items: center; gap: 2px;">🌟 Sorotan</span>' : ''}
           </div>
-          <div style="font-size: 0.78rem; color: #64748B; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${item.excerpt || item.content?.slice(0, 120) || '—'}
+          <div style="font-size: 0.78rem; color: #64748B; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 8px;">
+            ${item.excerpt || item.content?.slice(0, 130) || '—'}
+          </div>
+          <!-- BARIS TOMBOL AKSI BERJEJER DI BAWAH JUDUL BERITA -->
+          <div class="news-inline-action-bar">
+            <button type="button" onclick="openNewsEditor('${item.id}')" class="btn-action-item btn-action-edit" title="Sunting Berita (WYSIWYG)">
+              <span>✏️</span> Edit
+            </button>
+            <a href="berita.html?id=${encodeURIComponent(item.id)}" target="_blank" class="btn-action-item btn-action-view" title="Buka Pratinjau Rilis Berita Real-Time">
+              <span>👁️</span> Pratinjau
+            </a>
+            <button type="button" onclick="copyNewsPublicLink('${item.slug || item.id}', '${(item.title || '').replace(/'/g, "\\'")}')" class="btn-action-item" style="background:#EFF6FF; color:#1E40AF; border: 1px solid #BFDBFE;" title="Salin Tautan Medsos (WhatsApp/FB)">
+              <span>🔗</span> Link
+            </button>
+            <button type="button" onclick="toggleNewsStatus('${item.id}')" class="btn-action-item" style="${isDraft ? 'background:#ECFDF5; color:#065F46; border: 1px solid #A7F3D0;' : 'background:#FEF3C7; color:#92400E; border: 1px solid #FCD34D;'}" title="${isDraft ? 'Publikasikan Berita Ini' : 'Tarik ke Draf'}">
+              <span>${isDraft ? '🚀' : '📦'}</span> ${isDraft ? 'Terbitkan' : 'Draf'}
+            </button>
+            <button type="button" onclick="deleteAdminNews('${item.id}')" class="btn-action-item btn-action-delete" title="Hapus Berita">
+              <span>🗑️</span> Hapus
+            </button>
           </div>
         </td>
-        <td>
-          <div style="margin-bottom: 4px;">
+        <td style="vertical-align: top; padding-top: 14px;">
+          <div style="margin-bottom: 6px;">
             <span class="badge-cat" style="font-size: 0.74rem;">${item.category || 'Umum'}</span>
           </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 3px;">
+          <div style="display: flex; flex-wrap: wrap; gap: 4px;">
             ${tagsHtml}
           </div>
         </td>
-        <td>
+        <td style="vertical-align: top; padding-top: 14px;">
           <div style="font-size: 0.8rem; font-weight: 700; color: #1E293B;">${item.date || '—'}</div>
-          <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">👤 ${item.author || 'Humas'}</div>
+          <div style="font-size: 0.72rem; color: #64748B; margin-top: 3px;">👤 ${item.author || 'Humas'}</div>
         </td>
-        <td>
+        <td style="vertical-align: top; padding-top: 14px; text-align: center;">
           <span class="news-status-pill ${isDraft ? 'status-draft' : 'status-published'}">
             ${isDraft ? '📝 Draf' : '● Live'}
           </span>
-        </td>
-        <td style="text-align: center;">
-          <div class="btn-action-group" style="justify-content: center; flex-wrap: wrap; gap: 4px;">
-            <button onclick="openNewsEditor('${item.id}')" class="btn-action-item btn-action-edit" title="Sunting Berita (WYSIWYG)">
-              ✏️ Edit
-            </button>
-            <a href="berita.html?id=${encodeURIComponent(item.id)}" target="_blank" class="btn-action-item btn-action-view" title="Buka Pratinjau Rilis Berita Real-Time">
-              👁️ Lihat
-            </a>
-            <button onclick="copyNewsPublicLink('${item.slug || item.id}', '${(item.title || '').replace(/'/g, "\\'")}')" class="btn-action-item" style="background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE;" title="Salin Tautan Medsos (WhatsApp/FB)">
-              🔗 Link
-            </button>
-            <button onclick="toggleNewsStatus('${item.id}')" class="btn-action-item btn-action-view" title="${isDraft ? 'Publikasikan Berita Ini' : 'Tarik ke Draf'}">
-              ${isDraft ? '🚀 Terbitkan' : '📦 Draf'}
-            </button>
-            <button onclick="deleteAdminNews('${item.id}')" class="btn-action-item btn-action-delete" title="Hapus Berita">
-              🗑️
-            </button>
-          </div>
         </td>
       </tr>
     `;
@@ -527,7 +1029,7 @@ window.updateLiveSocialPreview = function() {
     ? excerptInp.value.trim() 
     : "Ringkasan rilis berita resmi untuk pratinjau media sosial...";
 
-  const img = currentFeaturedImage || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+  const img = currentFeaturedPreviewImage || currentFeaturedImage || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
 
   // 1. Update Facebook / X Card Preview
   const fbImg = document.getElementById('ogPreviewImg');
@@ -584,6 +1086,7 @@ window.openNewsEditor = function(newsId = null) {
   currentNewsTags = [];
   currentNewsGallery = [];
   currentFeaturedImage = "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+  currentFeaturedPreviewImage = currentFeaturedImage;
 
   if (newsId) {
     // Mode EDIT
@@ -618,6 +1121,7 @@ window.openNewsEditor = function(newsId = null) {
       document.getElementById('newsIsFeaturedCheckbox').checked = !!item.is_featured;
 
       currentFeaturedImage = item.img || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+      currentFeaturedPreviewImage = currentFeaturedImage;
       document.getElementById('newsFeaturedImageResult').value = currentFeaturedImage;
       document.getElementById('newsFeaturedPreviewImg').src = currentFeaturedImage;
       document.getElementById('newsFeaturedCaptionInput').value = item.image_caption || 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.';
@@ -643,6 +1147,7 @@ window.openNewsEditor = function(newsId = null) {
     document.getElementById('newsIsFeaturedCheckbox').checked = false;
 
     currentFeaturedImage = "assets/news/operasi_pasar_murah_sembako_pinrang.jpg";
+    currentFeaturedPreviewImage = currentFeaturedImage;
     document.getElementById('newsFeaturedImageResult').value = currentFeaturedImage;
     document.getElementById('newsFeaturedPreviewImg').src = currentFeaturedImage;
     document.getElementById('newsFeaturedCaptionInput').value = 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.';
@@ -735,74 +1240,115 @@ window.quickAddTag = function(tagName) {
 window.selectArsipPhoto = function(path) {
   if (!path) return;
   currentFeaturedImage = path;
+  currentFeaturedPreviewImage = path;
   document.getElementById('newsFeaturedImageResult').value = path;
   document.getElementById('newsFeaturedPreviewImg').src = path;
   updateLiveSocialPreview();
 };
 
+function validateNewsImageFile(file) {
+  if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    throw new Error('Gunakan foto JPG, PNG, atau WebP.');
+  }
+  if (file.size > 8 * 1024 * 1024) throw new Error('Ukuran foto sumber maksimal 8 MB.');
+}
+
+function compressNewsImage(file, maxWidth, quality, targetHeight = null) {
+  return new Promise((resolve, reject) => {
+    validateNewsImageFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement('canvas');
+      let sourceX = 0, sourceY = 0, sourceWidth = image.naturalWidth, sourceHeight = image.naturalHeight;
+      if (targetHeight) {
+        const targetRatio = maxWidth / targetHeight;
+        const sourceRatio = image.naturalWidth / image.naturalHeight;
+        if (sourceRatio > targetRatio) {
+          sourceWidth = Math.round(image.naturalHeight * targetRatio);
+          sourceX = Math.round((image.naturalWidth - sourceWidth) / 2);
+        } else {
+          sourceHeight = Math.round(image.naturalWidth / targetRatio);
+          sourceY = Math.round((image.naturalHeight - sourceHeight) / 2);
+        }
+        canvas.width = maxWidth;
+        canvas.height = targetHeight;
+      } else {
+        const scale = Math.min(1, maxWidth / image.naturalWidth);
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      }
+      const context = canvas.getContext('2d');
+      context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Kompresi foto gagal.')), 'image/jpeg', quality);
+    };
+    image.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Berkas foto tidak dapat dibaca.')); };
+    image.src = objectUrl;
+  });
+}
+
+async function uploadNewsImageFile(file, purpose, maxWidth, quality) {
+  const targetHeight = purpose === 'utama' ? 630 : null;
+  const blob = await compressNewsImage(file, maxWidth, quality, targetHeight);
+  const slug = generateSlugString(document.getElementById('newsSlugInput')?.value || document.getElementById('newsTitleInput')?.value || 'berita');
+  const safeBase = String(file.name || 'foto').replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 45) || 'foto';
+  const suffix = purpose === 'utama' ? 'og' : `galeri-${Date.now().toString(36)}`;
+  const fileName = `${slug || 'berita'}-${suffix}-${safeBase}.jpg`;
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  return { path:`assets/news/${fileName}`, previewUrl:objectUrl, bytes:blob.size };
+}
+
+function trackNewsMediaUpload(promise) {
+  pendingNewsMediaUploads.add(promise);
+  promise.finally(() => pendingNewsMediaUploads.delete(promise));
+  return promise;
+}
+
 window.handleFeaturedImageUpload = function(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-    const rawImg = new Image();
-    rawImg.src = e.target.result;
-    rawImg.onload = function() {
-      // Kompresi Canvas ke maks 1200px lebar
-      const canvas = document.createElement('canvas');
-      const maxW = 1200;
-      let w = rawImg.width;
-      let h = rawImg.height;
-      if (w > maxW) {
-        h = Math.round((h * maxW) / w);
-        w = maxW;
-      }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(rawImg, 0, 0, w, h);
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-
-      currentFeaturedImage = compressedDataUrl;
-      document.getElementById('newsFeaturedImageResult').value = compressedDataUrl;
-      document.getElementById('newsFeaturedPreviewImg').src = compressedDataUrl;
-      updateLiveSocialPreview();
-    };
-  };
-  reader.readAsDataURL(file);
+  const preview = document.getElementById('newsFeaturedPreviewImg');
+  const temporaryUrl = URL.createObjectURL(file);
+  if (preview) preview.src = temporaryUrl;
+  const task = uploadNewsImageFile(file, 'utama', 1200, 0.80).then(result => {
+    URL.revokeObjectURL(temporaryUrl);
+    currentFeaturedImage = result.path;
+    currentFeaturedPreviewImage = result.previewUrl;
+    document.getElementById('newsFeaturedImageResult').value = result.path;
+    if (preview) preview.src = result.previewUrl;
+    updateLiveSocialPreview();
+    CustomModal.alert({
+      title:'Foto Utama Siap Dipublikasikan',
+      message:`Berkas JPEG 1200×630 telah diunduh (${Math.ceil(result.bytes / 1024)} KB). Tempatkan berkas tersebut di folder <code>assets/news</code>, lalu deploy portal. Path artikel sudah disiapkan: <code>${result.path}</code>.`,
+      icon:'🖼️', type:'info'
+    });
+  }).catch(error => {
+    URL.revokeObjectURL(temporaryUrl);
+    if (preview) preview.src = currentFeaturedImage;
+    CustomModal.alert({ title:'Foto Belum Terunggah', message:error.message, icon:'⚠️', type:'error' });
+    return null;
+  });
+  trackNewsMediaUpload(task);
 };
 
 window.handleGalleryImagesUpload = function(input) {
   if (!input.files || input.files.length === 0) return;
   Array.from(input.files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const rawImg = new Image();
-      rawImg.src = e.target.result;
-      rawImg.onload = function() {
-        const canvas = document.createElement('canvas');
-        const maxW = 1000;
-        let w = rawImg.width;
-        let h = rawImg.height;
-        if (w > maxW) {
-          h = Math.round((h * maxW) / w);
-          w = maxW;
-        }
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(rawImg, 0, 0, w, h);
-        const compressed = canvas.toDataURL('image/jpeg', 0.82);
-
-        currentNewsGallery.push({
-          img: compressed,
-          caption: `Dokumentasi kegiatan - ${file.name.replace(/\.[^/.]+$/, '')}`
-        });
-        renderNewsGalleryGrid();
-      };
-    };
-    reader.readAsDataURL(file);
+    const task = uploadNewsImageFile(file, 'galeri', 1200, 0.78).then(result => {
+      currentNewsGallery.push({ img:result.path, previewUrl:result.previewUrl, caption:`Dokumentasi kegiatan - ${file.name.replace(/\.[^/.]+$/, '')}` });
+      renderNewsGalleryGrid();
+    }).catch(error => {
+      CustomModal.alert({ title:'Foto Galeri Belum Terunggah', message:`${file.name}: ${error.message}`, icon:'⚠️', type:'error' });
+      return null;
+    });
+    trackNewsMediaUpload(task);
   });
 };
 
@@ -817,7 +1363,7 @@ function renderNewsGalleryGrid() {
 
   grid.innerHTML = currentNewsGallery.map((item, idx) => `
     <div class="news-gallery-thumb-item">
-      <img src="${item.img}" alt="Galeri ${idx + 1}">
+      <img src="${item.previewUrl || item.img}" alt="Galeri ${idx + 1}">
       <button type="button" class="news-gallery-remove" onclick="removeGalleryItem(${idx})" title="Hapus Foto">✕</button>
     </div>
   `).join('');
@@ -1076,7 +1622,7 @@ function updateEditorStats(text) {
 function updateLiveSocialPreview() {
   const title = document.getElementById('newsTitleInput')?.value?.trim() || 'Judul Rilis Berita Resmi Kedinasan Disperindag ESDM Pinrang';
   const excerpt = document.getElementById('newsExcerptInput')?.value?.trim() || 'Ringkasan rilis berita resmi untuk pratinjau media sosial...';
-  const img = currentFeaturedImage || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg';
+  const img = currentFeaturedPreviewImage || currentFeaturedImage || 'assets/news/operasi_pasar_murah_sembako_pinrang.jpg';
 
   const ogTitleFB = document.getElementById('ogPreviewTitle');
   const ogDescFB = document.getElementById('ogPreviewDesc');
@@ -1116,6 +1662,10 @@ window.switchSocialPreview = function(platform) {
 
 // SAVE NEWS HANDLER (CREATE / UPDATE) - ROBUST ASYNC TRANSACTION
 window.handleSaveNews = async function(overrideStatus = null) {
+  if (pendingNewsMediaUploads.size) {
+    CustomModal.toast('Menunggu unggahan foto selesai…', 'info');
+    await Promise.all(Array.from(pendingNewsMediaUploads));
+  }
   const editId = document.getElementById('newsEditId')?.value || '';
   const title = document.getElementById('newsTitleInput')?.value?.trim();
   const slug = document.getElementById('newsSlugInput')?.value?.trim();
@@ -1134,6 +1684,36 @@ window.handleSaveNews = async function(overrideStatus = null) {
   const caption = document.getElementById('newsFeaturedCaptionInput')?.value?.trim() || 'Dokumentasi resmi liputan kegiatan Disperindag ESDM Pinrang.';
   const isFeatured = document.getElementById('newsIsFeaturedCheckbox')?.checked || false;
   const status = overrideStatus || document.getElementById('newsStatusSelect')?.value || 'published';
+
+  const mediaUrls = [currentFeaturedImage, ...currentNewsGallery.map(item => item && item.img)];
+  if (mediaUrls.some(url => typeof url === 'string' && url.startsWith('data:image'))) {
+    CustomModal.alert({
+      title: 'Foto Lama Perlu Diunggah Ulang',
+      message: 'Artikel masih memuat foto dalam bentuk kode Base64. Pilih kembali foto tersebut agar tersimpan sebagai file media dan memperoleh URL publik.',
+      icon: '⚠️', type: 'warning'
+    });
+    return;
+  }
+  if (status === 'published') {
+    const localMedia = mediaUrls.filter(url => typeof url === 'string' && /^\/?assets\/news\//.test(url));
+    const missingMedia = [];
+    for (const mediaPath of localMedia) {
+      try {
+        const response = await fetch(`/${mediaPath.replace(/^\//, '')}`, { method:'HEAD', cache:'no-store' });
+        if (!response.ok) missingMedia.push(mediaPath);
+      } catch (_) {
+        missingMedia.push(mediaPath);
+      }
+    }
+    if (missingMedia.length) {
+      CustomModal.alert({
+        title:'Berkas Foto Belum Ada di Portal',
+        message:`Artikel belum dapat diterbitkan karena ${missingMedia.length} berkas foto belum tersedia di Firebase Hosting.<br><br>Simpan sebagai <strong>Draf</strong>, letakkan berkas hasil kompresi pada folder <code>assets/news</code>, deploy portal, lalu terbitkan kembali.`,
+        icon:'📁', type:'warning'
+      });
+      return;
+    }
+  }
 
   if (!title) {
     CustomModal.alert({ title: "Judul Wajib Diisi", message: "Silakan masukkan judul utama artikel berita.", icon: "⚠️", type: "warning" });
@@ -1193,7 +1773,9 @@ window.handleSaveNews = async function(overrideStatus = null) {
     sourceUrl: "https://disperindagesdm-pinrang.web.app",
     img: currentFeaturedImage || "assets/news/operasi_pasar_murah_sembako_pinrang.jpg",
     image_caption: caption,
-    gallery: Array.isArray(currentNewsGallery) ? currentNewsGallery : [],
+    gallery: Array.isArray(currentNewsGallery)
+      ? currentNewsGallery.map(item => ({ img:item.img, caption:item.caption || 'Dokumentasi kegiatan resmi.' }))
+      : [],
     excerpt: excerpt || (visualCanvas ? visualCanvas.innerText.slice(0, 160) + '...' : content.slice(0, 160) + '...'),
     content: content,
     status: status,
@@ -1201,6 +1783,12 @@ window.handleSaveNews = async function(overrideStatus = null) {
     updated_at: nowIso,
     published_at: status === 'published' ? (existingArticle?.published_at || nowIso) : null
   };
+  articleObj.dataVersion = '2026-09-01-news-cloud-media-v1';
+  articleObj.og_title = articleObj.title;
+  articleObj.og_description = articleObj.excerpt;
+  articleObj.og_image = articleObj.img;
+  articleObj.og_url = `https://disperindagesdm-pinrang.web.app/berita/${articleObj.slug}`;
+  articleObj.og_status = status === 'published' ? 'PENDING_STATIC_PUBLISH' : 'DRAFT';
 
   if (!editId) {
     articleObj.created_at = nowIso;
@@ -1513,14 +2101,22 @@ function initBannerUploader() {
   const resultInput = document.getElementById('bannerImageResult');
 
   if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
+    fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          resultInput.value = evt.target.result;
-        };
-        reader.readAsDataURL(file);
+        try {
+          const blob = await compressNewsImage(file, 1920, 0.78, 720);
+          const safeName = String(file.name || 'banner').replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 55) || 'banner';
+          const fileName = `banner-${safeName}-${Date.now().toString(36)}.jpg`;
+          const objectUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = objectUrl; link.download = fileName;
+          document.body.appendChild(link); link.click(); link.remove();
+          resultInput.value = `assets/banner/${fileName}`;
+          CustomModal.alert({ title:'Banner Siap Dipublikasikan', message:`Berkas JPEG 1920×720 telah diunduh (${Math.ceil(blob.size / 1024)} KB). Simpan ke <code>assets/banner</code> dan deploy sebelum banner diaktifkan.`, icon:'🖼️', type:'info' });
+        } catch (error) {
+          CustomModal.alert({ title:'Banner Belum Disiapkan', message:error.message, icon:'⚠️', type:'error' });
+        }
       }
     });
   }
@@ -1531,6 +2127,10 @@ function initBannerUploader() {
       const title = document.getElementById('bannerTitle').value.trim();
       const caption = document.getElementById('bannerCaption').value.trim();
       const img = resultInput.value || 'assets/banner/pasar_sentral_pinrang_clean_hd.jpg';
+      if (String(img).startsWith('data:image')) {
+        CustomModal.alert({ title:'Format Banner Tidak Didukung', message:'Banner Base64 tidak boleh disimpan. Pilih ulang foto agar dibuat sebagai berkas JPEG.', icon:'⚠️', type:'warning' });
+        return;
+      }
 
       const newBanner = {
         id: "bnr_" + Date.now(),
@@ -1994,22 +2594,26 @@ function renderAdminReports() {
 
     return `
       <tr>
-        <td>
-          <strong style="color: #1E40AF; font-size: 0.88rem;">${r.ticket_number || 'DPE-2026-000101'}</strong><br>
-          <span style="font-size: 0.72rem; background: #EFF6FF; color: #1D4ED8; padding: 2px 6px; border-radius: 4px; font-weight: 700;">📡 ${sourceBadge}</span>
+        <td style="white-space: nowrap;">
+          <strong style="color: #1E40AF; font-size: 0.88rem; font-family: monospace;">${r.ticket_number || 'DPE-2026-000101'}</strong><br>
+          <span style="font-size: 0.70rem; background: #EFF6FF; color: #1D4ED8; padding: 2px 6px; border-radius: 4px; font-weight: 700; display: inline-block; margin-top: 2px; border: 1px solid #DBEAFE;">📡 ${sourceBadge}</span>
         </td>
-        <td><small style="color: #475569;">${r.submitted_at}</small></td>
-        <td><strong>${r.nama}</strong><br><small style="color: #64748B;">${r.kontak}</small></td>
-        <td><strong>${r.kategori}</strong><br><small style="color: #64748B;">${r.lokasi}</small></td>
+        <td style="white-space: nowrap;"><small style="color: #475569; font-weight: 600;">${r.submitted_at}</small></td>
+        <td><strong style="color: #0F172A; font-size: 0.86rem;">${r.nama}</strong><br><small style="color: #64748B;">📱 ${r.kontak}</small></td>
+        <td><strong style="color: #1E293B; font-size: 0.86rem;">${r.kategori}</strong><br><small style="color: #64748B;">📍 ${r.lokasi}</small></td>
         <td><span style="font-size: 0.8rem; font-weight: 700; color: #0F2C59;">${r.assigned_unit || 'Bidang Teknis'}</span></td>
-        <td><span class="verified-badge ${statusClass}">${r.status}</span></td>
-        <td style="text-align: center;">
-          <div class="btn-action-group" style="justify-content: center;">
-            <button onclick="viewReportDetail('${r.id}')" class="btn-action-item btn-action-view" title="Lihat Detail Lengkap">
-              🔍 Detail
+        <td style="text-align: center; white-space: nowrap;">
+          <span class="verified-badge ${statusClass}" style="white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;">
+            ${r.status}
+          </span>
+        </td>
+        <td style="text-align: center; white-space: nowrap;">
+          <div class="btn-action-group" style="justify-content: center; gap: 4px; flex-wrap: nowrap;">
+            <button type="button" onclick="viewReportDetail('${r.id}')" class="btn-action-item btn-action-view" style="white-space: nowrap;" title="Lihat Detail Lengkap">
+              <span>🔍</span> Detail
             </button>
-            <button onclick="openEditReportModal('${r.id}')" class="btn-action-item btn-action-followup" title="Tindak Lanjuti & Ubah Status Alur">
-              ⚡ Tindak Lanjut
+            <button type="button" onclick="openEditReportModal('${r.id}')" class="btn-action-item btn-action-followup" style="white-space: nowrap;" title="Tindak Lanjuti & Ubah Status Alur">
+              <span>⚡</span> Tindak Lanjut
             </button>
           </div>
         </td>
@@ -2816,6 +3420,16 @@ window.saveCommandCenterMetrics = async function(e) {
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
       };
       await db.collection('command_center').doc('metrics').set(cloudConfig, { merge: true });
+      if (Number.isInteger(config.het_lpg_price) && config.het_lpg_price > 0) {
+        const existingSettings = await db.collection('lpg_settings').doc('operational').get({source:'server'});
+        if (!existingSettings.exists) throw new Error('Pengaturan LPG belum tersedia; buat master pengaturan LPG terlebih dahulu.');
+        await db.collection('lpg_settings').doc('operational').set({
+          hetPrice:config.het_lpg_price,
+          hetRegulation:config.het_lpg_regulation || existingSettings.data().hetRegulation,
+          updatedBy:auth.currentUser.uid,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true});
+      }
       console.log('Command Center metrics synced to Firestore');
     } catch (err) {
       console.warn('Firestore sync note:', err);

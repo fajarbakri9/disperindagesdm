@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <linearGradient id="spbunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4C1D95"/>
+      <stop offset="50%" stop-color="#6D28D9"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="200" fill="url(#spbunGrad)"/>
+  <circle cx="340" cy="50" r="100" fill="#A78BFA" opacity="0.3"/>
+  <g transform="translate(40, 45)">
+    <rect x="0" y="10" width="70" height="100" rx="8" fill="#FFFFFF"/>
+    <rect x="10" y="22" width="50" height="35" rx="4" fill="#0F172A"/>
+    <rect x="18" y="32" width="34" height="15" rx="2" fill="#A78BFA"/>
+    <rect x="15" y="70" width="40" height="8" rx="2" fill="#7C3AED"/>
+    <rect x="15" y="84" width="40" height="8" rx="2" fill="#38BDF8"/>
+    <path d="M 70 40 Q 95 40 95 70 L 95 90 Q 95 105 85 105" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 85 105 L 85 85 L 90 75" fill="none" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <text x="165" y="75" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="20" fill="#FFFFFF" letter-spacing="1">SPBUN NELAYAN</text>
+  <text x="165" y="105" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="13" fill="#DDD6FE">SOLAR SUBSIDI KAPAL LEMBANG</text>
+  <rect x="165" y="125" width="180" height="26" rx="6" fill="rgba(0,0,0,0.3)"/>
+  <text x="175" y="142" font-family="'JetBrains Mono', monospace" font-weight="800" font-size="11" fill="#FFFFFF">SERI 78 &#8226; MARONENG</text>
+</svg>

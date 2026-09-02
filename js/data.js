@@ -916,9 +916,9 @@ const DEFAULT_PPID_CATEGORIES = [
     category: "Informasi Berkala",
     desc: "Informasi yang wajib diperbarui dan diumumkan secara rutin minimal 6 bulan sekali.",
     items: [
-      { title: "Rencana Kerja Tahunan (Renja) Disperindag ESDM Pinrang 2026", link: "dokumen.html?id=doc_03" },
-      { title: "Laporan Kinerja Instansi Pemerintah (LKjIP) Tahun 2025", link: "dokumen.html?id=doc_04" },
-      { title: "Laporan Realisasi Anggaran Keuangan Dinas Semester I Tahun 2026", link: "dokumen.html" },
+      { title: "Rencana Kerja Tahunan (Renja) Disperindag ESDM Pinrang 2026", link: "ppid.html?id=doc_03#dokumen-regulasi" },
+      { title: "Laporan Kinerja Instansi Pemerintah (LKjIP) Tahun 2025", link: "ppid.html?id=doc_04#dokumen-regulasi" },
+      { title: "Laporan Realisasi Anggaran Keuangan Dinas Semester I Tahun 2026", link: "ppid.html#dokumen-regulasi" },
       { title: "Daftar Rekapitulasi Harga Bahan Pokok Harian Kabupaten Pinrang", link: "index.html#sembako" }
     ]
   },
@@ -927,7 +927,7 @@ const DEFAULT_PPID_CATEGORIES = [
     desc: "Informasi publik yang wajib disediakan dan dapat diakses pemohon sewaktu-waktu.",
     items: [
       { title: "Profil Lengkap, Visi Misi, dan Struktur Organisasi Kedinasan", link: "profil.html" },
-      { title: "Perbup No. 42 Tahun 2023 tentang Kedudukan & Tupoksi Dinas", link: "dokumen.html?id=doc_01" },
+      { title: "Perbup No. 42 Tahun 2023 tentang Kedudukan & Tupoksi Dinas", link: "ppid.html?id=doc_01#dokumen-regulasi" },
       { title: "Standar Operasional Prosedur (SOP) 6 Layanan Publik Resmi", link: "layanan.html" },
       { title: "Daftar Inventaris Sarana dan Prasarana Pasar Sentral Pinrang", link: "layanan.html" }
     ]
@@ -936,7 +936,7 @@ const DEFAULT_PPID_CATEGORIES = [
     category: "Informasi Serta Merta",
     desc: "Informasi yang dapat mengancam hajat hidup orang banyak dan ketertiban umum.",
     items: [
-      { title: "Pemberitahuan Penyesuaian HET LPG 3 Kg & Call Center Pengaduan", link: "dokumen.html?id=doc_05" },
+      { title: "Pemberitahuan Penyesuaian HET LPG 3 Kg & Call Center Pengaduan", link: "ppid.html?id=doc_05#dokumen-regulasi" },
       { title: "Jadwal dan Titik Pelaksanaan Gerakan Pangan Murah (GPM) Tanggap Inflasi", link: "arsip-berita.html" },
       { title: "Peringatan Waspada Penipuan Oknum Petugas Tera Liar Tanpa Surat Tugas", link: "layanan.html" }
     ]

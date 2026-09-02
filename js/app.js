@@ -34,7 +34,55 @@ document.addEventListener('DOMContentLoaded', () => {
   initComplaintForm();
   initTabsSystem();
   initFirestoreLiveSync();
+  initPortraitCarousels();
 });
+
+
+
+function initPortraitCarousels() {
+  const portrait = window.matchMedia('(max-width: 768px) and (orientation: portrait)');
+  const indicatorTargets = ['quickServicesGrid', 'sembakoGrid', 'homeNewsGrid', 'homeProductsGrid'];
+  const autoTargets = ['partners-grid', 'apps-grid'];
+  const setup = () => {
+    document.querySelectorAll('.portrait-carousel-indicators').forEach(el => el.remove());
+    indicatorTargets.forEach(id => {
+      const container = document.getElementById(id);
+      if (!container || !portrait.matches) return;
+      const items = Array.from(container.children).filter(item => item.nodeType === 1);
+      if (items.length < 2) return;
+      const indicators = document.createElement('div');
+      indicators.className = 'portrait-carousel-indicators';
+      indicators.setAttribute('aria-label', 'Navigasi kartu');
+      items.forEach((item, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button'; dot.className = index === 0 ? 'active' : '';
+        dot.setAttribute('aria-label', `Tampilkan kartu ${index + 1}`);
+        dot.addEventListener('click', () => container.scrollTo({ left: item.offsetLeft, behavior: 'smooth' }));
+        indicators.appendChild(dot);
+      });
+      container.after(indicators);
+      container.addEventListener('scroll', () => {
+        const index = Math.round(container.scrollLeft / Math.max(1, container.clientWidth * .86));
+        indicators.querySelectorAll('button').forEach((dot, i) => dot.classList.toggle('active', i === index));
+      }, { passive: true });
+    });
+    autoTargets.forEach(className => {
+      const container = document.querySelector(`.${className}`);
+      if (!container || !portrait.matches || container.dataset.autoCarousel === 'true') return;
+      const items = Array.from(container.children).filter(item => item.nodeType === 1);
+      if (items.length < 2) return;
+      container.dataset.autoCarousel = 'true';
+      let index = 0;
+      container.dataset.carouselTimer = String(window.setInterval(() => {
+        if (!portrait.matches || document.hidden) return;
+        index = (index + 1) % items.length;
+        container.scrollTo({ left: items[index].offsetLeft, behavior: 'smooth' });
+      }, 4200));
+    });
+  };
+  setup();
+  window.addEventListener('resize', setup, { passive: true });
+}
 
 // REAL-TIME FIRESTORE NEWS, BANNERS & PRICES SYNC
 function initFirestoreLiveSync() {
@@ -70,9 +118,9 @@ function initFirestoreLiveSync() {
 
 // 1. MOBILE DRAWER NAVIGATION CONTROLLER (WCAG 2.1 AA)
 function initMobileDrawer() {
-  const toggleBtn = document.getElementById('mobileMenuBtn');
+  const toggleBtn = document.getElementById('hamburgerBtn') || document.getElementById('mobileMenuBtn');
   const drawer = document.getElementById('mobileDrawer');
-  const overlay = document.getElementById('mobileDrawerOverlay');
+  const overlay = document.getElementById('mobileDrawerOverlay') || (() => { const el = document.createElement('div'); el.id = 'mobileDrawerOverlay'; el.className = 'mobile-drawer-overlay'; document.body.appendChild(el); return el; })();
   const closeBtn = document.getElementById('drawerCloseBtn');
 
   if (!toggleBtn || !drawer || !overlay) return;
@@ -80,6 +128,8 @@ function initMobileDrawer() {
   function openDrawer() {
     drawer.classList.add('open');
     overlay.classList.add('active');
+    toggleBtn.setAttribute('aria-expanded', 'true');
+    drawer.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
     if (closeBtn) closeBtn.focus();
   }
@@ -87,6 +137,8 @@ function initMobileDrawer() {
   function closeDrawer() {
     drawer.classList.remove('open');
     overlay.classList.remove('active');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    drawer.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
   }
 
@@ -122,17 +174,54 @@ function initGlobalSearch() {
   }
 }
 
-// 3. RUNNING PRICE TICKER (HIGH-PRECISION MARQUEE ENGINE 60 FPS)
+// ==============================================================================
+// 3. RUNNING PRICE TICKER & SP2KP RESOLVER (HIGH-PRECISION MARQUEE ENGINE 60 FPS)
+// ==============================================================================
 let tickerAnimFrameId = null;
 let tickerOffset = 0;
 let isTickerPaused = false;
+let appSp2kpPrices = [];
+
+function getResolvedPriceList() {
+  if (appSp2kpPrices && appSp2kpPrices.length > 0) {
+    return appSp2kpPrices.map(item => {
+      const vId = item.variantId || item.id;
+      if (typeof PriceResolver !== 'undefined') {
+        // Portal publik hanya menampilkan harga resmi SP2KP. Controlled
+        // override tetap menjadi jejak audit internal dan tidak mengubah publik.
+        const res = PriceResolver.resolveEffectivePrice(item, null);
+        const canonical = PriceResolver.normalizeSp2kpItem(item);
+        return {
+          id: vId,
+          commodity_name: item.commodityName || item.commodity_name || 'Komoditas',
+          unit: item.unit || 'kg',
+          price: res.effectivePrice,
+          formattedPrice: res.effectiveFormatted,
+          previous_price: canonical.previous_price,
+          diff: canonical.delta,
+          // Delta SP2KP adalah sumber keputusan tunggal untuk status visual.
+          trend: canonical.trend,
+          isOverridden: res.isOverridden,
+          market_name: item.market_name || 'Pasar Sentral & Pekkabata',
+          observed_date: item.observed_date || item.dataDate || '28 Agustus 2026',
+          observed_time: item.observed_time || '09:00 WITA',
+          notes: item.notes || 'Data Resmi SP2KP Kemendag RI'
+        };
+      }
+      return item;
+    });
+  }
+
+  // Jangan pernah memberi label SP2KP pada seed/localStorage harga lama.
+  return [];
+}
 
 function renderRunningTicker() {
   const tickerContainer = document.getElementById('priceTickerContainer');
   const scrollArea = document.querySelector('.ticker-scroll-area');
   if (!tickerContainer) return;
 
-  const prices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
+  const prices = getResolvedPriceList();
   if (!prices || prices.length === 0) return;
 
   const items = prices.map(item => `
@@ -355,8 +444,7 @@ function renderPriceDashboard() {
   const categorySelect = document.getElementById('categoryFilter');
   if (!container) return;
 
-  const rawPrices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
-  const prices = typeof mergePricesWithDefaults === 'function' ? mergePricesWithDefaults(rawPrices) : (Array.isArray(rawPrices) && rawPrices.length > 0 ? rawPrices : (typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []));
+  const prices = getResolvedPriceList();
 
   function filterAndRender() {
     const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
@@ -372,7 +460,8 @@ function renderPriceDashboard() {
     if (filtered.length === 0) {
       container.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 36px; background: #FFFFFF; border-radius: 16px; border: 1.5px dashed #CBD5E1;">
-          <p style="color: #64748B; font-weight: 600;">Data komoditas yang Anda cari belum ditemukan atau belum disurvei hari ini.</p>
+          <p style="color: #334155; font-weight: 800; margin-bottom:6px;">Data harga resmi SP2KP belum tersedia.</p>
+          <p style="color: #64748B; font-weight: 500; font-size:.82rem;">Sistem tidak menampilkan data manual atau harga contoh sebagai pengganti data resmi.</p>
         </div>
       `;
       const oldToggle = document.getElementById('sembakoToggleContainer');
@@ -400,7 +489,7 @@ function renderPriceDashboard() {
             <span class="sembako-price-number">Rp ${item.price.toLocaleString('id-ID')}</span>
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
               <span class="trend-pill ${item.trend}">
-                ${item.trend === 'up' ? '▲ Naik' : item.trend === 'down' ? '▼ Turun' : '— Stabil'}
+                ${item.trend === 'up' ? '▲ Naik' : item.trend === 'down' ? '▼ Turun' : '● Tetap'}
               </span>
               <span class="sembako-diff-text">
                 ${item.diff > 0 ? `+Rp ${item.diff.toLocaleString('id-ID')}` : item.diff < 0 ? `-Rp ${Math.abs(item.diff).toLocaleString('id-ID')}` : 'Harga tetap'}
@@ -412,10 +501,10 @@ function renderPriceDashboard() {
         <div class="sembako-footer">
           <div class="sembako-meta-row">
             <span>📍 ${item.market_name}</span>
-            <span class="verified-badge">✓ Terverifikasi</span>
+            <span class="price-source-label" title="Sumber data harga">SP2KP</span>
           </div>
           <div style="font-size: 0.7rem; color: #94A3B8; display: flex; justify-content: space-between;">
-            <span>🕒 ${item.observed_date} &bull; ${item.observed_time}</span>
+            <span>🕒 Diperbarui ${item.observed_date} &bull; ${item.observed_time}</span>
           </div>
         </div>
       </div>
@@ -435,7 +524,7 @@ function renderPriceDashboard() {
       toggleWrapper.style.display = 'block';
       toggleWrapper.innerHTML = `
         <button id="btnToggleSembako" class="btn-outline" style="padding: 11px 24px; font-size: 0.88rem; background: #FFFFFF; font-weight: 800; border-radius: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-          ${showAllSembako ? '▴ Ciutkan Tampilan (Tampilkan 4 Komoditas)' : `▾ Tampilkan Semua Komoditas Pangan (${filtered.length} Komoditas)`}
+          ${showAllSembako ? '↑ Tampilkan ringkas' : `Lihat semua komoditas (${filtered.length}) ↓`}
         </button>
       `;
       const btn = document.getElementById('btnToggleSembako');
@@ -760,3 +849,62 @@ function initTabsSystem() {
     });
   });
 }
+
+// 12. REAL-TIME FIRESTORE LIVE SYNC (SP2KP, BERITA & BANNERS)
+function initFirestoreLiveSync() {
+  if (typeof db !== 'undefined' && db !== null) {
+    try {
+      // 1. Sync SP2KP Latest Prices
+      db.collection('market_prices_latest').onSnapshot(snap => {
+        if (!snap.empty) {
+          const list = [];
+          snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+          appSp2kpPrices = list.sort((a, b) => (Number(a.sp2kpCommodityId || 0) - Number(b.sp2kpCommodityId || 0)));
+          renderRunningTicker();
+          renderPriceDashboard();
+        }
+      }, err => console.warn("SP2KP Firestore Sync:", err));
+
+      // 2. Sync News Real-Time
+      db.collection('news').onSnapshot(snap => {
+        if (!snap.empty) {
+          const cloudNews = [];
+          snap.forEach(d => cloudNews.push({ id: d.id, ...d.data() }));
+          if (typeof mergeNewsWithDefaults === 'function') {
+            setStorage('disperindag_news', mergeNewsWithDefaults(cloudNews));
+            renderHomeNews();
+          }
+        }
+      }, err => console.warn("Firestore News Sync:", err));
+
+      // 4. Sync Banners Real-Time
+      db.collection('settings').doc('banners').onSnapshot(doc => {
+        if (doc.exists && doc.data() && Array.isArray(doc.data().list)) {
+          const bannerData = doc.data();
+          if (typeof mergeBannersWithDefaults === 'function') {
+            setStorage('disperindag_banners', mergeBannersWithDefaults(bannerData.list));
+            renderHeroCarousel();
+          }
+        }
+      }, err => console.warn("Firestore Banners Sync:", err));
+    } catch(e) {
+      console.warn("Firestore live sync err:", e);
+    }
+  }
+}
+function renderHomeLpgPublicSummary() {
+  const target = document.getElementById('homeLpgPublicSummary');
+  if (!target || typeof getLpgStore !== 'function') return;
+  const outlets = getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []);
+  if (!outlets.length) { target.textContent = '⚠ Data pangkalan tidak dapat dimuat'; return; }
+  const active = outlets.filter(item => !item.isDeleted && String(item.status || '').toUpperCase() === 'ACTIVE');
+  const districts = new Set(active.map(item => item.kecamatan || item.address?.district).filter(Boolean));
+  target.textContent = `🔥 ${active.length.toLocaleString('id-ID')} Pangkalan Resmi Terdaftar di ${districts.size.toLocaleString('id-ID')} Kecamatan`;
+}
+window.addEventListener('lpg-master-updated', renderHomeLpgPublicSummary);
+document.addEventListener('DOMContentLoaded', () => setTimeout(renderHomeLpgPublicSummary, 1800));
+document.addEventListener('DOMContentLoaded', async () => {
+  const target=document.getElementById('homeLpgHetText');if(!target||typeof db==='undefined'||!db)return;
+  try{const doc=await db.collection('lpg_settings').doc('operational').get({source:'server'});const price=doc.exists?Number(doc.data().hetPrice):NaN;target.textContent=Number.isFinite(price)?`HET Rp ${price.toLocaleString('id-ID')}`:'HET belum tersedia';}
+  catch(error){target.textContent='HET tidak dapat dimuat';console.warn('[LPG][FIRESTORE_READ_ERROR]',{operation:'homeHet',code:error.code});}
+});

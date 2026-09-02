@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>TV Informasi Layanan Publik | Disperindag ESDM Kabupaten Pinrang</title>
+  <meta name="description" content="Layar informasi pelayanan publik Disperindag ESDM Kabupaten Pinrang.">
+  <meta name="robots" content="noindex,follow">
+  <link rel="icon" href="assets/brand/logo_pinrang_opt.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="css/tv-layanan.css?v=20260902_tv_v2">
+  <link rel="stylesheet" href="css/tv-layanan-fixes.css?v=20260902_tv_v5">
+</head>
+<body>
+  <main class="tv-shell" aria-label="TV Informasi Layanan Publik">
+    <header class="tv-header">
+      <div class="tv-brand"><img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang"><div><b>DISPERINDAG ESDM</b><span>KABUPATEN PINRANG</span></div></div>
+      <div class="tv-live"><span id="tvDate">Memuat tanggal…</span><strong id="tvClock">--:--:-- WITA</strong><i>● LIVE</i></div>
+    </header>
+    <section id="tvStage" class="tv-stage" aria-live="polite"><div class="tv-loading"><span></span><b>Menghubungkan informasi layanan resmi…</b></div></section>
+    <div class="tv-progress"><i id="tvProgress"></i></div>
+    <footer class="tv-ticker"><b>INFORMASI</b><div class="ticker-window"><div class="ticker-track"><span>Pelayanan transparan dan bebas pungutan liar</span><span>WhatsApp 0823 1600 2226</span><span>Instagram @perindagempinrang</span><span>disperindagesdm-pinrang.web.app</span><span>Pelayanan transparan dan bebas pungutan liar</span><span>WhatsApp 0823 1600 2226</span><span>Instagram @perindagempinrang</span><span>disperindagesdm-pinrang.web.app</span></div></div></footer>
+    <nav class="tv-controls" aria-label="Kontrol layar"><button id="tvPrev" title="Sebelumnya">‹</button><button id="tvPause" title="Jeda">Ⅱ</button><button id="tvNext" title="Berikutnya">›</button><button id="tvFullscreen" title="Layar penuh">⛶</button></nav>
+    <div id="tvStatus" class="tv-status">Data resmi terhubung</div>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js?v=20260902_tv_v1"></script>
+  <script src="js/tv-layanan.js?v=20260902_tv_v5"></script>
+</body>
+</html>

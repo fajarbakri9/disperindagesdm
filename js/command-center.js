@@ -1,4 +1,6 @@
 // ==============================================================================
+
+
 // COMMAND CENTER ENGINE V3.2 PROD - DISPERINDAG ESDM KABUPATEN PINRANG
 // Arsitektur: Dynamic Multi-Slide Presentation, Master Data Pasar Dinamis,
 // SKM 2025 Resmi Periodik, Safe DOM Rendering, Single Global Continuous Ticker,
@@ -6,9 +8,10 @@
 // ==============================================================================
 
 // --- 1. KONFIGURASI ENGINE & SLIDE SHOW ---
+const CC_CACHE_VERSION = '2026-09-01-command-center-single-source-v1';
 const CC_CONFIG = {
   activeSlideIndex: 0,
-  totalSlides: 6,
+  totalSlides: 7,
   isPaused: false,
   autoSlideTimer: null,
   tickerInterval: null,
@@ -21,7 +24,8 @@ const CC_CONFIG = {
     18000, // Slide 2: Kemetrologian Legal & Tera UTTP (18 detik)
     18000, // Slide 3: Distribusi LPG 3 Kg & ESDM (18 detik)
     20000, // Slide 4: Industri IKM & Layanan Publik SKM (20 detik)
-    30000  // Slide 5: Peta Distribusi LPG (30 detik)
+    22000, // Slide 5: Penyalur BBM & Pertashop (22 detik)
+    30000  // Slide 6: Peta GIS terpadu (30 detik)
   ]
 };
 
@@ -172,9 +176,9 @@ function setSystemStatus(state, customLabel = null) {
         badgeText.textContent = customLabel || '● OFFLINE / CACHE';
         break;
       case 'stale':
-        badge.classList.add('status-stale');
-        badgeDot.style.background = '#F97316';
-        badgeText.textContent = customLabel || '● DATA TERLAMBAT';
+        badge.classList.add('status-cached');
+        badgeDot.style.background = '#38BDF8';
+        badgeText.textContent = customLabel || '● DATA TERTUNDA';
         break;
       case 'unavailable':
       default:
@@ -200,9 +204,9 @@ function setSystemStatus(state, customLabel = null) {
         text.style.color = 'var(--accent-gold)';
         break;
       case 'stale':
-        dot.classList.add('dot-stale');
-        text.textContent = customLabel || '● DATA TERLAMBAT';
-        text.style.color = 'var(--accent-amber, #F59E0B)';
+        dot.classList.add('dot-cached');
+        text.textContent = customLabel || '● DATA TERTUNDA';
+        text.style.color = 'var(--accent-cyan, #38BDF8)';
         break;
       case 'unavailable':
       default:
@@ -325,12 +329,15 @@ function showSlide(index) {
   // Toggle Tab Button
   const tabBtns = document.querySelectorAll('.cc-tab-btn');
   tabBtns.forEach((btn, i) => {
-    btn.classList.toggle('active', i === index);
+    btn.classList.toggle('active', Number(btn.dataset.slide ?? i) === index);
   });
 
   if (index === 5) {
+    renderCcBbmSlide();
+  }
+  if (index === 6) {
     setTimeout(() => {
-      if (typeof initLpgGisMap === 'function') initLpgGisMap('adminLpgGisMapContainer');
+      initDisperindagGisMap();
     }, 80);
   }
 
@@ -518,11 +525,8 @@ function renderCommandCenterData(config, isFromCache = false) {
   setSafeText('cc_s2_spbu_verified_pct', spbuVal !== null ? `${spbuVal}%` : '--');
 
   // 4. Penyaluran LPG 3 Kg: hanya data agregat server yang telah dipublikasikan.
-  const hetVal = safeNumber(config.het_lpg_price);
-  const hetStr = hetVal !== null ? formatRupiahVal(hetVal) : '--';
-  setSafeText('cc_kpi_het_lpg_price', hetStr);
-  setSafeText('cc_s3_het_lpg_price', hetStr);
-  setSafeText('cc_s3_het_lpg_regulation', safeString(config.het_lpg_regulation, 'DASAR HUKUM BELUM TERSEDIA'));
+  // HET LPG sengaja tidak dibaca dari command_center/metrics. Nilai resmi
+  // hanya berasal dari lpg_settings/operational melalui listener khusus.
 
   const agentsCount = safeNumber(config.lpg_official_agents ?? config.official_agents);
   const basesCount = safeNumber(config.lpg_official_bases ?? config.official_bases);
@@ -571,8 +575,7 @@ function renderCommandCenterData(config, isFromCache = false) {
   setSafeText('cc_s4_skm_score', skmScoreVal === null ? '--' : `${skmScoreVal} / 100`);
   setSafeText('cc_s4_skm_grade', `Predikat: ${skmGradeVal} • Periode: ${skmPeriod}`);
 
-  // 8. Ticker Text Otomatis Harga Pasar Real-time
-  renderCommandCenterTicker([], config.ticker_text);
+  // Ticker harga hanya dirender oleh listener kanonis market_prices_latest SP2KP.
 
   // Timestamp Freshness
   if (config.updated_at || config.last_updated) {
@@ -608,6 +611,15 @@ function renderEmptyState(container, message, colSpan = null) {
 }
 
 // --- 10. RENDER MASTER PASAR DINAMIS (SINGLE SOURCE OF TRUTH FIRESTORE MARKETS) ---
+function mergeCanonicalMarkets(incoming) {
+  if (Array.isArray(incoming) && incoming.length) return incoming.slice();
+  const fallback = typeof MarketEngine !== 'undefined'
+    ? MarketEngine.getAll()
+    : (typeof PINRANG_ALL_MARKETS !== 'undefined' && Array.isArray(PINRANG_ALL_MARKETS) ? PINRANG_ALL_MARKETS : []);
+  return fallback.slice();
+}
+
+let ccCanonicalMarkets = [];
 function renderMarketsDOM(marketsList) {
   const container = document.getElementById('cc_s1_markets_container');
   const headerEl = document.getElementById('cc_s1_markets_header');
@@ -615,7 +627,9 @@ function renderMarketsDOM(marketsList) {
   const kpiActiveEl = document.getElementById('cc_kpi_markets_active_count');
   const kpiSummaryEl = document.getElementById('cc_kpi_markets_summary_sub');
 
-  const list = Array.isArray(marketsList) ? marketsList : [];
+  const list = mergeCanonicalMarkets(marketsList);
+  ccCanonicalMarkets = list.slice();
+  refreshCommandCenterGisLayers();
 
   // Hitung Status Otomatis Berdasarkan Single Source of Truth
   const activeMarkets = list.filter(m => 
@@ -1031,6 +1045,7 @@ function createReportCardElement(r, isCompact = false) {
 function setCachedData(key, data, updated_at = null) {
   try {
     const payload = {
+      version: CC_CACHE_VERSION,
       data: data,
       cached_at: Date.now(),
       server_updated_at: updated_at || null
@@ -1043,7 +1058,11 @@ function getCachedData(key) {
   try {
     const raw = localStorage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : null;
-    return parsed && typeof parsed === 'object' && Object.prototype.hasOwnProperty.call(parsed, 'data') ? parsed : null;
+    if (!parsed || typeof parsed !== 'object' || parsed.version !== CC_CACHE_VERSION) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return Object.prototype.hasOwnProperty.call(parsed, 'data') ? parsed : null;
   } catch (e) {
     return null;
   }
@@ -1054,7 +1073,7 @@ function initFirestoreRealtimeService() {
 
   // 1. FIRST PAINT DARI CACHE LOKAL / DEFAULT DATA
   const cachedCC = getCachedData('disperindag_cc_cache_metrics');
-  const cachedMarkets = getCachedData('disperindag_cc_cache_markets');
+  const cachedMarkets = getCachedData('disperindag_cc_cache_markets_v2');
   const cachedDistricts = getCachedData('disperindag_cc_cache_districts');
   const cachedPrices = getCachedData('disperindag_cc_cache_prices');
   const cachedReports = getCachedData('disperindag_cc_cache_reports');
@@ -1146,11 +1165,23 @@ function initFirestoreRealtimeService() {
       db.collection('lpg_dashboard').doc('summary').onSnapshot(
         { includeMetadataChanges: true },
         (doc) => {
-          if (!doc.exists) return;
+          if (doc.metadata.fromCache || !doc.exists) { latestLpgDashboardSnapshot=null; renderLpgDashboardSnapshot(null); return; }
           latestLpgDashboardSnapshot = doc.data();
           renderLpgDashboardSnapshot(latestLpgDashboardSnapshot);
         },
-        (err) => handleFirestoreError('lpg_dashboard', err, 'disperindag_cc_cache_lpg')
+        (err) => { latestLpgDashboardSnapshot=null; renderLpgDashboardSnapshot(null); updateSourceState('lpg_dashboard','unavailable'); console.warn('[LPG][FIRESTORE_READ_ERROR]',err?.code||err); }
+      );
+
+      db.collection('lpg_settings').doc('operational').onSnapshot(
+        {includeMetadataChanges:true},
+        doc=>{
+          if(doc.metadata.fromCache||!doc.exists){setSafeText('cc_kpi_het_lpg_price','--');setSafeText('cc_s3_het_lpg_price','--');setSafeText('cc_s3_het_lpg_regulation','DASAR HUKUM BELUM TERSEDIA');return;}
+          const data=doc.data(),price=Number(data.hetPrice);
+          setSafeText('cc_kpi_het_lpg_price',Number.isFinite(price)?formatRupiahVal(price):'--');
+          setSafeText('cc_s3_het_lpg_price',Number.isFinite(price)?formatRupiahVal(price):'--');
+          setSafeText('cc_s3_het_lpg_regulation',safeString(data.hetRegulation,'DASAR HUKUM BELUM TERSEDIA'));
+        },
+        err=>{console.warn('[LPG][FIRESTORE_READ_ERROR]',{operation:'commandCenterHet',code:err.code});setSafeText('cc_kpi_het_lpg_price','--');setSafeText('cc_s3_het_lpg_price','--');}
       );
 
       // Listener Master Pasar Dinamis
@@ -1160,7 +1191,7 @@ function initFirestoreRealtimeService() {
           const list = [];
           snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
           if (list.length > 0) {
-            setCachedData('disperindag_cc_cache_markets', list, snapshot.docs[0]?.data()?.updated_at || null);
+            setCachedData('disperindag_cc_cache_markets_v2', list, snapshot.docs[0]?.data()?.updated_at || null);
             renderMarketsDOM(list);
             markServerSnapshot('markets', snapshot.metadata, snapshot.docs[0]?.data()?.updated_at, 24 * 60);
           } else {
@@ -1168,7 +1199,7 @@ function initFirestoreRealtimeService() {
             updateSourceState('markets', 'unavailable');
           }
         },
-        (err) => handleFirestoreError('markets', err, 'disperindag_cc_cache_markets')
+        (err) => handleFirestoreError('markets', err, 'disperindag_cc_cache_markets_v2')
       );
 
       // Listener Districts
@@ -1207,22 +1238,53 @@ function initFirestoreRealtimeService() {
         (err) => handleFirestoreError('tera', err, 'disperindag_cc_cache_tera')
       );
 
-      // Listener Prices (Smart Hybrid Merge: Mencegah Kehilangan Komoditas Default saat Update Parsial)
-      db.collection('prices_current').limit(20).onSnapshot(
+      // Listener harga kanonis SP2KP. Wallboard memakai sumber yang sama dengan
+      // CMS dan frontend; override lokal tidak mengubah angka operasional publik.
+      let ccSp2kpItems = [];
+
+      const syncCcPrices = () => {
+        if (ccSp2kpItems.length > 0) {
+          const resolvedList = ccSp2kpItems.map(item => {
+            const vId = item.variantId || item.id;
+            if (typeof PriceResolver !== 'undefined') {
+              const canonical = PriceResolver.normalizeSp2kpItem(item);
+              return {
+                id: vId,
+                commodity_name: canonical.commodity_name,
+                unit: canonical.unit,
+                price: canonical.price,
+                previous_price: canonical.previous_price,
+                diff: canonical.delta,
+                delta: canonical.delta,
+                trend: canonical.trend,
+                stock_status: item.stock_status || 'normal',
+                source: canonical.source,
+                dataDate: canonical.dataDate,
+                updated_at: item.syncedAt || item.dataDate || item.updated_at
+              };
+            }
+            return item;
+          });
+          const newestUpdate = resolvedList.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at) || 0), 0);
+          setCachedData('disperindag_cc_cache_prices', resolvedList, newestUpdate || null);
+          renderPricesDOM(resolvedList);
+          markServerSnapshot('prices', { fromCache: false }, newestUpdate || null, 24 * 60);
+        }
+      };
+
+      db.collection('market_prices_latest').onSnapshot(
         { includeMetadataChanges: true },
         (snapshot) => {
-          const list = [];
-          snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
-          
-          if (list.length === 0) {
+          if (!snapshot.empty) {
+            const list = [];
+            snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
+            ccSp2kpItems = list.sort((a, b) => (Number(a.sp2kpCommodityId || 0) - Number(b.sp2kpCommodityId || 0)));
+            syncCcPrices();
+          } else {
+            ccSp2kpItems = [];
             renderPricesDOM([]);
             updateSourceState('prices', 'unavailable');
-            return;
           }
-          const newestUpdate = list.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at || item.observed_at) || 0), 0);
-          setCachedData('disperindag_cc_cache_prices', list, newestUpdate || null);
-          renderPricesDOM(list);
-          markServerSnapshot('prices', snapshot.metadata, newestUpdate || null, 24 * 60);
         },
         (err) => handleFirestoreError('prices', err, 'disperindag_cc_cache_prices')
       );
@@ -1267,11 +1329,11 @@ function initFirestoreRealtimeService() {
 
 // Multi-Tab Local Storage Listener
 window.addEventListener('storage', (e) => {
-  if (['disperindag_cc_cache_metrics', 'disperindag_cc_cache_markets', 'disperindag_cc_cache_districts', 'disperindag_cc_cache_prices', 'disperindag_cc_cache_reports'].includes(e.key)) {
+  if (['disperindag_cc_cache_metrics', 'disperindag_cc_cache_markets_v2', 'disperindag_cc_cache_districts', 'disperindag_cc_cache_prices', 'disperindag_cc_cache_reports'].includes(e.key)) {
     const cached = getCachedData(e.key);
     if (cached && cached.data) {
       if (e.key === 'disperindag_cc_cache_metrics') renderCommandCenterData(cached.data, true);
-      if (e.key === 'disperindag_cc_cache_markets') renderMarketsDOM(cached.data);
+      if (e.key === 'disperindag_cc_cache_markets_v2') renderMarketsDOM(cached.data);
       if (e.key === 'disperindag_cc_cache_districts') {
         renderDistrictsDOM('ccDistrictMatrix0', cached.data, 2);
         renderDistrictsDOM('ccDistrictMatrix3', cached.data, 3);
@@ -1320,7 +1382,7 @@ function renderCommandCenterTicker(pricesData = [], customText = null) {
     const current = safeNumber(item.price);
     if (current === null) return null;
     const trend = getPriceTrend(current, item.previous_price);
-    const trendLabel = trend === 'up' ? '▲ Naik' : trend === 'down' ? '▼ Turun' : '— Stabil';
+    const trendLabel = trend === 'up' ? '▲ Naik' : trend === 'down' ? '▼ Turun' : '● Tetap';
     return `🌾 ${safeString(item.commodity_name || item.name, 'Komoditas')}: ${formatRupiahVal(current)}/${safeString(item.unit, 'Kg')} (${trendLabel})`;
   }).filter(Boolean);
   if (safeString(customText, '') !== '') items.push(safeString(customText, ''));
@@ -1387,6 +1449,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inisialisasi Running Ticker Bawah
   renderCommandCenterTicker();
 
+  // Inisialisasi Data BBM
+  renderCcBbmSlide();
+  if (typeof BbmEngine !== 'undefined') {
+    window.__ccBbmUnsubscribe = BbmEngine.initRealtimeSync(items => {
+      renderCcBbmSlide();
+      refreshCommandCenterGisLayers();
+    });
+  }
+
+  // Master LPG harus diminta setelah Firebase siap. Event hasil sinkron akan
+  // memutakhirkan marker tanpa perlu membuka ulang tab GIS.
+  if (typeof loadCanonicalLpgMasterOnce === 'function') {
+    loadCanonicalLpgMasterOnce().then(() => {
+      if (typeof populateLpgGisFilters === 'function') populateLpgGisFilters(true);
+      if (typeof renderLpgGisMarkers === 'function') renderLpgGisMarkers();
+    });
+  }
+  if (typeof subscribeCanonicalLpgMaster === 'function') {
+    window.__ccLpgMasterUnsubscribe = subscribeCanonicalLpgMaster(() => {
+      if (typeof populateLpgGisFilters === 'function') populateLpgGisFilters(true);
+      if (typeof renderLpgGisMarkers === 'function') renderLpgGisMarkers();
+      refreshCommandCenterGisLayers();
+    });
+  }
+
   // Inisialisasi Auto-Slide
   showSlide(0);
 
@@ -1402,3 +1489,198 @@ window.toggleAutoSlide = toggleAutoSlide;
 window.toggleFullScreen = toggleFullScreen;
 window.toggleFullscreenMode = toggleFullscreenMode;
 window.toggleThemeMode = toggleThemeMode;
+
+// Peta GIS lintas bidang: peta LPG menjadi basemap operasional, lalu data
+// pasar dan penyalur BBM ditambahkan sebagai layer independen.
+let ccGisSupplementLayers = null;
+let ccGisSupplementControl = null;
+
+function initDisperindagGisMap() {
+  if (typeof initLpgGisMap !== 'function') return;
+  initLpgGisMap('adminLpgGisMapContainer');
+  ccGisSupplementLayers = null;
+  ccGisSupplementControl = null;
+  setTimeout(addCommandCenterGisLayers, 450);
+}
+
+function refreshCommandCenterGisLayers() {
+  if (typeof lpgGisMapInstance === 'undefined' || !lpgGisMapInstance) return;
+  if (ccGisSupplementLayers) {
+    Object.values(ccGisSupplementLayers).forEach(layer => lpgGisMapInstance.removeLayer(layer));
+    ccGisSupplementLayers = null;
+  }
+  if (ccGisSupplementControl) {
+    lpgGisMapInstance.removeControl(ccGisSupplementControl);
+    ccGisSupplementControl = null;
+  }
+  addCommandCenterGisLayers();
+}
+
+window.addEventListener('lpg-master-updated', () => {
+  // Listener di lpg-gis-map memperbarui pangkalan lebih dahulu; layer lintas
+  // bidang dirender sesudahnya agar ringkasan dan semua marker tetap sinkron.
+  setTimeout(refreshCommandCenterGisLayers, 0);
+});
+
+function commandCenterGisIcon(type, symbol) {
+  const color = { market:'#D97706', spbu_reguler:'#DC2626', spbu_kompak:'#0284C7', spbun:'#7C3AED', pertashop:'#16A34A' }[type] || '#0F2C59';
+  return L.divIcon({
+    className:'custom-gis-pkl-icon',
+    html:`<div style="width:31px;height:31px;border-radius:10px 10px 10px 3px;transform:rotate(-45deg);display:grid;place-items:center;background:${color};border:2px solid #fff;box-shadow:0 4px 11px rgba(2,8,23,.45)"><span style="transform:rotate(45deg);font-size:14px">${symbol}</span></div>`,
+    iconSize:[33,33],iconAnchor:[16,32],popupAnchor:[0,-30]
+  });
+}
+
+function addCommandCenterGisLayers() {
+  if (typeof lpgGisMapInstance === 'undefined' || !lpgGisMapInstance || typeof L === 'undefined') return;
+  if (ccGisSupplementLayers) return;
+
+  const marketLayer = L.layerGroup();
+  const bbmLayers = { spbu_reguler:L.layerGroup(), spbu_kompak:L.layerGroup(), spbun:L.layerGroup(), pertashop:L.layerGroup() };
+  const markets = ccCanonicalMarkets.length
+    ? ccCanonicalMarkets
+    : (typeof PINRANG_ALL_MARKETS !== 'undefined' ? PINRANG_ALL_MARKETS : []);
+  const outlets = typeof BbmEngine !== 'undefined' ? BbmEngine.getAll() : [];
+
+  let marketCount = 0;
+  markets.forEach(market => {
+    const lat = Number(market.latitude);
+    const lng = Number(market.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -4.3 || lat > -3.1 || lng < 119.1 || lng > 120.2) return;
+    const marker = L.marker([lat, lng], { pane:'lpgDataPane', icon:commandCenterGisIcon('market','🏬'), zIndexOffset:1100, riseOnHover:true });
+    marker.bindTooltip(`Pasar • ${escapeLpgMapText(market.nama || 'Pasar rakyat')}`, { direction:'top', className:'lpg-map-tooltip' });
+    marker.bindPopup(`<strong>${escapeLpgMapText(market.nama || 'Pasar rakyat')}</strong><br>${escapeLpgMapText(market.desaKelurahan || '-')} • Kec. ${escapeLpgMapText(market.kecamatan || '-')}<br><small>Status: ${escapeLpgMapText(market.statusLabel || market.statusOperasional || '-')}</small>`);
+    marker.addTo(marketLayer);
+    marketCount++;
+  });
+
+  const bbmCounts = typeof BbmEngine !== 'undefined' ? BbmEngine.getCategoryCounts(outlets) : { spbu_reguler:0, spbu_kompak:0, spbun:0, pertashop:0 };
+  outlets.forEach(outlet => {
+    const lat = Number(outlet.lat);
+    const lng = Number(outlet.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -4.3 || lat > -3.1 || lng < 119.1 || lng > 120.2) return;
+    const category = BbmEngine.normalizeCategory(outlet);
+    const meta = BbmEngine.CATEGORY_META[category];
+    const marker = L.marker([lat, lng], { pane:'lpgDataPane', icon:commandCenterGisIcon(category, meta.symbol), zIndexOffset:1100, riseOnHover:true });
+    marker.bindTooltip(`${meta.label} • ${escapeLpgMapText(outlet.nama || outlet.kode || 'Penyalur BBM')}`, { direction:'top', className:'lpg-map-tooltip' });
+    marker.bindPopup(`<strong>${escapeLpgMapText(outlet.nama || 'Penyalur BBM')}</strong><br>${escapeLpgMapText(outlet.kode || '-')} • ${escapeLpgMapText(outlet.jenis_resmi || '')}<br>${escapeLpgMapText(outlet.desa || '-')} • Kec. ${escapeLpgMapText(outlet.kecamatan || '-')}`);
+    marker.addTo(bbmLayers[category]);
+  });
+
+  marketLayer.addTo(lpgGisMapInstance);
+  Object.values(bbmLayers).forEach(layer => layer.addTo(lpgGisMapInstance));
+  ccGisSupplementControl = L.control.layers(null, {
+    [`Pasar rakyat (${marketCount})`]: marketLayer,
+    [`SPBU Reguler (${bbmCounts.spbu_reguler})`]: bbmLayers.spbu_reguler,
+    [`SPBU Compact / APMS (${bbmCounts.spbu_kompak})`]: bbmLayers.spbu_kompak,
+    [`SPBUN (${bbmCounts.spbun})`]: bbmLayers.spbun,
+    [`Pertashop (${bbmCounts.pertashop})`]: bbmLayers.pertashop
+  }, { collapsed:false, position:'bottomright' }).addTo(lpgGisMapInstance);
+  ccGisSupplementLayers = { marketLayer, ...bbmLayers };
+
+  const summary = document.getElementById('gisMapResultSummary');
+  if (summary) summary.textContent = `${marketCount} pasar • ${bbmCounts.spbu_reguler} SPBU Reguler • ${bbmCounts.spbu_kompak} Compact/APMS • ${bbmCounts.spbun} SPBUN • ${bbmCounts.pertashop} Pertashop`;
+  const pointCounts = { market:marketCount, ...bbmCounts };
+  try {
+    const agents = typeof getLpgStore === 'function' ? getLpgStore(LPG_STORAGE_KEYS.AGENTS, []) : [];
+    const bases = typeof getLpgStore === 'function' ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []) : [];
+    pointCounts.agent = agents.filter(x => Number.isFinite(Number(x.latitude)) && Number.isFinite(Number(x.longitude))).length;
+    pointCounts.base = bases.filter(x => Number.isFinite(Number(x.latitude)) && Number.isFinite(Number(x.longitude))).length;
+  } catch (_) { pointCounts.agent = 0; pointCounts.base = 0; }
+  document.querySelectorAll('[data-cc-gis-count]').forEach(node => { node.textContent = pointCounts[node.dataset.ccGisCount] || 0; });
+  lpgGisMapInstance.invalidateSize({ pan:false });
+}
+
+window.initDisperindagGisMap = initDisperindagGisMap;
+
+
+// ==============================================================================
+// SLIDE 5: PENGAWASAN PENYALUR BBM (SPBU, APMS, PERTASHOP, SPBUN)
+// Menggunakan DOM API (createElement + textContent) untuk mencegah XSS.
+// Data dari Firestore tidak pernah diinterpolasi langsung ke innerHTML.
+// ==============================================================================
+function renderCcBbmSlide() {
+  const list = typeof BbmEngine !== 'undefined' ? BbmEngine.getAll() : [];
+  const stats = typeof BbmEngine !== 'undefined' ? BbmEngine.getStats(list) : { spbu_reguler: 0, spbu_kompak: 0, pertashop: 0, spbun: 0 };
+
+  const elSpbu = document.getElementById('cc_s6_stat_spbu');
+  const elApms = document.getElementById('cc_s6_stat_apms');
+  const elPertashop = document.getElementById('cc_s6_stat_pertashop');
+  const elSpbun = document.getElementById('cc_s6_stat_spbun');
+  const tbody = document.getElementById('ccBbmOutletsTableBody');
+
+  if (elSpbu) elSpbu.textContent = stats.spbu_reguler;
+  if (elApms) elApms.textContent = stats.spbu_kompak;
+  if (elPertashop) elPertashop.textContent = stats.pertashop;
+  if (elSpbun) elSpbun.textContent = stats.spbun;
+
+  if (!tbody) return;
+  tbody.replaceChildren();
+
+  if (list.length === 0) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.style.cssText = 'text-align:center;padding:20px;color:var(--text-muted)';
+    td.textContent = 'MEMUAT DATA PENYALUR BBM...';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  list.forEach(item => {
+    const isOp = (item.status_operasi || 'Beroperasi').toLowerCase().includes('operasi');
+
+    const tr = document.createElement('tr');
+
+    // Kolom 1: Kode & Kategori
+    const tdKode = document.createElement('td');
+    const divKode = document.createElement('div');
+    divKode.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--accent-cyan);font-size:0.78rem";
+    divKode.textContent = item.kode || '-';
+    const divKat = document.createElement('div');
+    divKat.style.cssText = 'font-size:0.70rem;color:var(--text-muted)';
+    divKat.textContent = item.kategori_badge || item.jenis_resmi || '-';
+    tdKode.append(divKode, divKat);
+
+    // Kolom 2: Nama & Badan Usaha
+    const tdNama = document.createElement('td');
+    const divNama = document.createElement('div');
+    divNama.style.cssText = 'font-weight:800;color:var(--text-main);font-size:0.86rem';
+    divNama.textContent = item.nama || '-';
+    const divBu = document.createElement('div');
+    divBu.style.cssText = 'font-size:0.74rem;color:var(--text-muted)';
+    divBu.textContent = `🏢 ${item.badan_usaha || 'Penyalur Resmi'}`;
+    tdNama.append(divNama, divBu);
+
+    // Kolom 3: Kecamatan & Desa
+    const tdLokasi = document.createElement('td');
+    const divKec = document.createElement('div');
+    divKec.style.cssText = 'font-weight:700;color:var(--text-main);font-size:0.82rem';
+    divKec.textContent = `Kec. ${item.kecamatan || '-'}`;
+    const divDesa = document.createElement('div');
+    divDesa.style.cssText = 'font-size:0.72rem;color:var(--text-muted)';
+    divDesa.textContent = item.desa || '-';
+    tdLokasi.append(divKec, divDesa);
+
+    // Kolom 4: Produk
+    const tdProduk = document.createElement('td');
+    (item.produk || []).forEach(p => {
+      const span = document.createElement('span');
+      span.style.cssText = 'font-size:0.7rem;background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;margin-right:3px;display:inline-block;margin-bottom:2px';
+      span.textContent = p;
+      tdProduk.appendChild(span);
+    });
+
+    // Kolom 5: Status
+    const tdStatus = document.createElement('td');
+    tdStatus.style.textAlign = 'center';
+    const spanStatus = document.createElement('span');
+    spanStatus.style.cssText = `font-size:0.72rem;font-weight:800;color:${isOp ? 'var(--accent-emerald)' : 'var(--accent-rose)'};background:${isOp ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)'};padding:3px 8px;border-radius:999px`;
+    spanStatus.textContent = isOp ? '● AKTIF' : '⚠️ RAWAT';
+    tdStatus.appendChild(spanStatus);
+
+    tr.append(tdKode, tdNama, tdLokasi, tdProduk, tdStatus);
+    tbody.appendChild(tr);
+  });
+}

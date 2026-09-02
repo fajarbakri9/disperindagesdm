@@ -1,11 +1,10 @@
-const LPG_SHELL_CACHE = 'disperindag-lpg-shell-v2';
+const LPG_SHELL_CACHE = 'disperindag-lpg-shell-v7-firestore-ssot';
 const LPG_SHELL_ASSETS = [
   '/lpg-agen.html',
   '/login.html',
   '/css/style.css',
   '/css/modal-system.css',
   '/js/firebase-config.js',
-  '/js/lpg-data-seed.js',
   '/js/lpg-engine.js',
   '/js/modal-system.js',
   '/js/auth.js',
@@ -41,11 +40,14 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  event.respondWith(caches.match(request, { ignoreSearch: true }).then(cached => cached || fetch(request).then(response => {
+  // Aset aplikasi selalu diperiksa ke server lebih dahulu. Cache hanya menjadi
+  // cadangan saat perangkat benar-benar luring, sehingga rilis lama tidak
+  // bertahan setelah portal diperbarui.
+  event.respondWith(fetch(request).then(response => {
     if (response.ok) {
       const copy = response.clone();
       caches.open(LPG_SHELL_CACHE).then(cache => cache.put(request, copy));
     }
     return response;
-  })));
+  }).catch(() => caches.match(request)));
 });

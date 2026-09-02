@@ -1,0 +1,93 @@
+﻿/* =============================================================================
+   DIREKTORI VIEW SYSTEM - Tabel + Infografis + Tab
+   Digunakan oleh: direktori-lpg.html, penyalur-bbm.html, pasar.html
+   ============================================================================= */
+
+/* ---- Tab View Toggle ---------------------------------------------------- */
+.dir-view-tabs{display:flex;gap:4px;padding:4px;background:#EEF2F7;border:1px solid #D1DAEA;border-radius:10px;flex-wrap:wrap}
+.dir-view-tabs button{height:32px;padding:0 13px;border:1px solid transparent;border-radius:7px;background:transparent;color:#475569;font:800 .72rem "Plus Jakarta Sans",sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s ease;display:inline-flex;align-items:center;gap:5px}
+.dir-view-tabs button.active{background:#0F2C59;color:#fff;border-color:#0F2C59;box-shadow:0 2px 7px rgba(15,44,89,.22)}
+.dir-view-tabs button:not(.active):hover{background:#DBEAFE;color:#1E3A8A}
+
+/* ---- View Panels -------------------------------------------------------- */
+.dir-view-panel{display:none}
+.dir-view-panel.active{display:block}
+
+/* ---- Tabel Premium ------------------------------------------------------ */
+.dir-table-card{background:#fff;border:1px solid #DBE4EE;border-radius:13px;overflow:hidden;box-shadow:0 4px 16px rgba(15,44,89,.06)}
+.dir-table-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#F8FAFC;border-bottom:1px solid #DBE4EE;flex-wrap:wrap}
+.dir-table-head-left{display:flex;flex-direction:column}
+.dir-table-head strong{color:#0F2C59;font-size:.88rem}
+.dir-table-head small{color:#64748B;font-size:.67rem;margin-top:2px}
+.dir-table-actions{display:flex;gap:6px;flex-wrap:wrap}
+.dir-table-actions button{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 10px;border:1px solid #BFDBFE;border-radius:7px;background:#EFF6FF;color:#1D4ED8;font:800 .67rem "Plus Jakarta Sans",sans-serif;cursor:pointer;transition:all .15s}
+.dir-table-actions button:hover{background:#DBEAFE;transform:translateY(-1px)}
+.dir-table-scroll{overflow-x:auto;max-height:580px;overflow-y:auto}
+.dir-table-scroll table{width:100%;border-collapse:collapse;font-size:.72rem;font-family:"Plus Jakarta Sans",sans-serif}
+.dir-table-scroll th{position:sticky;top:0;z-index:2;padding:10px 12px;background:#0F2C59;color:#fff;text-align:left;white-space:nowrap;font-weight:800;font-size:.67rem;letter-spacing:.03em;text-transform:uppercase}
+.dir-table-scroll td{padding:9px 12px;border-bottom:1px solid #E8EDF5;color:#334155;vertical-align:middle}
+.dir-table-scroll tr:last-child td{border-bottom:0}
+.dir-table-scroll tr:hover td{background:#F0F6FF}
+.dir-table-scroll tr:nth-child(even) td{background:#FAFBFD}
+.dir-table-scroll tr:nth-child(even):hover td{background:#F0F6FF}
+.dir-table-scroll td strong{display:block;color:#0F2C59;font-weight:800;font-size:.78rem;margin-bottom:1px}
+.dir-table-scroll td small{color:#94A3B8;font-size:.64rem}
+.dir-table-scroll td a{color:#1D4ED8;font-weight:800;text-decoration:none;font-size:.68rem}
+.dir-table-scroll td a:hover{text-decoration:underline}
+.dir-table-empty{text-align:center;padding:32px!important;color:#64748B!important;font-size:.82rem!important}
+
+/* Badge chips dalam tabel */
+.dir-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:.62rem;font-weight:900;white-space:nowrap}
+.dir-badge-gps{background:#D1FAE5;color:#047857}
+.dir-badge-indicative{background:#FEF3C7;color:#B45309}
+.dir-badge-aktif{background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0}
+.dir-badge-tidak-aktif{background:#F1F5F9;color:#334155;border:1px solid #CBD5E1}
+.dir-badge-verifikasi{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
+.dir-badge-type{display:inline-flex;padding:3px 8px;border-radius:6px;font-size:.62rem;font-weight:900;white-space:nowrap}
+.dir-code{font-family:"JetBrains Mono",monospace;font-size:.68rem;font-weight:800;color:#1E40AF;background:#EFF6FF;padding:2px 6px;border-radius:4px;border:1px solid #DBEAFE;display:inline-block}
+
+/* ---- Infografis --------------------------------------------------------- */
+.dir-infogram{display:flex;flex-direction:column;gap:20px;padding-top:4px}
+
+/* KPI Cards */
+.dir-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}
+.dir-kpi-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff,#F6FAFF);border:1px solid #DBE3EE;border-radius:13px;padding:16px 16px 14px;box-shadow:0 4px 14px rgba(15,44,89,.05);transition:transform .15s ease,box-shadow .15s ease}
+.dir-kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(15,44,89,.1)}
+.dir-kpi-card::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--kpi-accent,#2563EB);border-radius:13px 0 0 13px}
+.dir-kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dir-kpi-label{color:#64748B;font-size:.63rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+.dir-kpi-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--kpi-bg,#EFF6FF);font-size:1rem}
+.dir-kpi-value{display:block;font-size:1.65rem;font-weight:900;color:#0F2C59;line-height:1;font-family:"JetBrains Mono",monospace;letter-spacing:-.02em}
+.dir-kpi-sub{display:block;font-size:.62rem;color:#64748B;margin-top:5px;font-weight:700}
+
+/* Charts Grid */
+.dir-charts-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:16px}
+.dir-chart-card{background:#fff;border:1px solid #DBE3EE;border-radius:13px;padding:16px;overflow:hidden;box-shadow:0 2px 10px rgba(15,44,89,.04)}
+.dir-chart-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px}
+.dir-chart-header-left span{display:block;color:#0891B2;font-size:.59rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.dir-chart-header-left h3{margin:0;color:#0F2C59;font-size:.85rem;font-weight:800}
+.dir-chart-total{padding:4px 8px;border-radius:999px;background:#E0F2FE;color:#075985;font-size:.62rem;font-weight:900;white-space:nowrap}
+
+/* Bar Chart Rows */
+.dir-bar-chart{display:grid;gap:9px}
+.dir-bar-row{display:grid;grid-template-columns:minmax(100px,140px) 1fr 38px;align-items:center;gap:8px;font-size:.67rem}
+.dir-bar-label{font-weight:700;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dir-bar-track{height:18px;background:#EEF2F8;border-radius:5px;overflow:hidden}
+.dir-bar-fill{height:100%;min-width:3px;border-radius:5px;background:var(--bar-color,linear-gradient(90deg,#2563EB,#06B6D4));transition:width .4s cubic-bezier(.4,0,.2,1)}
+.dir-bar-value{text-align:right;font-weight:900;color:#0F2C59}
+
+/* Insight */
+.dir-insight{padding:12px 15px;border:1px solid #BAE6FD;border-left:4px solid #0284C7;border-radius:9px;background:#F0F9FF;color:#334155;font-size:.68rem;line-height:1.6}
+.dir-insight strong{color:#0F2C59}
+
+/* Pagination */
+.dir-pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid #E8EDF5;background:#FAFBFD}
+.dir-pagination-info{margin-right:auto;color:#64748B;font-size:.68rem;font-weight:700}
+.dir-pagination button{height:30px;padding:0 10px;border:1px solid #CBD5E1;border-radius:7px;background:#fff;font:700 .72rem "Plus Jakarta Sans",sans-serif;cursor:pointer;transition:all .15s}
+.dir-pagination button:hover:not(:disabled){background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8}
+.dir-pagination button:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---- Responsive --------------------------------------------------------- */
+@media(max-width:900px){.dir-charts-grid{grid-template-columns:1fr}.dir-kpi-grid{grid-template-columns:repeat(2,1fr)}.dir-bar-row{grid-template-columns:100px 1fr 32px}}
+@media(max-width:600px){.dir-kpi-grid{grid-template-columns:1fr 1fr}.dir-kpi-value{font-size:1.35rem}.dir-table-head{flex-direction:column;align-items:flex-start}.dir-view-tabs{gap:3px}.dir-view-tabs button{padding:0 9px;font-size:.68rem;height:29px}.dir-bar-row{grid-template-columns:85px 1fr 28px;font-size:.63rem}.dir-pagination{flex-wrap:wrap}}
+@media print{.dir-view-tabs,.dir-table-actions,.dir-pagination{display:none!important}.dir-view-panel{display:block!important}.dir-table-scroll{overflow:visible;max-height:none}.dir-table-scroll th{position:static}}

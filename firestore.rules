@@ -1,4 +1,4 @@
-rules_version = '2';
+﻿rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -20,6 +20,14 @@ service cloud.firestore {
     function isSuperAdmin() {
       return signedIn() && currentUserProfile().status == 'ACTIVE' &&
         currentUserProfile().role == 'SUPER_ADMIN';
+    }
+
+    function isMarketAdmin() {
+      return signedIn() && currentUserProfile().status == 'ACTIVE' &&
+        currentUserProfile().role in [
+          'SUPER_ADMIN', 'DISPERINDAGESDM_ADMIN', 'DISPERINDAG_ADMIN',
+          'TRADE_EDITOR', 'DISTRIBUTION_EDITOR'
+        ];
     }
 
     function isMediaIntelligenceAdmin() {
@@ -78,13 +86,12 @@ service cloud.firestore {
       return signedIn() && currentUserProfile().status == 'ACTIVE' &&
         currentUserProfile().agentId != null && currentUserProfile().agentId == agentId;
     }
-    
-    // 1. DATA PUBLIK KEDINASAN (Dapat dibaca siapa saja, diedit oleh staf berwenang)
+
+    // 1. DATA PUBLIK KEDINASAN
     match /prices/{docId} {
       allow read: if true;
       allow write: if true;
     }
-    // Snapshot harga aktif untuk wallboard; histori dipisahkan agar listener tetap ringan.
     match /prices_current/{docId} {
       allow read: if true;
       allow write: if request.auth != null;
@@ -96,9 +103,41 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
+
+    // --- INTEGRASI HARGA BAPOK SP2KP KEMENDAG (KABUPATEN PINRANG 7315) ---
+    // CATATAN KEAMANAN market_prices_latest & sp2kp_pilot:
+    // sync_sp2kp.py menggunakan Firestore REST API dengan Firebase API Key saja
+    // (bukan Admin SDK/service account) — write dilakukan sebagai unauthenticated request.
+    // market_prices_latest dan sp2kp_pilot dipertahankan write:true agar pipeline SP2KP
+    // tidak terputus.
+    // TODO: Migrasikan sync_sp2kp.py ke firebase-admin SDK + service account,
+    //       lalu ubah: allow write: if isMarketAdmin() || isSuperAdmin();
+    match /market_prices_latest/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /market_prices_history/{docId} {
+      allow read: if signedIn();
+      allow write: if isMarketAdmin() || isSuperAdmin();
+    }
+    match /sp2kp_pilot/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /sp2kp_sync_snapshots/{docId} {
+      allow read: if signedIn();
+      allow write: if isMarketAdmin() || isSuperAdmin();
+    }
+    match /price_overrides/{docId} {
+      allow read: if signedIn();
+      allow write: if isMarketAdmin() || isSuperAdmin();
+    }
+    match /price_references/{docId} {
+      allow read: if true;
+      allow write: if isMarketAdmin() || isSuperAdmin();
+    }
+
     match /news/{docId} {
-      // Publik hanya boleh membaca rilis yang sudah diterbitkan. Editor yang
-      // terautentikasi tetap dapat membaca draf dari CMS.
       allow read: if resource.data.status == 'published' || signedIn();
       allow create, update, delete: if signedIn() &&
         currentUserProfile().status == 'ACTIVE' &&
@@ -110,7 +149,8 @@ service cloud.firestore {
     }
     match /ikm_products/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if signedIn() && currentUserProfile().status == 'ACTIVE' &&
+        currentUserProfile().role in ['SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'INDUSTRY_ESDM_EDITOR'];
     }
     match /documents/{docId} {
       allow read: if true;
@@ -120,29 +160,41 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
+    // Command Center: write hanya admin — mencegah pemalsuan data wallboard publik.
     match /command_center/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isLpgAdmin() || isSuperAdmin();
     }
     match /districts/{docId} {
       allow read, write: if true;
     }
     match /markets/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update: if isMarketAdmin();
+      allow delete: if false;
+    }
+    match /administrative_villages/{docId} {
+      allow read: if true;
+      allow write: if isLpgAdmin() || isSuperAdmin();
+    }
+    match /administrative_meta/{docId} {
+      allow read: if true;
+      allow write: if isLpgAdmin() || isSuperAdmin();
     }
     match /skm/{docId} {
       allow read, write: if true;
     }
+    match /tvSlides/{docId} {
+      allow read: if true;
+      allow write: if signedIn() && currentUserProfile().status == 'ACTIVE' &&
+        currentUserProfile().role in ['SUPER_ADMIN', 'DISPERINDAGESDM_ADMIN', 'DISPERINDAG_ADMIN', 'PUBLIC_RELATIONS_EDITOR'];
+    }
 
-    // 4. MEDIA INTELLIGENCE HUB (ARSITEKTUR PRODUCTION §26 & §29)
-    // Snapshot Publik: Hanya dokumen mi_public/current yang boleh dibaca publik.
-    // Seluruh penulisan hanya dapat dilakukan oleh Backend Engine melalui WIF/Admin SDK.
+    // 4. MEDIA INTELLIGENCE HUB
     match /mi_public/{docId} {
       allow read: if docId == 'current';
       allow write: if false;
     }
-
-    // Koleksi internal dibaca admin terautentikasi. Write crawler memakai
-    // Admin SDK/WIF; browser hanya boleh melakukan review sempit + audit atomik.
     match /mi_sources/{sourceId} {
       allow read: if isMediaIntelligenceAdmin();
       allow write: if false;
@@ -226,54 +278,43 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Legacy fallback collections (deprecated)
-    match /media_intelligence_feeds/{docId} {
-      allow read, write: if false;
-    }
-    match /media_intelligence_summary/{docId} {
-      allow read, write: if false;
-    }
-    match /media_intelligence_trending/{docId} {
-      allow read, write: if false;
-    }
-    match /dashboard_snapshot/{docId} {
-      allow read, write: if false;
-    }
-    match /dashboard/{docId} {
-      allow read, write: if false;
-    }
-    match /config/{document=**} {
-      allow read, write: if false;
-    }
-    match /mentions/{docId} {
-      allow read, write: if false;
-    }
+    // Legacy deprecated collections
+    match /media_intelligence_feeds/{docId} { allow read, write: if false; }
+    match /media_intelligence_summary/{docId} { allow read, write: if false; }
+    match /media_intelligence_trending/{docId} { allow read, write: if false; }
+    match /dashboard_snapshot/{docId} { allow read, write: if false; }
+    match /dashboard/{docId} { allow read, write: if false; }
+    match /config/{document=**} { allow read, write: if false; }
+    match /mentions/{docId} { allow read, write: if false; }
     match /issues/{docId} {
       allow read: if true;
       allow write: if false;
     }
 
-    // 2. KANAL PENGADUAN MASYARAKAT (SP4N-LAPOR! & WEBSITE)
-    // Publik boleh membuat aduan dengan validasi input terproteksi (UU PDP No. 27/2022)
+    // 2. KANAL PENGADUAN MASYARAKAT
     match /reports/{reportId} {
       allow create: if request.resource.data.pesan != null && request.resource.data.pesan.size() > 5;
       allow read, update, delete: if request.auth != null;
     }
-    // Proyeksi laporan yang sudah disanitasi dan aman ditampilkan pada wallboard publik.
     match /reports_current/{reportId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // 3. MODUL LPG - ledger append-only dan saldo hanya ditulis Admin SDK.
+    // 3. MODUL LPG
     match /lpg_agents/{agentId} {
-      allow read: if isLpgAdmin() || ownsLpgAgent(agentId);
-      allow create, update: if isLpgAdmin();
+      allow read: if true;
+      allow create: if isLpgAdmin();
+      allow update: if isLpgAdmin() || (
+        ownsLpgAgent(agentId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'picName', 'phone', 'email', 'address', 'location', 'updatedAt', 'updatedBy', 'version'
+        ]) && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time
+      );
       allow delete: if false;
     }
 
     match /lpg_pangkalan/{pangkalanId} {
-      allow read: if isLpgAdmin() || ownsLpgAgent(resource.data.agentId);
+      allow read: if true;
       allow create: if isLpgAdmin() || (
         ownsLpgAgent(request.resource.data.agentId) &&
         request.resource.data.status == 'ACTIVE' &&
@@ -287,8 +328,7 @@ service cloud.firestore {
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'name', 'normalizedName', 'ownerName', 'phone', 'kecamatan',
           'desaKelurahan', 'address', 'latitude', 'longitude',
-          'monthlyAllocation', 'notes', 'status', 'isDeleted', 'deletedAt',
-          'deletedBy', 'deleteReason', 'updatedAt', 'updatedBy'
+          'location', 'notes', 'updatedAt', 'updatedBy', 'version'
         ])
       );
       allow delete: if false;
@@ -332,7 +372,42 @@ service cloud.firestore {
 
     match /lpg_balances/{agentId} {
       allow read: if isLpgAdmin() || ownsLpgAgent(agentId);
-      allow write: if false;
+      // Saldo HARUS diubah melalui Firestore Transaction atomik di submitLpgLedgerEvent().
+      // existsAfter/getAfter memastikan write hanya valid dalam transaksi yang juga
+      // membuat lpg_events yang sesuai — mencegah manipulasi saldo di luar ledger.
+      allow create: if (ownsLpgAgent(agentId) || isLpgAdmin()) &&
+        request.resource.data.agentId == agentId &&
+        request.resource.data.filledCylinderBalance is int &&
+        request.resource.data.filledCylinderBalance >= 0 &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.updatedAt == request.time &&
+        existsAfter(/databases/$(database)/documents/lpg_events/$(request.resource.data.lastEventId)) &&
+        getAfter(/databases/$(database)/documents/lpg_events/$(request.resource.data.lastEventId)).data.agentId == agentId &&
+        getAfter(/databases/$(database)/documents/lpg_events/$(request.resource.data.lastEventId)).data.delta == request.resource.data.filledCylinderBalance;
+      allow update: if (ownsLpgAgent(agentId) || isLpgAdmin()) &&
+        request.resource.data.agentId == agentId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'filledCylinderBalance', 'lastEventId', 'updatedAt', 'updatedBy'
+        ]) &&
+        request.resource.data.filledCylinderBalance is int &&
+        request.resource.data.filledCylinderBalance >= 0 &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.updatedAt == request.time &&
+        existsAfter(/databases/$(database)/documents/lpg_events/$(request.resource.data.lastEventId)) &&
+        getAfter(/databases/$(database)/documents/lpg_events/$(request.resource.data.lastEventId)).data.agentId == agentId &&
+        getAfter(/databases/$(database)/documents/lpg_events/$(request.resource.data.lastEventId)).data.delta ==
+          request.resource.data.filledCylinderBalance - resource.data.filledCylinderBalance;
+      allow delete: if false;
+    }
+
+    match /lpg_outlet_change_requests/{requestId} {
+      allow read: if isLpgAdmin() || ownsLpgAgent(resource.data.agentId);
+      allow create: if signedIn() && ownsLpgAgent(request.resource.data.agentId) &&
+        request.resource.data.requestId == requestId && request.resource.data.status == 'PENDING' &&
+        request.resource.data.requestType in ['CREATE_OUTLET', 'DEACTIVATE_OUTLET', 'UPDATE_ADMIN_FIELD'] &&
+        request.resource.data.createdBy == request.auth.uid && request.resource.data.createdAt == request.time;
+      allow update: if isLpgAdmin();
+      allow delete: if false;
     }
 
     match /lpg_audit_logs/{auditId} {
@@ -368,7 +443,7 @@ service cloud.firestore {
       allow create, update: if isLpgAdmin() &&
         request.resource.data.keys().hasOnly([
           'reportingNormalHours', 'reportingLateHours', 'minimumStockCylinders',
-          'noDeliveryAlertDays', 'updatedBy', 'updatedAt'
+          'noDeliveryAlertDays', 'hetPrice', 'hetRegulation', 'updatedBy', 'updatedAt'
         ]) &&
         request.resource.data.reportingNormalHours is int &&
         request.resource.data.reportingNormalHours >= 1 &&
@@ -378,6 +453,8 @@ service cloud.firestore {
         request.resource.data.minimumStockCylinders >= 0 &&
         request.resource.data.noDeliveryAlertDays is int &&
         request.resource.data.noDeliveryAlertDays >= 1 &&
+        request.resource.data.hetPrice is int && request.resource.data.hetPrice > 0 &&
+        request.resource.data.hetRegulation is string && request.resource.data.hetRegulation.size() > 0 &&
         request.resource.data.updatedBy == request.auth.uid &&
         request.resource.data.updatedAt == request.time;
       allow delete: if false;
@@ -401,7 +478,7 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // 4. PENGGUNA & RBAC (Hanya dapat diakses melalui autentikasi resmi)
+    // 4. PENGGUNA & RBAC
     match /users/{userId} {
       allow read: if signedIn() && (request.auth.uid == userId || isLpgAdmin());
       allow create: if isSuperAdmin();
@@ -412,5 +489,30 @@ service cloud.firestore {
       );
       allow delete: if false;
     }
+
+    // 5. PENYALUR BBM (SPBU, APMS, SPBUN, PERTASHOP)
+    match /bbm_outlets/{outletId} {
+      allow read: if true;
+      // Validasi field-level mencegah injeksi HTML/script pada field teks publik.
+      allow create, update: if (isLpgAdmin() || isSuperAdmin()) &&
+        request.resource.data.nama is string &&
+        request.resource.data.nama.size() > 0 &&
+        request.resource.data.nama.size() <= 200 &&
+        request.resource.data.kode is string &&
+        request.resource.data.kode.size() > 0 &&
+        request.resource.data.kode.size() <= 50 &&
+        (request.resource.data.foto == null ||
+          (request.resource.data.foto is string &&
+           !request.resource.data.foto.matches('data:image.*') &&
+           request.resource.data.foto.size() <= 2048));
+      allow delete: if isSuperAdmin();
+    }
+
+    match /bbm_audit_logs/{logId} {
+      allow read: if isLpgAdmin() || isSuperAdmin();
+      allow create: if isLpgAdmin() || isSuperAdmin();
+      allow update, delete: if false;
+    }
+
   }
 }

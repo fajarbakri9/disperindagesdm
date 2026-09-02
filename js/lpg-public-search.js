@@ -1,23 +1,22 @@
 /**
  * Disperindag ESDM Pinrang - Kanal Publik Cek Pangkalan LPG 3 Kg Resmi
- * Menampilkan dan memfilter 681 pangkalan resmi terdaftar di 12 Kecamatan
+ * Menampilkan dan memfilter master pangkalan resmi dari Firestore.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   initPublicLpgSearch();
 });
 
-function initPublicLpgSearch() {
+async function initPublicLpgSearch() {
   const container = document.getElementById('publicLpgResultsList');
   if (!container) return;
 
   const searchInput = document.getElementById('publicLpgSearchInput');
   const kecSelect = document.getElementById('publicLpgKecSelect');
+  let officialHet = null;
 
   function getActivePangkalan() {
-    const raw = (typeof getLpgStore === 'function') 
-      ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []) 
-      : ((typeof LPG_SEED_PANGKALAN !== 'undefined') ? LPG_SEED_PANGKALAN : []);
+    const raw = (typeof getLpgStore === 'function') ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []) : [];
     return raw.filter(p => !p.isDeleted);
   }
 
@@ -80,7 +79,7 @@ function initPublicLpgSearch() {
           </div>
         </div>
         <div style="padding-top:10px; border-top:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:0.75rem; color:#059669; font-weight:800;">HET: Rp 18.500</span>
+          <span style="font-size:0.75rem; color:#059669; font-weight:800;">${officialHet===null?'HET belum tersedia':`HET: Rp ${officialHet.toLocaleString('id-ID')}`}</span>
           <a href="#pengaduan" onclick="prefillComplaintLpg('${p.name.replace(/'/g, "\\'")}', '${p.kecamatan}')" style="font-size:0.74rem; color:#DC2626; font-weight:700; text-decoration:none;">
             Laporkan &rarr;
           </a>
@@ -93,6 +92,16 @@ function initPublicLpgSearch() {
   if (kecSelect) kecSelect.addEventListener('change', renderList);
 
   renderList();
+  if(typeof db!=='undefined'&&db){try{const setting=await db.collection('lpg_settings').doc('operational').get({source:'server'});officialHet=setting.exists&&Number.isFinite(Number(setting.data().hetPrice))?Number(setting.data().hetPrice):null;renderList();}catch(error){console.warn('[LPG][FIRESTORE_READ_ERROR]',{operation:'publicHet',code:error.code});}}
+  if (typeof loadCanonicalLpgMasterOnce === 'function') {
+    const result = await loadCanonicalLpgMasterOnce();
+    if (String(result.source || '').startsWith('FIRESTORE')) renderList();
+  }
+  if (typeof subscribeCanonicalLpgMaster === 'function' && !window.__publicLpgMasterUnsubscribe) {
+    window.__publicLpgMasterUnsubscribe = subscribeCanonicalLpgMaster(result => {
+      if (String(result.source || '').startsWith('FIRESTORE')) renderList();
+    });
+  }
 }
 
 window.prefillComplaintLpg = function(pangkalanName, kecamatan) {
@@ -103,6 +112,6 @@ window.prefillComplaintLpg = function(pangkalanName, kecamatan) {
   if (formKat) formKat.value = 'ESDM & LPG 3 Kg';
   if (formSub) formSub.value = `Pengaduan Pangkalan LPG 3 Kg: ${pangkalanName}`;
   if (formIsi) {
-    formIsi.value = `Nama Pangkalan: ${pangkalanName}\nKecamatan: ${kecamatan}\n\nUraian Laporan/Temuan:\n(Contoh: Penjualan tabung melon di atas HET resmi Rp 18.500 / penolakan pembelian dengan KTP / kelangkaan stok)`;
+    formIsi.value = `Nama Pangkalan: ${pangkalanName}\nKecamatan: ${kecamatan}\n\nUraian Laporan/Temuan:\n(Contoh: Penjualan di atas HET resmi yang berlaku / penolakan pembelian dengan KTP / kelangkaan stok)`;
   }
 };
