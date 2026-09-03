@@ -106,7 +106,9 @@
 
       const rawSource = Number(sourceItem.sourcePrice || sourceItem.price || 0);
       const hasValidSource = Number.isFinite(rawSource) && rawSource > 0;
-      const overrideValid = this.isOverrideActive(activeOverride);
+      // Override hanya boleh mengoreksi harga resmi yang benar-benar tersedia;
+      // ia tidak boleh menjadi sumber pengganti ketika SP2KP kosong/gagal.
+      const overrideValid = hasValidSource && this.isOverrideActive(activeOverride);
 
       const diffVal = Number(sourceItem.diff || sourceItem.delta || 0);
       const trendVal = sourceItem.trend || (diffVal > 0 ? 'up' : (diffVal < 0 ? 'down' : 'stable'));

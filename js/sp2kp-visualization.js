@@ -37,6 +37,20 @@
   function refresh(){const selected=products.find(item=>String(item.variantId)===commodity.value);if(!selected||!dateInput.value)return;const token=++requestToken;status.textContent=`Memuat ${selected.commodityName} untuk tanggal ${dateInput.value} dari SP2KP…`;Promise.allSettled([renderMap(selected.variantId,dateInput.value,selected.commodityName,token),renderTrend(selected.variantId,dateInput.value,selected.commodityName,token)]).then(()=>{if(token===requestToken)status.textContent=`Visualisasi ${selected.commodityName} • data ${dateInput.value} • sinkron dengan sumber SP2KP.`})}
   function initialize(items){products=items.filter(item=>item.variantId&&item.commodityName&&Number(item.sourcePrice)>0).sort((a,b)=>a.commodityName.localeCompare(b.commodityName,"id"));if(!products.length){commodity.innerHTML='<option value="">Data SP2KP belum tersedia</option>';empty("sp2kpProvinceMap","Visualisasi menunggu snapshot harga resmi SP2KP.");empty("sp2kpTrendChart","Visualisasi menunggu snapshot harga resmi SP2KP.");status.textContent="Belum ada snapshot SP2KP yang dapat divisualisasikan.";return}initialized=true;commodity.innerHTML=products.map(item=>`<option value="${item.variantId}">${item.commodityName}</option>`).join("");const latest=products.map(item=>item.dataDate).filter(Boolean).sort().pop()||iso(new Date());dateInput.value=latest;dateInput.max=iso(new Date());refresh()}
   commodity.addEventListener("change",refresh);dateInput.addEventListener("change",refresh);
-  if(typeof db!=="undefined"&&db){db.collection("market_prices_latest").onSnapshot(snapshot=>{const items=[];snapshot.forEach(doc=>items.push(doc.data()));initialize(items)},error=>console.warn("SP2KP visualization snapshot:",error))}
-  setTimeout(async()=>{if(initialized)return;try{const apiKey=typeof firebaseConfig!=="undefined"?firebaseConfig.apiKey:"";const payload=await json(`https://firestore.googleapis.com/v1/projects/disperindagesdm-pinrang/databases/(default)/documents/market_prices_latest?pageSize=100&key=${encodeURIComponent(apiKey)}`);const decode=value=>value?.stringValue??Number(value?.integerValue??value?.doubleValue??0);const items=(payload.documents||[]).map(doc=>Object.fromEntries(Object.entries(doc.fields||{}).map(([field,value])=>[field,decode(value)])));initialize(items)}catch(error){console.warn("SP2KP visualization REST fallback:",error);initialize([])}},3500);
+  if(typeof db!=="undefined"&&db){
+    db.collection("market_prices_latest").onSnapshot(snapshot=>{
+      const items=[];snapshot.forEach(doc=>items.push(doc.data()));initialize(items)
+    },error=>{
+      console.warn("SP2KP visualization snapshot:",error);
+      commodity.innerHTML='<option value="">Data tidak dapat dimuat</option>';
+      empty("sp2kpProvinceMap","Peta tidak dapat dimuat karena koneksi Firestore bermasalah.");
+      empty("sp2kpTrendChart","Grafik tidak dapat dimuat karena koneksi Firestore bermasalah.");
+      status.textContent="Data SP2KP gagal dimuat dari Firestore. Tidak ada sumber pengganti yang digunakan.";
+    })
+  }else{
+    commodity.innerHTML='<option value="">Firestore tidak tersedia</option>';
+    empty("sp2kpProvinceMap","Peta tidak dapat dimuat karena Firestore tidak tersedia.");
+    empty("sp2kpTrendChart","Grafik tidak dapat dimuat karena Firestore tidak tersedia.");
+    status.textContent="Firestore tidak tersedia. Tidak ada sumber pengganti yang digunakan.";
+  }
 })();

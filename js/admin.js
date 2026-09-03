@@ -2,6 +2,11 @@
 // CMS ADMINISTRATOR CONTROLLER - DISPERINDAG ESDM PINRANG (PRODUCTION READY)
 // ==============================================================================
 
+let adminCloudReports = null;
+function getAdminReportsData() {
+  return Array.isArray(adminCloudReports) ? adminCloudReports : [];
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const currentSession = requireAuth(['admin']);
   if (!currentSession) return;
@@ -55,6 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
           renderAdminBanners();
         }
       }, err => console.warn("Firestore Admin Banners Sync:", err));
+
+      db.collection('reports').onSnapshot(snapshot => {
+        adminCloudReports = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        adminCloudReports.sort((a, b) => {
+          const av = a.createdAt?.toMillis?.() || 0;
+          const bv = b.createdAt?.toMillis?.() || 0;
+          return bv - av;
+        });
+        renderAdminReports();
+      }, err => {
+        adminCloudReports = [];
+        console.warn('Firestore Admin Reports Sync:', err.code || err.message);
+        renderAdminReports();
+      });
     } catch(e) {}
   }
 
@@ -2584,27 +2603,29 @@ function renderAdminReports() {
   const tbody = document.getElementById('adminReportsTableBody');
   if (!tbody) return;
 
-  const reports = getStorage('disperindag_reports', DEFAULT_REPORTS);
+  const reports = getAdminReportsData();
   tbody.innerHTML = reports.map(r => {
+    const text = (value, fallback = '-') => escapeAdminUserText(value, fallback);
     let statusClass = 'diproses';
-    if (r.status.includes('Selesai')) statusClass = 'selesai';
-    else if (r.status.includes('Diterima')) statusClass = 'diterima';
+    const status = String(r.status || 'Diterima & Registrasi');
+    if (status.includes('Selesai')) statusClass = 'selesai';
+    else if (status.includes('Diterima')) statusClass = 'diterima';
 
     const sourceBadge = r.source_channel || 'Website Portal';
 
     return `
       <tr>
         <td style="white-space: nowrap;">
-          <strong style="color: #1E40AF; font-size: 0.88rem; font-family: monospace;">${r.ticket_number || 'DPE-2026-000101'}</strong><br>
+          <strong style="color: #1E40AF; font-size: 0.88rem; font-family: monospace;">${text(r.ticket_number, 'DPE-2026')}</strong><br>
           <span style="font-size: 0.70rem; background: #EFF6FF; color: #1D4ED8; padding: 2px 6px; border-radius: 4px; font-weight: 700; display: inline-block; margin-top: 2px; border: 1px solid #DBEAFE;">📡 ${sourceBadge}</span>
         </td>
-        <td style="white-space: nowrap;"><small style="color: #475569; font-weight: 600;">${r.submitted_at}</small></td>
+        <td style="white-space: nowrap;"><small style="color: #475569; font-weight: 600;">${text(r.submitted_at)}</small></td>
         <td><strong style="color: #0F172A; font-size: 0.86rem;">${r.nama}</strong><br><small style="color: #64748B;">📱 ${r.kontak}</small></td>
         <td><strong style="color: #1E293B; font-size: 0.86rem;">${r.kategori}</strong><br><small style="color: #64748B;">📍 ${r.lokasi}</small></td>
         <td><span style="font-size: 0.8rem; font-weight: 700; color: #0F2C59;">${r.assigned_unit || 'Bidang Teknis'}</span></td>
         <td style="text-align: center; white-space: nowrap;">
           <span class="verified-badge ${statusClass}" style="white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;">
-            ${r.status}
+            ${text(status)}
           </span>
         </td>
         <td style="text-align: center; white-space: nowrap;">
@@ -2623,7 +2644,7 @@ function renderAdminReports() {
 }
 
 window.viewReportDetail = function(repId) {
-  const reports = getStorage('disperindag_reports', DEFAULT_REPORTS);
+  const reports = getAdminReportsData();
   const r = reports.find(item => item.id === repId);
   if (!r) return;
 
@@ -2668,7 +2689,7 @@ window.viewReportDetail = function(repId) {
 };
 
 window.openEditReportModal = function(repId) {
-  const reports = getStorage('disperindag_reports', DEFAULT_REPORTS);
+  const reports = getAdminReportsData();
   const r = reports.find(item => item.id === repId);
   if (!r) return;
 
@@ -2714,30 +2735,30 @@ window.openEditReportModal = function(repId) {
         rows: 4
       }
     ],
-    onSubmit: (vals) => {
-      r.status = vals.status;
-      r.assigned_unit = vals.assigned_unit;
-      r.resolution = vals.resolution;
-      r.updated_at = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + " WITA";
+    onSubmit: async (vals) => {
+      if (typeof db === 'undefined' || !db) throw new Error('Firestore tidak tersedia; perubahan tidak disimpan.');
+      const update = {
+        status: vals.status,
+        assigned_unit: vals.assigned_unit,
+        resolution: vals.resolution,
+        updated_at: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + " WITA",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
 
       // Sinkronkan step numerik
-      if (vals.status.includes('Diterima')) r.step = 1;
-      else if (vals.status.includes('Verifikasi')) r.step = 2;
-      else if (vals.status.includes('Penugasan')) r.step = 3;
-      else if (vals.status.includes('Ditindaklanjuti') || vals.status.includes('Sidak')) r.step = 4;
-      else if (vals.status.includes('Respon')) r.step = 5;
-      else if (vals.status.includes('Selesai')) r.step = 6;
-      else r.step = 1;
+      if (vals.status.includes('Diterima')) update.step = 1;
+      else if (vals.status.includes('Verifikasi')) update.step = 2;
+      else if (vals.status.includes('Penugasan')) update.step = 3;
+      else if (vals.status.includes('Ditindaklanjuti') || vals.status.includes('Sidak')) update.step = 4;
+      else if (vals.status.includes('Respon')) update.step = 5;
+      else if (vals.status.includes('Selesai')) update.step = 6;
+      else update.step = 1;
 
-      setStorage('disperindag_reports', reports);
-
-      if (typeof db !== 'undefined' && db) {
-        db.collection('reports').doc(r.id).set(r, { merge: true }).catch(e => console.warn(e));
-      }
-
+      await db.collection('reports').doc(r.id).update(update);
+      Object.assign(r, update);
       renderAdminReports();
-      logAdminActivity('Pengaduan', `Tindak lanjut tiket ${r.ticket_number} (${r.status})`);
-      CustomModal.toast(`Tiket ${r.ticket_number} berhasil diperbarui menjadi '${r.status}'!`, "success");
+      logAdminActivity('Pengaduan', `Tindak lanjut tiket ${r.ticket_number} (${vals.status})`);
+      CustomModal.toast(`Tiket ${r.ticket_number} berhasil diperbarui menjadi '${vals.status}'!`, "success");
     }
   });
 };
@@ -3578,7 +3599,7 @@ window.exportAllDataJSON = function() {
     disperindag_banners: getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []),
     disperindag_documents: getStorage('disperindag_documents', typeof DEFAULT_DOCUMENTS !== 'undefined' ? DEFAULT_DOCUMENTS : []),
     disperindag_products_ikm: getStorage('disperindag_products_ikm', typeof DEFAULT_PRODUCTS_IKM !== 'undefined' ? DEFAULT_PRODUCTS_IKM : []),
-    disperindag_reports: getStorage('disperindag_reports', typeof DEFAULT_REPORTS !== 'undefined' ? DEFAULT_REPORTS : []),
+    disperindag_reports: getAdminReportsData(),
     disperindag_districts: getStorage('disperindag_districts', DEFAULT_DISTRICTS_STATUS),
     disperindag_command_center: getStorage('disperindag_command_center', DEFAULT_COMMAND_CENTER_CONFIG),
     disperindag_site_settings: getStorage('disperindag_site_settings', DEFAULT_SITE_SETTINGS),

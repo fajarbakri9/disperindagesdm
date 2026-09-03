@@ -38,6 +38,23 @@ service cloud.firestore {
         ];
     }
 
+    function isContentAdmin() {
+      return signedIn() && currentUserProfile().status == 'ACTIVE' &&
+        currentUserProfile().role in [
+          'SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'SECRETARIAT_ADMIN',
+          'TRADE_EDITOR', 'INDUSTRY_ESDM_EDITOR', 'METROLOGY_EDITOR',
+          'DISTRIBUTION_EDITOR', 'PUBLIC_RELATIONS_EDITOR', 'LPG_ADMIN'
+        ];
+    }
+
+    function isReportsAdmin() {
+      return signedIn() && currentUserProfile().status == 'ACTIVE' &&
+        currentUserProfile().role in [
+          'SUPER_ADMIN', 'DISPERINDAG_ADMIN', 'SECRETARIAT_ADMIN',
+          'PUBLIC_RELATIONS_EDITOR'
+        ];
+    }
+
     function validMediaReviewAudit(eventId, entityType, entityId) {
       let audit = getAfter(/databases/$(database)/documents/mi_audit_logs/$(eventId));
       return eventId is string && eventId.size() >= 16 && eventId.size() <= 100 &&
@@ -90,43 +107,39 @@ service cloud.firestore {
     // 1. DATA PUBLIK KEDINASAN
     match /prices/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /prices_current/{docId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isMarketAdmin();
     }
     match /price_history/{docId} {
-      allow read, write: if request.auth != null;
+      allow read: if isMarketAdmin();
+      allow write: if false;
     }
     match /sembako/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
 
     // --- INTEGRASI HARGA BAPOK SP2KP KEMENDAG (KABUPATEN PINRANG 7315) ---
-    // CATATAN KEAMANAN market_prices_latest & sp2kp_pilot:
-    // sync_sp2kp.py menggunakan Firestore REST API dengan Firebase API Key saja
-    // (bukan Admin SDK/service account) — write dilakukan sebagai unauthenticated request.
-    // market_prices_latest dan sp2kp_pilot dipertahankan write:true agar pipeline SP2KP
-    // tidak terputus.
-    // TODO: Migrasikan sync_sp2kp.py ke firebase-admin SDK + service account,
-    //       lalu ubah: allow write: if isMarketAdmin() || isSuperAdmin();
+    // Writer SP2KP hanya berjalan pada lingkungan tepercaya melalui Admin SDK
+    // dan ADC/WIF. Seluruh client browser tetap read-only.
     match /market_prices_latest/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /market_prices_history/{docId} {
       allow read: if signedIn();
-      allow write: if isMarketAdmin() || isSuperAdmin();
+      allow write: if false;
     }
     match /sp2kp_pilot/{docId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isMarketAdmin();
+      allow write: if false;
     }
     match /sp2kp_sync_snapshots/{docId} {
       allow read: if signedIn();
-      allow write: if isMarketAdmin() || isSuperAdmin();
+      allow write: if false;
     }
     match /price_overrides/{docId} {
       allow read: if signedIn();
@@ -135,6 +148,64 @@ service cloud.firestore {
     match /price_references/{docId} {
       allow read: if true;
       allow write: if isMarketAdmin() || isSuperAdmin();
+    }
+
+    // Monitoring harga pasar lokal adalah sumber independen dari SP2KP.
+    // Publik hanya dapat membaca batch dan observasi yang telah diterbitkan.
+    match /marketPriceSources/{docId} {
+      allow read: if (resource.data.status == 'active') || isMarketAdmin();
+      allow create, update: if isMarketAdmin();
+      allow delete: if false;
+    }
+    match /marketCommodityMappings/{docId} {
+      allow read, create, update: if isMarketAdmin();
+      allow delete: if false;
+    }
+    match /marketPriceImportBatches/{docId} {
+      allow read: if resource.data.status == 'published' || isMarketAdmin();
+      allow create: if isMarketAdmin() &&
+        request.resource.data.batchId == docId &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.status in ['staging', 'needs_review'] &&
+        request.resource.data.fileHash is string && request.resource.data.fileHash.size() == 64 &&
+        request.resource.data.marketId is string &&
+        exists(/databases/$(database)/documents/markets/$(request.resource.data.marketId));
+      allow update: if isMarketAdmin() && resource.data.status != 'published' &&
+        request.resource.data.batchId == resource.data.batchId &&
+        request.resource.data.fileHash == resource.data.fileHash &&
+        request.resource.data.marketId == resource.data.marketId &&
+        request.resource.data.createdBy == resource.data.createdBy &&
+        request.resource.data.status in ['staging', 'needs_review', 'failed', 'published'];
+      allow delete: if false;
+    }
+    match /marketPriceObservations/{docId} {
+      allow read: if isMarketAdmin();
+      allow create: if isMarketAdmin() &&
+        request.resource.data.status == 'staged' &&
+        request.resource.data.dataStatus == 'valid' &&
+        request.resource.data.price is number && request.resource.data.price > 0 &&
+        request.resource.data.batchId is string &&
+        request.resource.data.marketId is string &&
+        exists(/databases/$(database)/documents/markets/$(request.resource.data.marketId));
+      allow update: if false;
+      allow delete: if false;
+    }
+    match /marketPricePublications/{docId} {
+      allow read: if resource.data.status == 'published' && resource.data.dataStatus == 'valid';
+      allow create: if isMarketAdmin() &&
+        request.resource.data.batchId == docId && request.resource.data.status == 'published' &&
+        request.resource.data.dataStatus == 'valid' && request.resource.data.observations is list &&
+        request.resource.data.observations.size() > 0 && request.resource.data.observations.size() <= 2000 &&
+        getAfter(/databases/$(database)/documents/marketPriceImportBatches/$(docId)).data.status == 'published';
+      allow update, delete: if false;
+    }
+    match /marketPriceAuditLogs/{docId} {
+      allow read: if isMarketAdmin();
+      allow create: if isMarketAdmin() &&
+        request.resource.data.eventId == docId &&
+        request.resource.data.actorUid == request.auth.uid &&
+        request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
     }
 
     match /news/{docId} {
@@ -154,11 +225,11 @@ service cloud.firestore {
     }
     match /documents/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     match /banners/{docId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
     }
     // Command Center: write hanya admin — mencegah pemalsuan data wallboard publik.
     match /command_center/{document=**} {
@@ -166,7 +237,8 @@ service cloud.firestore {
       allow write: if isLpgAdmin() || isSuperAdmin();
     }
     match /districts/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if false;
     }
     match /markets/{docId} {
       allow read: if true;
@@ -182,7 +254,30 @@ service cloud.firestore {
       allow write: if isLpgAdmin() || isSuperAdmin();
     }
     match /skm/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if false;
+    }
+    match /settings/banners {
+      allow read: if true;
+      allow create, update: if isContentAdmin() &&
+        request.resource.data.keys().hasOnly(['list', 'deleted_ids', 'updated_at']) &&
+        request.resource.data.list is list && request.resource.data.list.size() <= 30 &&
+        (!request.resource.data.keys().hasAny(['deleted_ids']) ||
+          (request.resource.data.deleted_ids is list && request.resource.data.deleted_ids.size() <= 500)) &&
+        (!request.resource.data.keys().hasAny(['updated_at']) || request.resource.data.updated_at is string);
+      allow delete: if false;
+    }
+    match /settings/deleted_news {
+      allow read: if isContentAdmin();
+      allow create, update: if isContentAdmin() &&
+        request.resource.data.keys().hasOnly(['list', 'updatedAt']) &&
+        request.resource.data.list is list && request.resource.data.list.size() <= 500;
+      allow delete: if false;
+    }
+    match /system_config/{configId} {
+      allow read: if isContentAdmin();
+      allow create, update: if isSuperAdmin();
+      allow delete: if false;
     }
     match /tvSlides/{docId} {
       allow read: if true;
@@ -293,8 +388,38 @@ service cloud.firestore {
 
     // 2. KANAL PENGADUAN MASYARAKAT
     match /reports/{reportId} {
-      allow create: if request.resource.data.pesan != null && request.resource.data.pesan.size() > 5;
-      allow read, update, delete: if request.auth != null;
+      allow create: if request.resource.data.keys().hasOnly([
+          'id', 'ticket_number', 'submitted_at', 'nama', 'kontak', 'kategori',
+          'lokasi', 'judul', 'pesan', 'assigned_unit', 'status', 'resolution',
+          'createdAt'
+        ]) &&
+        request.resource.data.id == reportId && request.resource.data.id is string && request.resource.data.id.size() >= 12 && request.resource.data.id.size() <= 80 && request.resource.data.id.matches('[A-Za-z0-9_-]+') &&
+        request.resource.data.ticket_number is string && request.resource.data.ticket_number.matches('DPE-[0-9]{4}-[0-9]{6}') &&
+        request.resource.data.nama is string && request.resource.data.nama.size() >= 2 && request.resource.data.nama.size() <= 120 && request.resource.data.nama.matches('[^<>]*') &&
+        request.resource.data.kontak is string && request.resource.data.kontak.size() >= 6 && request.resource.data.kontak.size() <= 40 && request.resource.data.kontak.matches('[^<>]*') &&
+        request.resource.data.kategori is string && request.resource.data.kategori.size() >= 2 && request.resource.data.kategori.size() <= 80 && request.resource.data.kategori.matches('[^<>]*') &&
+        request.resource.data.lokasi is string && request.resource.data.lokasi.size() <= 200 && request.resource.data.lokasi.matches('[^<>]*') &&
+        request.resource.data.judul is string && request.resource.data.judul.size() <= 200 && request.resource.data.judul.matches('[^<>]*') &&
+        request.resource.data.pesan is string && request.resource.data.pesan.size() >= 6 && request.resource.data.pesan.size() <= 4000 && request.resource.data.pesan.matches('[^<>]*') &&
+        request.resource.data.assigned_unit is string && request.resource.data.assigned_unit.size() <= 120 &&
+        request.resource.data.status == 'Diterima & Sedang Diverifikasi' &&
+        request.resource.data.resolution is string && request.resource.data.resolution.size() <= 300 &&
+        request.resource.data.createdAt == request.time;
+      allow read: if isReportsAdmin();
+      allow update: if isReportsAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'assigned_unit', 'resolution', 'step', 'updated_at', 'updatedAt'
+        ]) &&
+        request.resource.data.status in [
+          'Diterima & Registrasi', 'Verifikasi & Analisis', 'Penugasan Unit Lapangan',
+          'Sedang Ditindaklanjuti Tim', 'Penyusunan Respon Pelapor',
+          'Selesai Ditindaklanjuti', 'Ditolak / Tidak Sesuai Kewenangan'
+        ] &&
+        request.resource.data.assigned_unit is string && request.resource.data.assigned_unit.size() <= 160 && request.resource.data.assigned_unit.matches('[^<>]*') &&
+        request.resource.data.resolution is string && request.resource.data.resolution.size() <= 4000 && request.resource.data.resolution.matches('[^<>]*') &&
+        request.resource.data.step is int && request.resource.data.step >= 1 && request.resource.data.step <= 6 &&
+        request.resource.data.updated_at is string && request.resource.data.updatedAt == request.time;
+      allow delete: if isSuperAdmin();
     }
     match /reports_current/{reportId} {
       allow read: if true;

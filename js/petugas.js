@@ -686,7 +686,8 @@ function renderHumasModule(container) {
 
 // 8. MODUL 5: PETUGAS ADUAN (KOTAK MASUK ADUAN WARGA)
 function renderAduanModule(container) {
-  const reports = getStorage('disperindag_reports', typeof DEFAULT_REPORTS !== 'undefined' ? DEFAULT_REPORTS : []);
+  // Tidak ada data contoh/cache: daftar kosong sampai integrasi Firestore berotorisasi tersedia.
+  const reports = [];
 
   container.innerHTML = `
     <div class="app-section-title">
@@ -719,6 +720,14 @@ function renderAduanModule(container) {
 }
 
 window.updateAduanMobile = async function(id) {
+  CustomModal.alert({
+    title: "Gunakan CMS Admin",
+    message: "Perubahan tidak dilakukan. Pembaruan aduan wajib melalui Firestore resmi di CMS Admin.",
+    icon: "🔒",
+    type: "warning"
+  });
+  return;
+
   const reports = getStorage('disperindag_reports', typeof DEFAULT_REPORTS !== 'undefined' ? DEFAULT_REPORTS : []);
   const r = reports.find(item => item.id === id);
   if (!r) return;
@@ -749,7 +758,7 @@ window.updateAduanMobile = async function(id) {
 function renderSuperAdminModule(container) {
   const prices = getStorage('disperindag_prices', typeof DEFAULT_COMMODITY_PRICES !== 'undefined' ? DEFAULT_COMMODITY_PRICES : []);
   const news = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
-  const reports = getStorage('disperindag_reports', typeof DEFAULT_REPORTS !== 'undefined' ? DEFAULT_REPORTS : []);
+  const reports = [];
 
   container.innerHTML = `
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">

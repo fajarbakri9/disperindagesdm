@@ -1,79 +1,66 @@
 (function (window) {
   'use strict';
-  const STORAGE_KEY = 'disperindag_markets_directory';
-  const VERSION_KEY = 'disperindag_markets_directory_version';
+
   const DATA_VERSION = '2026-08-31-market-single-source-v3';
   const PINRANG_BOUNDS = { south: -4.18, north: -3.25, west: 119.25, east: 120.05 };
-  const defaults = () => Array.isArray(window.PINRANG_ALL_MARKETS) ? window.PINRANG_ALL_MARKETS : [];
-  const clone = value => JSON.parse(JSON.stringify(value));
 
   function validCoordinate(lat, lng) {
-    const y=Number(lat), x=Number(lng);
-    return Number.isFinite(y) && Number.isFinite(x) &&
-      y >= PINRANG_BOUNDS.south && y <= PINRANG_BOUNDS.north &&
-      x >= PINRANG_BOUNDS.west && x <= PINRANG_BOUNDS.east;
+    const latitude = Number(lat);
+    const longitude = Number(lng);
+    return Number.isFinite(latitude) && Number.isFinite(longitude) &&
+      latitude >= PINRANG_BOUNDS.south && latitude <= PINRANG_BOUNDS.north &&
+      longitude >= PINRANG_BOUNDS.west && longitude <= PINRANG_BOUNDS.east;
   }
 
-  function hasCmsRevision(item) {
-    return Boolean(item && item.updatedBy && item.updatedAt);
-  }
+  function normalizeMarket(id, source) {
+    const item = { ...(source || {}), id };
+    item.nama = String(item.nama || item.name || '').trim();
+    item.kecamatan = String(item.kecamatan || item.district || '').trim();
+    item.desaKelurahan = String(item.desaKelurahan || item.village || '').trim();
+    item.alamat = String(item.alamat || item.address || '').trim();
+    item.slug = String(item.slug || id).trim();
+    item.deskripsi = String(item.deskripsi || item.description || '').trim();
+    item.fotoUtama = String(item.fotoUtama || item.image || '').trim();
 
-  function reconcile(fallback, candidate) {
-    if (!candidate) return clone(fallback);
-    // Revisi CMS eksplisit (punya updatedBy) selalu menang atas seed.
-    if (hasCmsRevision(candidate)) {
-      const merged={...fallback,...candidate};
-      if (!validCoordinate(merged.latitude,merged.longitude)) {
-        merged.latitude=null; merged.longitude=null;
-        merged.statusKoordinat='PERLU_VERIFIKASI';
-      }
-      return merged;
+    const rawStatus = String(item.statusOperasional || item.status || 'perlu-verifikasi').toLowerCase();
+    item.statusOperasional = rawStatus === 'aktif' || rawStatus === 'active'
+      ? 'aktif'
+      : rawStatus === 'tidak-aktif' || rawStatus === 'inactive'
+        ? 'tidak-aktif'
+        : 'perlu-verifikasi';
+    item.statusLabel = item.statusLabel || (
+      item.statusOperasional === 'aktif' ? 'Aktif' :
+      item.statusOperasional === 'tidak-aktif' ? 'Tidak Aktif' : 'Perlu Verifikasi'
+    );
+
+    if (!validCoordinate(item.latitude, item.longitude)) {
+      item.latitude = null;
+      item.longitude = null;
+      item.statusKoordinat = 'PERLU_VERIFIKASI';
     }
-    // Candidate tanpa updatedBy (cache localStorage lama / seed): bandingkan
-    // timestamp. Fallback (seed/master) menang jika candidate tidak lebih baru.
-    const candTs = candidate.updatedAt || candidate.updated_at || null;
-    const fallTs = fallback.updatedAt || fallback.updated_at || null;
-    if (candTs && fallTs && candTs > fallTs) {
-      return {...fallback,...candidate};
-    }
-    return clone(fallback);
+    return item;
   }
 
   const MarketEngine = {
-    // In-memory snapshot dari Firestore. Sumber tunggal yang dipakai oleh
-    // semua fungsi setelah initRealtimeSync() berhasil. Tidak ada fallback
-    // ke localStorage setelah snapshot cloud diterima.
     _cloudData: [],
     _cloudReady: false,
 
     getAll() {
-      // 1. Snapshot Firestore sudah siap — gunakan langsung.
-      if (this._cloudReady && this._cloudData.length > 0) {
-        return this._cloudData.map(item => ({...item}));
-      }
-      // 2. Firestore belum siap (first paint saja): coba cache localStorage
-      //    dengan versi yang cocok. Setelah initRealtimeSync() berhasil,
-      //    _cloudReady = true dan jalur ini tidak akan dieksekusi lagi.
-      try {
-        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-        const version = localStorage.getItem(VERSION_KEY);
-        if (Array.isArray(stored) && stored.length && version === DATA_VERSION) {
-          const legacy = new Map(stored.map(item => [item.id, item]));
-          return clone(defaults()).map(master => reconcile(master, legacy.get(master.id)));
-        }
-      } catch (error) { console.warn('[MarketEngine] Cache lokal tidak valid, diabaikan:', error); }
-      // 3. Tidak ada cache valid: pakai seed statis.
-      return clone(defaults());
+      return this._cloudData.map(item => ({ ...item }));
     },
 
-    saveLocal(items) {
+    setCloudData(items) {
+      this._cloudData = Array.isArray(items) ? items.map(item => ({ ...item })) : [];
+      this._cloudReady = true;
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        localStorage.setItem(VERSION_KEY, DATA_VERSION);
-      } catch (error) { console.warn('[MarketEngine] Gagal menyimpan cache lokal:', error); }
+        localStorage.removeItem('disperindag_markets_directory');
+        localStorage.removeItem('disperindag_markets_directory_version');
+      } catch (_) {}
     },
 
-    getById(id) { return this.getAll().find(item => item.id === id || item.slug === id) || null; },
+    getById(id) {
+      return this.getAll().find(item => item.id === id || item.slug === id) || null;
+    },
 
     validate(item) {
       if (!String(item.nama || '').trim()) throw new Error('Nama pasar wajib diisi.');
@@ -86,48 +73,55 @@
 
     async save(item) {
       this.validate(item);
-      // Tulis ke Firestore; snapshot realtime memperbarui _cloudData otomatis.
-      const saved={...item, updatedAt:new Date().toISOString(), updatedBy: item.updatedBy || 'cms'};
-      const cloud=await this.syncToCloud(saved);
-      return {item:saved, cloud};
+      const saved = { ...item, updatedAt: new Date().toISOString(), updatedBy: item.updatedBy || 'cms' };
+      const cloud = await this.syncToCloud(saved);
+      if (!cloud.success) throw new Error(cloud.error || 'Firestore tidak tersedia; data pasar tidak disimpan.');
+      return { item: saved, cloud };
     },
 
     async syncToCloud(item) {
-      if (typeof db === 'undefined' || !db) return {success:false, offline:true};
+      if (typeof db === 'undefined' || !db) return { success: false, error: 'Firestore tidak tersedia.' };
       try {
-        const serverTime=(window.firebase && firebase.firestore && firebase.firestore.FieldValue)
+        const serverTime = window.firebase && firebase.firestore && firebase.firestore.FieldValue
           ? firebase.firestore.FieldValue.serverTimestamp() : item.updatedAt;
-        const payload={...item,updatedAt:serverTime,updated_at:serverTime};
+        const payload = { ...item, updatedAt: serverTime, updated_at: serverTime };
         await Promise.race([
-          db.collection('markets').doc(item.id).set(payload, {merge:true}),
+          db.collection('markets').doc(item.id).set(payload, { merge: true }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout sinkronisasi pasar')), 7000))
         ]);
-        return {success:true};
-      } catch (error) { return {success:false, error:error.message}; }
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
     },
 
     initRealtimeSync(callback) {
-      if (typeof db === 'undefined' || !db) return null;
+      if (typeof db === 'undefined' || !db) {
+        this.setCloudData([]);
+        if (callback) callback([]);
+        return null;
+      }
       return db.collection('markets').onSnapshot(snapshot => {
-        if (snapshot.empty) return;
-        const merged=[];
+        const normalized = [];
         snapshot.forEach(doc => {
-          const cloud={...doc.data(),id:doc.id};
-          const fallback=defaults().find(item => item.id === doc.id) || {};
-          merged.push(reconcile(fallback, cloud));
+          const item = normalizeMarket(doc.id, doc.data());
+          if (item.nama && item.kecamatan) normalized.push(item);
+          else console.warn('[MarketEngine] Dokumen tidak lengkap dan tidak ditayangkan:', doc.id);
         });
-        // Simpan snapshot kanonis ke memori — sumber tunggal sejak saat ini.
-        // localStorage diperbarui hanya untuk mempercepat first-paint berikutnya.
-        this._cloudData = merged;
-        this._cloudReady = true;
-        this.saveLocal(merged);
-        if (callback) callback(merged);
-      }, error => console.warn('[MarketEngine] Realtime sync:', error.code || error.message));
+        this.setCloudData(normalized);
+        if (callback) callback(this.getAll());
+      }, error => {
+        this.setCloudData([]);
+        if (callback) callback([]);
+        console.warn('[MarketEngine] Firestore tidak tersedia; tidak ada fallback:', error.code || error.message);
+      });
     },
 
     validCoordinate,
+    normalizeMarket,
     PINRANG_BOUNDS,
     DATA_VERSION
   };
-  window.MarketEngine=MarketEngine;
+
+  window.MarketEngine = MarketEngine;
 })(window);

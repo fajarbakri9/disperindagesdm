@@ -3,7 +3,7 @@ import re
 
 ROOT = Path(__file__).resolve().parent
 PARTIAL = (ROOT / "partials" / "footer.html").read_text(encoding="utf-8").strip()
-STYLE_VERSION = "20260830_footer_canonical_v2"
+STYLE_VERSION = "20260903_directory_release_v2"
 FOOTER_PATTERN = re.compile(
     r'<footer\s+class=["\'](?:main-footer|footer)["\'][^>]*>[\s\S]*?</footer>',
     re.IGNORECASE,

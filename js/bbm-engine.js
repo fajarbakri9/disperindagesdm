@@ -120,11 +120,10 @@
         }
       }
 
+      const syncResult = await this.syncToCloud(updated);
+      if (!syncResult.success) throw new Error(syncResult.error || 'Firestore tidak tersedia; perubahan BBM tidak disimpan.');
       all[idx] = updated;
       this.saveLocal(all);
-
-      // Sinkronisasi ke Cloud Firestore dengan batas waktu (Timeout)
-      const syncResult = await this.syncToCloud(updated);
       this.logAudit('EDIT_OUTLET', `Memperbarui data ${updated.nama} (${updated.kode})`);
 
       return { updated, syncResult };
@@ -145,10 +144,10 @@
         updated_at: new Date().toISOString()
       };
 
+      const syncResult = await this.syncToCloud(newOutlet);
+      if (!syncResult.success) throw new Error(syncResult.error || 'Firestore tidak tersedia; penyalur BBM tidak ditambahkan.');
       all.unshift(newOutlet);
       this.saveLocal(all);
-
-      const syncResult = await this.syncToCloud(newOutlet);
       this.logAudit('ADD_OUTLET', `Menambahkan outlet baru ${newOutlet.nama} (${newOutlet.kode})`);
 
       return { newOutlet, syncResult };
@@ -370,7 +369,7 @@
         } catch (e) {
           console.warn('[BbmEngine] Firestore init error:', e);
         }
-      }
+      } else return false;
       return null;
     },
 

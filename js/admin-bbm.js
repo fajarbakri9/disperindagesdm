@@ -447,12 +447,7 @@
             logAdminActivity('Penyalur BBM', `Memperbarui data titik: ${patchPayload.nama} (${patchPayload.kode})`);
           }
 
-          CustomModal.toast(
-            result.syncResult?.success
-              ? `Data titik "${patchPayload.nama}" berhasil diperbarui dan disinkronkan.`
-              : `Data titik "${patchPayload.nama}" tersimpan lokal; sinkronisasi cloud akan dicoba kembali.`,
-            result.syncResult?.success ? "success" : "warning"
-          );
+          CustomModal.toast(`Data titik "${patchPayload.nama}" berhasil diperbarui dan disinkronkan.`, "success");
         } catch (err) {
           console.error('Gagal update BBM:', err);
           CustomModal.alert({
@@ -649,12 +644,7 @@
             logAdminActivity('Penyalur BBM', `Menambahkan penyalur BBM baru: ${newPayload.nama} (${newPayload.kode})`);
           }
 
-          CustomModal.toast(
-            result.syncResult?.success
-              ? `Penyalur BBM "${newPayload.nama}" berhasil didaftarkan dan disinkronkan.`
-              : `Penyalur BBM "${newPayload.nama}" tersimpan lokal; sinkronisasi cloud tertunda.`,
-            result.syncResult?.success ? "success" : "warning"
-          );
+          CustomModal.toast(`Penyalur BBM "${newPayload.nama}" berhasil didaftarkan dan disinkronkan.`, "success");
         } catch (err) {
           console.error('Gagal tambah BBM:', err);
           CustomModal.alert({

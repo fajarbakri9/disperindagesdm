@@ -769,8 +769,8 @@ if (typeof window !== 'undefined') {
   window.editAgentPangkalanFirestore = editAgentPangkalanFirestore;
   window.softDeleteAgentPangkalanFirestore = softDeleteAgentPangkalanFirestore;
   window.updateLpgLocationFirestore = updateLpgLocationFirestore;
-  // addAgentPangkalan, editAgentPangkalan, softDeleteAgentPangkalan (localStorage legacy)
-  // tidak diekspor karena seluruh operasi pangkalan kini melalui Firestore.
+  // Mutasi local/runtime legacy sengaja tidak diekspor. Semua perubahan LPG
+  // harus memperoleh konfirmasi commit Firestore dari fungsi di atas.
   window.refreshLpgDashboardSummary = refreshLpgDashboardSummary;
   window.getLpgStore = getLpgStore;
   window.LPG_STORAGE_KEYS = LPG_STORAGE_KEYS;

@@ -53,7 +53,7 @@
       const coordinateChanged=latitude!==Number(m.latitude)||longitude!==Number(m.longitude);
       const generatedMapsUrl=MarketEngine.validCoordinate(latitude,longitude)?`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`:'';
       const updated={...m,...vals,latitude,longitude,googleMapsUrl:vals.googleMapsUrl.trim()&&(!coordinateChanged||vals.googleMapsUrl.trim()!==String(m.googleMapsUrl||'').trim())?vals.googleMapsUrl.trim():generatedMapsUrl,statusKoordinat:MarketEngine.validCoordinate(latitude,longitude)?'CMS_Diperbarui':'PERLU_VERIFIKASI',statusLabel:statusLabels[vals.statusOperasional],updatedBy:auth?.currentUser?.uid||'CMS Administrator'};
-      try { const result=await MarketEngine.save(updated); render(); CustomModal.toast(result.cloud.success?'Data pasar tersimpan dan tersinkron.':'Data pasar tersimpan lokal; sinkronisasi cloud tertunda.',result.cloud.success?'success':'warning'); }
+      try { await MarketEngine.save(updated); render(); CustomModal.toast('Data pasar tersimpan dan tersinkron ke Firestore.','success'); }
       catch(error){ CustomModal.alert({title:'Data Tidak Dapat Disimpan',message:esc(error.message),type:'error',icon:'⚠️'}); }
     }});
   };

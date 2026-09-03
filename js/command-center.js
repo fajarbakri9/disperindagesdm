@@ -75,8 +75,7 @@ function markServerSnapshot(source, metadata, updatedAt, maxAgeMinutes) {
 
 function handleFirestoreError(source, error, cacheKey) {
   console.error(`Firestore ${source} Error:`, error?.code || '', error?.message || error);
-  const cache = getCachedData(cacheKey);
-  updateSourceState(source, cache?.data ? 'cached' : 'unavailable', cache?.server_updated_at);
+  updateSourceState(source, 'unavailable');
 }
 
 // --- 2. FORMATTER ANGKA & MATA UANG ---
@@ -613,10 +612,7 @@ function renderEmptyState(container, message, colSpan = null) {
 // --- 10. RENDER MASTER PASAR DINAMIS (SINGLE SOURCE OF TRUTH FIRESTORE MARKETS) ---
 function mergeCanonicalMarkets(incoming) {
   if (Array.isArray(incoming) && incoming.length) return incoming.slice();
-  const fallback = typeof MarketEngine !== 'undefined'
-    ? MarketEngine.getAll()
-    : (typeof PINRANG_ALL_MARKETS !== 'undefined' && Array.isArray(PINRANG_ALL_MARKETS) ? PINRANG_ALL_MARKETS : []);
-  return fallback.slice();
+  return [];
 }
 
 let ccCanonicalMarkets = [];
@@ -1043,35 +1039,20 @@ function createReportCardElement(r, isCompact = false) {
 
 // --- 15. INTEGRASI FIRESTORE & OFFLINE CACHE RESILIENCE DENGAN METADATA CHANGES ---
 function setCachedData(key, data, updated_at = null) {
-  try {
-    const payload = {
-      version: CC_CACHE_VERSION,
-      data: data,
-      cached_at: Date.now(),
-      server_updated_at: updated_at || null
-    };
-    localStorage.setItem(key, JSON.stringify(payload));
-  } catch (e) {}
+  // Cache data operasional dinonaktifkan. Parameter dipertahankan agar listener
+  // lama tetap kompatibel tanpa menjadikan localStorage sumber alternatif.
+  try { localStorage.removeItem(key); } catch (e) {}
 }
 
 function getCachedData(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (!parsed || typeof parsed !== 'object' || parsed.version !== CC_CACHE_VERSION) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return Object.prototype.hasOwnProperty.call(parsed, 'data') ? parsed : null;
-  } catch (e) {
-    return null;
-  }
+  try { localStorage.removeItem(key); } catch (e) {}
+  return null;
 }
 
 function initFirestoreRealtimeService() {
   const isFirestoreAvailable = typeof db !== 'undefined' && db !== null;
 
-  // 1. FIRST PAINT DARI CACHE LOKAL / DEFAULT DATA
+  // 1. FIRST PAINT KOSONG; tunggu snapshot server resmi.
   const cachedCC = getCachedData('disperindag_cc_cache_metrics');
   const cachedMarkets = getCachedData('disperindag_cc_cache_markets_v2');
   const cachedDistricts = getCachedData('disperindag_cc_cache_districts');
@@ -1080,13 +1061,7 @@ function initFirestoreRealtimeService() {
   const cachedTera = getCachedData('disperindag_cc_cache_tera');
 
   let hasUsableCache = false;
-  if (cachedCC && cachedCC.data) {
-    renderCommandCenterData(cachedCC.data, true);
-    updateSourceState('metrics', 'cached', cachedCC.server_updated_at);
-    hasUsableCache = true;
-  } else {
-    renderCommandCenterData(typeof DEFAULT_COMMAND_CENTER_CONFIG !== 'undefined' ? DEFAULT_COMMAND_CENTER_CONFIG : {}, true);
-  }
+  renderCommandCenterData({}, true);
 
   if (cachedMarkets && cachedMarkets.data) {
     renderMarketsDOM(cachedMarkets.data);
@@ -1141,7 +1116,7 @@ function initFirestoreRealtimeService() {
             renderCommandCenterData(data, false);
             markServerSnapshot('metrics', doc.metadata, data.updated_at, 15);
           } else {
-            renderCommandCenterData(typeof DEFAULT_COMMAND_CENTER_CONFIG !== 'undefined' ? DEFAULT_COMMAND_CENTER_CONFIG : {}, false);
+            renderCommandCenterData({}, false);
             updateSourceState('metrics', 'unavailable');
           }
         },
@@ -1310,10 +1285,10 @@ function initFirestoreRealtimeService() {
 
     } catch (err) {
       console.error("Firestore Init Error:", err);
-      setSystemStatus("cached");
+      setSystemStatus("unavailable");
     }
   } else {
-    setSystemStatus("cached");
+    setSystemStatus("unavailable");
   }
 
   // 3. MONITOR FRESHNESS & STALE DATA SETIAP 30 DETIK

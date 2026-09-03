@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Harga Bahan Pokok SP2KP | Disperindag ESDM Kabupaten Pinrang</title>
+  <title>Harga Bahan Pokok & Monitoring Pasar | Disperindag ESDM Kabupaten Pinrang</title>
   <meta name="description" content="Pantauan resmi harga bahan pokok Kabupaten Pinrang berdasarkan data SP2KP Kementerian Perdagangan RI, lengkap dengan harga pembanding dan status naik, tetap, atau turun.">
   <link rel="canonical" href="https://disperindagesdm-pinrang.web.app/harga-bahan-pokok">
   <!-- OPEN GRAPH & MEDSOS SHARING DINAMIS -->
@@ -36,6 +36,7 @@
   <link rel="stylesheet" href="css/style.css?v=20260902_login_roles_v1">
   <link rel="stylesheet" href="css/sp2kp-visualization.css?v=20260831_sp2kp_visual_v1">
   <link rel="stylesheet" href="css/sp2kp-controls-fix.css?v=20260831_sp2kp_controls_v1">
+  <link rel="stylesheet" href="css/market-price-monitoring.css?v=20260903_v1">
   <link rel="stylesheet" href="css/modal-system.css?v=20260826_v20">
   <meta property="fb:app_id" content="966242223397117">
   <meta property="og:image:secure_url" content="https://disperindagesdm-pinrang.web.app/assets/news/operasi_pasar_murah_sembako_pinrang.jpg">
@@ -271,7 +272,7 @@
     <div class="container">
       <h1 style="font-size: 2.2rem; font-weight: 900; margin-bottom: 10px; color: #FFFFFF;">Harga Bahan Pokok Kabupaten Pinrang</h1>
       <p style="color: #E2E8F0; font-size: 1.05rem; max-width: 800px; line-height: 1.6;">
-        Informasi harga resmi dari Sistem Pemantauan Pasar dan Kebutuhan Pokok (SP2KP) Kementerian Perdagangan RI.
+        Informasi harga SP2KP Kementerian Perdagangan RI dan hasil monitoring pasar lokal yang disajikan transparan sebagai sumber terpisah.
       </p>
     </div>
   </section>
@@ -429,6 +430,24 @@
     </div>
   </section>
 
+  <section class="local-price-section" id="monitoring-harga-lokal" aria-labelledby="localPriceTitle">
+    <div class="container">
+      <header class="local-price-header">
+        <div><span class="source-badge source-badge-local">Monitoring Lokal Disperindag ESDM</span><h2 id="localPriceTitle">Harga Hasil Pemantauan Pasar Kabupaten Pinrang</h2><p>Data survei pasar lokal ditampilkan terpisah dari SP2KP. Angka antar-sumber tidak digabung atau dirata-ratakan.</p></div>
+        <div class="local-price-freshness" id="localPriceFreshness" aria-live="polite">Memuat periode publikasi…</div>
+      </header>
+      <div class="local-price-filters" aria-label="Filter monitoring harga lokal">
+        <label><span>Cari komoditas</span><input id="localPriceSearch" type="search" placeholder="Contoh: beras, cabai…" autocomplete="off"></label>
+        <label><span>Pasar</span><select id="localPriceMarket"><option value="">Semua pasar</option></select></label>
+        <label><span>Tanggal</span><select id="localPriceDate"><option value="">Tanggal terbaru</option></select></label>
+        <div class="local-price-view" role="group" aria-label="Pilih tampilan"><button type="button" class="active" data-local-view="cards" aria-pressed="true">Cards</button><button type="button" data-local-view="table" aria-pressed="false">Tabel</button><button type="button" data-local-view="insight" aria-pressed="false">Infografis</button></div>
+      </div>
+      <div class="local-price-stats" id="localPriceStats" aria-live="polite"></div>
+      <div id="localPriceContent" class="local-price-content" aria-live="polite" aria-busy="true"><div class="local-price-state"><span class="state-spinner" aria-hidden="true"></span><h3>Memuat data terverifikasi</h3><p>Mengambil publikasi monitoring lokal dari Firestore.</p></div></div>
+      <div class="local-price-note"><strong>Transparansi sumber:</strong> Setiap harga memuat pasar, tanggal pemantauan, satuan, dan sumber monitoring. Nilai kosong atau nol tidak ditampilkan sebagai harga.</div>
+    </div>
+  </section>
+
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -442,6 +461,7 @@
   <script src="js/modal-system.js?v=20260829_audit_p0_p1_v1"></script>
   <script src="js/app.js?v=20260831_price_professional_v5"></script>
   <script src="js/sp2kp-visualization.js?v=20260831_sp2kp_visual_v1"></script>
+  <script src="js/local-market-prices.js?v=20260903_v1"></script>
   <script>
     function renderServiceDetailPage(selectedId = 'srv_oss_industri') {
       const container = document.getElementById('serviceDetailContainer');

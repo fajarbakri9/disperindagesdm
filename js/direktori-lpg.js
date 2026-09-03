@@ -189,15 +189,13 @@
   // ── LEGACY: tabel pangkalan lama (untuk kompatibilitas) ───────────────────
   function renderBases(){
     const list=filteredBases(),pages=Math.max(1,Math.ceil(list.length/state.pageSize));state.page=Math.min(state.page,pages);const start=(state.page-1)*state.pageSize,rows=list.slice(start,start+state.pageSize);
-    const oldBody=$('lpgdBaseRows');if(!oldBody)return;
-    // gunakan renderBasesTable() jika sudah ada panel tabel
-    if($('lpgdTablePanel'))return renderBasesTable();
+    const oldBody=$('lpgdBaseRowsLegacy');if(!oldBody)return;
     oldBody.innerHTML=rows.map(item=>`<tr><td><strong>${esc(item.name)}</strong><small>${esc(item.id)}</small></td><td>${esc(item.agentName||item.agentId||'-')}</td><td>${esc(item.desaKelurahan||'-')}<br><small>Kec. ${esc(item.kecamatan||'-')}</small></td><td>${esc(item.address||'-')}</td><td><span class="quality ${gps(item)?'gps':'indicative'}">${gps(item)?'GPS TERVERIFIKASI':'PERLU VERIFIKASI'}</span></td></tr>`).join('')||'<tr><td colspan="5">Data pangkalan tidak ditemukan sesuai filter.</td></tr>';
     $('lpgdResultInfo').textContent=`${list.length?start+1:0}–${Math.min(start+state.pageSize,list.length)} dari ${list.length} · Hal. ${state.page}/${pages}`;
     $('lpgdPrev').disabled=state.page<=1;$('lpgdNext').disabled=state.page>=pages;
   }
 
-  function render(){renderStats();renderAgents();renderBasesTable();renderLpgInfograms();renderMap();}
+  function render(){renderStats();renderAgents();renderBases();renderBasesTable();renderLpgInfograms();renderMap();}
 
   function populateDistricts(){
     const current=$('lpgdDistrict').value;$('lpgdDistrict').length=1;

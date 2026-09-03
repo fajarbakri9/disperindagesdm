@@ -39,3 +39,7 @@ service-account*.json
 *.backup*
 
 dist/
+
+scratch/
+
+test-results/

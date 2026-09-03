@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="css/style.css?v=20260902_login_roles_v1">
+  <link rel="stylesheet" href="css/style.css?v=20260903_directory_release_v2">
   <link rel="stylesheet" href="css/direktori-lpg.css?v=20260902_infogram_v2">
   <link rel="stylesheet" href="css/direktori-infogram.css?v=20260902_v1">
   <meta name="title" content="Direktori Agen dan Pangkalan LPG 3 Kg | Disperindag ESDM Kabupaten Pinrang">
@@ -213,14 +213,10 @@
     </section>
 
     <section class="lpgd-directory">
-      <!-- Header + Tab Toggle -->
       <div class="lpgd-section-head">
         <div><span>DIREKTORI PUBLIK</span><h2>Daftar Penyalur LPG 3 Kg</h2></div>
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <div class="lpgd-tabs">
-            <button class="active" data-view="agents">Agen</button>
-            <button data-view="bases">Pangkalan</button>
-          </div>
+          <div class="lpgd-tabs"><button class="active" data-view="agents">Agen</button><button data-view="bases">Pangkalan</button></div>
           <nav class="dir-view-tabs" aria-label="Pilihan tampilan">
             <button class="active" data-lpg-view="cards">🃏 Cards</button>
             <button data-lpg-view="table">▦ Tabel</button>
@@ -228,105 +224,39 @@
           </nav>
         </div>
       </div>
-
-      <!-- Filter Bar -->
       <div class="lpgd-filters">
         <label>🔎<input id="lpgdSearch" type="search" placeholder="Cari nama, ID, alamat, desa, kecamatan atau agen…"></label>
         <select id="lpgdDistrict"><option value="">Semua kecamatan</option></select>
         <select id="lpgdQuality"><option value="">Semua kualitas lokasi</option><option value="GPS">GPS terverifikasi</option><option value="INDICATIVE">Perlu verifikasi GPS</option></select>
       </div>
 
-      <!-- PANEL 1: Cards (default) -->
       <div class="dir-view-panel active" data-lpg-panel="cards">
         <div id="lpgdAgentGrid" class="lpgd-agent-grid"></div>
         <div id="lpgdBaseView" class="lpgd-base-view" hidden>
-          <div class="lpgd-table-wrap">
-            <table><thead><tr><th>ID &amp; Nama Pangkalan</th><th>Agen</th><th>Wilayah</th><th>Alamat</th><th>Kualitas Lokasi</th></tr></thead><tbody id="lpgdBaseRowsLegacy"></tbody></table>
-          </div>
+          <div class="lpgd-table-wrap"><table><thead><tr><th>ID &amp; Nama Pangkalan</th><th>Agen</th><th>Wilayah</th><th>Alamat</th><th>Kualitas Lokasi</th></tr></thead><tbody id="lpgdBaseRowsLegacy"></tbody></table></div>
           <div class="lpgd-pagination"><span id="lpgdResultInfo"></span><button id="lpgdPrev">← Sebelumnya</button><button id="lpgdNext">Berikutnya →</button></div>
         </div>
       </div>
 
-      <!-- PANEL 2: Tabel Premium -->
       <div class="dir-view-panel" data-lpg-panel="table" id="lpgdTablePanel" style="padding:16px">
         <div class="dir-table-card">
-          <div class="dir-table-head">
-            <div class="dir-table-head-left">
-              <strong>Tabel Data Pangkalan LPG 3 Kg</strong>
-              <small id="lpgdTableInfo">Memuat data…</small>
-            </div>
-            <div class="dir-table-actions">
-              <button onclick="window.print()" title="Cetak tabel">🖨️ Cetak</button>
-            </div>
-          </div>
-          <div class="dir-table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Nama &amp; ID Pangkalan</th>
-                  <th>Agen</th>
-                  <th>Wilayah</th>
-                  <th>Alamat</th>
-                  <th>Koordinat</th>
-                  <th>Peta</th>
-                </tr>
-              </thead>
-              <tbody id="lpgdBaseRows"></tbody>
-            </table>
-          </div>
-          <div class="dir-pagination">
-            <span class="dir-pagination-info" id="lpgdTableInfo"></span>
-            <button id="lpgdTablePrev">← Sebelumnya</button>
-            <button id="lpgdTableNext">Berikutnya →</button>
-          </div>
+          <div class="dir-table-head"><div class="dir-table-head-left"><strong>Tabel Data Pangkalan LPG 3 Kg</strong><small>Data Firestore resmi</small></div><div class="dir-table-actions"><button type="button" onclick="window.print()" title="Cetak tabel">🖨️ Cetak</button></div></div>
+          <div class="dir-table-scroll"><table><thead><tr><th>#</th><th>Nama &amp; ID Pangkalan</th><th>Agen</th><th>Wilayah</th><th>Alamat</th><th>Koordinat</th><th>Peta</th></tr></thead><tbody id="lpgdBaseRows"></tbody></table></div>
+          <div class="dir-pagination"><span class="dir-pagination-info" id="lpgdTableInfo"></span><button id="lpgdTablePrev">← Sebelumnya</button><button id="lpgdTableNext">Berikutnya →</button></div>
         </div>
       </div>
 
-      <!-- PANEL 3: Infografis -->
       <div class="dir-view-panel" data-lpg-panel="infogram" style="padding:16px">
         <div class="dir-infogram">
-
-          <!-- KPI Cards -->
-          <div class="dir-kpi-grid" id="lpgdKpiGrid">
-            <div class="dir-kpi-card" style="--kpi-accent:#2563EB;--kpi-bg:#EFF6FF">
-              <div class="dir-kpi-top"><span class="dir-kpi-label">Total Agen Aktif</span><span class="dir-kpi-icon">🚚</span></div>
-              <b class="dir-kpi-value">—</b><small class="dir-kpi-sub">Memuat data…</small>
-            </div>
-          </div>
-
-          <!-- GPS Quality Bar -->
+          <div class="dir-kpi-grid" id="lpgdKpiGrid"><div class="dir-kpi-card" style="--kpi-accent:#2563EB;--kpi-bg:#EFF6FF"><div class="dir-kpi-top"><span class="dir-kpi-label">Total Agen Aktif</span><span class="dir-kpi-icon">🚚</span></div><b class="dir-kpi-value">—</b><small class="dir-kpi-sub">Memuat data…</small></div></div>
           <div class="dir-chart-card" id="lpgdGpsBar"></div>
-
-          <!-- Charts Grid -->
           <div class="dir-charts-grid">
-            <div class="dir-chart-card">
-              <div class="dir-chart-header">
-                <div class="dir-chart-header-left">
-                  <span>Cakupan wilayah</span>
-                  <h3>Sebaran per Kecamatan</h3>
-                </div>
-                <b class="dir-chart-total" id="lpgdKecTotal">0 kecamatan</b>
-              </div>
-              <div class="dir-bar-chart" id="lpgdKecChart"></div>
-            </div>
-            <div class="dir-chart-card">
-              <div class="dir-chart-header">
-                <div class="dir-chart-header-left">
-                  <span>Distribusi agen</span>
-                  <h3>Pangkalan per Agen (Top 10)</h3>
-                </div>
-                <b class="dir-chart-total" id="lpgdAgentChartTotal">—</b>
-              </div>
-              <div class="dir-bar-chart" id="lpgdAgentChart"></div>
-            </div>
+            <div class="dir-chart-card"><div class="dir-chart-header"><div class="dir-chart-header-left"><span>Cakupan wilayah</span><h3>Sebaran per Kecamatan</h3></div><b class="dir-chart-total" id="lpgdKecTotal">0 kecamatan</b></div><div class="dir-bar-chart" id="lpgdKecChart"></div></div>
+            <div class="dir-chart-card"><div class="dir-chart-header"><div class="dir-chart-header-left"><span>Distribusi agen</span><h3>Pangkalan per Agen (Top 10)</h3></div><b class="dir-chart-total" id="lpgdAgentChartTotal">—</b></div><div class="dir-bar-chart" id="lpgdAgentChart"></div></div>
           </div>
-
-          <!-- Insight -->
           <div class="dir-insight" id="lpgdInsight">Ringkasan informasi akan tampil setelah data cloud diterima.</div>
         </div>
       </div>
-
     </section>
     <aside class="lpgd-note"><strong>Catatan transparansi:</strong> marker berlabel indikatif merupakan titik referensi wilayah administratif, bukan lokasi bangunan pangkalan. Koordinat tersebut tidak boleh digunakan sebagai bukti hasil pemeriksaan GPS lapangan.</aside>
   </main>
@@ -335,7 +265,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="js/firebase-config.js?v=20260902_firestore_admin_v1"></script><script src="js/lpg-engine.js?v=20260902_firestore_only_v1"></script><script src="js/pinrang-administrative-overlay.js?v=20260831_overlay_v3"></script>
-  <script src="js/pinrang-live.js?v=20260902_infogram_v1"></script><script src="js/public-navigation.js?v=20260831_nav_sync_v1"></script><script src="js/direktori-lpg.js?v=20260902_infogram_v2"></script>
+  <script src="js/pinrang-live.js?v=20260902_infogram_v1"></script><script src="js/public-navigation.js?v=20260831_nav_sync_v1"></script><script src="js/direktori-lpg.js?v=20260903_infogram_fix_v1"></script>
   <script src="js/dir-view-switch.js?v=20260902_v1"></script>
 </body>
 </html>

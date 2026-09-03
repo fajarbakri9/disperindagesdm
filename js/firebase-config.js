@@ -25,11 +25,8 @@ try {
     }
     db = firebase.firestore();
     auth = typeof firebase.auth === 'function' ? firebase.auth() : null;
-    db.enablePersistence({ synchronizeTabs: true }).catch(error => {
-      if (error.code !== 'failed-precondition' && error.code !== 'unimplemented') {
-        console.warn('[-] Persistence Firestore tidak dapat diaktifkan:', error.code);
-      }
-    });
+    // Persistence offline sengaja tidak diaktifkan: data operasional hanya
+    // ditampilkan atau dinyatakan tersimpan setelah berasal dari server.
     isFirebaseReady = true;
     console.log("[+] Firebase Cloud Firestore disperindagesdm-pinrang BERHASIL TERHUBUNG!");
   } else {
@@ -48,17 +45,11 @@ const DBService = {
         const items = [];
         snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         if (items.length > 0) {
-          setStorage('disperindag_sembako', items);
           if (callback) callback(items);
-        } else {
-          // Inisialisasi awal ke Firestore jika kosong
-          DEFAULT_SEMBAKO.forEach(item => db.collection("sembako").doc(item.id).set(item));
-          if (callback) callback(DEFAULT_SEMBAKO);
-        }
+        } else if (callback) callback([]);
       });
     } else {
-      const local = getStorage('disperindag_sembako', DEFAULT_SEMBAKO);
-      if (callback) callback(local);
+      if (callback) callback([]);
     }
   },
 
@@ -74,16 +65,7 @@ const DBService = {
         trend: trend,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-    } else {
-      let list = getStorage('disperindag_sembako', DEFAULT_SEMBAKO);
-      const item = list.find(s => s.id === id);
-      if (item) {
-        item.prevPrice = prevPrice;
-        item.price = newPrice;
-        item.trend = trend;
-        setStorage('disperindag_sembako', list);
-      }
-    }
+    } else throw new Error('Firestore tidak tersedia; perubahan harga tidak disimpan.');
   },
 
   async addSembako(item) {
@@ -93,12 +75,7 @@ const DBService = {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       return docRef.id;
-    } else {
-      let list = getStorage('disperindag_sembako', DEFAULT_SEMBAKO);
-      list.push(item);
-      setStorage('disperindag_sembako', list);
-      return item.id;
-    }
+    } else throw new Error('Firestore tidak tersedia; komoditas tidak disimpan.');
   },
 
   // --- B. BERITA & PUBLIKASI ---
@@ -108,13 +85,11 @@ const DBService = {
         const newsList = [];
         snapshot.forEach(doc => newsList.push({ id: doc.id, ...doc.data() }));
         if (newsList.length > 0) {
-          setStorage('disperindag_news', newsList);
           if (callback) callback(newsList);
-        } else if (callback) callback(DEFAULT_NEWS.filter(item => (item.status || 'published') === 'published'));
+        } else if (callback) callback([]);
       });
     } else {
-      const local = getStorage('disperindag_news', DEFAULT_NEWS);
-      if (callback) callback(local);
+      if (callback) callback([]);
     }
   },
 
@@ -125,26 +100,19 @@ const DBService = {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       return docRef.id;
-    } else {
-      let newsList = getStorage('disperindag_news', DEFAULT_NEWS);
-      newsList.unshift(newsItem);
-      setStorage('disperindag_news', newsList);
-      return newsItem.id;
-    }
+    } else throw new Error('Firestore tidak tersedia; berita tidak disimpan.');
   },
 
   // --- C. ADUAN MASYARAKAT ---
   async sendComplaint(complaint) {
     if (isFirebaseReady) {
-      await db.collection("reports").add({
+      await db.collection("reports").doc(complaint.id).set({
         ...complaint,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-    } else {
-      let reports = getStorage('disperindag_reports', DEFAULT_REPORTS);
-      reports.unshift(complaint);
-      setStorage('disperindag_reports', reports);
+      return complaint.id;
     }
+    throw new Error('Firestore tidak tersedia; laporan tidak dikirim.');
   }
 };
 

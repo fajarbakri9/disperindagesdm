@@ -40,6 +40,10 @@ before(async () => {
       verification_status: 'NEEDS_REVIEW', story_cluster_id: 'story-example',
       issue_id: 'issue-example', updated_at: new Date(),
     });
+    await setDoc(doc(context.firestore(), 'reports/private-example'), {
+      id: 'rep-private-example', ticket_number: 'DPE-2026-999999',
+      nama: 'Pelapor Privat', pesan: 'Isi laporan privat.',
+    });
   });
 });
 
@@ -98,4 +102,53 @@ it('denies review writes from an unauthorized active role', async () => {
     title: 'Tidak boleh', reviewed_by: 'ordinary-user', reviewed_at: serverTimestamp(),
     review_event_id: 'unauthorized-event-0001', review_notes: 'uji', updated_at: serverTimestamp(),
   }));
+});
+
+it('keeps public operational data readable but rejects every anonymous mutation', async () => {
+  const db = env.unauthenticatedContext().firestore();
+  const publicCollections = [
+    'prices', 'sembako', 'market_prices_latest', 'documents',
+    'banners', 'districts', 'skm',
+  ];
+  for (const collection of publicCollections) {
+    await assertSucceeds(getDoc(doc(db, `${collection}/example`)));
+    await assertFails(setDoc(doc(db, `${collection}/anonymous-write`), { value: 'forged' }));
+  }
+  await assertFails(getDoc(doc(db, 'sp2kp_pilot/example')));
+  await assertFails(setDoc(doc(db, 'sp2kp_pilot/anonymous-write'), { value: 'forged' }));
+});
+
+it('allows an anonymous complaint only with the bounded public schema', async () => {
+  const db = env.unauthenticatedContext().firestore();
+  const suffix = String(Date.now()).slice(-6);
+  const reportId = `rep-20260903-${suffix}`;
+  await assertSucceeds(setDoc(doc(db, `reports/${reportId}`), {
+    id: reportId,
+    ticket_number: `DPE-2026-${suffix}`,
+    submitted_at: '3 September 2026 • 10.00 WITA',
+    nama: 'Pelapor Uji', kontak: '081234567890', kategori: 'Pengaduan Umum',
+    lokasi: 'Kabupaten Pinrang', judul: 'Laporan uji',
+    pesan: 'Uraian laporan yang valid.', assigned_unit: 'Sekretariat',
+    status: 'Diterima & Sedang Diverifikasi',
+    resolution: 'Laporan masuk dalam antrean verifikasi.', createdAt: serverTimestamp(),
+  }));
+  await assertFails(setDoc(doc(db, 'reports/rep-invalid'), {
+    id: 'rep-invalid', ticket_number: 'INVALID', pesan: '<script>alert(1)</script>',
+    createdAt: serverTimestamp(),
+  }));
+});
+
+it('protects complaint contents from ordinary accounts', async () => {
+  const ordinary = env.authenticatedContext('ordinary-user').firestore();
+  const admin = env.authenticatedContext('admin-user').firestore();
+  await assertFails(getDoc(doc(ordinary, 'reports/private-example')));
+  await assertSucceeds(getDoc(doc(admin, 'reports/private-example')));
+});
+
+it('allows authorized banner configuration without reopening legacy banners', async () => {
+  const admin = env.authenticatedContext('admin-user').firestore();
+  await assertSucceeds(setDoc(doc(admin, 'settings/banners'), {
+    list: [], deleted_ids: [], updated_at: '2026-09-03T00:00:00Z',
+  }));
+  await assertFails(setDoc(doc(admin, 'banners/legacy'), { title: 'legacy' }));
 });

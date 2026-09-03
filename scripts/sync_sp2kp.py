@@ -11,12 +11,13 @@ Target Koleksi:
 import os
 import sys
 import json
-import re
 import argparse
 import urllib.request
-import urllib.parse
 from datetime import datetime, timedelta
 from pathlib import Path
+
+import firebase_admin
+from firebase_admin import firestore
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SP2KP_API_URL = "https://api-sp2kp.kemendag.go.id/report/api/average-price/generate-perbandingan-harga"
@@ -27,20 +28,12 @@ PROVINCE_NAME = "Sulawesi Selatan"
 FIREBASE_PROJECT_ID = "disperindagesdm-pinrang"
 
 
-def get_firebase_api_key() -> str:
-    """Mendapatkan API Key Firebase dari env atau js/firebase-config.js"""
-    key = os.environ.get("FIREBASE_API_KEY")
-    if key and key != "YOUR_FIREBASE_API_KEY":
-        return key
-
-    cfg_file = ROOT_DIR / "js" / "firebase-config.js"
-    if cfg_file.is_file():
-        cfg_text = cfg_file.read_text(encoding="utf-8")
-        m = re.search(r'apiKey:\s*["\']([^"\']+)["\']', cfg_text)
-        if m and m.group(1) != "YOUR_FIREBASE_API_KEY":
-            return m.group(1)
-            
-    return ""
+def create_firestore_client():
+    """Gunakan ADC/WIF; jangan pernah memakai API key browser untuk menulis."""
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", FIREBASE_PROJECT_ID)
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(options={"projectId": project_id})
+    return firestore.client()
 
 
 def fetch_sp2kp_raw(target_date_str: str, comparison_date_str: str, timeout: int = 20) -> dict:
@@ -76,48 +69,23 @@ def fetch_sp2kp_raw(target_date_str: str, comparison_date_str: str, timeout: int
         return json.loads(raw_text)
 
 
-def fetch_latest_valid_sp2kp_dataset(start_date: datetime = None, max_fallback_days: int = 7) -> tuple[dict, str, str]:
-    """
-    Smart Historical Fallback:
-    Mencari dataset valid dengan minimal 1 harga aktif (> 0), mundur hingga max_fallback_days.
-    Mengembalikan (parsed_json, actual_data_date_str, comparison_date_str).
-    """
+def fetch_current_sp2kp_dataset(start_date: datetime = None) -> tuple[dict, str, str]:
+    """Ambil tepat tanggal target dan gagal tertutup jika data belum tersedia."""
     if not start_date:
         start_date = datetime.now()
-
-    last_raw = None
-    last_t_str = ""
-    last_c_str = ""
-
-    for d in range(max_fallback_days + 1):
-        cur_date = start_date - timedelta(days=d)
-        comp_date = cur_date - timedelta(days=1)
-        t_str = cur_date.strftime("%Y-%m-%d")
-        c_str = comp_date.strftime("%Y-%m-%d")
-
-        print(f"[*] Mencoba sinkronisasi SP2KP tanggal: {t_str} (pembanding: {c_str})...")
-        try:
-            raw = fetch_sp2kp_raw(t_str, c_str)
-            last_raw = raw
-            last_t_str = t_str
-            last_c_str = c_str
-
-            items = raw.get("data", [])
-            active_items = [it for it in items if it.get("harga", 0) and it.get("harga", 0) > 0]
-
-            if len(active_items) > 0:
-                print(f"[+] Ditemukan {len(active_items)} komoditas aktif pada tanggal {t_str}!")
-                return raw, t_str, c_str
-            else:
-                print(f"[-] Data tanggal {t_str} belum closing/kosong (0 komoditas aktif). Mundur H-1...")
-        except Exception as e:
-            print(f"[!] Gagal mengambil data tanggal {t_str}: {e}")
-
-    if last_raw:
-        print(f"[!] Peringatan: Tidak ditemukan data aktif dalam {max_fallback_days} hari terakhir. Menggunakan response tanggal {last_t_str}.")
-        return last_raw, last_t_str, last_c_str
-
-    raise RuntimeError("Gagal terhubung ke SP2KP Kemendag setelah beberapa kali percobaan.")
+    comparison_date = start_date - timedelta(days=1)
+    target = start_date.strftime("%Y-%m-%d")
+    comparison = comparison_date.strftime("%Y-%m-%d")
+    print(f"[*] Mengambil SP2KP tanggal: {target} (pembanding: {comparison})...")
+    raw = fetch_sp2kp_raw(target, comparison)
+    items = raw.get("data", [])
+    active_items = [item for item in items if isinstance(item.get("harga"), (int, float)) and item["harga"] > 0]
+    if not active_items:
+        raise RuntimeError(
+            f"SP2KP tanggal {target} belum memiliki harga aktif; data Firestore terakhir dipertahankan tanpa fallback."
+        )
+    print(f"[+] Ditemukan {len(active_items)} komoditas aktif pada tanggal {target}.")
+    return raw, target, comparison
 
 
 def normalize_sp2kp_records(raw_data: dict, data_date_str: str, comp_date_str: str) -> list[dict]:
@@ -177,41 +145,19 @@ def normalize_sp2kp_records(raw_data: dict, data_date_str: str, comp_date_str: s
     return normalized
 
 
-def firestore_rest_set_doc(collection: str, doc_id: str, data: dict, api_key: str) -> bool:
-    """Menulis dokumen ke Firestore via REST API resmi Firebase"""
-    url = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}/databases/(default)/documents/{collection}/{doc_id}?key={api_key}"
-
-    # Konversi dictionary Python ke Firestore REST fields schema
-    def to_firestore_value(val):
-        if val is None:
-            return {"nullValue": None}
-        elif isinstance(val, bool):
-            return {"booleanValue": val}
-        elif isinstance(val, int):
-            return {"integerValue": str(val)}
-        elif isinstance(val, float):
-            return {"doubleValue": val}
-        elif isinstance(val, str):
-            return {"stringValue": val}
-        elif isinstance(val, list):
-            return {"arrayValue": {"values": [to_firestore_value(x) for x in val]}}
-        elif isinstance(val, dict):
-            return {"mapValue": {"fields": {k: to_firestore_value(v) for k, v in val.items()}}}
-        return {"stringValue": str(val)}
-
-    fields = {k: to_firestore_value(v) for k, v in data.items()}
-    body = json.dumps({"fields": fields}).encode("utf-8")
-
-    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"}, method="PATCH")
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return resp.status in (200, 201)
-    except Exception as e:
-        print(f"[!] Gagal menulis ke Firestore ({collection}/{doc_id}): {e}")
-        return False
+def commit_documents(db, documents: list[tuple[str, str, dict]]) -> None:
+    """Commit seluruh hasil sebagai satu unit; kegagalan apa pun membatalkan run."""
+    if not documents:
+        raise RuntimeError("Tidak ada dokumen SP2KP yang valid untuk ditulis.")
+    if len(documents) > 500:
+        raise RuntimeError(f"Jumlah write {len(documents)} melebihi batas batch Firestore 500.")
+    batch = db.batch()
+    for collection, doc_id, data in documents:
+        batch.set(db.collection(collection).document(doc_id), data)
+    batch.commit()
 
 
-def run_sync(mode: str = "pilot", target_date_str: str = None) -> int:
+def run_sync(mode: str = "dry-run", target_date_str: str = None) -> int:
     """
     Eksekutor Sinkronisasi Utama:
     mode: 'dry-run', 'pilot', atau 'live'
@@ -221,15 +167,10 @@ def run_sync(mode: str = "pilot", target_date_str: str = None) -> int:
     print(f"  Mode: {mode.upper()} | Waktu Eksekusi: {datetime.now().strftime('%Y-%m-%d %H:%M:%S WITA')}")
     print("=" * 65)
 
-    api_key = get_firebase_api_key()
-    if mode in ("pilot", "live") and not api_key:
-        print("[!] Error: FIREBASE_API_KEY wajib tersedia untuk mode pilot/live!")
-        return 1
-
     start_date = datetime.strptime(target_date_str, "%Y-%m-%d") if target_date_str else datetime.now()
 
     try:
-        raw_json, actual_date, comp_date = fetch_latest_valid_sp2kp_dataset(start_date)
+        raw_json, actual_date, comp_date = fetch_current_sp2kp_dataset(start_date)
     except Exception as e:
         print(f"[!] Kegagalan fatal saat menghubungi SP2KP: {e}")
         return 1
@@ -251,15 +192,22 @@ def run_sync(mode: str = "pilot", target_date_str: str = None) -> int:
         print("[*] Mode DRY-RUN selesai. Tidak ada data yang ditulis ke Firestore.")
         return 0
 
+    try:
+        db = create_firestore_client()
+    except Exception as e:
+        print(f"[!] Kredensial ADC/WIF Firestore tidak tersedia: {e}")
+        return 1
+
     # Tentukan koleksi target sesuai mode
     if mode == "pilot":
         print(f"\n[*] Menulis {len(records)} record ke koleksi sandbox Firestore 'sp2kp_pilot'...")
-        success_count = 0
-        for r in records:
-            doc_id = str(r["variantId"])
-            if firestore_rest_set_doc("sp2kp_pilot", doc_id, r, api_key):
-                success_count += 1
-        print(f"[+] Berhasil menyimpan {success_count}/{len(records)} dokumen ke 'sp2kp_pilot'!")
+        writes = [("sp2kp_pilot", str(record["variantId"]), record) for record in records]
+        try:
+            commit_documents(db, writes)
+        except Exception as e:
+            print(f"[!] Commit pilot dibatalkan/gagal: {e}")
+            return 1
+        print(f"[+] Berhasil menyimpan {len(writes)} dokumen ke 'sp2kp_pilot'.")
 
     elif mode == "live":
         print(f"\n[*] Mode LIVE: Menulis ke 'market_prices_latest', 'market_prices_history', dan 'sp2kp_sync_snapshots'...")
@@ -273,23 +221,24 @@ def run_sync(mode: str = "pilot", target_date_str: str = None) -> int:
             "syncedAt": datetime.now().isoformat(),
             "rawJson": json.dumps(raw_json)
         }
-        firestore_rest_set_doc("sp2kp_sync_snapshots", actual_date, snapshot_doc, api_key)
+        if len(snapshot_doc["rawJson"].encode("utf-8")) > 900_000:
+            print("[!] Snapshot mentah melebihi batas aman 900 KB; tidak ada data yang ditulis.")
+            return 1
 
-        # 2. Simpan Latest & History
-        success_latest = 0
-        success_hist = 0
+        # 2. Simpan Latest & History dalam batch atomik yang sama.
+        writes = [("sp2kp_sync_snapshots", actual_date, snapshot_doc)]
         for r in records:
             v_id = str(r["variantId"])
             hist_id = f"{v_id}_{actual_date}"
+            writes.append(("market_prices_latest", v_id, r))
+            writes.append(("market_prices_history", hist_id, r))
+        try:
+            commit_documents(db, writes)
+        except Exception as e:
+            print(f"[!] Commit live dibatalkan/gagal; data sebelumnya tetap utuh: {e}")
+            return 1
 
-            if firestore_rest_set_doc("market_prices_latest", v_id, r, api_key):
-                success_latest += 1
-            if firestore_rest_set_doc("market_prices_history", hist_id, r, api_key):
-                success_hist += 1
-
-        print(f"[+] Berhasil update {success_latest} dokumen 'market_prices_latest'.")
-        print(f"[+] Berhasil arsipkan {success_hist} dokumen 'market_prices_history'.")
-        print(f"[+] Snapshot audit {actual_date} tersimpan di 'sp2kp_sync_snapshots'.")
+        print(f"[+] Commit atomik berhasil: {len(records)} latest, {len(records)} history, 1 snapshot.")
 
     return 0
 
@@ -303,7 +252,7 @@ def main():
 
     args = parser.parse_args()
 
-    mode = "pilot"
+    mode = "dry-run"
     if args.dry_run:
         mode = "dry-run"
     elif args.live:

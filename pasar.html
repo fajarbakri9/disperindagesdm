@@ -29,7 +29,7 @@
   <link rel="icon" type="image/png" href="assets/brand/logo_pinrang_opt.png">
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="assets/brand/logo_pinrang_opt.png">
-  <link rel="stylesheet" href="css/style.css?v=20260902_login_roles_v1">
+  <link rel="stylesheet" href="css/style.css?v=20260903_directory_release_v2">
   <link rel="stylesheet" href="css/modal-system.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="css/direktori-infogram.css?v=20260902_v1">
@@ -578,7 +578,7 @@
       const statTidakAktif = document.getElementById('statTidakAktifCount');
       const statVerifikasi = document.getElementById('statVerifikasiCount');
 
-      let markets = typeof MarketEngine !== 'undefined' ? MarketEngine.getAll() : ((typeof PINRANG_ALL_MARKETS !== 'undefined' && Array.isArray(PINRANG_ALL_MARKETS)) ? PINRANG_ALL_MARKETS : []);
+      let markets = typeof MarketEngine !== 'undefined' ? MarketEngine.getAll() : [];
       let marketMap = null;
       let marketMarkerLayer = null;
       let districtBoundaryLayer = null;
@@ -976,7 +976,6 @@
   </div>
 </footer>
 
-  <script src="js/pinrang-live.js"></script>
   <script src="js/dir-view-switch.js?v=20260902_v1"></script>
 </body>
 </html>

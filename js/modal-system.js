@@ -452,6 +452,16 @@ function openMaklumatModal() {
 
 // Modal Khusus: Pelacakan / Cek Status Tiket Pengaduan (Arahan V3 Poin 17)
 function openCheckTicketModal(prefillTicket = "") {
+  // Status laporan tidak pernah dibaca dari seed/localStorage. Sampai tersedia
+  // snapshot status publik tanpa PII, konfirmasi dilakukan melalui kanal resmi.
+  CustomModal.alert({
+    title: 'Konfirmasi Status Pengaduan',
+    message: `Pelacakan daring belum diaktifkan karena data pengaduan bersifat terbatas. Hubungi WhatsApp resmi <a href="https://wa.me/6282316002226?text=${encodeURIComponent(`Mohon informasi status laporan ${prefillTicket || ''}`)}" target="_blank" rel="noopener noreferrer"><strong>0823 1600 2226</strong></a> dan sertakan nomor tiket Anda.`,
+    icon: '🔒',
+    type: 'info'
+  });
+  return;
+
   CustomModal.init();
   const backdrop = CustomModal.backdropEl;
   

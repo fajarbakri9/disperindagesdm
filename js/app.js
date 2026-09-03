@@ -681,7 +681,7 @@ function renderHomeProductsIKM() {
 }
 
 // 10. FORMULIR PENGADUAN DENGAN NOMOR TIKET RESMI & MODAL KONFIRMASI
-function handlePublicComplaintSubmit(e) {
+async function handlePublicComplaintSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
   
   const getName = () => document.getElementById('complaintName') || document.getElementById('reportName');
@@ -756,15 +756,32 @@ function handlePublicComplaintSubmit(e) {
     resolution: "Laporan masuk dalam antrean verifikasi dan penugasan tim pengawas dinas."
   };
 
-  const reports = getStorage('disperindag_reports', typeof DEFAULT_REPORTS !== 'undefined' ? DEFAULT_REPORTS : []);
-  reports.unshift(newReport);
-  setStorage('disperindag_reports', reports);
+  const submitButton = e?.currentTarget?.querySelector?.('[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
+    if (!window.DBService || typeof window.DBService.sendComplaint !== 'function') {
+      throw new Error('Layanan pengaduan resmi belum tersedia.');
+    }
+    await window.DBService.sendComplaint(newReport);
+  } catch (error) {
+    if (submitButton) submitButton.disabled = false;
+    CustomModal.alert({
+      title: 'Laporan Belum Terkirim',
+      message: 'Server pengaduan tidak dapat mengonfirmasi penyimpanan laporan. Tidak ada salinan lokal yang dibuat. Silakan coba kembali atau hubungi hotline resmi.',
+      icon: '⚠️',
+      type: 'error'
+    });
+    console.error('[REPORT][SERVER_REJECTED]', error?.code || error?.message || 'unknown');
+    return false;
+  }
+  if (submitButton) submitButton.disabled = false;
 
   const formEl = document.getElementById('publicComplaintForm');
   if (formEl) formEl.reset();
 
   CustomModal.init();
   const backdrop = CustomModal.backdropEl;
+  const safeText = typeof escapeNewsText === 'function' ? escapeNewsText : value => String(value ?? '');
   backdrop.innerHTML = `
     <div class="custom-modal-card" style="max-width: 580px; border-top: 4px solid #10B981; box-shadow: var(--shadow-xl); text-align: left;">
       <div class="custom-modal-header" style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%); color: #FFFFFF; padding: 20px 24px; border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 14px;">
@@ -785,19 +802,19 @@ function handlePublicComplaintSubmit(e) {
         <div style="background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; font-size: 0.84rem; line-height: 1.6; margin-bottom: 18px;">
           <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px; margin-bottom: 6px;">
             <strong style="color: #64748B;">Pelapor:</strong>
-            <span style="color: #0F172A; font-weight: 700;">${nama} (${kontak})</span>
+            <span style="color: #0F172A; font-weight: 700;">${safeText(nama)} (${safeText(kontak)})</span>
           </div>
           <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px; margin-bottom: 6px;">
             <strong style="color: #64748B;">Kategori:</strong>
-            <span style="color: #1E40AF; font-weight: 700;">${kategori}</span>
+            <span style="color: #1E40AF; font-weight: 700;">${safeText(kategori)}</span>
           </div>
           <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px; margin-bottom: 6px;">
             <strong style="color: #64748B;">Lokasi:</strong>
-            <span style="color: #0F172A;">${lokasi}</span>
+            <span style="color: #0F172A;">${safeText(lokasi)}</span>
           </div>
           <div style="display: grid; grid-template-columns: 100px 1fr; gap: 6px;">
             <strong style="color: #64748B;">Unit Teknis:</strong>
-            <span style="color: #059669; font-weight: 700;">${assignedUnit}</span>
+            <span style="color: #059669; font-weight: 700;">${safeText(assignedUnit)}</span>
           </div>
         </div>
 
@@ -811,9 +828,9 @@ function handlePublicComplaintSubmit(e) {
           📋 Salin Tiket
         </button>
         <div style="display: flex; gap: 8px;">
-          <button type="button" class="btn-primary" onclick="CustomModal.backdropEl.classList.remove('active'); openCheckTicketModal('${ticketNumber}');" style="font-size: 0.82rem; padding: 8px 16px; border-radius: 6px; background: #1D4ED8; font-weight: 700; cursor: pointer;">
-            🔍 Lacak Tiket
-          </button>
+          <a class="btn-primary" href="https://wa.me/6282316002226?text=${encodeURIComponent(`Mohon informasi status laporan ${ticketNumber}`)}" target="_blank" rel="noopener noreferrer" style="font-size: 0.82rem; padding: 8px 16px; border-radius: 6px; background: #1D4ED8; font-weight: 700; text-decoration:none;">
+            Konfirmasi Status
+          </a>
           <button type="button" class="btn-modal-action btn-modal-primary" onclick="CustomModal.backdropEl.classList.remove('active');" style="font-size: 0.82rem; padding: 8px 20px; border-radius: 6px; cursor: pointer;">
             Selesai
           </button>

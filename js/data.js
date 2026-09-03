@@ -1899,11 +1899,8 @@ function initDataStoreMigration() {
     const resolvedBanners = existingBanners ? mergeBannersWithDefaults(existingBanners) : DEFAULT_BANNERS;
     localStorage.setItem('disperindag_banners', JSON.stringify(resolvedBanners));
     
-    // 4. Auto-Recovery Aduan & Laporan Masyarakat
-    const existingReports = getStorage('disperindag_reports', null);
-    if (!existingReports || existingReports.length === 0) {
-      localStorage.setItem('disperindag_reports', JSON.stringify(DEFAULT_REPORTS));
-    }
+    // Aduan bersifat operasional dan privat: hapus salinan lokal legacy.
+    localStorage.removeItem('disperindag_reports');
     
     localStorage.setItem('disperindag_command_center', JSON.stringify(DEFAULT_COMMAND_CENTER_CONFIG));
     localStorage.setItem('disperindag_districts', JSON.stringify(DEFAULT_DISTRICTS_STATUS));
