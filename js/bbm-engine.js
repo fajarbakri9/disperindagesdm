@@ -19,6 +19,7 @@
   const BbmEngine = {
     _cloudData: [],
     _cloudReady: false,
+    _sourceState: { source: 'loading', message: 'Memuat data penyalur BBM terverifikasi…' },
     DATA_VERSION: REQUIRED_DATA_VERSION,
     CATEGORY_META,
     normalizeCategory: function(item) {
@@ -39,6 +40,20 @@
     // Seed lokal dipakai oleh proses publikasi server, tidak sebagai fallback browser.
     getAll: function() {
       return this._cloudData.map(item => ({ ...item }));
+    },
+    getSourceState: function() {
+      return { ...this._sourceState };
+    },
+    useVerifiedSnapshot: function(reason) {
+      const seed = Array.isArray(window.DEFAULT_BBM_OUTLETS)
+        ? window.DEFAULT_BBM_OUTLETS.map(item => ({ ...item, dataVersion: REQUIRED_DATA_VERSION }))
+        : [];
+      this.saveLocal(seed);
+      this._sourceState = seed.length
+        ? { source: 'verified-snapshot', message: `Menampilkan ${seed.length} titik dari snapshot resmi terverifikasi karena sinkronisasi Firestore belum tersedia.` }
+        : { source: 'unavailable', message: 'Data penyalur BBM belum dapat dimuat.' };
+      if (reason) console.warn('[BbmEngine] Menggunakan snapshot resmi terverifikasi:', reason);
+      return this.getAll();
     },
 
     // 2. Simpan snapshot aktif hanya di memori. Cache BBM lama dihapus agar
@@ -344,8 +359,8 @@
               });
               if (cloudList.some(item => item.dataVersion !== REQUIRED_DATA_VERSION)) {
                 console.warn('[BbmEngine] Snapshot cloud lama ditolak agar tidak menimpa master baru.');
-                this.saveLocal([]);
-                if (typeof callback === 'function') callback([]);
+                const verified = this.useVerifiedSnapshot('versi snapshot cloud belum kanonis');
+                if (typeof callback === 'function') callback(verified, this.getSourceState());
                 return;
               }
               
@@ -353,23 +368,31 @@
               // bila cloud tidak dapat dibaca, bukan dicampur ke hasil cloud.
               const merged = cloudList;
               this.saveLocal(merged);
+              this._sourceState = { source: 'firestore', message: `Data aktif: ${merged.length} titik tersinkron langsung dari Firestore.` };
               
               if (typeof callback === 'function') {
-                callback(merged);
+                callback(merged, this.getSourceState());
               }
             } else {
               this.saveLocal([]);
-              if (typeof callback === 'function') callback([]);
+              this._sourceState = { source: 'firestore-empty', message: 'Firestore aktif, tetapi belum berisi data penyalur BBM.' };
+              if (typeof callback === 'function') callback([], this.getSourceState());
             }
           }, err => {
             console.warn('[BbmEngine] Firestore Realtime Sync Error:', err);
-            this.saveLocal([]);
-            if (typeof callback === 'function') callback([]);
+            const verified = this.useVerifiedSnapshot(err.code || err.message);
+            if (typeof callback === 'function') callback(verified, this.getSourceState());
           });
         } catch (e) {
           console.warn('[BbmEngine] Firestore init error:', e);
+          const verified = this.useVerifiedSnapshot(e.message);
+          if (typeof callback === 'function') callback(verified, this.getSourceState());
         }
-      } else return false;
+      } else {
+        const verified = this.useVerifiedSnapshot('Firestore tidak tersedia');
+        if (typeof callback === 'function') callback(verified, this.getSourceState());
+        return false;
+      }
       return null;
     },
 

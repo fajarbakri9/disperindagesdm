@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "documents": [
+    {
+      "id": "LPG-CIRCULAR-2026-08-14-DRAFT",
+      "type": "CIRCULAR_DRAFT",
+      "status": "DRAFT_UNNUMBERED",
+      "title": "Penggunaan Gas LPG Subsidi (3 Kg) Tepat Sasaran",
+      "documentDate": "2026-08-14",
+      "number": null,
+      "unit": "tabung",
+      "publicationAllowed": false,
+      "sourceDocument": "SURAT EDARAN BUPATI PINRANG ( LPG 3 KG ) (1).pdf",
+      "reviewNotes": [
+        "Nomor surat kosong",
+        "Metadata PDF tidak sesuai isi",
+        "Dasar hukum dan redaksi perlu verifikasi Bagian Hukum"
+      ]
+    },
+    {
+      "id": "LPG-QUOTA-PROPOSAL-2026-09-03",
+      "type": "EMERGENCY_QUOTA_PROPOSAL",
+      "status": "PROPOSED_NOT_APPROVED",
+      "title": "Permohonan Alokasi Tambahan Fakultatif Darurat LPG 3 Kg Bersubsidi",
+      "documentDate": "2026-09-03",
+      "number": null,
+      "requestedQuantity": 5040,
+      "unit": "tabung",
+      "requestedLoads": 9,
+      "quantityPerLoad": 560,
+      "districtCount": 12,
+      "statedHetRupiah": 18500,
+      "publicationAllowed": false,
+      "sourceDocument": "Usulan Penambahan Kuota LPG  3 KG BERSUBSIDI.pdf",
+      "reviewNotes": [
+        "Nomor surat kosong",
+        "Lampiran peta klaster tidak terdapat dalam PDF",
+        "Belum ada bukti persetujuan atau realisasi Pertamina"
+      ]
+    }
+  ]
+}

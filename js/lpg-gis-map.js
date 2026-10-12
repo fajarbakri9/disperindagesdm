@@ -356,13 +356,13 @@ window.renderLpgGisMarkers = function() {
     }
   });
 
-  // 4. Titik administratif dikelompokkan berdasarkan koordinat yang sama.
-  // Marker ini tidak boleh dibaca sebagai lokasi bangunan pangkalan.
+  // 4. Koordinat non-GPS dikelompokkan berdasarkan titik yang sama. Koordinat
+  // dokumen agen tetap ditampilkan apa adanya agar konflik terlihat di peta.
   const fallbackGroups = new Map();
   matchedPangkalan.forEach(p => {
     const point=getCanonicalLpgPoint(p),lat=point?.latitude,lng=point?.longitude;
     const isGps=point?.verificationStatus==='verified';
-    if (isGps || !point || !['indicative','needs_review','agent_captured','admin_captured','manual_admin'].includes(point.verificationStatus)) return;
+    if (isGps || !point || !['indicative','needs_review','agent_captured','admin_captured','manual_admin','document-sourced'].includes(point.verificationStatus)) return;
     const key=`${lat.toFixed(6)},${lng.toFixed(6)}`;
     if (!fallbackGroups.has(key)) fallbackGroups.set(key,{lat,lng,items:[]});
     fallbackGroups.get(key).items.push(p);
@@ -370,11 +370,13 @@ window.renderLpgGisMarkers = function() {
   fallbackGroups.forEach(group => {
     const sample=group.items[0];
     const icon=L.divIcon({className:'custom-gis-pkl-icon',html:`<div class="lpg-fallback-pin">${group.items.length}</div>`,iconSize:[32,28],iconAnchor:[16,14]});
-    const names=group.items.slice(0,8).map(p=>escapeLpgMapText(p.name)).join('<br>');
+    const isDocument=group.items.some(p=>p.verificationStatus==='document-sourced');
+    const isConflict=isDocument&&group.items.length>1;
+    const names=group.items.slice(0,8).map(p=>`${escapeLpgMapText(p.name)} <small>(${escapeLpgMapText(p.agentName||p.agentId||'-')})</small>`).join('<br>');
     const more=group.items.length>8?`<br><em>+${group.items.length-8} pangkalan lainnya</em>`:'';
     const marker=L.marker([group.lat,group.lng],{pane:'lpgDataPane',icon,zIndexOffset:900,riseOnHover:true})
-      .bindTooltip(`${escapeLpgMapText(sample.desaKelurahan)} · ${group.items.length} pangkalan fallback`,{className:'lpg-map-tooltip',direction:'top'})
-      .bindPopup(`<div style="font-size:.78rem;line-height:1.45"><strong>${escapeLpgMapText(sample.desaKelurahan)}, Kec. ${escapeLpgMapText(sample.kecamatan)}</strong><br><span style="color:#B45309;font-weight:900">TITIK REFERENSI AREA — BUKAN GPS PANGKALAN</span><hr style="border:0;border-top:1px solid #E2E8F0">${names}${more}<br><br><small>Verifikasi GPS agen/lapangan masih diperlukan.</small></div>`);
+      .bindTooltip(`${escapeLpgMapText(sample.desaKelurahan)} · ${group.items.length} pangkalan ${isConflict?'konflik':isDocument?'dokumen':'fallback'}`,{className:'lpg-map-tooltip',direction:'top'})
+      .bindPopup(`<div style="font-size:.78rem;line-height:1.45"><strong>${escapeLpgMapText(sample.desaKelurahan)}, Kec. ${escapeLpgMapText(sample.kecamatan)}</strong><br><span style="color:${isConflict?'#B91C1C':'#B45309'};font-weight:900">${isConflict?'PERLU EVALUASI: BEBERAPA PANGKALAN MEMAKAI KOORDINAT SAMA':isDocument?'KOORDINAT DARI DOKUMEN AGEN — BELUM GPS TERVERIFIKASI':'TITIK REFERENSI AREA — BUKAN GPS PANGKALAN'}</span><hr style="border:0;border-top:1px solid #E2E8F0">${names}${more}<br><br><small>${isDocument?'Koordinat ditampilkan sesuai dokumen dan tidak digeser.':'Verifikasi GPS agen/lapangan masih diperlukan.'}</small></div>`);
     lpgGisLayers.fallbackPangkalan.addLayer(marker);
     visibleBounds.push([group.lat,group.lng]);
   });

@@ -415,16 +415,13 @@ def fetch_published_cloud_articles():
             articles.append(item)
     return articles
 
-def merge_cloud_articles(base_articles, cloud_articles):
-    merged = {item["id"]: item for item in base_articles}
-    for cloud in cloud_articles:
-        existing = merged.get(cloud["id"], {})
-        merged[cloud["id"]] = {**existing, **cloud}
-
-    # Slug adalah identitas URL publik. Jika migrasi lama meninggalkan lebih
-    # dari satu document id untuk slug yang sama, hanya revisi terbaru dibangun.
+def select_cloud_articles(cloud_articles):
+    # Slug adalah identitas URL publik. Duplikasi harus diselesaikan di CMS;
+    # memilih salah satu dokumen secara diam-diam dapat menerbitkan revisi yang
+    # keliru dan membuat hasil build berbeda dari daftar Firestore.
     by_slug = {}
-    for item in merged.values():
+    duplicate_slugs = set()
+    for item in cloud_articles:
         slug = str(item.get("slug") or item.get("id") or "").strip().lower()
         revision = (
             item.get("updated_at") or item.get("updatedAt") or
@@ -437,8 +434,16 @@ def merge_cloud_articles(base_articles, cloud_articles):
             previous.get("published_at") or previous.get("publishedAt") or
             previous.get("created_at") or previous.get("createdAt") or ""
         )
+        if previous:
+            duplicate_slugs.add(slug)
         if not previous or str(revision) >= str(previous_revision):
             by_slug[slug] = item
+
+    if duplicate_slugs:
+        raise RuntimeError(
+            "Slug berita published duplikat di Firestore: "
+            + ", ".join(sorted(duplicate_slugs))
+        )
 
     return sorted(
         by_slug.values(),
@@ -486,7 +491,7 @@ def materialize_embedded_images(articles):
 if "--cloud" in sys.argv:
     try:
         cloud_articles = fetch_published_cloud_articles()
-        ARTICLES = merge_cloud_articles(ARTICLES, cloud_articles)
+        ARTICLES = select_cloud_articles(cloud_articles)
         materialize_embedded_images(ARTICLES)
         print(f"[✓] Sinkronisasi Firestore: {len(cloud_articles)} berita published ditemukan.")
     except Exception as error:
@@ -812,6 +817,9 @@ def generate_article_html(art, canonical_url):
 
   <script src="{SITE_URL}/js/modal-system.js"></script>
   <script src="{SITE_URL}/js/pinrang-live.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="{SITE_URL}/js/firebase-config.js?v=20260904_news_authority_v1"></script>
   <script src="{SITE_URL}/js/app.js"></script>
   <script>
     // Client-Side Live Hydration: Sinkronkan seluruh data editan terbaru (foto, judul, isi konten) dari database browser
@@ -864,6 +872,47 @@ def generate_article_html(art, canonical_url):
         }}
       }} catch(e) {{}}
     }});
+
+    // Firestore adalah sumber kebenaran. Snapshot statis tetap menjadi tampilan
+    // awal dan fallback jaringan, tetapi tidak boleh mengalahkan hasil cloud.
+    (async () => {{
+      if (typeof db === 'undefined' || db === null) return;
+      try {{
+        const id = "{art['id']}";
+        const slug = "{art['slug']}";
+        let current = null;
+        const byId = await db.collection('news').doc(id).get({{ source: 'server' }});
+        if (byId.exists) current = {{ id: byId.id, ...byId.data() }};
+        if (!current) {{
+          const bySlug = await db.collection('news').where('slug', '==', slug).limit(1).get({{ source: 'server' }});
+          if (!bySlug.empty) current = {{ id: bySlug.docs[0].id, ...bySlug.docs[0].data() }};
+        }}
+        if (!current || current.status !== 'published') {{
+          window.location.replace('{SITE_URL}/404.html');
+          return;
+        }}
+
+        const image = document.getElementById('articleHeroCover');
+        if (image && current.img) image.src = current.img;
+        const caption = document.getElementById('articleHeroCaption');
+        if (caption && current.image_caption) caption.textContent = current.image_caption;
+        const title = document.querySelector('.article-title');
+        if (title && current.title) {{
+          title.textContent = current.title;
+          document.title = current.title + ' | Disperindag ESDM Pinrang';
+        }}
+        const body = document.querySelector('.article-body-text');
+        if (body && current.content) {{
+          let content = current.content;
+          if (!content.includes('<p>') && !content.includes('<div>')) {{
+            content = content.split('\\n\\n').map(p => '<p>' + p.replace(/\\n/g, '<br>') + '</p>').join('');
+          }}
+          body.innerHTML = typeof sanitizeNewsHtml === 'function' ? sanitizeNewsHtml(content) : '';
+        }}
+      }} catch (error) {{
+        console.warn('Firestore tidak dapat dijangkau; snapshot statis dipertahankan.', error);
+      }}
+    }})();
 
     window.shareArticle = function() {{
       if (navigator.share) {{
@@ -923,29 +972,24 @@ for art in ARTICLES:
 def update_sitemap_xml():
     static_pages = [
         {"loc": f"{SITE_URL}/", "priority": "1.00", "changefreq": "daily"},
-        {"loc": f"{SITE_URL}/profil.html", "priority": "0.90", "changefreq": "weekly"},
-        {"loc": f"{SITE_URL}/layanan.html", "priority": "0.90", "changefreq": "weekly"},
-        {"loc": f"{SITE_URL}/harga-bahan-pokok.html", "priority": "0.95", "changefreq": "daily"},
-        {"loc": f"{SITE_URL}/maklumat-pelayanan.html", "priority": "0.85", "changefreq": "monthly"},
-        {"loc": f"{SITE_URL}/ppid.html", "priority": "0.90", "changefreq": "weekly"},
-        {"loc": f"{SITE_URL}/katalog-ikm.html", "priority": "0.85", "changefreq": "daily"},
-        {"loc": f"{SITE_URL}/arsip-berita.html", "priority": "0.85", "changefreq": "daily"},
-        {"loc": f"{SITE_URL}/kontak.html", "priority": "0.80", "changefreq": "monthly"},
-        {"loc": f"{SITE_URL}/search.html", "priority": "0.70", "changefreq": "monthly"},
-        {"loc": f"{SITE_URL}/command-center.html", "priority": "0.95", "changefreq": "daily"},
-        {"loc": f"{SITE_URL}/pasar.html", "priority": "0.90", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/profil", "priority": "0.90", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/layanan", "priority": "0.90", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/harga-bahan-pokok", "priority": "0.95", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/maklumat-pelayanan", "priority": "0.85", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/ppid", "priority": "0.90", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/katalog-ikm", "priority": "0.85", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/arsip-berita", "priority": "0.85", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/kontak", "priority": "0.80", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/search", "priority": "0.70", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/command-center", "priority": "0.95", "changefreq": "daily"},
+        {"loc": f"{SITE_URL}/pasar", "priority": "0.90", "changefreq": "daily"},
         {"loc": f"{SITE_URL}/direktori-lpg", "priority": "0.90", "changefreq": "daily"},
-        {"loc": f"{SITE_URL}/penyalur-bbm.html", "priority": "0.90", "changefreq": "daily"},
         {"loc": f"{SITE_URL}/penyalur-bbm", "priority": "0.90", "changefreq": "daily"},
     ]
     
-    market_slugs = [
-        "pasar-sentral-pinrang", "pasar-pekkabata", "pasar-bungi", "pasar-langnga",
-        "pasar-teppo-benteng", "pasar-kariango", "pasar-pajalele", "pasar-paleteang", "pasar-suppa"
-    ]
-    for m in market_slugs:
-        static_pages.append({"loc": f"{SITE_URL}/pasar/{m}", "priority": "0.80", "changefreq": "weekly"})
-        
+    # Detail pasar lokal tidak lagi dipublikasikan. Direktori /pasar membaca
+    # master resmi e-SKPT/e-PASAR secara realtime sebagai satu-satunya sumber.
+
     for a in ARTICLES:
         static_pages.append({
             "loc": f"{SITE_URL}/berita/{a['slug']}",

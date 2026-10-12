@@ -11,7 +11,7 @@
   const status=document.getElementById("sp2kpVisualStatus"), commodity=document.getElementById("sp2kpVisualCommodity"), dateInput=document.getElementById("sp2kpVisualDate");
   if(!status||!commodity||!dateInput)return;
   if(typeof Highcharts==="undefined"){status.textContent="Komponen visualisasi belum dapat dimuat. Daftar harga resmi tetap tersedia di bawah.";return}
-  let products=[],mapTopology=null,requestToken=0,initialized=false;
+  let products=[],mapTopology=null,requestToken=0,initialized=false,catalogSource="snapshot Firestore";
   Highcharts.setOptions({lang:{thousandsSep:".",decimalPoint:","},credits:{enabled:false}});
   const empty=(id,message)=>{document.getElementById(id).innerHTML=`<div class="sp2kp-viz-empty">${message}</div>`};
   async function json(url){const response=await fetch(url,{headers:{Accept:"application/json"}});if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.json()}
@@ -34,23 +34,40 @@
       document.getElementById("sp2kpTrendLatest").textContent=rupiah(data[data.length-1][1]);
     }catch(error){console.warn("SP2KP HNT trend:",error);empty("sp2kpTrendChart","Grafik HNT SP2KP sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.")}
   }
-  function refresh(){const selected=products.find(item=>String(item.variantId)===commodity.value);if(!selected||!dateInput.value)return;const token=++requestToken;status.textContent=`Memuat ${selected.commodityName} untuk tanggal ${dateInput.value} dari SP2KP…`;Promise.allSettled([renderMap(selected.variantId,dateInput.value,selected.commodityName,token),renderTrend(selected.variantId,dateInput.value,selected.commodityName,token)]).then(()=>{if(token===requestToken)status.textContent=`Visualisasi ${selected.commodityName} • data ${dateInput.value} • sinkron dengan sumber SP2KP.`})}
-  function initialize(items){products=items.filter(item=>item.variantId&&item.commodityName&&Number(item.sourcePrice)>0).sort((a,b)=>a.commodityName.localeCompare(b.commodityName,"id"));if(!products.length){commodity.innerHTML='<option value="">Data SP2KP belum tersedia</option>';empty("sp2kpProvinceMap","Visualisasi menunggu snapshot harga resmi SP2KP.");empty("sp2kpTrendChart","Visualisasi menunggu snapshot harga resmi SP2KP.");status.textContent="Belum ada snapshot SP2KP yang dapat divisualisasikan.";return}initialized=true;commodity.innerHTML=products.map(item=>`<option value="${item.variantId}">${item.commodityName}</option>`).join("");const latest=products.map(item=>item.dataDate).filter(Boolean).sort().pop()||iso(new Date());dateInput.value=latest;dateInput.max=iso(new Date());refresh()}
+  function refresh(){const selected=products.find(item=>String(item.variantId)===commodity.value);if(!selected||!dateInput.value)return;const token=++requestToken;status.textContent=`Memuat ${selected.commodityName} untuk tanggal ${dateInput.value} dari SP2KP…`;Promise.allSettled([renderMap(selected.variantId,dateInput.value,selected.commodityName,token),renderTrend(selected.variantId,dateInput.value,selected.commodityName,token)]).then(()=>{if(token===requestToken)status.textContent=`Visualisasi ${selected.commodityName} • data ${dateInput.value} • katalog dari ${catalogSource}.`})}
+  function initialize(items,source="snapshot Firestore"){products=items.filter(item=>item.variantId&&item.commodityName&&Number(item.sourcePrice)>0).sort((a,b)=>a.commodityName.localeCompare(b.commodityName,"id"));if(!products.length)return false;catalogSource=source;initialized=true;commodity.innerHTML=products.map(item=>`<option value="${item.variantId}">${item.commodityName}</option>`).join("");const latest=products.map(item=>item.dataDate).filter(Boolean).sort().pop()||iso(new Date());dateInput.value=latest;dateInput.max=iso(new Date());refresh();return true}
+  async function initializeFromOfficialApi(reason){
+    try{
+      let items=[];
+      for(let offset=0;offset<7&&!items.some(item=>item.sourcePrice>0);offset++){
+        const target=addDays(iso(new Date()),-offset),previous=addDays(target,-1),form=new FormData();
+        form.append("tanggal",target);form.append("tanggal_pembanding",previous);form.append("kode_provinsi","73");form.append("kode_kab_kota","7315");
+        const response=await fetch(`${API}/average-price/generate-perbandingan-harga`,{method:"POST",body:form,headers:{Accept:"application/json"}});
+        if(!response.ok)throw new Error(`HTTP ${response.status}`);
+        const payload=await response.json();
+        items=(Array.isArray(payload?.data)?payload.data:[]).map(item=>({variantId:Number(item.variant_id),commodityName:String(item.variant_nama||"").trim(),unit:String(item.satuan_display||"kg").toLowerCase(),sourcePrice:Number(item.harga)||0,dataDate:target}));
+      }
+      if(!initialize(items,"API resmi SP2KP langsung"))throw new Error("harga aktif tujuh hari terakhir belum tersedia");
+      console.warn("SP2KP memakai katalog API resmi langsung:",reason);
+    }catch(error){
+      console.warn("SP2KP direct catalog:",error);
+      commodity.innerHTML='<option value="">Data SP2KP belum tersedia</option>';
+      empty("sp2kpProvinceMap","Visualisasi belum dapat dimuat dari Firestore maupun API resmi SP2KP.");
+      empty("sp2kpTrendChart","Visualisasi belum dapat dimuat dari Firestore maupun API resmi SP2KP.");
+      status.textContent="Sumber data SP2KP sementara tidak dapat dijangkau. Silakan coba kembali.";
+    }
+  }
   commodity.addEventListener("change",refresh);dateInput.addEventListener("change",refresh);
   if(typeof db!=="undefined"&&db){
     db.collection("market_prices_latest").onSnapshot(snapshot=>{
-      const items=[];snapshot.forEach(doc=>items.push(doc.data()));initialize(items)
+      const items=[];snapshot.forEach(doc=>items.push(doc.data()));if(!initialize(items))initializeFromOfficialApi("snapshot Firestore kosong")
     },error=>{
       console.warn("SP2KP visualization snapshot:",error);
-      commodity.innerHTML='<option value="">Data tidak dapat dimuat</option>';
-      empty("sp2kpProvinceMap","Peta tidak dapat dimuat karena koneksi Firestore bermasalah.");
-      empty("sp2kpTrendChart","Grafik tidak dapat dimuat karena koneksi Firestore bermasalah.");
-      status.textContent="Data SP2KP gagal dimuat dari Firestore. Tidak ada sumber pengganti yang digunakan.";
+      status.textContent="Snapshot Firestore tidak tersedia; mencoba API resmi SP2KP…";
+      initializeFromOfficialApi(error.code||error.message);
     })
   }else{
-    commodity.innerHTML='<option value="">Firestore tidak tersedia</option>';
-    empty("sp2kpProvinceMap","Peta tidak dapat dimuat karena Firestore tidak tersedia.");
-    empty("sp2kpTrendChart","Grafik tidak dapat dimuat karena Firestore tidak tersedia.");
-    status.textContent="Firestore tidak tersedia. Tidak ada sumber pengganti yang digunakan.";
+    status.textContent="Firestore tidak tersedia; mencoba API resmi SP2KP…";
+    initializeFromOfficialApi("Firestore tidak tersedia");
   }
 })();

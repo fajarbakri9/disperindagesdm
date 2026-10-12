@@ -7,14 +7,20 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DIST = ROOT / "dist"
+FINAL_DIST = ROOT / "dist"
+DIST = ROOT / "dist.__staging"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 EXCLUDED_NAMES = {
-    ".git", ".firebase", ".pytest_cache", "__pycache__", "dist", "engine",
-    "docs", "scripts", "backup", "node_modules", "dokumen.html", "intel"
+    ".git", ".firebase", ".pytest_cache", "__pycache__", "dist",
+    "dist.local-preview", "dist.__staging", "dist.__previous", "engine",
+    "docs", "scripts", "backup", "node_modules", "dokumen.html", "intel",
+    "services-project",
+    "Dokumen Pangkalan", "scratch",
+    "E-SKPT E-PASAR", "EPASAR_SATU_DATA_DEVELOPER_PACK_V1",
+    "ARAHAN_DEVELOPER_DISPERINDAG_ESDM_PINRANG_V2_LAYANAN_ONLINE_2026-09-03",
 }
-EXCLUDED_SUFFIXES = {".md", ".py", ".bat", ".cmd", ".sh", ".docx", ".log"}
+EXCLUDED_SUFFIXES = {".md", ".py", ".bat", ".cmd", ".sh", ".docx", ".xlsx", ".log"}
 GENERATED_PATHS = {"berita", "pasar", "direktori-lpg", "penyalur-bbm", "sitemap.xml"}
 
 
@@ -34,8 +40,8 @@ def copy_site_sources() -> None:
             shutil.copy2(source, target)
 
 
-def run_generator(script: str) -> None:
-    command = [sys.executable, str(ROOT / script)]
+def run_generator(script: str, *arguments: str) -> None:
+    command = [sys.executable, str(ROOT / script), *arguments]
     result = subprocess.run(command, cwd=DIST, check=False)
     if result.returncode:
         raise SystemExit(result.returncode)
@@ -47,17 +53,30 @@ def validate() -> None:
         DIST / "penyalur-bbm.html", DIST / "pasar.html", DIST / "peta-gis.html",
         DIST / "harga-bahan-pokok.html", DIST / "js" / "public-navigation.js",
         DIST / "js" / "lpg-engine.js", DIST / "js" / "bbm-engine.js",
-        DIST / "js" / "market-engine.js",
+        DIST / "js" / "e-skpt-market-engine.js",
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]
     if missing:
         raise RuntimeError(f"Output build tidak lengkap: {', '.join(missing)}")
-    if not (DIST / "berita").is_dir() or not (DIST / "pasar").is_dir():
-        raise RuntimeError("Output generator berita/pasar tidak ditemukan")
+    if not (DIST / "berita").is_dir():
+        raise RuntimeError("Output generator berita tidak ditemukan")
+    if (DIST / "pasar").exists():
+        raise RuntimeError("Halaman detail pasar lama tidak boleh masuk build setelah migrasi e-SKPT")
     forbidden = [DIST / "dokumen.html", DIST / "direktori-lpg" / "index.html", DIST / "penyalur-bbm" / "index.html"]
     present = [str(path.relative_to(DIST)) for path in forbidden if path.exists()]
     if present:
         raise RuntimeError(f"Halaman lama/cermin tidak boleh dipublikasikan: {', '.join(present)}")
+    private_paths = [
+        DIST / "services-project", DIST / "engine", DIST / "docs", DIST / "scripts",
+        DIST / "Dokumen Pangkalan", DIST / "scratch",
+    ]
+    leaked = [str(path.relative_to(DIST)) for path in private_paths if path.exists()]
+    if leaked:
+        raise RuntimeError(f"Artefak internal tidak boleh masuk build publik: {', '.join(leaked)}")
+    nested_builds = [DIST / "dist", DIST / "dist.local-preview", DIST / "dist.__staging", DIST / "dist.__previous"]
+    nested = [str(path.relative_to(DIST)) for path in nested_builds if path.exists()]
+    if nested:
+        raise RuntimeError(f"Artefak build bersarang tidak boleh dipublikasikan: {', '.join(nested)}")
 
 
 def main() -> None:
@@ -71,8 +90,15 @@ def main() -> None:
     if "FIREBASE_API_KEY" not in os.environ:
         raise RuntimeError("FIREBASE_API_KEY wajib tersedia untuk build produksi")
     copy_site_sources()
-    run_generator("build_static_pages.py")
-    run_generator("build_market_pages.py")
+    # Rilis produksi harus mengambil daftar berita persis dari Firestore.
+    # Pengembang yang benar-benar membutuhkan build offline wajib memilih
+    # BUILD_NEWS_SOURCE=local secara eksplisit agar seed tidak terdeploy tanpa sadar.
+    news_source = os.environ.get("BUILD_NEWS_SOURCE", "cloud").strip().lower()
+    if news_source not in {"local", "cloud"}:
+        raise RuntimeError("BUILD_NEWS_SOURCE harus bernilai 'local' atau 'cloud'")
+    run_generator("build_static_pages.py", *(["--cloud"] if news_source == "cloud" else []))
+    # Direktori pasar publik kini membaca master e-SKPT secara realtime.
+    # Halaman detail dari master pasar lokal sengaja tidak lagi dibangkitkan.
     # Generator membuat ulang halaman berita/detail. Terapkan header publik
     # kanonis setelah seluruh generator selesai agar hasil dist tetap konsisten.
     import sync_public_navigation
@@ -90,7 +116,24 @@ def main() -> None:
     sync_og_metadata.ROOT = DIST
     sync_og_metadata.main()
     validate()
-    print(f"Production build selesai: {DIST}")
+
+    # Publikasikan hasil hanya setelah seluruh generator dan validasi berhasil.
+    # Dengan demikian koneksi terputus atau data cloud tidak valid tidak dapat
+    # meninggalkan folder dist dalam kondisi setengah jadi.
+    previous_dist = ROOT / "dist.__previous"
+    if previous_dist.exists():
+        shutil.rmtree(previous_dist)
+    if FINAL_DIST.exists():
+        FINAL_DIST.replace(previous_dist)
+    try:
+        DIST.replace(FINAL_DIST)
+    except Exception:
+        if previous_dist.exists() and not FINAL_DIST.exists():
+            previous_dist.replace(FINAL_DIST)
+        raise
+    if previous_dist.exists():
+        shutil.rmtree(previous_dist)
+    print(f"Production build selesai: {FINAL_DIST}")
 
 
 if __name__ == "__main__":

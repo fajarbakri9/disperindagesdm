@@ -304,6 +304,12 @@
       '⚓ SPBUN (<b data-gis-count="spbun">0</b>)': groups.spbun,
       '🏪 Pertashop (<b data-gis-count="pertashop">0</b>)': groups.pertashop
     }, { collapsed: false, position: 'topright' }).addTo(map);
+    const requestedLayers=new URLSearchParams(location.search).get('layers');
+    if(requestedLayers){
+      const requested=new Set(requestedLayers.toLowerCase().split(',').map(x=>x.trim()));
+      const keep={market:requested.has('markets')||requested.has('market'),agent:requested.has('lpg'),base:requested.has('lpg'),spbu_reguler:requested.has('bbm'),spbu_kompak:requested.has('bbm'),spbun:requested.has('bbm'),pertashop:requested.has('bbm')};
+      Object.entries(groups).forEach(([key,group])=>{if(!keep[key]&&map.hasLayer(group))map.removeLayer(group);});
+    }
     if (window.PinrangAdministrativeOverlay) {
       try { await PinrangAdministrativeOverlay.addTo(map, { districtPane: 'gisBoundaryPane', villagePane: 'gisVillagePane', collapsed: true, villageMinZoom: 12 }); }
       catch (error) { console.warn('[Peta GIS] Overlay administratif:', error.message); }

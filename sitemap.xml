@@ -237,4 +237,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
+  <url><loc>https://disperindagesdm-pinrang.web.app/layanan-online</loc><lastmod>2026-09-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://disperindagesdm-pinrang.web.app/permohonan</loc><lastmod>2026-09-03</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://disperindagesdm-pinrang.web.app/dashboard-esdm</loc><lastmod>2026-09-03</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
 </urlset>

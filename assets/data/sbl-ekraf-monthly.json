@@ -1,0 +1,104 @@
+{
+  "source": "https://sbl.pinrangkab.go.id/ekraf/",
+  "sourceBundle": "https://sbl.pinrangkab.go.id/ekraf/assets/index-UP9KAMTK.js",
+  "sourceUpdatedAt": "2026-09-23",
+  "syncedAt": "2026-09-29T08:58:04.414026+00:00",
+  "updateFrequency": "MONTHLY",
+  "totalRecords": 242,
+  "totalMasterRecords": 242,
+  "totalFnbLocations": 169,
+  "totalEkrafEntities": 48,
+  "totalDistricts": 12,
+  "totalDuplicateCases": 12,
+  "totalProductCatalog": 8,
+  "totalSubsectors": 21,
+  "topSubsectors": [
+    {
+      "label": "Coffee shop / kedai kopi",
+      "count": 60
+    },
+    {
+      "label": "Kafe",
+      "count": 44
+    },
+    {
+      "label": "Warung kopi",
+      "count": 25
+    },
+    {
+      "label": "Kafe & resto",
+      "count": 14
+    },
+    {
+      "label": "Gerai minuman / dessert",
+      "count": 10
+    },
+    {
+      "label": "Restoran cepat saji",
+      "count": 5
+    },
+    {
+      "label": "Restoran / rumah makan",
+      "count": 3
+    },
+    {
+      "label": "Kedai mie / ramen",
+      "count": 3
+    }
+  ],
+  "districtCoverage": [
+    {
+      "label": "Watang Sawitto",
+      "count": 106
+    },
+    {
+      "label": "Paleteang",
+      "count": 15
+    },
+    {
+      "label": "Belum dipetakan",
+      "count": 15
+    },
+    {
+      "label": "Duampanua",
+      "count": 5
+    },
+    {
+      "label": "Patampanua",
+      "count": 5
+    },
+    {
+      "label": "Lembang",
+      "count": 5
+    },
+    {
+      "label": "Tiroang",
+      "count": 4
+    },
+    {
+      "label": "Suppa",
+      "count": 4
+    },
+    {
+      "label": "Mattiro Sompe",
+      "count": 3
+    },
+    {
+      "label": "Mattiro Bulu",
+      "count": 3
+    },
+    {
+      "label": "Cempa",
+      "count": 2
+    },
+    {
+      "label": "Batu Lappa",
+      "count": 1
+    },
+    {
+      "label": "Lanrisang",
+      "count": 1
+    }
+  ],
+  "privacy": "AGGREGATE_ONLY"
+}

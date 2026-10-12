@@ -9,13 +9,16 @@
     const close = document.getElementById('drawerCloseBtn');
     if (!toggle || !drawer || !overlay) return;
 
+    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
     function setOpen(isOpen) {
       drawer.classList.toggle('open', isOpen);
       overlay.classList.toggle('active', isOpen);
       toggle.setAttribute('aria-expanded', String(isOpen));
       drawer.setAttribute('aria-hidden', String(!isOpen));
       document.body.style.overflow = isOpen ? 'hidden' : '';
-      if (isOpen && close) close.focus();
+      if (isOpen && close) window.setTimeout(function () { close.focus(); }, 100);
+      if (!isOpen) toggle.focus();
     }
 
     toggle.addEventListener('click', function () { setOpen(true); });
@@ -26,6 +29,24 @@
     });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && drawer.classList.contains('open')) setOpen(false);
+      if (event.key !== 'Tab' || !drawer.classList.contains('open')) return;
+      const focusable = Array.from(drawer.querySelectorAll(focusableSelector)).filter(function (element) {
+        return element.offsetParent !== null;
+      });
+      if (!focusable.length) {
+        event.preventDefault();
+        drawer.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     });
   });
 })();

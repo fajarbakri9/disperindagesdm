@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "year": 2026,
+  "region": "KABUPATEN PINRANG",
+  "product": "LPG TABUNG 3 KG",
+  "status": "verified-local-documents-with-corrections",
+  "annualQuota": {
+    "value": 11692,
+    "unit": "MT",
+    "kilograms": 11692000,
+    "equivalentCylinderCountApprox": 3897333.333333,
+    "wholeCylinderEquivalent": 3897333,
+    "conversionRemainderKg": 1,
+    "sourceDocument": "DATA KUOTA LPG 3 KG KAB. PINRANG TAHUN 2026 (2).pdf",
+    "sourceReference": "Lampiran 2 Nomor B-113/MG.05/DJM/2026 tanggal 6 Januari 2026, baris Kabupaten Pinrang"
+  },
+  "distribution": {
+    "coveredPeriodStart": "2026-01-01",
+    "coveredPeriodEnd": "2026-07-31",
+    "coverageStatus": "complete-for-nine-listed-agents",
+    "unit": "tabung",
+    "agents": [
+      {
+        "agentId": "AG-003",
+        "agentName": "PT. H. ABD RAHMAN HASYIM",
+        "sourceName": "PT. H. ABD RAHMAN HASYIM",
+        "monthlyDistribution": {
+          "2026-01": 80080,
+          "2026-02": 71680,
+          "2026-03": 80080,
+          "2026-04": 74480,
+          "2026-05": 73920,
+          "2026-06": 78960,
+          "2026-07": 80640
+        },
+        "total": 539840,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-006",
+        "agentName": "PT. NASMAN HAFID MANDIRI",
+        "sourceName": "PT. NASMAN HAFID MANDIRI",
+        "monthlyDistribution": {
+          "2026-01": 54320,
+          "2026-02": 49280,
+          "2026-03": 55440,
+          "2026-04": 51520,
+          "2026-05": 49280,
+          "2026-06": 54880,
+          "2026-07": 54880
+        },
+        "total": 369600,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-001",
+        "agentName": "PT. GASIFA MULYA PERSADA",
+        "sourceName": "PT. GASIFA MULYA PERSADA",
+        "monthlyDistribution": {
+          "2026-01": 56000,
+          "2026-02": 50760,
+          "2026-03": 57320,
+          "2026-04": 53200,
+          "2026-05": 51520,
+          "2026-06": 56560,
+          "2026-07": 55950
+        },
+        "total": 381310,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-004",
+        "agentName": "PT. NURCAHAYA ENERGI ABADI",
+        "sourceName": "PT. NURCAHAYA ENERGI ABADI",
+        "monthlyDistribution": {
+          "2026-01": 51520,
+          "2026-02": 47600,
+          "2026-03": 51520,
+          "2026-04": 48720,
+          "2026-05": 48160,
+          "2026-06": 51520,
+          "2026-07": 52080
+        },
+        "total": 351120,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-002",
+        "agentName": "PT. HAMISA SUKRAH MULYA",
+        "sourceName": "PT. HAMISA SUKRIAH MULYA",
+        "monthlyDistribution": {
+          "2026-01": 45360,
+          "2026-02": 41440,
+          "2026-03": 45920,
+          "2026-04": 42560,
+          "2026-05": 42560,
+          "2026-06": 45920,
+          "2026-07": 45920
+        },
+        "total": 309680,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-007",
+        "agentName": "PT. H. AMIRUDDIN RAHMAN",
+        "sourceName": "PT. H. AMIRUDDIN RAHMAN",
+        "monthlyDistribution": {
+          "2026-01": 39200,
+          "2026-02": 47600,
+          "2026-03": 51520,
+          "2026-04": 48720,
+          "2026-05": 49280,
+          "2026-06": 40880,
+          "2026-07": 40320
+        },
+        "total": 317520,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-008",
+        "agentName": "PT. KAKA MIGAS UTAMA",
+        "sourceName": "PT. KAKA MIGAS UTAMA",
+        "monthlyDistribution": {
+          "2026-01": 16800,
+          "2026-02": 16240,
+          "2026-03": 17360,
+          "2026-04": 16800,
+          "2026-05": 17360,
+          "2026-06": 17920,
+          "2026-07": 17920
+        },
+        "total": 120400,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-005",
+        "agentName": "PT WAHYU DWI KENCANA MANDIRI",
+        "sourceName": "PT WAHYU DWI KENCANA MANDIRI",
+        "monthlyDistribution": {
+          "2026-01": 11720,
+          "2026-02": 11520,
+          "2026-03": 12400,
+          "2026-04": 11760,
+          "2026-05": 12320,
+          "2026-06": 12880,
+          "2026-07": 11920
+        },
+        "total": 84520,
+        "unit": "tabung"
+      },
+      {
+        "agentId": "AG-009",
+        "agentName": "PT Kiano Energi Utama",
+        "sourceName": "PT Kiano Energi Utama",
+        "monthlyDistribution": {
+          "2026-01": 0,
+          "2026-02": 0,
+          "2026-03": 0,
+          "2026-04": 0,
+          "2026-05": 0,
+          "2026-06": 3960,
+          "2026-07": 9720
+        },
+        "total": 13680,
+        "unit": "tabung"
+      }
+    ],
+    "printedMonthlyTotals": {
+      "2026-01": 355000,
+      "2026-02": 336120,
+      "2026-03": 371560,
+      "2026-04": 347760,
+      "2026-05": 344400,
+      "2026-06": 359520,
+      "2026-07": 359630
+    },
+    "correctedMonthlyTotals": {
+      "2026-01": 355000,
+      "2026-02": 336120,
+      "2026-03": 371560,
+      "2026-04": 347760,
+      "2026-05": 344400,
+      "2026-06": 363480,
+      "2026-07": 369350
+    },
+    "printedGrandTotal": 2487670,
+    "correctedGrandTotal": 2487670,
+    "sourceDocument": "DATA PENYALURAN LPG 3 KG BULAN JULI 2026 (1).pdf",
+    "corrections": [
+      {
+        "period": "2026-06",
+        "printedTotal": 359520,
+        "correctedTotal": 363480,
+        "difference": 3960,
+        "reason": "Baris total cetak tidak memasukkan penyaluran PT Kiano Energi Utama."
+      },
+      {
+        "period": "2026-07",
+        "printedTotal": 359630,
+        "correctedTotal": 369350,
+        "difference": 9720,
+        "reason": "Baris total cetak tidak memasukkan penyaluran PT Kiano Energi Utama."
+      }
+    ]
+  },
+  "derived": {
+    "distributedKilograms": 7463010,
+    "distributedMT": 7463.01,
+    "quotaRealizationPct": 63.830055,
+    "remainingQuotaMT": 4228.99
+  },
+  "excludedData": [
+    "Angka media 13.683 tabung per hari tidak dimasukkan karena tidak memiliki rincian transaksi lokal.",
+    "Tambahan 18.480 tabung tidak dimasukkan karena tidak terdapat dokumen penyaluran rinci di folder sumber.",
+    "Usulan 5.040 tabung tidak dihitung sebagai realisasi karena statusnya masih usulan.",
+    "Data Agustus tidak digabung karena hanya tersedia untuk tiga agen dan disimpan pada dataset terpisah."
+  ]
+}

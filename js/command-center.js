@@ -1,1661 +1,2332 @@
-// ==============================================================================
-
-
-// COMMAND CENTER ENGINE V3.2 PROD - DISPERINDAG ESDM KABUPATEN PINRANG
-// Arsitektur: Dynamic Multi-Slide Presentation, Master Data Pasar Dinamis,
-// SKM 2025 Resmi Periodik, Safe DOM Rendering, Single Global Continuous Ticker,
-// & Resilience Realtime Firestore Listener dengan includeMetadataChanges.
-// ==============================================================================
-
-// --- 1. KONFIGURASI ENGINE & SLIDE SHOW ---
-const CC_CACHE_VERSION = '2026-09-01-command-center-single-source-v1';
-const CC_CONFIG = {
-  activeSlideIndex: 0,
-  totalSlides: 7,
-  isPaused: false,
-  autoSlideTimer: null,
-  tickerInterval: null,
-  weatherInterval: null,
-  maxStaleTimeMs: 15 * 60 * 1000,   // 15 Menit sebelum status DATA STALE
-  staleCheckInterval: 30 * 1000,    // Periksa status data setiap 30 detik
-  durations: [
-    20000, // Slide 0: Executive Overview (20 detik)
-    25000, // Slide 1: Bursa Pasar Penuh & Master Pasar (25 detik)
-    18000, // Slide 2: Kemetrologian Legal & Tera UTTP (18 detik)
-    18000, // Slide 3: Distribusi LPG 3 Kg & ESDM (18 detik)
-    20000, // Slide 4: Industri IKM & Layanan Publik SKM (20 detik)
-    22000, // Slide 5: Penyalur BBM & Pertashop (22 detik)
-    30000  // Slide 6: Peta GIS terpadu (30 detik)
-  ]
-};
-
-// Map status pasokan komoditas pangan
-const STOCK_STATUS_MAP = {
-  abundant: { label: "Melimpah", color: "var(--accent-emerald)", icon: "🟢" },
-  normal:   { label: "Aman Terkendali", color: "var(--accent-cyan)", icon: "🔵" },
-  limited:  { label: "Pasokan Terbatas", color: "var(--accent-gold)", icon: "🟡" },
-  critical: { label: "Kritis / Kurang", color: "var(--accent-rose)", icon: "🔴" }
-};
-
-let lastFirestoreSuccess = null;
-let lastServerUpdatedAt = null;
-const sourceStates = new Map();
-const SOURCE_FRESHNESS_MINUTES = {
-  metrics: 15,
-  markets: 24 * 60,
-  districts: 6 * 60,
-  prices: 24 * 60,
-  reports: 30,
-  tera: 24 * 60
-};
-
-function updateSourceState(source, state, updatedAt = null) {
-  sourceStates.set(source, { state, updatedAt: timestampToMillis(updatedAt) });
-  const states = Array.from(sourceStates.values());
-  const newest = Math.max(0, ...states.map(item => item.updatedAt || 0));
-  if (newest > 0) {
-    lastServerUpdatedAt = newest;
-    updateDataFreshnessUI(newest);
-  }
-  if (states.some(item => item.state === 'stale')) setSystemStatus('stale');
-  else if (states.some(item => item.state === 'cached')) setSystemStatus('cached');
-  else if (states.some(item => item.state === 'live')) setSystemStatus('live');
-  else setSystemStatus('unavailable');
-}
-
-function markServerSnapshot(source, metadata, updatedAt, maxAgeMinutes) {
-  lastFirestoreSuccess = Date.now();
-  if (metadata?.fromCache) {
-    updateSourceState(source, 'cached', updatedAt);
-    return;
-  }
-  const freshness = getFreshnessStatus(updatedAt, maxAgeMinutes);
-  updateSourceState(source, freshness === 'fresh' ? 'live' : freshness, updatedAt);
-}
-
-function handleFirestoreError(source, error, cacheKey) {
-  console.error(`Firestore ${source} Error:`, error?.code || '', error?.message || error);
-  updateSourceState(source, 'unavailable');
-}
-
-// --- 2. FORMATTER ANGKA & MATA UANG ---
-function formatRupiahVal(val) {
-  if (val === undefined || val === null || val === "" || isNaN(Number(val))) return "--";
-  return "Rp " + Number(val).toLocaleString("id-ID");
-}
-
-function formatPercentVal(val) {
-  const value = safePercentage(val);
-  return value === null ? "--" : `${value}%`;
-}
-
-function safeNumber(val, fallback = null) {
-  if (val === undefined || val === null || val === "" || isNaN(Number(val))) return fallback;
-  return Number(val);
-}
-
-function safeString(val, fallback = "--") {
-  if (typeof val !== 'string' || val.trim() === "") return fallback;
-  return val.trim().slice(0, 250);
-}
-
-function safePercentage(val) {
-  const value = safeNumber(val);
-  return value === null ? null : Math.min(Math.max(value, 0), 100);
-}
-
-function timestampToMillis(value) {
-  if (!value) return null;
-  if (typeof value.toMillis === 'function') return value.toMillis();
-  if (typeof value.toDate === 'function') return value.toDate().getTime();
-  if (typeof value === 'object' && Number.isFinite(value.seconds)) return value.seconds * 1000;
-  const millis = typeof value === 'number' ? value : new Date(value).getTime();
-  return Number.isFinite(millis) ? millis : null;
-}
-
-function getFreshnessStatus(updatedAt, maxAgeMinutes) {
-  const millis = timestampToMillis(updatedAt);
-  if (!millis) return 'unavailable';
-  return Date.now() - millis > maxAgeMinutes * 60 * 1000 ? 'stale' : 'fresh';
-}
-
-function renderMediaIntelligenceSummary(snapshot) {
-  const setText = (id, value) => {
-    const element = document.getElementById(id);
-    if (element) element.textContent = value;
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    active: "overview",
+    map: null,
+    mapLayers: {},
+    markets: [],
+    lpg: [],
+    agents: [],
+    fuel: [],
+    prices: [],
+    reports: [],
+    stats: {},
+    metrics: {},
+    lpgSummary: {},
+    lpgDistribution: null,
+    districts: [],
+    mi: {},
+    ekraf: {},
+    paused: false,
+    rotationTimer: null,
+    unsubs: [],
+    primaryDb: null,
+    dataState: {},
   };
-  const safeKpi = value => Number.isInteger(value) && value >= 0 ? String(value) : '—';
-  const kpis = snapshot && typeof snapshot.kpis === 'object' ? snapshot.kpis : {};
-  setText('ccMiMentions24h', safeKpi(kpis.earned_mentions_24h));
-  setText('ccMiUniqueStories', safeKpi(kpis.unique_stories_24h));
-  setText('ccMiCriticalIssues', safeKpi(kpis.active_critical_issues));
-
-  const lastSyncMillis = timestampToMillis(snapshot?.last_run_at || snapshot?.last_full_success_at);
-  setText('ccMiLastSync', lastSyncMillis ? new Date(lastSyncMillis).toLocaleString('id-ID', {
-    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-    timeZone: 'Asia/Makassar'
-  }) + ' WITA' : '—');
-
-  const allowedStatuses = new Set(['FRESH', 'DEGRADED', 'STALE', 'OFFLINE']);
-  const status = allowedStatuses.has(snapshot?.system_status) ? snapshot.system_status : 'OFFLINE';
-  const statusElement = document.getElementById('ccMiStatus');
-  if (statusElement) {
-    statusElement.textContent = snapshot ? status : 'MENUNGGU DATA';
-    statusElement.className = `cc-mi-status cc-mi-status--${status.toLowerCase()}`;
+  const COLORS = {
+    green: "#18a86b",
+    blue: "#2c70e8",
+    purple: "#8652f3",
+    amber: "#e69a00",
+    red: "#e44757",
+    navy: "#12365f",
+  };
+  const icons = {
+    overview: "layout-grid",
+    market: "store",
+    metrology: "scale",
+    esdm: "zap",
+    industry: "factory",
+    fuel: "fuel",
+    gis: "map",
+  };
+  const modules = {
+    overview: {
+      title: "Situasi Perdagangan, Industri dan Energi",
+      sub: "Ikhtisar eksekutif Kabupaten Pinrang · fokus pada indikator yang membutuhkan keputusan",
+      source: "DATA TERBARU",
+      sourceValue: "SINKRONISASI SISTEM",
+      tone: COLORS.green,
+      kpis: [
+        [
+          "Pasar Aktif",
+          "16 / 17",
+          "pasar rakyat terdata",
+          "94%",
+          "store",
+          COLORS.green,
+        ],
+        [
+          "Penyalur BBM",
+          "27",
+          "titik penyalur resmi",
+          "100%",
+          "fuel",
+          COLORS.blue,
+        ],
+        [
+          "Pangkalan LPG",
+          "681",
+          "pangkalan terdaftar",
+          "12 kecamatan",
+          "battery",
+          COLORS.purple,
+        ],
+        [
+          "HET LPG 3 KG",
+          "Rp 18.000",
+          "harga resmi pangkalan",
+          "sesuai regulasi",
+          "cylinder",
+          COLORS.amber,
+        ],
+      ],
+      chart: "Pergerakan Harga Bapokting",
+      chartSub: "Tren tiga komoditas utama · SP2KP Kabupaten Pinrang",
+      bars: [
+        ["Cabai Rawit", 96],
+        ["Bawang Merah", 77],
+        ["Beras Medium", 62],
+        ["Gula Pasir", 49],
+        ["Minyak Goreng", 38],
+        ["Telur Ayam", 31],
+      ],
+      statusTitle: "STATUS UTAMA",
+      statuses: [
+        [
+          "Pasar Rakyat",
+          "16 dari 17 pasar aktif",
+          "Normal",
+          "store",
+          COLORS.green,
+        ],
+        [
+          "LPG 3 Kg",
+          "Distribusi dan stok terpantau",
+          "Normal",
+          "battery",
+          COLORS.green,
+        ],
+        ["BBM", "27 titik penyalur aktif", "Normal", "fuel", COLORS.green],
+        [
+          "Metrologi & Tera",
+          "Agenda tera berjalan",
+          "Update",
+          "scale",
+          COLORS.blue,
+        ],
+        [
+          "Industri & Pengaduan",
+          "3 aduan aktif dalam proses",
+          "Perhatian",
+          "factory",
+          COLORS.amber,
+        ],
+      ],
+      attentionTitle: "PERLU PERHATIAN",
+      attention: [
+        [
+          "Harga Cabai Rawit naik 11,4%",
+          "Perubahan signifikan dalam 7 hari terakhir",
+          COLORS.red,
+        ],
+        [
+          "3 Pangkalan LPG menunggu verifikasi",
+          "Prioritaskan verifikasi lapangan",
+          COLORS.amber,
+        ],
+      ],
+      summaryTitle: "RINGKASAN OPERASIONAL",
+      summary: [
+        ["16", "Pasar aktif", "store", COLORS.green],
+        ["27", "Penyalur BBM", "fuel", COLORS.blue],
+        ["681", "Pangkalan LPG", "battery", COLORS.purple],
+        ["1.245", "IKM terdata", "factory", COLORS.red],
+      ],
+      extraTitle: "MEDIA INTELLIGENCE",
+      extra: "metrics",
+    },
+    market: {
+      title: "Pasar Rakyat & e-SKPT",
+      sub: "Data pasar, pedagang, ruang usaha dan status administrasi e-SKPT dalam satu tampilan",
+      source: "INTEGRASI",
+      sourceValue: "PASAR + e-SKPT",
+      tone: COLORS.green,
+      kpis: [
+        [
+          "Pasar Terdata",
+          "17",
+          "pasar rakyat Kabupaten Pinrang",
+          "16 aktif",
+          "store",
+          COLORS.green,
+        ],
+        ["Pasar Aktif", "16", "1 pasar nonaktif", "94%", "store", COLORS.blue],
+        [
+          "e-SKPT",
+          "TERHUBUNG",
+          "sinkronisasi administrasi pedagang",
+          "realtime",
+          "qr-code",
+          COLORS.purple,
+        ],
+        [
+          "Verifikasi Data",
+          "96%",
+          "identitas & ruang usaha terverifikasi",
+          "+2%",
+          "chart-no-axes-column-increasing",
+          COLORS.amber,
+        ],
+      ],
+      chart: "SEBARAN PEDAGANG PER PASAR",
+      chartSub: "Data operasional e-SKPT",
+      bars: [
+        ["Pasar Sentral", 100],
+        ["Pekkabata", 44],
+        ["Teppo", 28],
+        ["Langnga", 25],
+        ["Suppa", 22],
+        ["Bungi", 18],
+        ["Tuppu", 16],
+        ["Labolong", 15],
+      ],
+      statusTitle: "STATUS PASAR",
+      statuses: [
+        [
+          "Pasar Sentral Pinrang",
+          "Data pedagang & ruang usaha tersinkron",
+          "Aktif",
+          "store",
+          COLORS.green,
+        ],
+        [
+          "Pasar Pekkabata",
+          "Verifikasi rutin berjalan",
+          "Aktif",
+          "store",
+          COLORS.green,
+        ],
+        [
+          "Pasar Paleteang",
+          "Tidak beroperasi sesuai data master",
+          "Nonaktif",
+          "store",
+          COLORS.red,
+        ],
+        [
+          "e-SKPT",
+          "Dokumen digital & QR terhubung",
+          "Sinkron",
+          "qr-code",
+          COLORS.blue,
+        ],
+      ],
+      attentionTitle: "AKSI PRIORITAS",
+      attention: [
+        [
+          "Verifikasi klaim kios/los/lapak",
+          "Tinjau klaim yang belum lengkap",
+          COLORS.amber,
+        ],
+        [
+          "Pasar Paleteang nonaktif",
+          "Pertahankan status master agar tidak tampil aktif",
+          COLORS.red,
+        ],
+      ],
+      summaryTitle: "e-SKPT & PEDAGANG",
+      summary: [
+        ["17", "Pasar terdata", "store", COLORS.green],
+        ["4", "Jenis ruang usaha", "qr-code", COLORS.blue],
+        ["96%", "Data terverifikasi", "badge-check", COLORS.purple],
+        ["LIVE", "Sinkron e-SKPT", "clock", COLORS.amber],
+      ],
+      extraTitle: "AKTIVITAS TERBARU",
+      extra: "activity",
+    },
+    metrology: {
+      title: "Kemetrologian & Tera",
+      sub: "Kepatuhan UTTP, tera/tera ulang, jadwal layanan dan tindak lanjut pengawasan",
+      source: "DASAR DATA",
+      sourceValue: "UNIT METROLOGI LEGAL",
+      tone: COLORS.blue,
+      kpis: [
+        [
+          "UTTP Diperiksa",
+          "1.284",
+          "unit pada periode berjalan",
+          "+86",
+          "scale",
+          COLORS.blue,
+        ],
+        [
+          "UTTP Sah",
+          "1.241",
+          "memenuhi ketentuan",
+          "—",
+          "badge-check",
+          COLORS.green,
+        ],
+        [
+          "Tindak Lanjut",
+          "43",
+          "perlu penyesuaian/perbaikan",
+          "3,3%",
+          "triangle-alert",
+          COLORS.navy,
+        ],
+        [
+          "Nozzle SPBU",
+          "98,4%",
+          "hasil tera terverifikasi",
+          "patuh",
+          "fuel",
+          COLORS.purple,
+        ],
+      ],
+      chart: "REALISASI TERA PER KECAMATAN",
+      chartSub: "Jumlah UTTP diperiksa pada periode berjalan",
+      bars: [
+        ["Watang Sawitto", 100],
+        ["Paleteang", 84],
+        ["Duampanua", 78],
+        ["Suppa", 73],
+        ["Mattiro Bulu", 68],
+        ["Patampanua", 65],
+        ["Tiroang", 61],
+        ["Lanrisang", 54],
+      ],
+      statusTitle: "JADWAL & HASIL",
+      statuses: [
+        [
+          "Pasar Sentral Pinrang",
+          "30 Sep · 08.00–15.00 WITA",
+          "Terjadwal",
+          "scale",
+          COLORS.blue,
+        ],
+        [
+          "SPBU Watang Sawitto",
+          "Realisasi pemeriksaan selesai",
+          "Selesai",
+          "scale",
+          COLORS.green,
+        ],
+        [
+          "43 UTTP",
+          "Membutuhkan tindak lanjut teknis",
+          "Perhatian",
+          "triangle-alert",
+          COLORS.amber,
+        ],
+        [
+          "Dokumen hasil",
+          "Rekap digital siap dilaporkan",
+          "Siap",
+          "badge-check",
+          COLORS.green,
+        ],
+      ],
+      attentionTitle: "PERLU TINDAK LANJUT",
+      attention: [
+        [
+          "43 UTTP memerlukan tindak lanjut",
+          "Kelompokkan berdasarkan jenis temuan",
+          COLORS.amber,
+        ],
+        [
+          "Jadwal Pasar Sentral besok",
+          "Pastikan petugas dan perangkat siap",
+          COLORS.blue,
+        ],
+      ],
+      summaryTitle: "RINGKASAN METROLOGI",
+      summary: [
+        ["—", "Tingkat sah", "scale", COLORS.green],
+        ["08:00", "Layanan berikutnya", "clock", COLORS.blue],
+        ["27", "Penyalur BBM", "fuel", COLORS.purple],
+        ["12", "Kecamatan terlayani", "store", COLORS.amber],
+      ],
+      extraTitle: "STATUS KEPATUHAN",
+      extra: "compliance",
+    },
+    esdm: {
+      title: "Energi & Sumber Daya Mineral",
+      sub: "Distribusi LPG 3 Kg, agen, HET, kualitas data lokasi dan indikator energi daerah",
+      source: "SUMBER",
+      sourceValue: "MASTER ESDM + DASHBOARD",
+      tone: COLORS.purple,
+      kpis: [
+        [
+          "Pangkalan LPG",
+          "681",
+          "terdaftar pada master",
+          "12 kecamatan",
+          "battery",
+          COLORS.purple,
+        ],
+        [
+          "Agen Resmi",
+          "12",
+          "jaringan distribusi aktif",
+          "aktif",
+          "building-2",
+          COLORS.blue,
+        ],
+        [
+          "HET LPG 3 KG",
+          "Rp 18.000",
+          "harga resmi pangkalan",
+          "rujukan",
+          "battery",
+          COLORS.amber,
+        ],
+        [
+          "Perlu Verifikasi",
+          "3",
+          "pangkalan menunggu tinjau",
+          "prioritas",
+          "triangle-alert",
+          COLORS.navy,
+        ],
+      ],
+      chart: "SEBARAN PANGKALAN LPG",
+      chartSub: "Distribusi pangkalan per kecamatan",
+      bars: [
+        ["Watang Sawitto", 100],
+        ["Duampanua", 84],
+        ["Paleteang", 76],
+        ["Patampanua", 70],
+        ["Tiroang", 63],
+        ["Mattiro Bulu", 59],
+        ["Suppa", 53],
+        ["Lanrisang", 47],
+      ],
+      statusTitle: "STATUS DISTRIBUSI",
+      statuses: [
+        [
+          "Stok agen",
+          "Ketersediaan agregat terakhir",
+          "Normal",
+          "battery",
+          COLORS.green,
+        ],
+        [
+          "12 Kecamatan",
+          "Cakupan pangkalan terdistribusi",
+          "Terlayani",
+          "store",
+          COLORS.green,
+        ],
+        [
+          "3 Pangkalan",
+          "Menunggu verifikasi lapangan",
+          "Perhatian",
+          "triangle-alert",
+          COLORS.amber,
+        ],
+        [
+          "Kelengkapan koordinat",
+          "Mayoritas titik tervalidasi",
+          "Baik",
+          "map",
+          COLORS.blue,
+        ],
+      ],
+      attentionTitle: "PERLU PERHATIAN",
+      attention: [
+        [
+          "3 pangkalan menunggu verifikasi",
+          "Tampilkan sebagai tugas prioritas operator",
+          COLORS.amber,
+        ],
+        [
+          "Perbarui titik GPS indikatif",
+          "Utamakan data lapangan untuk GIS",
+          COLORS.blue,
+        ],
+      ],
+      summaryTitle: "RINGKASAN ESDM",
+      summary: [
+        ["681", "Pangkalan", "battery", COLORS.purple],
+        ["12", "Kecamatan", "store", COLORS.green],
+        ["94%", "Koordinat tersedia", "map", COLORS.blue],
+        ["LIVE", "Pembaruan", "clock", COLORS.amber],
+      ],
+      extraTitle: "QUALITY CHECK",
+      extra: "quality",
+    },
+    industry: {
+      title: "Industri, IKM & Ekonomi Kreatif",
+      sub: "Pembinaan pelaku industri, fasilitasi sertifikasi, produk unggulan dan tindak lanjut pengaduan",
+      source: "INTEGRASI",
+      sourceValue: "SIINAS · IKM · SP4N",
+      tone: COLORS.red,
+      kpis: [
+        [
+          "IKM Terbina",
+          "1.245",
+          "contoh data tampilan",
+          "+12",
+          "factory",
+          COLORS.red,
+        ],
+        [
+          "Sertifikasi",
+          "318",
+          "halal/TKDN/HAKI difasilitasi",
+          "+8",
+          "badge-check",
+          COLORS.green,
+        ],
+        [
+          "Sentra Industri",
+          "12",
+          "cakupan sentra daerah",
+          "aktif",
+          "factory",
+          COLORS.blue,
+        ],
+        [
+          "Aduan Aktif",
+          "3",
+          "sedang dalam proses",
+          "perhatian",
+          "triangle-alert",
+          COLORS.navy,
+        ],
+      ],
+      chart: "SEBARAN IKM PER SUBSEKTOR",
+      chartSub: "Agregasi untuk executive dashboard",
+      bars: [
+        ["Kuliner", 100],
+        ["Fesyen/Kriya", 63],
+        ["Olahan Pangan", 49],
+        ["Tenun/Sutra", 35],
+        ["Kopi", 25],
+        ["Konveksi", 21],
+        ["Kayu & Furnitur", 15],
+        ["Lainnya", 12],
+      ],
+      statusTitle: "STATUS PROGRAM",
+      statuses: [
+        [
+          "Pembinaan IKM",
+          "Program berjalan sesuai jadwal",
+          "Normal",
+          "factory",
+          COLORS.green,
+        ],
+        [
+          "Sertifikasi",
+          "8 dokumen baru periode ini",
+          "Update",
+          "badge-check",
+          COLORS.blue,
+        ],
+        [
+          "SIINAS",
+          "Pendampingan akun pelaku usaha",
+          "Aktif",
+          "layout-grid",
+          COLORS.green,
+        ],
+        [
+          "SP4N-LAPOR!",
+          "3 aduan masih berproses",
+          "Perhatian",
+          "triangle-alert",
+          COLORS.amber,
+        ],
+      ],
+      attentionTitle: "PERLU PERHATIAN",
+      attention: [
+        [
+          "3 aduan masih aktif",
+          "Pastikan SLA dan PIC tindak lanjut",
+          COLORS.amber,
+        ],
+        [
+          "8 fasilitasi sertifikasi baru",
+          "Tampilkan progres sampai terbit",
+          COLORS.blue,
+        ],
+      ],
+      summaryTitle: "RINGKASAN INDUSTRI",
+      summary: [
+        ["1.245", "IKM terbina", "factory", COLORS.red],
+        ["318", "Sertifikasi", "badge-check", COLORS.green],
+        ["12", "Sentra", "factory", COLORS.blue],
+        ["3", "Aduan aktif", "triangle-alert", COLORS.navy],
+      ],
+      extraTitle: "PRODUK UNGGULAN",
+      extra: "chips",
+    },
+    fuel: {
+      title: "Penyalur BBM Kabupaten Pinrang",
+      sub: "Sebaran SPBU, APMS, SPBUN dan Pertashop serta status operasional penyalur resmi",
+      source: "SUMBER",
+      sourceValue: "MASTER PENYALUR BBM",
+      tone: COLORS.blue,
+      kpis: [
+        [
+          "Total Penyalur",
+          "27",
+          "titik penyalur resmi",
+          "aktif",
+          "fuel",
+          COLORS.blue,
+        ],
+        [
+          "SPBU & APMS",
+          "17",
+          "jaringan pelayanan utama",
+          "terpantau",
+          "fuel",
+          COLORS.green,
+        ],
+        [
+          "Pertashop",
+          "9",
+          "penyalur non-subsidi desa",
+          "aktif",
+          "store",
+          COLORS.purple,
+        ],
+        [
+          "SPBUN Nelayan",
+          "1",
+          "layanan solar nelayan",
+          "aktif",
+          "ship",
+          COLORS.amber,
+        ],
+      ],
+      chart: "SEBARAN PENYALUR PER KECAMATAN",
+      chartSub: "Master titik operasional BBM",
+      bars: [
+        ["Watang Sawitto", 100],
+        ["Duampanua", 72],
+        ["Suppa", 62],
+        ["Paleteang", 54],
+        ["Patampanua", 48],
+        ["Mattiro Bulu", 41],
+        ["Tiroang", 35],
+        ["Lanrisang", 27],
+      ],
+      statusTitle: "STATUS PENYALUR",
+      statuses: [
+        [
+          "SPBU Reguler",
+          "Ketersediaan produk terpantau",
+          "Normal",
+          "fuel",
+          COLORS.green,
+        ],
+        [
+          "APMS / Compact",
+          "Wilayah layanan aktif",
+          "Normal",
+          "fuel",
+          COLORS.green,
+        ],
+        ["Pertashop", "9 titik pelayanan desa", "Aktif", "store", COLORS.blue],
+        [
+          "Kualitas lokasi",
+          "Koordinat dipakai pada GIS",
+          "Sinkron",
+          "map",
+          COLORS.purple,
+        ],
+      ],
+      attentionTitle: "PENGAWASAN",
+      attention: [
+        [
+          "Pantau stok produk subsidi",
+          "Prioritaskan wilayah dengan permintaan tinggi",
+          COLORS.amber,
+        ],
+        ["Validasi koordinat penyalur", "Jaga kualitas layer GIS", COLORS.blue],
+      ],
+      summaryTitle: "RINGKASAN BBM",
+      summary: [
+        ["27", "Total titik", "fuel", COLORS.blue],
+        ["17", "SPBU/APMS", "fuel", COLORS.green],
+        ["9", "Pertashop", "store", COLORS.purple],
+        ["1", "SPBUN", "ship", COLORS.amber],
+      ],
+      extraTitle: "PRODUK TERSEDIA",
+      extra: "fuelchips",
+    },
+  };
+  const spark =
+    '<div class="spark">' +
+    [6, 9, 8, 12, 10, 14, 12, 15, 11, 10, 14, 9, 6, 6, 5, 7]
+      .map((h) => `<i style="--h:${h}px"></i>`)
+      .join("") +
+    "</div>";
+  const esc = (v) =>
+    String(v ?? "").replace(
+      /[&<>'"]/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "'": "&#39;",
+          '"': "&quot;",
+        })[c],
+    );
+  function icon(name) {
+    return `<i data-lucide="${name}"></i>`;
   }
-}
-
-function isValidMediaIntelligenceSnapshot(snapshot) {
-  return Boolean(snapshot && snapshot.schema_version === 1
-    && snapshot.kpis && typeof snapshot.kpis === 'object'
-    && ['FRESH', 'DEGRADED', 'STALE', 'OFFLINE'].includes(snapshot.system_status));
-}
-
-// --- 3. STATUS SYSTEM & BADGE INDICATOR (4 STATE TEGAS) ---
-// LIVE | OFFLINE/CACHE | DATA STALE | DATA TIDAK TERSEDIA
-function setSystemStatus(state, customLabel = null) {
-  const badge = document.getElementById('systemLiveBadge');
-  const dot = document.getElementById('liveStatusDot');
-  const text = document.getElementById('liveStatusText');
-
-  if (badge) {
-    badge.className = 'cc-live-badge';
-    badge.replaceChildren();
-    const badgeDot = document.createElement('span');
-    badgeDot.className = 'pulse-dot';
-    const badgeText = document.createElement('span');
-    switch (state) {
-      case 'live':
-        badge.classList.add('status-live');
-        badgeText.textContent = customLabel || '● LIVE';
-        break;
-      case 'cached':
-        badge.classList.add('status-cached');
-        badgeDot.style.background = '#F59E0B';
-        badgeText.textContent = customLabel || '● OFFLINE / CACHE';
-        break;
-      case 'stale':
-        badge.classList.add('status-cached');
-        badgeDot.style.background = '#38BDF8';
-        badgeText.textContent = customLabel || '● DATA TERTUNDA';
-        break;
-      case 'unavailable':
-      default:
-        badge.classList.add('status-unavailable');
-        badgeDot.style.background = '#EF4444';
-        badgeText.textContent = customLabel || '● DATA TIDAK TERSEDIA';
-        break;
-    }
-    badge.append(badgeDot, badgeText);
+  function heading(m) {
+    const s = state.dataState[state.active] || {
+      label: "MENUNGGU DATA",
+      tone: COLORS.amber,
+      time: "—",
+    };
+    const freshness = s.rawTime
+      ? `Diperbarui ${s.time}`
+      : "Waktu sumber tidak tersedia";
+    return `<header class="page-heading"><div><h1>${m.title}</h1><p>${m.sub}</p></div><div class="page-source"><span class="source-state" style="--tone:${s.tone}">● ${s.label}</span><b>${m.sourceValue}</b><small>${freshness}</small></div></header>`;
   }
-
-  if (dot && text) {
-    dot.className = 'status-dot';
-    switch (state) {
-      case 'live':
-        dot.classList.add('dot-live');
-        text.textContent = customLabel || '● LIVE';
-        text.style.color = 'var(--accent-emerald)';
-        break;
-      case 'cached':
-        dot.classList.add('dot-cached');
-        text.textContent = customLabel || '● OFFLINE / CACHE';
-        text.style.color = 'var(--accent-gold)';
-        break;
-      case 'stale':
-        dot.classList.add('dot-cached');
-        text.textContent = customLabel || '● DATA TERTUNDA';
-        text.style.color = 'var(--accent-cyan, #38BDF8)';
-        break;
-      case 'unavailable':
-      default:
-        dot.classList.add('dot-unavailable');
-        text.textContent = customLabel || '● DATA TIDAK TERSEDIA';
-        text.style.color = 'var(--accent-rose)';
-        break;
-    }
+  function kpis(m) {
+    return `<div class="kpi-grid">${m.kpis.map((k, i) => `<article class="kpi-card" style="--tone:${k[5]}"><span class="kpi-icon">${icon(k[4])}</span><span class="kpi-label">${k[0]}</span><span class="pill">${k[3]}</span><strong class="kpi-value" data-kpi="${state.active}-${i}">${k[1]}</strong><small class="kpi-meta">${k[2]}</small>${spark}</article>`).join("")}</div>`;
   }
-}
-
-// --- 4. JAM DIGITAL WITA REALTIME ---
-function updateClock() {
-  const timeEl = document.getElementById('ccLiveTime');
-  const dateEl = document.getElementById('ccLiveDate');
-  const oldClockEl = document.getElementById('ccClock');
-  
-  const now = new Date();
-  
-  // Waktu WITA (Makassar UTC+8)
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  const timeFormatted = `${hours}:${minutes}:${seconds} WITA`;
-
-  const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-  const dateFormatted = now.toLocaleDateString('id-ID', optionsDate);
-
-  if (timeEl) timeEl.textContent = timeFormatted;
-  if (dateEl) dateEl.textContent = dateFormatted;
-  if (oldClockEl) oldClockEl.textContent = `${dateFormatted} • ${timeFormatted}`;
-}
-
-// --- 5. CUACA KABUPATEN PINRANG (OPEN-METEO API & CACHE FALLBACK) ---
-async function syncWeather() {
-  const pillEl = document.getElementById('ccWeatherPill');
-  const tempEl = document.getElementById('ccWeatherTemp');
-  const descEl = document.getElementById('ccWeatherDesc');
-  const iconEl = document.getElementById('ccWeatherIcon');
-
-  try {
-    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-3.7833&longitude=119.6500&current=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia%2FMakassar');
-    if (!res.ok) throw new Error("HTTP error " + res.status);
-    const data = await res.json();
-    
-    if (data && data.current) {
-      const temp = Math.round(data.current.temperature_2m);
-      const code = data.current.weather_code;
-      
-      let weatherText = "Cerah Berawan";
-      let weatherIcon = "🌤️";
-
-      if (code === 0) { weatherText = "Cerah"; weatherIcon = "☀️"; }
-      else if ([1, 2, 3].includes(code)) { weatherText = "Cerah"; weatherIcon = "🌤️"; }
-      else if ([45, 48].includes(code)) { weatherText = "Berkabut"; weatherIcon = "🌫️"; }
-      else if ([51, 53, 55, 61, 63, 65].includes(code)) { weatherText = "Hujan"; weatherIcon = "🌧️"; }
-      else if ([80, 81, 82, 95, 96].includes(code)) { weatherText = "Hujan Petir"; weatherIcon = "⛈️"; }
-
-      renderWeatherPill(pillEl, weatherIcon, `${temp}°C`, weatherText);
-      if (tempEl) tempEl.textContent = `${temp}°C`;
-      if (descEl) descEl.textContent = `Pinrang: ${weatherText}`;
-      if (iconEl) iconEl.textContent = weatherIcon;
-      setCachedData('disperindag_cc_weather', { temp, weatherText, weatherIcon }, data.current.time || new Date().toISOString());
-    }
-  } catch (e) {
-    const cached = getCachedData('disperindag_cc_weather');
-    const age = cached ? Date.now() - safeNumber(cached.cached_at, 0) : Infinity;
-    if (cached?.data && age <= 30 * 60 * 1000) {
-      const weather = cached.data;
-      renderWeatherPill(pillEl, weather.weatherIcon || '🌤️', `${safeNumber(weather.temp) ?? '--'}°C`, 'DATA CUACA TERAKHIR');
-      if (tempEl) tempEl.textContent = `${safeNumber(weather.temp) ?? '--'}°C`;
-      if (descEl) descEl.textContent = 'Data cuaca terakhir';
-      if (iconEl) iconEl.textContent = weather.weatherIcon || '🌤️';
-    } else {
-      renderWeatherPill(pillEl, '⚠️', '--°C', 'CUACA BELUM TERBARUI');
-      if (tempEl) tempEl.textContent = '--°C';
-      if (descEl) descEl.textContent = 'Cuaca belum terbarui';
-      if (iconEl) iconEl.textContent = '⚠️';
-    }
+  function bars(m) {
+    const rows = m.bars || [];
+    const max = Math.max(1, ...rows.map((x) => Number(x[1]) || 0));
+    const empty = `<div class="data-empty">${icon("database-zap")}<b>Data rinci belum diterbitkan</b><span>Panel tidak menampilkan angka simulasi.</span></div>`;
+    let body = "";
+    if (!rows.length) body = empty;
+    else if (state.active === "overview")
+      body = `<div class="price-tiles">${rows
+        .slice(0, 6)
+        .map(
+          (x, i) =>
+            `<div><span class="price-rank">0${i + 1}</span><b>${esc(x[0])}</b><strong>${formatMoney(x[1])}</strong><small>${esc(x[2] || "Harga terbaru")}</small></div>`,
+        )
+        .join("")}</div>`;
+    else if (state.active === "market")
+      body = `<div class="funnel-chart">${rows
+        .slice(0, 6)
+        .map(
+          (x, i) =>
+            `<div style="--w:${Math.max(28, ((Number(x[1]) || 0) / max) * 100)}%;--tone:${m.tone}"><span>${esc(x[0])}</span><b>${formatNumber(x[1])} ${esc(m.barUnit || "pedagang")}</b></div>`,
+        )
+        .join("")}</div>`;
+    else if (state.active === "metrology")
+      body = `<div class="compliance-visual"><div class="radial" style="--value:${Number(modules.metrology.kpis[1][3]) || 0};--tone:${m.tone}"><strong>${esc(modules.metrology.kpis[1][3])}</strong><small>UTTP SAH</small></div><div class="bars">${barRows(rows, max, m.tone, " unit")}</div></div>`;
+    else if (state.active === "esdm")
+      body = `<div class="distribution-flow"><div>${icon("building-2")}<strong>${formatNumber(state.agents.length)}</strong><span>Agen resmi</span></div><i>→</i><div>${icon("battery")}<strong>${formatNumber(state.lpg.length)}</strong><span>Pangkalan</span></div><i>→</i><div>${icon("map-pinned")}<strong>${new Set(state.lpg.map((x) => x.kecamatan).filter(Boolean)).size || "—"}</strong><span>Kecamatan</span></div></div><div class="bars compact-bars">${barRows(rows, max, m.tone, " pangkalan")}</div>`;
+    else if (state.active === "industry")
+      body = `<div class="treemap">${rows
+        .slice(0, 8)
+        .map(
+          (x, i) =>
+            `<div style="--tone:${[COLORS.red, COLORS.amber, COLORS.green, COLORS.blue, COLORS.purple][i % 5]};--size:${Math.max(1, Number(x[1]) || 1)}"><b>${esc(x[0])}</b><strong>${formatNumber(x[1])}</strong></div>`,
+        )
+        .join("")}</div>`;
+    else if (state.active === "fuel") {
+      const total = rows.reduce((n, x) => n + (Number(x[1]) || 0), 0);
+      body = `<div class="fuel-composition"><div class="donut" style="--a:${((Number(rows[0]?.[1]) || 0) / Math.max(1, total)) * 360}deg;--b:${(((Number(rows[0]?.[1]) || 0) + (Number(rows[1]?.[1]) || 0)) / Math.max(1, total)) * 360}deg"><strong>${total}</strong><small>TITIK</small></div><div class="composition-list">${rows.map((x, i) => `<div style="--tone:${[COLORS.blue, COLORS.green, COLORS.purple, COLORS.amber][i % 4]}"><i></i><span>${esc(x[0])}</span><b>${formatNumber(x[1])}</b></div>`).join("")}</div></div>`;
+    } else body = `<div class="bars">${barRows(rows, max, m.tone, "")}</div>`;
+    return `<article class="panel visual-panel"><header class="panel-head"><div><h2>${m.chart}</h2><p>${m.chartSub}</p></div><span class="data-basis">${state.dataState[state.active]?.label || "MEMUAT"}</span></header>${body}</article>`;
   }
-}
-
-function renderWeatherPill(container, icon, temperature, description) {
-  if (!container) return;
-  const iconEl = document.createElement('span');
-  iconEl.textContent = icon;
-  const label = document.createTextNode(' CUACA PINRANG: ');
-  const strong = document.createElement('strong');
-  strong.textContent = `${temperature} (${description})`;
-  container.replaceChildren(iconEl, label, strong);
-}
-
-// --- 5.1 FRESHNESS DATA RESMI INDICATOR ---
-function updateDataFreshnessUI(timestamp) {
-  const el = document.getElementById('ccDataUpdatedAt');
-  if (!el) return;
-  const label = document.createElement('span');
-  const value = document.createElement('strong');
-  const millis = timestampToMillis(timestamp);
-  label.textContent = 'DATA TERBARU';
-  value.textContent = millis
-    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar', timeZoneName: 'short' }).format(new Date(millis))
-    : 'WAKTU DATA TIDAK TERSEDIA';
-  el.replaceChildren(label, value);
-}
-
-// --- 6. NAVIGASI SLIDE & AUTO-PRESENTATION ENGINE ---
-function showSlide(index) {
-  if (index < 0 || index >= CC_CONFIG.totalSlides) return;
-  CC_CONFIG.activeSlideIndex = index;
-
-  // Toggle Panel
-  for (let i = 0; i < CC_CONFIG.totalSlides; i++) {
-    const panel = document.getElementById(`slidePanel${i}`);
-    if (panel) {
-      panel.classList.toggle('active', i === index);
-    }
+  function barRows(rows, max, tone, suffix) {
+    return rows
+      .map(
+        (x) =>
+          `<div class="bar-row"><span>${esc(x[0])}</span><div class="bar-track"><i style="--w:${Math.max(2, ((Number(x[1]) || 0) / max) * 100)}%;--tone:${tone}"></i></div><strong>${formatNumber(x[1])}${suffix}</strong></div>`,
+      )
+      .join("");
   }
-
-  // Toggle Tab Button
-  const tabBtns = document.querySelectorAll('.cc-tab-btn');
-  tabBtns.forEach((btn, i) => {
-    btn.classList.toggle('active', Number(btn.dataset.slide ?? i) === index);
-  });
-
-  if (index === 5) {
-    renderCcBbmSlide();
+  function formatNumber(value) {
+    return value !== null &&
+      value !== undefined &&
+      value !== "" &&
+      Number.isFinite(Number(value))
+      ? Number(value).toLocaleString("id-ID")
+      : "—";
   }
-  if (index === 6) {
-    setTimeout(() => {
-      initDisperindagGisMap();
-    }, 80);
+  function formatMoney(value) {
+    return value !== null &&
+      value !== undefined &&
+      value !== "" &&
+      Number.isFinite(Number(value))
+      ? "Rp " + Number(value).toLocaleString("id-ID")
+      : "—";
   }
-
-  resetAutoSlideTimer();
-}
-
-function nextSlide() {
-  const next = (CC_CONFIG.activeSlideIndex + 1) % CC_CONFIG.totalSlides;
-  showSlide(next);
-}
-
-function prevSlide() {
-  const prev = (CC_CONFIG.activeSlideIndex - 1 + CC_CONFIG.totalSlides) % CC_CONFIG.totalSlides;
-  showSlide(prev);
-}
-
-let slideStartTime = Date.now();
-let progressBarInterval = null;
-
-function resetAutoSlideTimer() {
-  clearTimeout(CC_CONFIG.autoSlideTimer);
-  clearInterval(progressBarInterval);
-
-  const fill = document.getElementById('slideProgressFill');
-  if (fill) fill.style.width = '0%';
-
-  if (CC_CONFIG.isPaused) return;
-
-  const currentDuration = CC_CONFIG.durations[CC_CONFIG.activeSlideIndex] || 20000;
-  slideStartTime = Date.now();
-
-  progressBarInterval = setInterval(() => {
-    if (CC_CONFIG.isPaused) return;
-    const elapsed = Date.now() - slideStartTime;
-    const pct = Math.min(100, (elapsed / currentDuration) * 100);
-    if (fill) fill.style.width = `${pct}%`;
-  }, 400);
-
-  CC_CONFIG.autoSlideTimer = setTimeout(() => {
-    nextSlide();
-  }, currentDuration);
-}
-
-function toggleAutoSlide() {
-  CC_CONFIG.isPaused = !CC_CONFIG.isPaused;
-  updateAutoSlideButtonUI();
-  if (!CC_CONFIG.isPaused) {
-    resetAutoSlideTimer();
-  } else {
-    clearTimeout(CC_CONFIG.autoSlideTimer);
-    clearInterval(progressBarInterval);
+  function statuses(m) {
+    return `<article class="panel"><header class="panel-head"><div><h2>${m.statusTitle}</h2><p>Status operasional terkini</p></div><button class="detail-btn">Lihat detail →</button></header><div class="status-list">${m.statuses.map((x) => `<div class="status-row" style="--tone:${x[4]}"><span class="status-icon">${icon(x[3])}</span><span><b>${x[0]}</b><small>${x[1]}</small></span><em class="status-tag">● ${x[2]}</em></div>`).join("")}</div></article>`;
   }
-}
-
-function pauseAutoSlide() {
-  CC_CONFIG.isPaused = true;
-  clearTimeout(CC_CONFIG.autoSlideTimer);
-  clearInterval(progressBarInterval);
-  updateAutoSlideButtonUI();
-}
-
-function resumeAutoSlide() {
-  CC_CONFIG.isPaused = false;
-  updateAutoSlideButtonUI();
-  resetAutoSlideTimer();
-}
-
-function updateAutoSlideButtonUI() {
-  const btn = document.getElementById('btnAutoSlide') || document.getElementById('btnPlayPause');
-  const icon = document.getElementById('autoSlideIcon');
-  if (btn) {
-    btn.classList.toggle('active', CC_CONFIG.isPaused);
-    if (icon) {
-      icon.textContent = CC_CONFIG.isPaused ? '▶️' : '⏸️';
-    }
+  function attention(m) {
+    return `<article class="panel attention"><header class="panel-head"><div><h2>${m.attentionTitle}</h2><p>Prioritas yang perlu ditinjau</p></div><span class="pill" style="--tone:${COLORS.red}">${m.attention.length}</span></header>${m.attention.map((x) => `<div class="attention-row" style="--tone:${x[2]}"><i></i><span><b>${x[0]}</b><small>${x[1]}</small></span><b>›</b></div>`).join("")}</article>`;
   }
-}
-
-// --- 6.1 FULLSCREEN & THEME HANDLERS ---
-function toggleFullScreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.warn("Fullscreen request error:", err);
-    });
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen().catch(err => {});
-    }
+  function summary(m) {
+    return `<article class="panel"><header class="panel-head"><div><h2>${m.summaryTitle}</h2><p>Ringkas, terbaca dari jarak jauh</p></div></header><div class="summary">${m.summary.map((x) => `<div class="summary-item" style="--tone:${x[3]}"><span>${icon(x[2])}</span><div><strong>${x[0]}</strong><small>${x[1]}</small></div></div>`).join("")}</div></article>`;
   }
-}
-
-function toggleFullscreenMode() {
-  toggleFullScreen();
-}
-
-function toggleThemeMode() {
-  document.body.classList.toggle('light-mode');
-  const isLight = document.body.classList.contains('light-mode');
-  try {
-    localStorage.setItem('disperindag_cc_theme', isLight ? 'light' : 'dark');
-  } catch (e) {}
-  const icon = document.getElementById('themeIcon');
-  if (icon) icon.textContent = isLight ? '☀️' : '🌙';
-}
-
-function initThemeMode() {
-  try {
-    const saved = localStorage.getItem('disperindag_cc_theme');
-    if (saved === 'light') {
-      document.body.classList.add('light-mode');
-      const icon = document.getElementById('themeIcon');
-      if (icon) icon.textContent = '☀️';
-    }
-  } catch (e) {}
-}
-
-// --- 7. HELPER PERHITUNGAN TREND HARGA KOMODITAS ---
-function getPriceTrend(curr, prev) {
-  const c = safeNumber(curr);
-  const p = safeNumber(prev);
-  if (c === null || p === null || c === p) return "stable";
-  return c > p ? "up" : "down";
-}
-
-// --- 8. SINGLE GLOBAL CONTINUOUS RUNNING TICKER RENDERER ---
-function renderTickerDOM(customText = null) {
-  const el = document.getElementById('ccTickerText');
-  if (!el) return;
-
-  const text = safeString(customText, '');
-  if (text) {
-    el.textContent = text;
-  } else {
-    el.textContent = "COMMAND CENTER DISPERINDAG ESDM KABUPATEN PINRANG • MEMUAT INFORMASI TERBARU...";
-  }
-}
-
-// --- 9. RENDER DATA COMMAND CENTER CONFIG & METRICS KE DOM ---
-let latestLpgDashboardSnapshot = null;
-
-function renderLpgDashboardSnapshot(data) {
-  if (!data) return;
-  const agents = safeNumber(data.officialAgents);
-  const bases = safeNumber(data.activePangkalan);
-  const stock = safeNumber(data.stockAtAgents);
-  const distributed = safeNumber(data.distributedToday);
-  const negative = safeNumber(data.negativeStockAgents) || 0;
-  const inactive = safeNumber(data.inactiveAgentsToday) || 0;
-  const pending = safeNumber(data.pendingPangkalanVerification) || 0;
-  setSafeText('cc_s3_lpg_official_agents', agents === null ? '--' : `${agents} AGEN`);
-  setSafeText('cc_s3_lpg_official_bases', bases === null ? 'PANGKALAN: --' : `${bases} Pangkalan`);
-  setSafeText('cc_kpi_lpg_official_bases', bases === null ? 'Pangkalan: --' : `${bases} Pangkalan Terdaftar`);
-  setSafeText('cc_s3_lpg_progress_text', stock === null ? 'STOK AGEN: --' : `STOK AGEN: ${stock.toLocaleString('id-ID')} TABUNG`);
-  const allocationText = data.allocationStatus === 'UNAVAILABLE'
-    ? 'Alokasi bulanan: data belum tersedia'
-    : `Alokasi Bulanan: ${(safeNumber(data.monthlyAllocation) || 0).toLocaleString('id-ID')} Tabung`;
-  setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran hari ini: ${distributed === null ? '--' : distributed.toLocaleString('id-ID')} Tabung • ${allocationText}`);
-  const alertEl = document.getElementById('cc_s3_lpg_alert_status');
-  if (alertEl) {
-    const hasAlert = negative > 0 || inactive > 0 || pending > 0;
-    alertEl.style.background = hasAlert ? 'rgba(245,158,11,.14)' : 'rgba(16,185,129,.12)';
-    alertEl.style.color = hasAlert ? 'var(--accent-gold)' : 'var(--accent-emerald)';
-    alertEl.textContent = hasAlert
-      ? `PERLU PERHATIAN: ${negative} agen saldo negatif • ${inactive} agen belum melapor hari ini • ${pending} pangkalan menunggu verifikasi`
-      : 'STATUS TERKENDALI: tidak ada anomali saldo atau verifikasi tertunda';
-  }
-}
-
-function renderCommandCenterData(config, isFromCache = false) {
-  if (!config) return;
-
-  // 1. Inflasi Daerah (TPID)
-  const inflVal = safeNumber(config.inflation_rate);
-  setSafeText('cc_kpi_inflation_rate', inflVal !== null ? `${inflVal}%` : '--');
-  setSafeText('cc_overview_inflation_desc', `Indeks Inflasi Bulanan: ${inflVal !== null ? inflVal + '%' : '--'}`);
-  setSafeText('cc_kpi_inflation_status', safeString(config.inflation_status, 'DATA BELUM TERSEDIA'));
-
-  // 2. Ketersediaan Beras SPHP
-  const sphpVal = safeNumber(config.sphp_rice_stock_tons);
-  setSafeText('cc_kpi_sphp_rice_stock', sphpVal !== null ? `${sphpVal} TON` : '--');
-
-  // 3. SPBU Teruji Tera
-  const spbuVal = safePercentage(config.spbu_verified_pct);
-  setSafeText('cc_kpi_spbu_verified_pct', spbuVal !== null ? `${spbuVal}%` : '--');
-  setSafeText('cc_s2_spbu_verified_pct', spbuVal !== null ? `${spbuVal}%` : '--');
-
-  // 4. Penyaluran LPG 3 Kg: hanya data agregat server yang telah dipublikasikan.
-  // HET LPG sengaja tidak dibaca dari command_center/metrics. Nilai resmi
-  // hanya berasal dari lpg_settings/operational melalui listener khusus.
-
-  const agentsCount = safeNumber(config.lpg_official_agents ?? config.official_agents);
-  const basesCount = safeNumber(config.lpg_official_bases ?? config.official_bases);
-  const stockAtAgents = safeNumber(config.lpg_stock_at_agents ?? config.stock_at_agents);
-  const distributedToday = safeNumber(config.lpg_distributed_bottles ?? config.distributed);
-  const monthlyQuota = safeNumber(config.lpg_total_quota ?? config.monthly_quota);
-  const distributionPct = safePercentage(config.lpg_distribution_pct ?? config.distribution_pct);
-
-  setSafeText('cc_s3_lpg_official_agents', agentsCount === null ? '--' : `${agentsCount} AGEN`);
-  setSafeText('cc_s3_lpg_official_bases', basesCount === null ? 'PANGKALAN: --' : `${basesCount} Pangkalan`);
-  setSafeText('cc_kpi_lpg_official_bases', basesCount === null ? 'Pangkalan: --' : `${basesCount} Pangkalan Terdaftar`);
-
-  // Progress Distribusi LPG
-  const lpgDistPctEl = document.getElementById('cc_kpi_lpg_distribution_pct');
-  if (lpgDistPctEl) {
-    lpgDistPctEl.textContent = distributionPct === null ? '--' : `${distributionPct}%`;
-  }
-
-  const lpgBar = document.getElementById('cc_s3_lpg_progress_bar');
-  if (lpgBar) lpgBar.style.width = distributionPct === null ? '0%' : `${distributionPct}%`;
-  setSafeText('cc_s3_lpg_progress_text', stockAtAgents === null ? 'STOK AGEN: --' : `STOK AGEN: ${stockAtAgents.toLocaleString('id-ID')} TABUNG`);
-  setSafeText('cc_s3_lpg_total_quota_text', `Penyaluran: ${distributedToday === null ? '--' : distributedToday.toLocaleString('id-ID')} Tabung • Alokasi Bulanan: ${monthlyQuota === null ? '--' : monthlyQuota.toLocaleString('id-ID')} Tabung`);
-  if (latestLpgDashboardSnapshot) renderLpgDashboardSnapshot(latestLpgDashboardSnapshot);
-
-  // 5. Total UTTP Ditera
-  const uttpVal = safeNumber(config.uttp_verified_count ?? config.uttp_verified);
-  setSafeText('cc_kpi_uttp_verified', uttpVal !== null ? uttpVal.toLocaleString('id-ID') : '--');
-  setSafeText('cc_kpi_uttp_status', safeString(config.uttp_status, 'DATA BELUM TERSEDIA'));
-  setSafeText('cc_s2_uttp_verified', uttpVal !== null ? `${uttpVal.toLocaleString('id-ID')} UNIT` : '--');
-
-  // 6. IKM Terbina & Sertifikasi
-  const ikmTrained = safeNumber(config.total_ikm_trained);
-  const ikmCertified = safeNumber(config.total_ikm_certified);
-  setSafeText('cc_kpi_total_ikm_trained', `${ikmTrained !== null ? ikmTrained : '--'} IKM Terbina`);
-  setSafeText('cc_kpi_total_ikm_certified', `${ikmCertified !== null ? ikmCertified : '--'} Sertifikasi Halal/TKDN`);
-  setSafeText('cc_s4_total_ikm_trained', ikmTrained !== null ? `${ikmTrained}` : '--');
-  setSafeText('cc_s4_total_ikm_certified', ikmCertified !== null ? `${ikmCertified}` : '--');
-
-  // 7. SURVEI KEPUASAN MASYARAKAT (SKM 2025 RESMI - DATA PERIODIK)
-  const skmScoreVal = safeNumber(config.skm_score);
-  const skmGradeVal = safeString(config.skm_grade || config.skm_predicate, '--');
-  const skmPeriod = safeString(config.skm_period, '--');
-  
-  setSafeText('cc_kpi_skm_score', skmScoreVal === null ? '--' : `${skmScoreVal} / 100 (${skmGradeVal})`);
-  setSafeText('cc_kpi_skm_period', `PERIODE SKM: ${skmPeriod}`);
-  setSafeText('cc_s4_skm_score', skmScoreVal === null ? '--' : `${skmScoreVal} / 100`);
-  setSafeText('cc_s4_skm_grade', `Predikat: ${skmGradeVal} • Periode: ${skmPeriod}`);
-
-  // Ticker harga hanya dirender oleh listener kanonis market_prices_latest SP2KP.
-
-  // Timestamp Freshness
-  if (config.updated_at || config.last_updated) {
-    lastServerUpdatedAt = config.updated_at || config.last_updated;
-    updateDataFreshnessUI(lastServerUpdatedAt);
-  }
-}
-
-function setSafeText(id, text) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.textContent = text !== undefined && text !== null ? String(text) : '--';
-  }
-}
-
-function renderEmptyState(container, message, colSpan = null) {
-  if (!container) return;
-  container.replaceChildren();
-  if (container.tagName === 'TBODY') {
-    const row = document.createElement('tr');
-    const cell = document.createElement('td');
-    cell.colSpan = colSpan || 1;
-    cell.textContent = message;
-    cell.className = 'cc-empty-state';
-    row.appendChild(cell);
-    container.appendChild(row);
-    return;
-  }
-  const state = document.createElement('div');
-  state.textContent = message;
-  state.className = 'cc-empty-state';
-  container.appendChild(state);
-}
-
-// --- 10. RENDER MASTER PASAR DINAMIS (SINGLE SOURCE OF TRUTH FIRESTORE MARKETS) ---
-function mergeCanonicalMarkets(incoming) {
-  if (Array.isArray(incoming) && incoming.length) return incoming.slice();
-  return [];
-}
-
-let ccCanonicalMarkets = [];
-function renderMarketsDOM(marketsList) {
-  const container = document.getElementById('cc_s1_markets_container');
-  const headerEl = document.getElementById('cc_s1_markets_header');
-  const badgeEl = document.getElementById('cc_s1_markets_badge');
-  const kpiActiveEl = document.getElementById('cc_kpi_markets_active_count');
-  const kpiSummaryEl = document.getElementById('cc_kpi_markets_summary_sub');
-
-  const list = mergeCanonicalMarkets(marketsList);
-  ccCanonicalMarkets = list.slice();
-  refreshCommandCenterGisLayers();
-
-  // Hitung Status Otomatis Berdasarkan Single Source of Truth
-  const activeMarkets = list.filter(m => 
-    (m.statusOperasional === 'aktif' || m.status === 'active' || m.showAsActive === true) &&
-    m.statusOperasional !== 'tidak-aktif' && m.status !== 'inactive'
-  );
-  
-  const inactiveMarkets = list.filter(m => 
-    m.statusOperasional === 'tidak-aktif' || m.status === 'inactive'
-  );
-  
-  const verificationMarkets = list.filter(m => 
-    m.statusOperasional === 'perlu-verifikasi' || m.status === 'pending' || 
-    (!activeMarkets.includes(m) && !inactiveMarkets.includes(m))
-  );
-
-  const totalMarkets = list.length;
-  const activeCount = activeMarkets.length;
-  const inactiveCount = inactiveMarkets.length;
-  const verificationCount = verificationMarkets.length;
-
-  // 1. Update KPI di Slide 0
-  if (kpiActiveEl) {
-    kpiActiveEl.textContent = `${activeCount}`;
-  }
-  if (kpiSummaryEl) {
-    kpiSummaryEl.textContent = `${inactiveCount} Tidak Aktif • ${verificationCount} Verifikasi`;
-  }
-
-  // 2. Update Header & Badge di Slide 1
-  if (headerEl) {
-    headerEl.textContent = `${activeCount} PASAR RAKYAT BEROPERASI AKTIF`;
-  }
-  if (badgeEl) {
-    badgeEl.textContent = `${activeCount} AKTIF • ${totalMarkets} TERDATA`;
-  }
-
-  // 3. Render Card Pasar Aktif Terpantau
-  if (!container) return;
-  container.replaceChildren();
-
-  if (activeMarkets.length === 0) {
-    renderEmptyState(container, 'BELUM ADA DATA PASAR AKTIF TERVERIFIKASI');
-    return;
-  }
-
-  activeMarkets.forEach(m => {
-    const card = document.createElement('div');
-    card.style.background = 'var(--bg-card-inner)';
-    card.style.padding = '8px 14px';
-    card.style.borderRadius = '8px';
-    card.style.borderLeft = `5px solid var(--accent-emerald)`;
-    card.style.flex = '1';
-    card.style.display = 'flex';
-    card.style.flexDirection = 'column';
-    card.style.justifyContent = 'center';
-    card.style.minHeight = '0';
-
-    const topRow = document.createElement('div');
-    topRow.style.display = 'flex';
-    topRow.style.justifyContent = 'space-between';
-    topRow.style.alignItems = 'center';
-
-    const nameEl = document.createElement('strong');
-    nameEl.style.fontSize = '0.98rem';
-    nameEl.style.color = 'var(--text-main)';
-    nameEl.textContent = safeString(m.nama || m.name);
-
-    const dayText = Array.isArray(m.hariPasar) ? m.hariPasar.join(', ') : (m.market_days || 'Setiap Hari');
-    const dayEl = document.createElement('span');
-    dayEl.style.fontSize = '0.82rem';
-    dayEl.style.fontWeight = '900';
-    dayEl.style.color = 'var(--accent-emerald)';
-    dayEl.style.fontFamily = "'Chakra Petch', monospace";
-    dayEl.textContent = `● ${String(dayText).toUpperCase()}`;
-
-    topRow.append(nameEl, dayEl);
-
-    const subRow = document.createElement('div');
-    subRow.style.fontSize = '0.8rem';
-    subRow.style.color = 'var(--text-muted)';
-    subRow.style.marginTop = '2px';
-
-    const stalls = m.jumlahKios || m.active_stalls;
-    const stallsText = stalls ? ` • ${stalls} Kios/Lapak` : '';
-    const districtText = m.kecamatan || m.district || 'Pinrang';
-    subRow.textContent = `Kecamatan ${districtText}${stallsText}`;
-
-    card.append(topRow, subRow);
-    container.appendChild(card);
-  });
-
-  // Tambahkan Strip Ringkasan Pasar Non-Aktif & Verifikasi di bagian bawah
-  const summaryStrip = document.createElement('div');
-  summaryStrip.style.background = 'rgba(255,255,255,0.04)';
-  summaryStrip.style.border = '1px dashed var(--border-card)';
-  summaryStrip.style.borderRadius = '6px';
-  summaryStrip.style.padding = '6px 12px';
-  summaryStrip.style.fontSize = '0.78rem';
-  summaryStrip.style.color = 'var(--text-muted)';
-  summaryStrip.style.display = 'flex';
-  summaryStrip.style.justifyContent = 'space-between';
-  summaryStrip.style.alignItems = 'center';
-  summaryStrip.style.flexShrink = '0';
-  const inactiveText = document.createElement('span');
-  inactiveText.textContent = `⚫ ${inactiveCount} Tidak Beroperasi`;
-  const verificationText = document.createElement('span');
-  verificationText.textContent = `🟠 ${verificationCount} Perlu Verifikasi Lapangan`;
-  summaryStrip.append(inactiveText, verificationText);
-  container.appendChild(summaryStrip);
-}
-
-// --- 11. RENDER TABEL HARGA DENGAN DELTA & TREND OTOMATIS (SAFE DOM) ---
-function renderPricesDOM(pricesList) {
-  const overviewTbody = document.getElementById('overviewPriceBody');
-  const tradeTbody = document.getElementById('tradeSlidePriceBody');
-
-  if (!pricesList || !Array.isArray(pricesList) || pricesList.length === 0) {
-    renderEmptyState(overviewTbody, 'BELUM ADA DATA HARGA TERVERIFIKASI', 4);
-    renderEmptyState(tradeTbody, 'BELUM ADA DATA BURSA HARGA HARI INI', 5);
-    return;
-  }
-
-  const newestUpdate = pricesList.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at || item.observed_at) || 0), 0);
-  const source = safeString(pricesList.find(item => item.source || item.source_unit)?.source || pricesList.find(item => item.source_unit)?.source_unit, '--');
-  setSafeText('ccPriceSource', `SUMBER: ${source}`);
-  setSafeText('ccPriceUpdatedAt', `UPDATE DATA: ${newestUpdate ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar', timeZoneName: 'short' }).format(new Date(newestUpdate)) : '--'}`);
-
-  // 1. Overview Table (Top 5 Komoditas Pilihan)
-  if (overviewTbody) {
-    overviewTbody.replaceChildren();
-    pricesList.slice(0, 5).forEach(item => {
-      const tr = document.createElement('tr');
-
-      const tdName = document.createElement('td');
-      const strongName = document.createElement('strong');
-      strongName.style.color = 'var(--text-main)';
-      strongName.style.fontSize = '0.96rem';
-      strongName.textContent = safeString(item.commodity_name);
-      tdName.appendChild(strongName);
-
-      const tdUnit = document.createElement('td');
-      tdUnit.style.color = 'var(--text-muted)';
-      tdUnit.style.fontSize = '0.84rem';
-      tdUnit.textContent = `1 ${safeString(item.unit, 'Kg')}`;
-
-      const tdPrice = document.createElement('td');
-      const spanPrice = document.createElement('span');
-      spanPrice.className = 'price-bold-val';
-      spanPrice.textContent = formatRupiahVal(item.price);
-      tdPrice.appendChild(spanPrice);
-
-      const tdTrend = document.createElement('td');
-      const trend = getPriceTrend(item.price, item.previous_price);
-      const spanTrend = document.createElement('span');
-      spanTrend.className = `trend-pill-lg ${trend === 'up' ? 'trend-up' : (trend === 'down' ? 'trend-down' : 'trend-stable')}`;
-      
-      const delta = (safeNumber(item.price) || 0) - (safeNumber(item.previous_price) || safeNumber(item.price) || 0);
-      const deltaStr = delta !== 0 ? ` (${delta > 0 ? '+' : ''}${delta.toLocaleString('id-ID')})` : '';
-      spanTrend.textContent = trend === 'up' ? `▲ Naik${deltaStr}` : (trend === 'down' ? `▼ Turun${deltaStr}` : '— Tetap');
-      tdTrend.appendChild(spanTrend);
-
-      tr.append(tdName, tdUnit, tdPrice, tdTrend);
-      overviewTbody.appendChild(tr);
-    });
-  }
-
-  // 2. Trade Slide Full Table (10+ Komoditas dengan Status Pasokan Dinamis)
-  if (tradeTbody) {
-    tradeTbody.replaceChildren();
-    pricesList.forEach(item => {
-      const tr = document.createElement('tr');
-
-      const tdName = document.createElement('td');
-      const strongName = document.createElement('strong');
-      strongName.style.color = 'var(--text-main)';
-      strongName.style.fontSize = '1.05rem';
-      strongName.textContent = safeString(item.commodity_name);
-      tdName.appendChild(strongName);
-
-      const tdUnit = document.createElement('td');
-      tdUnit.style.color = 'var(--text-muted)';
-      tdUnit.style.fontSize = '0.9rem';
-      tdUnit.textContent = `1 ${safeString(item.unit, 'Kg')}`;
-
-      const tdPrice = document.createElement('td');
-      const spanPrice = document.createElement('span');
-      spanPrice.className = 'price-bold-val';
-      spanPrice.style.fontSize = '1.35rem';
-      spanPrice.textContent = formatRupiahVal(item.price);
-      tdPrice.appendChild(spanPrice);
-
-      const tdTrend = document.createElement('td');
-      const trend = getPriceTrend(item.price, item.previous_price);
-      const spanTrend = document.createElement('span');
-      spanTrend.className = `trend-pill-lg ${trend === 'up' ? 'trend-up' : (trend === 'down' ? 'trend-down' : 'trend-stable')}`;
-      spanTrend.style.fontSize = '0.88rem';
-      spanTrend.style.padding = '4px 10px';
-
-      const prev = safeNumber(item.previous_price);
-      const curr = safeNumber(item.price);
-      let pctStr = "";
-      if (prev && curr && prev > 0 && curr !== prev) {
-        const pct = (((curr - prev) / prev) * 100).toFixed(1);
-        pctStr = ` ${pct > 0 ? '+' : ''}${pct}%`;
-      }
-      spanTrend.textContent = trend === 'up' ? `▲ Naik${pctStr}` : (trend === 'down' ? `▼ Turun${pctStr}` : '— Tetap');
-      tdTrend.appendChild(spanTrend);
-
-      // Status Pasokan Dinamis (Bukan Hardcoded)
-      const tdStock = document.createElement('td');
-      const stockKey = safeString(item.stock_status, 'unavailable').toLowerCase();
-      const stockMeta = STOCK_STATUS_MAP[stockKey] || { label: 'Tidak Tersedia', color: 'var(--accent-rose)', icon: '⚪' };
-      
-      const spanStock = document.createElement('span');
-      spanStock.style.fontSize = '0.86rem';
-      spanStock.style.fontWeight = '900';
-      spanStock.style.color = stockMeta.color;
-      spanStock.textContent = `${stockMeta.icon} ${stockMeta.label}`;
-      tdStock.appendChild(spanStock);
-
-      tr.append(tdName, tdUnit, tdPrice, tdTrend, tdStock);
-      tradeTbody.appendChild(tr);
-    });
-  }
-
-  // Sinkronisasi data ke Bottom Live Running Ticker
-  renderCommandCenterTicker(pricesList);
-}
-
-function renderTeraScheduleDOM(items) {
-  const container = document.getElementById('ccTeraScheduleList');
-  if (!container) return;
-  if (!Array.isArray(items) || items.length === 0) {
-    renderEmptyState(container, 'BELUM ADA JADWAL TERA TERVERIFIKASI');
-    return;
-  }
-  container.replaceChildren();
-  items.slice(0, 4).forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'cc-schedule-card';
-    const heading = document.createElement('div');
-    heading.className = 'cc-schedule-heading';
-    const title = document.createElement('strong');
-    title.textContent = safeString(item.title);
-    const status = document.createElement('span');
-    const allowedStatuses = new Set(['scheduled', 'ongoing', 'completed', 'postponed', 'cancelled']);
-    const statusKey = allowedStatuses.has(item.status) ? item.status : 'scheduled';
-    const labels = { scheduled: 'TERJADWAL', ongoing: 'BERLANGSUNG', completed: 'SELESAI', postponed: 'DITUNDA', cancelled: 'DIBATALKAN' };
-    status.className = `card-badge schedule-${statusKey}`;
-    status.textContent = labels[statusKey];
-    heading.append(title, status);
-    const detail = document.createElement('div');
-    const start = timestampToMillis(item.start_at);
-    detail.textContent = `${safeString(item.location, 'Lokasi belum tersedia')} • ${start ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Makassar' }).format(new Date(start)) : 'Tanggal belum tersedia'}`;
-    card.append(heading, detail);
-    if (statusKey === 'completed') {
-      const result = document.createElement('div');
-      result.className = 'cc-schedule-result';
-      result.textContent = `${safeNumber(item.result_count) ?? '--'} UTTP diperiksa • ${safeNumber(item.valid_count) ?? '--'} sah • ${safeNumber(item.follow_up_count) ?? '--'} tindak lanjut`;
-      card.appendChild(result);
-    }
-    container.appendChild(card);
-  });
-}
-
-// --- 12. RENDER MATRIKS STATUS 12 KECAMATAN (SAFE DOM & AUTO-FIT) ---
-function renderDistrictsDOM(containerId, districtsList, cols = 3) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  if (!districtsList || !Array.isArray(districtsList) || districtsList.length === 0) {
-    renderEmptyState(container, 'DATA KECAMATAN BELUM TERSEDIA');
-    return;
-  }
-
-  container.replaceChildren();
-
-  const isSlide0 = containerId === 'ccDistrictMatrix0';
-
-  districtsList.forEach(d => {
-    const card = document.createElement('div');
-    card.className = 'district-card-item';
-    if (isSlide0) {
-      card.style.padding = '4px 6px';
-      card.style.minHeight = '36px';
-    } else {
-      card.style.padding = '8px 10px';
-      card.style.minHeight = '48px';
-    }
-
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.justifyContent = 'space-between';
-    header.style.alignItems = 'center';
-    header.style.gap = '4px';
-    header.style.marginBottom = '2px';
-
-    const name = document.createElement('strong');
-    name.style.fontSize = isSlide0 ? '0.78rem' : '0.86rem';
-    name.style.color = 'var(--text-main)';
-    name.style.whiteSpace = 'nowrap';
-    name.style.overflow = 'hidden';
-    name.style.textOverflow = 'ellipsis';
-    name.textContent = safeString(d.district_name || d.name);
-
-    const badge = document.createElement('span');
-    const st = determineDistrictStatus(d);
-    badge.className = `badge-indicator ${st === 'NORMAL' ? 'badge-ok' : (st === 'WASPADA' ? 'badge-warn' : 'badge-crit')}`;
-    badge.style.fontSize = isSlide0 ? '0.64rem' : '0.72rem';
-    badge.textContent = `● ${st}`;
-
-    header.append(name, badge);
-
-    const sub = document.createElement('div');
-    sub.style.fontSize = isSlide0 ? '0.68rem' : '0.74rem';
-    sub.style.color = 'var(--text-muted)';
-    sub.style.whiteSpace = 'nowrap';
-    sub.style.overflow = 'hidden';
-    sub.style.textOverflow = 'ellipsis';
-    const pklCount = safeNumber(d.pangkalan_count ?? d.pangkalan);
-    const activeReports = safeNumber(d.active_reports);
-    const coverage = safeNumber(d.stock_coverage_days);
-    const details = [
-      `${pklCount === null ? '--' : pklCount} Pangkalan`,
-      coverage === null ? 'Stok: --' : `Stok: ${coverage.toLocaleString('id-ID')} hari`,
-      activeReports === null ? 'Aduan: --' : `${activeReports} Aduan Aktif`
+  function dataHealth() {
+    const sources = [
+      [state.markets.length > 0, "e-SKPT"],
+      [state.lpg.length > 0, "LPG"],
+      [state.fuel.length > 0, "BBM"],
+      [Object.keys(state.metrics || {}).length > 0, "Snapshot KPI"],
     ];
-    sub.textContent = isSlide0 ? details.slice(0, 2).join(' • ') : details.join(' • ');
-
-    card.append(header, sub);
-    container.appendChild(card);
-  });
-}
-
-function determineDistrictStatus(data) {
-  const coverage = safeNumber(data?.stock_coverage_days);
-  const reports = safeNumber(data?.active_reports);
-  if (coverage === null && reports === null) return 'BELUM TERSEDIA';
-  if ((coverage !== null && coverage < 2) || (reports !== null && reports >= 3)) return 'KRITIS';
-  if ((coverage !== null && coverage < 4) || (reports !== null && reports > 0)) return 'WASPADA';
-  return 'NORMAL';
-}
-
-// --- 13. RENDER PENGADUAN PUBLIK TERAKHIR (SAFE DOM & SENSOR PRIVASI) ---
-function renderReportsDOM(reportsList) {
-  const container0 = document.getElementById('ccRecentReportSlide0');
-  const container4 = document.getElementById('ccRecentReportsSlide4');
-
-  if (!reportsList || !Array.isArray(reportsList) || reportsList.length === 0) {
-    renderEmptyState(container0, 'BELUM ADA ADUAN PUBLIK MASUK');
-    renderEmptyState(container4, 'BELUM ADA ADUAN PUBLIK MASUK');
-    return;
+    const live = sources.filter((x) => x[0]).length;
+    return [
+      [
+        `${live}/${sources.length}`,
+        "Sumber tersedia",
+        "database",
+        live === sources.length ? COLORS.green : COLORS.amber,
+      ],
+      [
+        formatNumber(
+          state.markets.length + state.lpg.length + state.fuel.length,
+        ),
+        "Record master",
+        "layers",
+        COLORS.blue,
+      ],
+      [
+        state.dataState.overview?.time || "—",
+        "Pembaruan terakhir",
+        "clock",
+        COLORS.purple,
+      ],
+    ];
   }
-
-  // Slide 0: Render 1 Aduan Terkini
-  if (container0) {
-    container0.replaceChildren();
-    const r = reportsList[0];
-    container0.appendChild(createReportCardElement(r, true));
+  function extra(m) {
+    let body = "";
+    if (m.extra === "chips" || m.extra === "fuelchips")
+      body = `<div class="chips">${(m.extra === "chips" ? ["Tenun Sutra", "Kopi Robusta", "Olahan Pangan", "Kriya", "Konveksi"] : ["Pertalite", "Biosolar", "Pertamax", "Dexlite"]).map((x) => `<span class="chip">${x}</span>`).join("")}</div>`;
+    else if (m.extra === "activity")
+      body =
+        '<div class="activity"><div style="--tone:#18a86b"><i></i><b>04:12</b><span>Sinkronisasi data pasar selesai</span></div><div style="--tone:#2c70e8"><i></i><b>03:58</b><span>Verifikasi data pedagang diperbarui</span></div><div style="--tone:#e69a00"><i></i><b>03:34</b><span>2 klaim ruang usaha perlu tinjau</span></div></div>';
+    else if (m.extra === "quality") {
+      const verified = state.lpg.filter((x) => x.gpsVerified === true).length,
+        pct = state.lpg.length ? Math.round((verified / state.lpg.length) * 100) : 0;
+      body = `<div class="quality">GPS lapangan terverifikasi <b>${formatNumber(verified)} / ${formatNumber(state.lpg.length)}</b><div class="quality-track"><i style="width:${pct}%"></i></div><p>Koordinat dokumen dan titik administratif tidak dihitung sebagai verifikasi lapangan.</p></div>`;
+    }
+    else if (m.extra === "dataQuality")
+      body = `<div class="data-empty">${icon("database-zap")}<b>Menunggu dataset resmi</b><span>Panel terisi otomatis setelah sumber menerbitkan data.</span></div>`;
+    else if (m.extra === "compliance") {
+      const value = Number(m.complianceValue);
+      body = Number.isFinite(value)
+        ? `<div class="compliance-card"><strong>${value.toLocaleString("id-ID")}%</strong><div class="radial mini" style="--value:${value};--tone:${COLORS.green}"></div><small>Kepatuhan UTTP pada snapshot resmi</small></div>`
+        : `<div class="data-empty">${icon("database-zap")}<b>Indikator belum diterbitkan</b><span>Nilai kepatuhan tidak disimulasikan.</span></div>`;
+    } else if (m.extra === "health") {
+      body = `<div class="health-grid">${dataHealth()
+        .map(
+          (x) =>
+            `<div style="--tone:${x[3]}"><span>${icon(x[2])}</span><strong>${x[0]}</strong><small>${x[1]}</small></div>`,
+        )
+        .join("")}</div>`;
+    } else
+      body =
+        '<div class="summary" style="grid-template-columns:repeat(3,1fr);height:60px"><div class="summary-item"><div><strong id="ccMiMentionsVisible">—</strong><small>Mentions</small></div></div><div class="summary-item"><div><strong id="ccMiStoriesVisible">—</strong><small>Berita unik</small></div></div><div class="summary-item"><div><strong id="ccMiIssuesVisible">—</strong><small>Perlu perhatian</small></div></div></div>';
+    return `<article class="panel"><header class="panel-head"><div><h2>${m.extraTitle}</h2><p>Informasi pendukung</p></div></header>${body}</article>`;
   }
-
-  // Slide 4: Render 2-3 Aduan Terkini
-  if (container4) {
-    container4.replaceChildren();
-    reportsList.slice(0, 2).forEach(r => {
-      container4.appendChild(createReportCardElement(r, false));
+  function renderStandard(key) {
+    const m = modules[key];
+    state.active = key;
+    $("ccMain").innerHTML =
+      `<section class="dashboard-page">${heading(m)}${kpis(m)}<div class="content-grid">${bars(m)}${statuses(m)}</div><div class="bottom-grid">${attention(m)}${summary(m)}${extra(m)}</div></section>`;
+    finishRender();
+  }
+  function renderGis() {
+    state.active = "gis";
+    const m = {
+      title: "Peta GIS Disperindag ESDM",
+      sub: "Satu peta untuk pasar e-SKPT, pangkalan LPG, penyalur BBM dan kualitas lokasi lapangan",
+      source: "LAYER AKTIF",
+      sourceValue: "DATA e-SKPT + ESDM",
+    };
+    const allPoints = [...state.markets, ...state.lpg, ...state.fuel],
+      validPoints = allPoints.filter((x) =>
+        getCoords(x).every(Number.isFinite),
+      ).length,
+      gpsQuality = allPoints.length
+        ? Math.round((validPoints / allPoints.length) * 100)
+        : 0;
+    markData(
+      "gis",
+      allPoints.length ? "LIVE MULTISUMBER" : "MENUNGGU DATA",
+      allPoints.length ? COLORS.green : COLORS.amber,
+    );
+    const gisKpis = [
+      [
+        "Pasar e-SKPT",
+        formatNumber(state.markets.length),
+        "titik master berkoordinat",
+        "e-SKPT",
+        "store",
+        COLORS.green,
+      ],
+      [
+        "Pangkalan LPG",
+        formatNumber(state.lpg.length),
+        "titik data master",
+        `${new Set(state.lpg.map((x) => x.kecamatan).filter(Boolean)).size} kecamatan`,
+        "battery",
+        COLORS.purple,
+      ],
+      [
+        "Penyalur BBM",
+        formatNumber(state.fuel.length),
+        "SPBU/APMS/Pertashop",
+        "Firestore",
+        "fuel",
+        COLORS.blue,
+      ],
+      [
+        "Kelengkapan Koordinat",
+        allPoints.length ? `${gpsQuality}%` : "—",
+        `${formatNumber(validPoints)} dari ${formatNumber(allPoints.length)} titik`,
+        "tersedia",
+        "map",
+        COLORS.amber,
+      ],
+    ];
+    $("ccMain").innerHTML =
+      `<section class="dashboard-page gis-page">${heading(m)}<div class="gis-workspace"><aside class="gis-kpi-rail" aria-label="Ringkasan data GIS">${gisKpis.map((k) => `<article class="kpi-card gis-kpi-card" style="--tone:${k[5]}"><span class="kpi-icon">${icon(k[4])}</span><span class="kpi-label">${k[0]}</span><span class="pill">${k[3]}</span><strong class="kpi-value">${k[1]}</strong><small class="kpi-meta">${k[2]}</small>${spark}</article>`).join("")}</aside><article class="panel map-panel"><div class="map-toolbar"><input id="gisSearch" placeholder="Cari semua titik lokasi…"><select id="gisDistrict"><option value="">Semua Kecamatan</option></select></div><div id="ccMap" class="cc-map"></div><span class="map-credit">PETA OPERASIONAL · e-SKPT GIS</span></article><aside class="panel layer-panel"><h2>FILTER & LAYER</h2><p>Kontrol tampilan peta</p><div class="layer-row"><i class="layer-dot" style="--tone:${COLORS.green}"></i><span>Pasar e-SKPT</span><b>${formatNumber(state.markets.length)}</b></div><div class="layer-row"><i class="layer-dot" style="--tone:${COLORS.purple}"></i><span>Pangkalan LPG</span><b>${formatNumber(state.lpg.length)}</b></div><div class="layer-row"><i class="layer-dot" style="--tone:${COLORS.blue}"></i><span>Penyalur BBM</span><b>${formatNumber(state.fuel.length)}</b></div><div class="layer-row"><i class="layer-dot" style="--tone:${COLORS.amber}"></i><span>Batas Kecamatan</span><b>12</b></div><div class="quality">Kualitas GPS <b>${allPoints.length ? gpsQuality + "%" : "—"}</b><div class="quality-track"><i style="width:${gpsQuality}%"></i></div><p>Dihitung dari koordinat valid pada seluruh master aktif. Titik indikatif tetap dibedakan sampai diverifikasi.</p></div></aside></div></section>`;
+    const quality = document.querySelector(".layer-panel .quality");
+    if (quality)
+      quality.innerHTML = `Kelengkapan koordinat <b>${allPoints.length ? gpsQuality + "%" : "—"}</b><div class="quality-track"><i style="width:${gpsQuality}%"></i></div><p>Persentase record yang memiliki koordinat valid; bukan hasil verifikasi lapangan.</p>`;
+    finishRender();
+    setTimeout(initMap, 20);
+  }
+  function finishRender() {
+    if (window.lucide) lucide.createIcons();
+    document
+      .querySelectorAll(".cc-tab")
+      .forEach((b) =>
+        b.classList.toggle("active", b.dataset.slide === state.active),
+      );
+    enableCardDetails();
+  }
+  function enableCardDetails() {
+    document
+      .querySelectorAll(
+        ".kpi-card,.gis-kpi-card,.bar-row,.status-row,.attention-row,.summary-item,.price-tiles>div,.funnel-chart>div,.treemap>div,.composition-list>div,.layer-row",
+      )
+      .forEach((card, index) => {
+        card.dataset.detail = String(index);
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute(
+          "aria-label",
+          `Buka detail ${card.querySelector("h2,.kpi-label,b")?.textContent || "indikator"}`,
+        );
+        card.onclick = (event) => {
+          if (event.target.closest("button,input,select,a,label")) return;
+          openCardDetail(card);
+        };
+        card.onkeydown = (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openCardDetail(card);
+          }
+        };
+      });
+  }
+  function openCardDetail(card) {
+    const title =
+      card
+        .querySelector(
+          "h2,.kpi-label,.bar-row>span,.status-row b,.attention-row b,.summary-item small,.price-tiles b,.funnel-chart span,.treemap b,.composition-list span",
+        )
+        ?.textContent?.trim() || "Detail indikator";
+    const value = card
+      .querySelector(
+        ".kpi-value,.bar-row>strong,.status-tag,.summary-item strong,.price-tiles strong,.funnel-chart b,.treemap strong,.composition-list b",
+      )
+      ?.textContent?.trim();
+    const meta = card
+      .querySelector(".kpi-meta,.panel-head p")
+      ?.textContent?.trim();
+    const lines = [];
+    const isPriority = card.classList.contains("attention-row");
+    if (isPriority) {
+      const priorityTitle = card.querySelector("span b")?.textContent?.trim();
+      const priorityAction = card
+        .querySelector("span small")
+        ?.textContent?.trim();
+      if (priorityTitle) lines.push(`Isu: ${priorityTitle}`);
+      if (priorityAction) lines.push(`Tindakan: ${priorityAction}`);
+    }
+    if (state.active === "industry") {
+      const subsector = (state.ekraf?.topSubsectors || []).find(
+        (x) => x.label === title,
+      );
+      const districtRows = state.ekraf?.districtCoverage || [];
+      if (subsector) {
+        lines.push(
+          `Jumlah entitas pada kelompok: ${formatNumber(subsector.count)}`,
+        );
+        lines.push(
+          `Proporsi direktori F&B: ${Math.round((subsector.count / Math.max(1, state.ekraf.totalFnbLocations || 0)) * 100)}%`,
+        );
+      }
+      districtRows
+        .slice(0, 6)
+        .forEach((x) =>
+          lines.push(`${x.label}: ${formatNumber(x.count)} entitas terpetakan`),
+        );
+    } else if (state.active === "market") {
+      const districtMarkets = state.markets.filter(
+        (x) => String(x.kecamatan || "Belum dipetakan") === title,
+      );
+      districtMarkets.forEach((x) =>
+        lines.push(
+          `${x.nama || x.name || x.id} · ${x.statusLabel || x.statusOperasional || "status tersedia"}`,
+        ),
+      );
+    }
+    if (!lines.length) {
+      const description = card.innerText.replace(/\s+/g, " ").trim();
+      if (description) lines.push(description);
+    }
+    const source =
+      state.active === "industry"
+        ? `SBL Ekraf · pembaruan ${state.ekraf?.sourceUpdatedAt || "belum tersedia"}`
+        : state.dataState[state.active]?.label || "Sumber operasional aktif";
+    const definitions = {
+      "UTTP Diperiksa":
+        "Jumlah alat ukur, takar, timbang dan perlengkapannya yang tercatat diperiksa pada snapshot.",
+      "UTTP Sah":
+        "Jumlah UTTP yang dinyatakan memenuhi ketentuan pada snapshot resmi.",
+      "Pangkalan LPG":
+        "Jumlah record pangkalan aktif pada master LPG, bukan jumlah pangkalan yang telah diverifikasi lapangan.",
+      "Kelengkapan Koordinat":
+        "Persentase record yang memiliki pasangan koordinat valid; bukan bukti verifikasi lapangan.",
+      "Pasar Terdata": "Jumlah pasar pada master publik e-SKPT.",
+      "ENTITAS EKRAF":
+        "Jumlah master record pada snapshot agregat bulanan portal SBL Ekraf.",
+    };
+    const definition = isPriority
+      ? "Butir eskalasi yang disusun otomatis dari kondisi data operasional yang tersedia."
+      : definitions[title] ||
+        "Indikator ditampilkan sesuai definisi dan cakupan sumber data aktif.";
+    const target = isPriority
+      ? "Tuntas sesuai SLA sumber; SLA belum diterbitkan bila tidak tercantum"
+      : "Belum diterbitkan pada sumber";
+    const ownership = isPriority
+      ? "PIC mengikuti penanggung jawab pada sumber; tidak diisi dengan asumsi"
+      : "Belum tersedia";
+    $("ccDetailEyebrow").textContent =
+      `${modules[state.active]?.title || "COMMAND CENTER"} · DETAIL`;
+    $("ccDetailTitle").textContent = title;
+    $("ccDetailBody").innerHTML =
+      `${value ? `<p class="detail-lead">${esc(value)}${meta ? `<br><small>${esc(meta)}</small>` : ""}</p>` : ""}<div class="detail-grid"><div><small>Definisi indikator</small><strong>${esc(definition)}</strong></div><div><small>Sumber data</small><strong>${esc(source)}</strong></div><div><small>Target / SLA</small><strong>${esc(target)}</strong></div><div><small>PIC / perbandingan</small><strong>${esc(ownership)}</strong></div>${lines.map((line, i) => `<div><small>Rincian ${String(i + 1).padStart(2, "0")}</small><strong>${esc(line)}</strong></div>`).join("")}</div>`;
+    $("ccDetail").hidden = false;
+    document.body.classList.add("detail-open");
+    if (window.lucide) lucide.createIcons();
+  }
+  function closeCardDetail() {
+    $("ccDetail").hidden = true;
+    document.body.classList.remove("detail-open");
+  }
+  function markerIcon(color) {
+    return L.divIcon({
+      className: "",
+      html: `<div class="gis-marker" style="--marker:${color}"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 18],
     });
   }
-}
-
-function createReportCardElement(r, isCompact = false) {
-  const wrapper = document.createElement('div');
-  wrapper.style.background = 'var(--bg-card-inner)';
-  wrapper.style.padding = isCompact ? '10px 14px' : '12px 16px';
-  wrapper.style.borderRadius = '8px';
-  wrapper.style.borderLeft = `5px solid ${r.status === 'SELESAI' ? 'var(--accent-emerald)' : 'var(--accent-gold)'}`;
-
-  const topRow = document.createElement('div');
-  topRow.style.display = 'flex';
-  topRow.style.justifyContent = 'space-between';
-  topRow.style.alignItems = 'center';
-
-  const title = document.createElement('strong');
-  title.style.fontSize = isCompact ? '0.88rem' : '0.96rem';
-  title.style.color = 'var(--text-main)';
-  // Sensor privasi nama pelapor
-  const district = safeString(r.kecamatan || r.district, 'LOKASI DIRAHASIAKAN');
-  title.textContent = `[${safeString(r.kategori || r.classification, 'ADUAN')}] • ${district}`;
-
-  const badge = document.createElement('span');
-  badge.className = `card-badge ${r.status === 'SELESAI' ? 'badge-green' : 'badge-gold'}`;
-  badge.style.fontSize = '0.72rem';
-  badge.textContent = safeString(r.status, 'PROSES VERIFIKASI');
-
-  topRow.append(title, badge);
-
-  const textP = document.createElement('p');
-  textP.style.fontSize = isCompact ? '0.8rem' : '0.84rem';
-  textP.style.color = 'var(--text-muted)';
-  textP.style.lineHeight = '1.4';
-  textP.style.margin = '4px 0 0 0';
-  const reportTime = timestampToMillis(r.created_at || r.reported_at);
-  textP.textContent = reportTime
-    ? `Masuk: ${new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Makassar' }).format(new Date(reportTime))}`
-    : 'Waktu laporan belum tersedia';
-
-  wrapper.append(topRow, textP);
-  return wrapper;
-}
-
-// --- 15. INTEGRASI FIRESTORE & OFFLINE CACHE RESILIENCE DENGAN METADATA CHANGES ---
-function setCachedData(key, data, updated_at = null) {
-  // Cache data operasional dinonaktifkan. Parameter dipertahankan agar listener
-  // lama tetap kompatibel tanpa menjadikan localStorage sumber alternatif.
-  try { localStorage.removeItem(key); } catch (e) {}
-}
-
-function getCachedData(key) {
-  try { localStorage.removeItem(key); } catch (e) {}
-  return null;
-}
-
-function initFirestoreRealtimeService() {
-  const isFirestoreAvailable = typeof db !== 'undefined' && db !== null;
-
-  // 1. FIRST PAINT KOSONG; tunggu snapshot server resmi.
-  const cachedCC = getCachedData('disperindag_cc_cache_metrics');
-  const cachedMarkets = getCachedData('disperindag_cc_cache_markets_v2');
-  const cachedDistricts = getCachedData('disperindag_cc_cache_districts');
-  const cachedPrices = getCachedData('disperindag_cc_cache_prices');
-  const cachedReports = getCachedData('disperindag_cc_cache_reports');
-  const cachedTera = getCachedData('disperindag_cc_cache_tera');
-
-  let hasUsableCache = false;
-  renderCommandCenterData({}, true);
-
-  if (cachedMarkets && cachedMarkets.data) {
-    renderMarketsDOM(cachedMarkets.data);
-    hasUsableCache = true;
-  } else {
-    renderMarketsDOM([]);
+  function getCoords(x) {
+    const location = x.location || {},
+      point =
+        x.coordinates ||
+        x.coordinate ||
+        location.point ||
+        location ||
+        x.geoPoint ||
+        {};
+    return [
+      Number(x.latitude ?? x.lat ?? point.latitude ?? point.lat),
+      Number(x.longitude ?? x.lng ?? point.longitude ?? point.lng),
+    ];
   }
-
-  if (cachedDistricts && cachedDistricts.data) {
-    renderDistrictsDOM('ccDistrictMatrix0', cachedDistricts.data, 2);
-    renderDistrictsDOM('ccDistrictMatrix3', cachedDistricts.data, 3);
-    hasUsableCache = true;
-  } else {
-    renderDistrictsDOM('ccDistrictMatrix0', [], 2);
-    renderDistrictsDOM('ccDistrictMatrix3', [], 3);
+  function initMap() {
+    if (!window.L || !$("ccMap")) return;
+    if (state.map) {
+      state.map.remove();
+      state.map = null;
+    }
+    state.map = L.map("ccMap", {
+      zoomControl: false,
+      preferCanvas: true,
+    }).setView([-3.79, 119.65], 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap",
+    }).addTo(state.map);
+    L.control.zoom({ position: "topright" }).addTo(state.map);
+    const cluster = () =>
+        L.markerClusterGroup
+          ? L.markerClusterGroup({
+              showCoverageOnHover: false,
+              maxClusterRadius: 42,
+              disableClusteringAtZoom: 14,
+            })
+          : L.layerGroup(),
+      market = cluster().addTo(state.map),
+      lpg = cluster().addTo(state.map),
+      fuel = cluster().addTo(state.map),
+      boundary = L.layerGroup().addTo(state.map);
+    state.markets.forEach((x) =>
+      addMarker(market, x, COLORS.green, "Pasar e-SKPT"),
+    );
+    state.lpg
+      .slice(0, 1000)
+      .forEach((x) => addMarker(lpg, x, COLORS.purple, "Pangkalan LPG"));
+    state.fuel.forEach((x) => addMarker(fuel, x, COLORS.blue, "Penyalur BBM"));
+    state.mapLayers = { market, lpg, fuel, boundary };
+    L.control
+      .layers(
+        null,
+        {
+          "Batas Kecamatan Pinrang": boundary,
+          "Pasar e-SKPT": market,
+          "Pangkalan LPG": lpg,
+          "Penyalur BBM": fuel,
+        },
+        { collapsed: true, position: "bottomright" },
+      )
+      .addTo(state.map);
+    loadPinrangBoundary(boundary);
+    const districts = [
+      ...new Set(
+        [...state.markets, ...state.lpg, ...state.fuel]
+          .map((x) => x.kecamatan || x.district)
+          .filter(Boolean),
+      ),
+    ].sort();
+    $("gisDistrict").insertAdjacentHTML(
+      "beforeend",
+      districts.map((x) => `<option>${esc(x)}</option>`).join(""),
+    );
+    $("gisSearch").addEventListener("input", filterMarkets);
+    $("gisDistrict").addEventListener("change", filterMarkets);
+    setTimeout(() => state.map.invalidateSize(), 100);
   }
-
-  if (cachedPrices && cachedPrices.data) {
-    renderPricesDOM(cachedPrices.data);
-    hasUsableCache = true;
-  } else {
-    renderPricesDOM([]);
-  }
-
-  if (cachedReports && cachedReports.data) {
-    renderReportsDOM(cachedReports.data);
-    hasUsableCache = true;
-  } else {
-    renderReportsDOM([]);
-  }
-
-  if (cachedTera && cachedTera.data) {
-    renderTeraScheduleDOM(cachedTera.data);
-    hasUsableCache = true;
-  } else {
-    renderTeraScheduleDOM([]);
-  }
-
-  // Set first paint status (sementara)
-  setSystemStatus(hasUsableCache ? 'cached' : 'unavailable');
-
-  // 2. JIKA FIRESTORE TERSEDIA, PASANG REALTIME LISTENER DENGAN includeMetadataChanges: true
-  if (isFirestoreAvailable) {
+  async function loadPinrangBoundary(layer) {
     try {
-      // Listener Metrics
-      db.collection('command_center').doc('metrics').onSnapshot(
-        { includeMetadataChanges: true },
-        (doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            setCachedData('disperindag_cc_cache_metrics', data, data.updated_at);
-            renderCommandCenterData(data, false);
-            markServerSnapshot('metrics', doc.metadata, data.updated_at, 15);
-          } else {
-            renderCommandCenterData({}, false);
-            updateSourceState('metrics', 'unavailable');
-          }
+      const response = await fetch("geo/pinrang/2026-06/kecamatan.geojson");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const geo = L.geoJSON(data, {
+        style: {
+          color: "#12365f",
+          weight: 2,
+          opacity: 0.85,
+          fillColor: "#2c70e8",
+          fillOpacity: 0.035,
         },
-        (err) => handleFirestoreError('metrics', err, 'disperindag_cc_cache_metrics')
+        onEachFeature: (feature, item) =>
+          item.bindTooltip(
+            String(
+              feature.properties?.WADMKC ||
+                feature.properties?.KECAMATAN ||
+                feature.properties?.name ||
+                "Kecamatan Pinrang",
+            ),
+            { sticky: true },
+          ),
+      }).addTo(layer);
+      state.map.fitBounds(geo.getBounds(), { padding: [24, 24], maxZoom: 11 });
+    } catch (error) {
+      console.warn("[Command Center] Batas Pinrang:", error.message);
+    }
+  }
+  function addMarker(layer, x, color, type) {
+    const [lat, lng] = getCoords(x);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    const name = x.nama || x.name || x.businessName || x.outletName || type;
+    L.marker([lat, lng], { icon: markerIcon(color), title: name })
+      .bindPopup(
+        `<strong>${esc(name)}</strong><br>${esc(x.alamat || x.address || x.desaKelurahan || x.village || "Lokasi Kabupaten Pinrang")}<br><small>Sumber: ${esc(x.sumberData || type)}</small>`,
+      )
+      .addTo(layer);
+  }
+  function filterMarkets() {
+    const term = $("gisSearch").value.toLowerCase(),
+      district = $("gisDistrict").value;
+    const filter = (items) =>
+      items.filter(
+        (x) =>
+          (!district || (x.kecamatan || x.district) === district) &&
+          (!term || JSON.stringify(x).toLowerCase().includes(term)),
       );
-
-      // Tahap 13: satu-satunya sumber MI untuk Command Center adalah snapshot publik.
-      db.collection('mi_public').doc('current').onSnapshot(
-        { includeMetadataChanges: true },
-        (doc) => {
-          const data = doc.exists ? doc.data() : null;
-          renderMediaIntelligenceSummary(isValidMediaIntelligenceSnapshot(data) ? data : null);
-        },
-        (err) => {
-          console.warn('Firestore media intelligence public snapshot error:', err?.code || err);
-          renderMediaIntelligenceSummary(null);
-        }
+    state.mapLayers.market.clearLayers();
+    state.mapLayers.lpg.clearLayers();
+    state.mapLayers.fuel.clearLayers();
+    filter(state.markets).forEach((x) =>
+      addMarker(state.mapLayers.market, x, COLORS.green, "Pasar e-SKPT"),
+    );
+    filter(state.lpg).forEach((x) =>
+      addMarker(state.mapLayers.lpg, x, COLORS.purple, "Pangkalan LPG"),
+    );
+    filter(state.fuel).forEach((x) =>
+      addMarker(state.mapLayers.fuel, x, COLORS.blue, "Penyalur BBM"),
+    );
+  }
+  function renderMediaIntelligenceSummary(snapshot) {
+    const kpis =
+      snapshot && typeof snapshot.kpis === "object" ? snapshot.kpis : {};
+    const safeKpi = (value) =>
+      Number.isInteger(value) && value >= 0 ? String(value) : "—";
+    const vals = [
+      safeKpi(kpis.earned_mentions_24h),
+      safeKpi(kpis.unique_stories_24h),
+      safeKpi(kpis.active_critical_issues),
+    ];
+    ["ccMiMentions24h", "ccMiUniqueStories", "ccMiCriticalIssues"].forEach(
+      (id, i) => {
+        if ($(id)) $(id).textContent = vals[i];
+      },
+    );
+    ["ccMiMentionsVisible", "ccMiStoriesVisible", "ccMiIssuesVisible"].forEach(
+      (id, i) => {
+        if ($(id)) $(id).textContent = vals[i];
+      },
+    );
+    const lastSync = snapshot?.last_run_at || snapshot?.last_full_success_at;
+    if ($("ccMiLastSync"))
+      $("ccMiLastSync").textContent = lastSync?.toDate
+        ? lastSync.toDate().toLocaleString("id-ID")
+        : "—";
+    if ($("ccMiStatus"))
+      $("ccMiStatus").textContent = snapshot?.system_status || "OFFLINE";
+  }
+  function setStatus(kind, label) {
+    const b = $("systemLiveBadge");
+    b.className =
+      "cc-live-badge " +
+      (kind === "live" ? "status-live" : "status-unavailable");
+    b.querySelector("span").textContent = label;
+  }
+  // Public-only media contract retained: db.collection('mi_public').doc('current').onSnapshot
+  function connectData() {
+    fetch("assets/data/sbl-ekraf-monthly.json", { cache: "no-cache" })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        state.ekraf = data;
+        syncEkrafModule();
+        refreshActive("industry");
+      })
+      .catch(() =>
+        markData("industry", "DATA EKRAF TIDAK TERSEDIA", COLORS.amber),
       );
-
-      // Snapshot publik berasal dari agregasi immutable ledger oleh admin LPG.
-      db.collection('lpg_dashboard').doc('summary').onSnapshot(
-        { includeMetadataChanges: true },
-        (doc) => {
-          if (doc.metadata.fromCache || !doc.exists) { latestLpgDashboardSnapshot=null; renderLpgDashboardSnapshot(null); return; }
-          latestLpgDashboardSnapshot = doc.data();
-          renderLpgDashboardSnapshot(latestLpgDashboardSnapshot);
-        },
-        (err) => { latestLpgDashboardSnapshot=null; renderLpgDashboardSnapshot(null); updateSourceState('lpg_dashboard','unavailable'); console.warn('[LPG][FIRESTORE_READ_ERROR]',err?.code||err); }
-      );
-
-      db.collection('lpg_settings').doc('operational').onSnapshot(
-        {includeMetadataChanges:true},
-        doc=>{
-          if(doc.metadata.fromCache||!doc.exists){setSafeText('cc_kpi_het_lpg_price','--');setSafeText('cc_s3_het_lpg_price','--');setSafeText('cc_s3_het_lpg_regulation','DASAR HUKUM BELUM TERSEDIA');return;}
-          const data=doc.data(),price=Number(data.hetPrice);
-          setSafeText('cc_kpi_het_lpg_price',Number.isFinite(price)?formatRupiahVal(price):'--');
-          setSafeText('cc_s3_het_lpg_price',Number.isFinite(price)?formatRupiahVal(price):'--');
-          setSafeText('cc_s3_het_lpg_regulation',safeString(data.hetRegulation,'DASAR HUKUM BELUM TERSEDIA'));
-        },
-        err=>{console.warn('[LPG][FIRESTORE_READ_ERROR]',{operation:'commandCenterHet',code:err.code});setSafeText('cc_kpi_het_lpg_price','--');setSafeText('cc_s3_het_lpg_price','--');}
-      );
-
-      // Listener Master Pasar Dinamis
-      db.collection('markets').onSnapshot(
-        { includeMetadataChanges: true },
-        (snapshot) => {
-          const list = [];
-          snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
-          if (list.length > 0) {
-            setCachedData('disperindag_cc_cache_markets_v2', list, snapshot.docs[0]?.data()?.updated_at || null);
-            renderMarketsDOM(list);
-            markServerSnapshot('markets', snapshot.metadata, snapshot.docs[0]?.data()?.updated_at, 24 * 60);
-          } else {
-            renderMarketsDOM([]);
-            updateSourceState('markets', 'unavailable');
-          }
-        },
-        (err) => handleFirestoreError('markets', err, 'disperindag_cc_cache_markets_v2')
-      );
-
-      // Listener Districts
-      db.collection('command_center').doc('districts').onSnapshot(
-        { includeMetadataChanges: true },
-        (doc) => {
-          if (doc.exists && doc.data().items) {
-            const items = doc.data().items;
-            setCachedData('disperindag_cc_cache_districts', items, doc.data().updated_at);
-            renderDistrictsDOM('ccDistrictMatrix0', items, 2);
-            renderDistrictsDOM('ccDistrictMatrix3', items, 3);
-            markServerSnapshot('districts', doc.metadata, doc.data().updated_at, 6 * 60);
-          } else {
-            renderDistrictsDOM('ccDistrictMatrix0', [], 2);
-            renderDistrictsDOM('ccDistrictMatrix3', [], 3);
-            updateSourceState('districts', 'unavailable');
-          }
-        },
-        (err) => handleFirestoreError('districts', err, 'disperindag_cc_cache_districts')
-      );
-
-      // Listener jadwal dan hasil tera terverifikasi.
-      db.collection('command_center').doc('tera_schedule').onSnapshot(
-        { includeMetadataChanges: true },
-        (doc) => {
-          const data = doc.exists ? doc.data() : null;
-          const items = Array.isArray(data?.items) ? data.items : [];
-          renderTeraScheduleDOM(items);
-          if (!data) {
-            updateSourceState('tera', 'unavailable');
-            return;
-          }
-          setCachedData('disperindag_cc_cache_tera', items, data.updated_at);
-          markServerSnapshot('tera', doc.metadata, data.updated_at, 24 * 60);
-        },
-        (err) => handleFirestoreError('tera', err, 'disperindag_cc_cache_tera')
-      );
-
-      // Listener harga kanonis SP2KP. Wallboard memakai sumber yang sama dengan
-      // CMS dan frontend; override lokal tidak mengubah angka operasional publik.
-      let ccSp2kpItems = [];
-
-      const syncCcPrices = () => {
-        if (ccSp2kpItems.length > 0) {
-          const resolvedList = ccSp2kpItems.map(item => {
-            const vId = item.variantId || item.id;
-            if (typeof PriceResolver !== 'undefined') {
-              const canonical = PriceResolver.normalizeSp2kpItem(item);
-              return {
-                id: vId,
-                commodity_name: canonical.commodity_name,
-                unit: canonical.unit,
-                price: canonical.price,
-                previous_price: canonical.previous_price,
-                diff: canonical.delta,
-                delta: canonical.delta,
-                trend: canonical.trend,
-                stock_status: item.stock_status || 'normal',
-                source: canonical.source,
-                dataDate: canonical.dataDate,
-                updated_at: item.syncedAt || item.dataDate || item.updated_at
-              };
+    if (window.MarketEngine) {
+      state.markets = MarketEngine.getAll();
+      MarketEngine.initRealtimeSync((items) => {
+        state.markets = items;
+        markData("market", "LIVE e-SKPT", COLORS.green);
+        syncMarketModule();
+        refreshActive("market", "gis");
+      });
+      MarketEngine.onStats((stats) => {
+        state.stats = stats;
+        syncMarketModule();
+        refreshActive("market", "overview");
+      });
+    }
+    state.primaryDb = typeof db !== "undefined" ? db : window.db;
+    if (!state.primaryDb) {
+      setStatus("offline", "OFFLINE");
+      return;
+    }
+    setStatus("live", "LIVE");
+    listenDoc("command_center", "metrics", (data) => {
+      state.metrics = data;
+      syncMetricsModules();
+      markData("overview", "SNAPSHOT RESMI", COLORS.blue, data.updated_at);
+      markData("metrology", "SNAPSHOT RESMI", COLORS.blue, data.updated_at);
+      markData("industry", "SNAPSHOT RESMI", COLORS.blue, data.updated_at);
+      refreshActive("overview", "metrology", "industry");
+    });
+    listenDoc("command_center", "districts", (data) => {
+      state.districts = Array.isArray(data.items) ? data.items : [];
+      syncDistrictModules();
+      refreshActive("esdm", "overview");
+    });
+    listenDoc("lpg_dashboard", "summary", (data) => {
+      state.lpgSummary = data;
+      syncLpgModule();
+      markData("esdm", "LIVE FIRESTORE", COLORS.green, data.updatedAt);
+      refreshActive("esdm", "overview");
+    });
+    state.unsubs.push(
+      state.primaryDb
+        .collection("mi_public")
+        .doc("current")
+        .onSnapshot(
+          (doc) => {
+            if (doc.exists) {
+              state.mi = doc.data();
+              renderMediaIntelligenceSummary(state.mi);
+              markData(
+                "overview",
+                "LIVE MULTISUMBER",
+                COLORS.green,
+                state.mi.last_run_at || state.mi.last_full_success_at,
+              );
+              refreshActive("overview");
             }
-            return item;
-          });
-          const newestUpdate = resolvedList.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at) || 0), 0);
-          setCachedData('disperindag_cc_cache_prices', resolvedList, newestUpdate || null);
-          renderPricesDOM(resolvedList);
-          markServerSnapshot('prices', { fromCache: false }, newestUpdate || null, 24 * 60);
-        }
-      };
-
-      db.collection('market_prices_latest').onSnapshot(
-        { includeMetadataChanges: true },
-        (snapshot) => {
-          if (!snapshot.empty) {
-            const list = [];
-            snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
-            ccSp2kpItems = list.sort((a, b) => (Number(a.sp2kpCommodityId || 0) - Number(b.sp2kpCommodityId || 0)));
-            syncCcPrices();
-          } else {
-            ccSp2kpItems = [];
-            renderPricesDOM([]);
-            updateSourceState('prices', 'unavailable');
-          }
-        },
-        (err) => handleFirestoreError('prices', err, 'disperindag_cc_cache_prices')
+          },
+          () => {},
+        ),
+    );
+    listenCollection("lpg_pangkalan", (items) => {
+      state.lpg = items.filter(
+        (x) =>
+          x.isDeleted !== true &&
+          String(x.status || "ACTIVE").toUpperCase() !== "INACTIVE",
       );
-
-      // Listener Reports
-      db.collection('reports_current').orderBy('created_at', 'desc').limit(5).onSnapshot(
-        { includeMetadataChanges: true },
-        (snapshot) => {
-          const list = [];
-          snapshot.forEach(d => list.push(d.data()));
-          if (list.length > 0) {
-            const newestUpdate = list.reduce((latest, item) => Math.max(latest, timestampToMillis(item.updated_at || item.created_at) || 0), 0);
-            setCachedData('disperindag_cc_cache_reports', list, newestUpdate || null);
-            renderReportsDOM(list);
-            markServerSnapshot('reports', snapshot.metadata, newestUpdate || null, 30);
-          } else {
-            renderReportsDOM([]);
-            updateSourceState('reports', 'unavailable');
-          }
-        },
-        (err) => handleFirestoreError('reports', err, 'disperindag_cc_cache_reports')
+      syncLpgModule();
+      refreshActive("esdm", "gis", "overview");
+    });
+    listenCollection("lpg_agents", (items) => {
+      state.agents = items.filter(
+        (x) => String(x.status || "ACTIVE").toUpperCase() === "ACTIVE",
       );
-
-    } catch (err) {
-      console.error("Firestore Init Error:", err);
-      setSystemStatus("unavailable");
+      syncLpgModule();
+      refreshActive("esdm");
+    });
+    listenCollection("bbm_outlets", (items) => {
+      state.fuel = items;
+      syncFuelModule();
+      markData("fuel", "LIVE FIRESTORE", COLORS.green, latestTimestamp(items));
+      refreshActive("fuel", "gis", "overview");
+    });
+    listenCollection("market_prices_latest", (items) => {
+      state.prices = items.filter(
+        (x) => Number(x.sourcePrice ?? x.price ?? x.harga) > 0,
+      );
+      syncPriceModule();
+      refreshActive("overview", "market");
+    });
+    listenCollection("reports_current", (items) => {
+      state.reports = items;
+      syncReportModules();
+      refreshActive("overview", "industry");
+    });
+  }
+  function listenCollection(name, cb) {
+    try {
+      state.unsubs.push(
+        state.primaryDb.collection(name).onSnapshot(
+          { includeMetadataChanges: true },
+          (s) => {
+            if (s.metadata.fromCache && s.empty) return;
+            cb(s.docs.map((d) => ({ id: d.id, ...d.data() })));
+          },
+          (error) => {
+            console.warn("[Command Center]", name, error.code || error.message);
+          },
+        ),
+      );
+    } catch (e) {
+      console.warn(name, e);
     }
-  } else {
-    setSystemStatus("unavailable");
   }
-
-  // 3. MONITOR FRESHNESS & STALE DATA SETIAP 30 DETIK
-  setInterval(() => {
-    sourceStates.forEach((entry, source) => {
-      const maxAge = (SOURCE_FRESHNESS_MINUTES[source] || 15) * 60 * 1000;
-      if (entry.state === 'live' && entry.updatedAt && Date.now() - entry.updatedAt > maxAge) {
-        updateSourceState(source, 'stale', entry.updatedAt);
-      }
-    });
-  }, CC_CONFIG.staleCheckInterval);
-}
-
-// Multi-Tab Local Storage Listener
-window.addEventListener('storage', (e) => {
-  if (['disperindag_cc_cache_metrics', 'disperindag_cc_cache_markets_v2', 'disperindag_cc_cache_districts', 'disperindag_cc_cache_prices', 'disperindag_cc_cache_reports'].includes(e.key)) {
-    const cached = getCachedData(e.key);
-    if (cached && cached.data) {
-      if (e.key === 'disperindag_cc_cache_metrics') renderCommandCenterData(cached.data, true);
-      if (e.key === 'disperindag_cc_cache_markets_v2') renderMarketsDOM(cached.data);
-      if (e.key === 'disperindag_cc_cache_districts') {
-        renderDistrictsDOM('ccDistrictMatrix0', cached.data, 2);
-        renderDistrictsDOM('ccDistrictMatrix3', cached.data, 3);
-      }
-      if (e.key === 'disperindag_cc_cache_prices') {
-        renderPricesDOM(cached.data);
-      }
-      if (e.key === 'disperindag_cc_cache_reports') renderReportsDOM(cached.data);
+  function listenDoc(collection, id, cb) {
+    try {
+      state.unsubs.push(
+        state.primaryDb
+          .collection(collection)
+          .doc(id)
+          .onSnapshot(
+            { includeMetadataChanges: true },
+            (doc) => {
+              if (doc.exists) cb({ id: doc.id, ...doc.data() });
+            },
+            (error) =>
+              console.warn(
+                "[Command Center]",
+                collection + "/" + id,
+                error.code || error.message,
+              ),
+          ),
+      );
+    } catch (e) {
+      console.warn(collection + "/" + id, e);
     }
   }
-});
-
-// Network Online/Offline Handler
-window.addEventListener('online', () => {
-  syncWeather();
-  // Listener Firestore menentukan status LIVE setelah snapshot server berhasil.
-});
-
-window.addEventListener('offline', () => {
-  setSystemStatus("cached");
-});
-
-// Tab Visibility Handler
-let autoSlideWasRunningBeforeHidden = false;
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    autoSlideWasRunningBeforeHidden = !CC_CONFIG.isPaused;
-    pauseAutoSlide();
-  } else if (autoSlideWasRunningBeforeHidden) {
-    resumeAutoSlide();
+  function markData(module, label, tone, stamp) {
+    const value = toDate(stamp);
+    const maxAgeDays = module === "industry" ? 35 : 7;
+    const stale = value
+      ? Date.now() - value.getTime() > maxAgeDays * 86400000
+      : false;
+    state.dataState[module] = {
+      label: stale ? `${label} · KEDALUWARSA` : label,
+      tone: stale ? COLORS.red : tone,
+      time: value ? formatTime(value) : "waktu sumber tidak tersedia",
+      rawTime: value ? value.getTime() : null,
+      stale,
+    };
+    synthesizeExecutivePriorities();
   }
-});
-
-// --- 15. BOTTOM RUNNING TICKER COMMAND CENTER (HIGH-PRECISION MARQUEE 60 FPS) ---
-let ccTickerAnimFrameId = null;
-let ccTickerOffset = 0;
-let isCCTickerPaused = false;
-
-function renderCommandCenterTicker(pricesData = [], customText = null) {
-  const tickerContainer = document.getElementById('ccTickerText');
-  const tickerTrack = document.querySelector('.cc-ticker-track');
-  if (!tickerContainer) return;
-
-  const prices = Array.isArray(pricesData) ? pricesData : [];
-  const items = prices.map(item => {
-    const current = safeNumber(item.price);
-    if (current === null) return null;
-    const trend = getPriceTrend(current, item.previous_price);
-    const trendLabel = trend === 'up' ? '▲ Naik' : trend === 'down' ? '▼ Turun' : '● Tetap';
-    return `🌾 ${safeString(item.commodity_name || item.name, 'Komoditas')}: ${formatRupiahVal(current)}/${safeString(item.unit, 'Kg')} (${trendLabel})`;
-  }).filter(Boolean);
-  if (safeString(customText, '') !== '') items.push(safeString(customText, ''));
-  if (items.length === 0) items.push('COMMAND CENTER DISPERINDAG ESDM KABUPATEN PINRANG • MEMUAT INFORMASI TERBARU...');
-
-  tickerContainer.replaceChildren();
-  [...items, ...items].forEach(text => {
-    const item = document.createElement('span');
-    item.className = 'cc-ticker-item';
-    item.textContent = text;
-    tickerContainer.appendChild(item);
-  });
-
-  if (ccTickerAnimFrameId) {
-    cancelAnimationFrame(ccTickerAnimFrameId);
-    ccTickerAnimFrameId = null;
+  function toDate(stamp) {
+    if (!stamp) return null;
+    const value = stamp?.toDate
+      ? stamp.toDate()
+      : stamp?.seconds
+        ? new Date(stamp.seconds * 1000)
+        : new Date(stamp);
+    return Number.isNaN(value.getTime()) ? null : value;
   }
-  ccTickerOffset = 0;
-
-  if (tickerTrack && !tickerTrack.dataset.listenerAttached) {
-    tickerTrack.dataset.listenerAttached = 'true';
-    tickerTrack.addEventListener('mouseenter', () => { isCCTickerPaused = true; });
-    tickerTrack.addEventListener('mouseleave', () => { isCCTickerPaused = false; });
+  function formatTime(stamp) {
+    const value = toDate(stamp);
+    if (!value) return "—";
+    return Number.isNaN(value.getTime())
+      ? "—"
+      : new Intl.DateTimeFormat("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Makassar",
+        })
+          .format(value)
+          .replace(".", ":") + " WITA";
   }
-
-  tickerContainer.style.animation = 'none';
-  tickerContainer.style.display = 'inline-flex';
-  tickerContainer.style.width = 'max-content';
-  tickerContainer.style.whiteSpace = 'nowrap';
-  tickerContainer.style.willChange = 'transform';
-
-  function stepCCTicker() {
-    if (!isCCTickerPaused && tickerContainer) {
-      const halfWidth = tickerContainer.scrollWidth / 2;
-      if (halfWidth > 0) {
-        ccTickerOffset += 1.0; // Kecepatan nyaman untuk TV display
-        if (ccTickerOffset >= halfWidth) {
-          ccTickerOffset = 0;
-        }
-        tickerContainer.style.transform = `translate3d(-${ccTickerOffset}px, 0, 0)`;
-      }
+  function synthesizeExecutivePriorities() {
+    const actions = [];
+    const rejected = Number(state.stats?.rejectedTotal);
+    if (Number.isFinite(rejected) && rejected > 0)
+      actions.push([
+        `${formatNumber(rejected)} pengajuan e-SKPT ditolak`,
+        "Tinjau alasan agregat dan tindak lanjut koreksi",
+        COLORS.red,
+      ]);
+    const overdueReports = state.reports.filter((x) => {
+      const deadline = toDate(x.slaDeadline || x.dueAt || x.deadline);
+      const closed = ["CLOSED", "RESOLVED", "SELESAI DITINDAKLANJUTI"].includes(
+        String(x.status || "").toUpperCase(),
+      );
+      return deadline && deadline.getTime() < Date.now() && !closed;
+    });
+    if (overdueReports.length) {
+      const pics = [
+        ...new Set(
+          overdueReports
+            .map((x) => x.picName || x.pic || x.assignee)
+            .filter(Boolean),
+        ),
+      ];
+      actions.push([
+        `${formatNumber(overdueReports.length)} pengaduan melewati SLA`,
+        pics.length
+          ? `Eskalasi kepada ${pics.slice(0, 2).join(", ")}`
+          : "PIC belum diterbitkan; tetapkan penanggung jawab",
+        COLORS.red,
+      ]);
     }
-    ccTickerAnimFrameId = requestAnimationFrame(stepCCTicker);
+    const lpgVerificationPublished =
+      state.lpg.some((x) => x.verificationStatus != null) ||
+      state.lpgSummary.pendingPangkalanVerification != null;
+    if (state.lpg.length && !lpgVerificationPublished)
+      actions.push([
+        "Status verifikasi LPG belum tersedia",
+        "Pemilik data perlu menerbitkan verificationStatus",
+        COLORS.amber,
+      ]);
+    const stale = Object.entries(state.dataState)
+      .filter(([, value]) => value.stale)
+      .map(([key]) => key);
+    if (stale.length)
+      actions.push([
+        `${stale.length} sumber data kedaluwarsa`,
+        `Perbarui: ${stale.join(", ")}`,
+        COLORS.red,
+      ]);
+    if (!actions.length)
+      actions.push([
+        "Tidak ada eskalasi kritis terukur",
+        "Tetap pantau pembaruan dan kelengkapan sumber",
+        COLORS.green,
+      ]);
+    modules.overview.attentionTitle = "PRIORITAS PIMPINAN";
+    modules.overview.attention = actions.slice(0, 2);
   }
-
-  ccTickerAnimFrameId = requestAnimationFrame(stepCCTicker);
-}
-
-// --- 16. INITIALIZATION COMMAND CENTER ---
-document.addEventListener('DOMContentLoaded', () => {
-  initThemeMode();
-  updateClock();
-  setInterval(updateClock, 1000);
-  
-  syncWeather();
-  CC_CONFIG.weatherInterval = setInterval(syncWeather, 15 * 60 * 1000);
-
-  // Inisialisasi Freshness UI Default
-  updateDataFreshnessUI(null);
-
-  // Inisialisasi Service Firestore & Cache
-  initFirestoreRealtimeService();
-
-  // Inisialisasi Running Ticker Bawah
-  renderCommandCenterTicker();
-
-  // Inisialisasi Data BBM
-  renderCcBbmSlide();
-  if (typeof BbmEngine !== 'undefined') {
-    window.__ccBbmUnsubscribe = BbmEngine.initRealtimeSync(items => {
-      renderCcBbmSlide();
-      refreshCommandCenterGisLayers();
+  function latestTimestamp(items) {
+    return (
+      items
+        .map((x) => x.updatedAt || x.updated_at)
+        .filter(Boolean)
+        .sort((a, b) => Number(b?.seconds || 0) - Number(a?.seconds || 0))[0] ||
+      null
+    );
+  }
+  function refreshActive(...keys) {
+    if (!keys.includes(state.active)) return;
+    clearTimeout(state.renderTimer);
+    state.renderTimer = setTimeout(() => show(state.active), 80);
+  }
+  function syncMarketModule() {
+    const s = state.stats || {},
+      total =
+        Number(s.totalMarkets || state.markets.length) || state.markets.length,
+      active = state.markets.filter(
+        (x) =>
+          String(x.statusOperasional || x.status || "aktif")
+            .toLowerCase()
+            .includes("aktif") &&
+          !String(x.statusOperasional || "").includes("tidak"),
+      ).length;
+    const breakdown =
+      s.marketBreakdown || s.marketCounts || s.topMarkets || null;
+    modules.market.kpis[0][1] = formatNumber(total);
+    modules.market.kpis[0][2] = "pasar pada master publik e-SKPT";
+    modules.market.kpis[0][3] = `${active} aktif`;
+    modules.market.kpis[1][1] = formatNumber(active);
+    modules.market.kpis[1][2] = "pasar berstatus aktif";
+    modules.market.kpis[1][3] = total
+      ? `${Math.round((active / total) * 100)}%`
+      : "—";
+    modules.market.kpis[2][1] = formatNumber(s.totalIssuedSkpt);
+    modules.market.kpis[2][2] = "e-SKPT sah diterbitkan";
+    modules.market.kpis[3][1] = formatNumber(s.totalTraders);
+    modules.market.kpis[3][2] = "pedagang unik terdaftar";
+    modules.market.bars = Array.isArray(breakdown)
+      ? breakdown.map((x) => [
+          String(x.name || x.nama || x.marketName || x.label || "Pasar"),
+          Number(x.count ?? x.total ?? x.value),
+        ])
+      : breakdown && typeof breakdown === "object"
+        ? Object.entries(breakdown).map(([name, count]) => [
+            name,
+            Number(count),
+          ])
+        : [];
+    modules.market.bars = modules.market.bars
+      .filter((x) => Number.isFinite(x[1]) && x[1] > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 7);
+    if (!modules.market.bars.length) {
+      const districts = new Map();
+      state.markets.forEach((market) => {
+        const name = String(market.kecamatan || "Belum dipetakan").trim();
+        districts.set(name, (districts.get(name) || 0) + 1);
+      });
+      modules.market.bars = [...districts.entries()].sort(
+        (a, b) => b[1] - a[1],
+      );
+      modules.market.chart = "SEBARAN MASTER PASAR PER KECAMATAN";
+      modules.market.chartSub = "Jumlah pasar aktual pada master publik e-SKPT";
+      modules.market.barUnit = "pasar";
+    } else {
+      modules.market.chart = "SEBARAN PEDAGANG PER PASAR";
+      modules.market.chartSub = "Agregat pedagang yang diterbitkan e-SKPT";
+      modules.market.barUnit = "pedagang";
+    }
+    modules.market.summary[0][0] = formatNumber(total);
+    modules.market.summary[1][0] = formatNumber(s.totalBusinesses);
+    modules.market.summary[2][0] = formatNumber(s.totalIssuedSkpt);
+    modules.market.summary[3][0] = formatNumber(s.totalTraders);
+    modules.market.statuses = [
+      [
+        "Master Pasar",
+        `${formatNumber(total)} pasar pada sumber e-SKPT`,
+        "Sinkron",
+        "store",
+        COLORS.green,
+      ],
+      [
+        "Pasar Aktif",
+        `${formatNumber(active)} berstatus aktif`,
+        "Aktif",
+        "store",
+        COLORS.green,
+      ],
+      [
+        "e-SKPT Terbit",
+        `${formatNumber(s.totalIssuedSkpt)} dokumen sah`,
+        "Publik",
+        "qr-code",
+        COLORS.blue,
+      ],
+      [
+        "Pedagang",
+        `${formatNumber(s.totalTraders)} identitas terdaftar`,
+        "Agregat",
+        "users",
+        COLORS.purple,
+      ],
+    ];
+    modules.overview.kpis[0][1] = `${formatNumber(active)} / ${formatNumber(total)}`;
+    modules.overview.kpis[0][2] = "pasar aktif pada master e-SKPT";
+    modules.overview.kpis[0][3] = total
+      ? `${Math.round((active / total) * 100)}%`
+      : "—";
+    modules.overview.summary[0][0] = formatNumber(active);
+    modules.overview.statuses[0] = [
+      "Pasar Rakyat",
+      `${formatNumber(active)} dari ${formatNumber(total)} pasar aktif`,
+      "Sinkron",
+      "store",
+      COLORS.green,
+    ];
+    ticker();
+    markData("market", "LIVE e-SKPT", COLORS.green);
+  }
+  function syncLpgModule() {
+    const total =
+        state.lpg.length || Number(state.lpgSummary.activePangkalan) || 0,
+      agents =
+        state.agents.length || Number(state.lpgSummary.officialAgents) || 0,
+      hasVerification =
+        state.lpg.some((x) => x.verificationStatus != null) ||
+        state.lpgSummary.pendingPangkalanVerification != null,
+      pending = hasVerification
+        ? state.lpg.filter((x) =>
+            String(x.verificationStatus || "").includes("PENDING"),
+          ).length ||
+          Number(state.lpgSummary.pendingPangkalanVerification) ||
+          0
+        : null;
+    const het = state.metrics.het_lpg_price;
+    const districts = new Set(state.lpg.map((x) => x.kecamatan).filter(Boolean))
+      .size;
+    const validGps = state.lpg.filter((x) =>
+        getCoords(x).every(Number.isFinite),
+      ).length,
+      gpsPct = total ? Math.round((validGps / total) * 100) : null;
+    modules.esdm.kpis[0][1] = formatNumber(total);
+    modules.esdm.kpis[0][2] = "pangkalan pada master aktif";
+    modules.esdm.kpis[0][3] = `${districts || "—"} kecamatan`;
+    modules.esdm.kpis[1][1] = formatNumber(agents);
+    modules.esdm.kpis[1][2] = "agen pada master aktif";
+    modules.esdm.kpis[1][3] = "aktif";
+    modules.esdm.kpis[2][1] = formatMoney(het);
+    modules.esdm.kpis[2][2] = Number.isFinite(Number(het))
+      ? "harga rujukan pada snapshot"
+      : "harga belum diterbitkan";
+    modules.esdm.kpis[2][3] =
+      formatMoney(het) === "—" ? "belum tersedia" : "rujukan";
+    modules.esdm.kpis[3][1] = formatNumber(pending);
+    modules.esdm.kpis[3][2] = hasVerification
+      ? "antrean verifikasi lapangan"
+      : "status verifikasi belum diterbitkan";
+    modules.esdm.kpis[3][3] = hasVerification
+      ? pending
+        ? "prioritas"
+        : "baik"
+      : "belum tersedia";
+    modules.esdm.summary[0][0] = formatNumber(total);
+    modules.esdm.summary[1][0] = formatNumber(districts);
+    modules.esdm.summary[2][0] = gpsPct === null ? "—" : `${gpsPct}%`;
+    const distribution = state.lpgDistribution,
+      hasDistribution = Boolean(distribution?.totals),
+      distributionTotal = hasDistribution
+        ? Number(distribution.totals.grandTotal)
+        : NaN,
+      reportedAgents = Number(distribution?.coverage?.reportedAgentCount),
+      officialAgents = Number(distribution?.coverage?.officialAgentCount);
+    modules.esdm.summary[3][0] = Number.isFinite(distributionTotal)
+      ? formatNumber(distributionTotal)
+      : state.lpg.length
+        ? "LIVE"
+        : "—";
+    modules.esdm.summary[3][1] = Number.isFinite(distributionTotal)
+      ? "Tabung Sep 2026"
+      : "Pembaruan";
+    modules.esdm.bars = groupCount(state.lpg, "kecamatan").slice(0, 8);
+    modules.esdm.statuses = [
+      [
+        "Master Pangkalan",
+        `${formatNumber(total)} pangkalan aktif`,
+        "Sinkron",
+        "battery",
+        COLORS.green,
+      ],
+      [
+        "Agen Resmi",
+        `${formatNumber(agents)} agen aktif`,
+        "Terhubung",
+        "building-2",
+        COLORS.green,
+      ],
+      [
+        "Realisasi September 2026",
+        Number.isFinite(distributionTotal)
+          ? `${formatNumber(distributionTotal)} tabung dari ${formatNumber(reportedAgents)} agen pelapor`
+          : "Laporan penyaluran belum dimuat",
+        Number.isFinite(distributionTotal) ? "Parsial" : "N/A",
+        "chart-no-axes-column-increasing",
+        Number.isFinite(distributionTotal) ? COLORS.amber : COLORS.navy,
+      ],
+      [
+        "Kualitas Koordinat",
+        `${formatNumber(validGps)} titik dapat dipetakan`,
+        "Terukur",
+        "map",
+        COLORS.blue,
+      ],
+    ];
+    modules.esdm.attention = [
+      [
+        Number.isFinite(distributionTotal)
+          ? `Cakupan laporan ${formatNumber(reportedAgents)} dari ${formatNumber(officialAgents)} agen`
+          : "Laporan penyaluran September belum tersedia",
+        Number.isFinite(distributionTotal)
+          ? `${formatNumber(distributionTotal)} tabung tidak boleh disebut total Kabupaten Pinrang`
+          : "Perlu memuat dataset laporan agen",
+        COLORS.amber,
+      ],
+      [
+        "Koordinat GIS diperiksa otomatis",
+        "Kualitas dihitung dari titik yang dapat dipetakan",
+        COLORS.blue,
+      ],
+    ];
+    modules.overview.kpis[2][1] = formatNumber(total);
+    modules.overview.kpis[2][2] = "pangkalan pada master LPG";
+    modules.overview.kpis[3][1] = formatMoney(het);
+    modules.overview.kpis[3][2] = Number.isFinite(Number(het))
+      ? "harga rujukan pada snapshot"
+      : "harga belum diterbitkan";
+    modules.overview.summary[2][0] = formatNumber(total);
+    ticker();
+  }
+  async function loadStaticLpgDistribution() {
+    try {
+      const response = await fetch("assets/data/lpg-distribution-2026-09.json", {
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      state.lpgDistribution = await response.json();
+      syncLpgModule();
+      refreshActive("esdm", "overview");
+    } catch (error) {
+      console.warn("[Command Center] Laporan LPG September:", error.message);
+    }
+  }
+  async function loadStaticLpgMaster() {
+    try {
+      const [baseResponse, agentResponse] = await Promise.all([
+        fetch("assets/data/lpg-pangkalan.json", { cache: "no-store" }),
+        fetch("assets/data/lpg-agents.json", { cache: "no-store" }),
+      ]);
+      if (!baseResponse.ok || !agentResponse.ok)
+        throw new Error(`HTTP ${baseResponse.status}/${agentResponse.status}`);
+      const [bases, agents] = await Promise.all([
+        baseResponse.json(),
+        agentResponse.json(),
+      ]);
+      if (!state.lpg.length)
+        state.lpg = bases.filter(
+          (x) =>
+            x.isDeleted !== true &&
+            String(x.status || "ACTIVE").toUpperCase() !== "INACTIVE",
+        );
+      if (!state.agents.length)
+        state.agents = agents.filter(
+          (x) =>
+            x.isDeleted !== true &&
+            String(x.status || "ACTIVE").toUpperCase() === "ACTIVE",
+        );
+      syncLpgModule();
+      markData("esdm", "MASTER JSON", COLORS.blue);
+      refreshActive("esdm", "overview", "gis");
+    } catch (error) {
+      console.warn("[Command Center] Master LPG lokal:", error.message);
+    }
+  }
+  function syncFuelModule() {
+    const counts = {};
+    state.fuel.forEach((x) => {
+      const key = x.kategori_code || "lainnya";
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const categories = [
+      ["SPBU Reguler", counts.spbu_reguler || 0],
+      ["APMS / Compact", counts.spbu_kompak || 0],
+      ["Pertashop", counts.pertashop || 0],
+      ["SPBUN Nelayan", counts.spbun || 0],
+    ];
+    modules.fuel.kpis[0][1] = formatNumber(state.fuel.length);
+    modules.fuel.kpis[0][3] = "Firestore";
+    modules.fuel.kpis[0][2] = "titik penyalur pada master";
+    modules.fuel.kpis[1][1] = formatNumber(
+      (counts.spbu_reguler || 0) + (counts.spbu_kompak || 0),
+    );
+    modules.fuel.kpis[1][2] = "SPBU reguler dan APMS/Compact";
+    modules.fuel.kpis[2][1] = formatNumber(counts.pertashop || 0);
+    modules.fuel.kpis[2][2] = "titik Pertashop pada master";
+    modules.fuel.kpis[3][1] = formatNumber(counts.spbun || 0);
+    modules.fuel.kpis[3][2] = "SPBUN nelayan pada master";
+    modules.fuel.bars = categories.filter((x) => x[1] > 0);
+    modules.fuel.summary.forEach(
+      (x, i) =>
+        (x[0] = formatNumber(
+          i === 0 ? state.fuel.length : categories[i]?.[1] || 0,
+        )),
+    );
+    modules.fuel.statuses = categories
+      .filter((x) => x[1] > 0)
+      .map((x, i) => [
+        x[0],
+        `${formatNumber(x[1])} titik pada master`,
+        "Aktif",
+        i === 2 ? "store" : "fuel",
+        [COLORS.green, COLORS.blue, COLORS.purple, COLORS.amber][i],
+      ]);
+    modules.overview.kpis[1][1] = formatNumber(state.fuel.length);
+    modules.overview.kpis[1][2] = "titik penyalur pada master BBM";
+    modules.overview.summary[1][0] = formatNumber(state.fuel.length);
+    modules.overview.statuses[2] = [
+      "BBM",
+      `${formatNumber(state.fuel.length)} titik penyalur pada master`,
+      "Sinkron",
+      "fuel",
+      COLORS.green,
+    ];
+  }
+  function syncPriceModule() {
+    modules.overview.bars = state.prices
+      .map((x) => [
+        x.commodityName || x.name || x.komoditas,
+        Number(x.sourcePrice ?? x.price ?? x.harga),
+        x.unit || x.satuan,
+      ])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6);
+    if (state.prices.length)
+      markData(
+        "overview",
+        "LIVE MULTISUMBER",
+        COLORS.green,
+        latestTimestamp(state.prices),
+      );
+  }
+  function syncMetricsModules() {
+    const m = state.metrics || {},
+      uttp = Number(m.uttp_verified),
+      compliance = Number(m.uttp_compliance_pct),
+      spbu = Number(m.spbu_verified_pct),
+      ikm = Number(m.total_ikm_trained),
+      certified = Number(m.total_ikm_certified);
+    modules.metrology.kpis[0][1] = formatNumber(
+      m.uttp_inspected ?? m.uttp_verified,
+    );
+    modules.metrology.kpis[0][2] = "jumlah pemeriksaan pada snapshot";
+    modules.metrology.kpis[1][1] = formatNumber(uttp);
+    modules.metrology.kpis[1][2] = "UTTP berstatus sah pada snapshot";
+    modules.metrology.kpis[1][3] = Number.isFinite(compliance)
+      ? `${compliance.toLocaleString("id-ID")}%`
+      : "—";
+    modules.metrology.kpis[3][1] = Number.isFinite(spbu)
+      ? `${spbu.toLocaleString("id-ID")}%`
+      : "—";
+    modules.metrology.kpis[3][2] = Number.isFinite(spbu)
+      ? "kepatuhan nozzle SPBU"
+      : "indikator belum diterbitkan";
+    modules.metrology.complianceValue = Number.isFinite(compliance)
+      ? compliance
+      : null;
+    const metrologyBreakdown =
+      m.uttp_by_district || m.metrology_by_district || m.district_breakdown;
+    modules.metrology.bars = Array.isArray(metrologyBreakdown)
+      ? metrologyBreakdown
+          .map((x) => [
+            x.name || x.kecamatan || x.label,
+            Number(x.count ?? x.total ?? x.value),
+          ])
+          .filter((x) => x[0] && Number.isFinite(x[1]))
+      : metrologyBreakdown && typeof metrologyBreakdown === "object"
+        ? Object.entries(metrologyBreakdown)
+            .map(([name, count]) => [name, Number(count)])
+            .filter((x) => Number.isFinite(x[1]))
+        : [];
+    modules.metrology.statuses = [
+      [
+        "UTTP Terverifikasi",
+        `${formatNumber(uttp)} unit pada snapshot resmi`,
+        "Terpublikasi",
+        "scale",
+        COLORS.green,
+      ],
+      [
+        "Kepatuhan Nozzle",
+        Number.isFinite(spbu)
+          ? `${spbu.toLocaleString("id-ID")}% terverifikasi`
+          : "Belum tersedia",
+        Number.isFinite(spbu) ? "Terukur" : "N/A",
+        "fuel",
+        Number.isFinite(spbu) ? COLORS.blue : COLORS.amber,
+      ],
+    ];
+    modules.industry.kpis[0][1] = formatNumber(ikm);
+    modules.industry.kpis[1][1] = formatNumber(certified);
+    modules.industry.bars = [];
+    modules.industry.statuses[0] = [
+      "IKM Terbina",
+      `${formatNumber(ikm)} tercatat pada snapshot`,
+      "Terpublikasi",
+      "factory",
+      COLORS.green,
+    ];
+    modules.industry.statuses[1] = [
+      "Sertifikasi",
+      `${formatNumber(certified)} fasilitasi tercatat`,
+      "Terpublikasi",
+      "badge-check",
+      COLORS.blue,
+    ];
+    modules.overview.summary[3][0] = formatNumber(ikm);
+    if (state.ekraf?.totalMasterRecords) syncEkrafModule();
+    ticker();
+  }
+  function syncDistrictModules() {
+    if (!state.districts.length) return;
+    const rows = state.districts
+      .map((x) => [x.name || x.kecamatan, Number(x.pangkalan) || 0])
+      .filter((x) => x[1] > 0)
+      .sort((a, b) => b[1] - a[1]);
+    if (!state.lpg.length) modules.esdm.bars = rows.slice(0, 8);
+  }
+  function syncEkrafModule() {
+    const e = state.ekraf || {};
+    modules.industry.kpis[0][0] = "ENTITAS EKRAF";
+    modules.industry.kpis[0][1] = formatNumber(e.totalMasterRecords);
+    modules.industry.kpis[0][2] = "agregat portal SBL Ekraf";
+    modules.industry.kpis[0][3] = "snapshot bulanan";
+    modules.industry.kpis[1][0] = "LOKASI F&B";
+    modules.industry.kpis[1][1] = formatNumber(e.totalFnbLocations);
+    modules.industry.kpis[1][2] = "direktori kuliner dan F&B";
+    modules.industry.kpis[1][3] = "snapshot bulanan";
+    modules.industry.kpis[2][0] = "SUBSEKTOR";
+    modules.industry.kpis[2][1] = formatNumber(e.totalSubsectors);
+    modules.industry.kpis[2][2] = "klasifikasi ekonomi kreatif";
+    modules.industry.kpis[2][3] = "21 subsektor";
+    modules.industry.kpis[3][0] = "CAKUPAN";
+    modules.industry.kpis[3][1] = formatNumber(e.totalDistricts);
+    modules.industry.kpis[3][2] = "kecamatan dalam agregat";
+    modules.industry.kpis[3][3] = "cakupan wilayah";
+    modules.industry.bars = (e.topSubsectors || []).map((x) => [
+      x.label,
+      x.count,
+    ]);
+    modules.industry.chart = "KOMPOSISI DIREKTORI EKRAF";
+    modules.industry.chartSub = "Snapshot agregat bulanan SBL Ekraf Pinrang";
+    modules.industry.summary = [
+      [
+        formatNumber(e.totalMasterRecords),
+        "Master record",
+        "factory",
+        COLORS.red,
+      ],
+      [formatNumber(e.totalFnbLocations), "Lokasi F&B", "store", COLORS.green],
+      [
+        formatNumber(e.totalSubsectors),
+        "Subsektor",
+        "layout-grid",
+        COLORS.blue,
+      ],
+      [formatNumber(e.totalDistricts), "Kecamatan", "map", COLORS.amber],
+    ];
+    modules.industry.sourceValue = "SBL EKRAF · SNAPSHOT BULANAN";
+    modules.industry.statuses[0] = [
+      "Sumber Ekraf",
+      `Pembaruan sumber ${e.sourceUpdatedAt || "—"}`,
+      "Bulanan",
+      "database",
+      COLORS.green,
+    ];
+    const unmapped =
+      (e.districtCoverage || []).find((x) =>
+        String(x.label).toLowerCase().includes("belum"),
+      )?.count || 0;
+    modules.industry.attentionTitle = "VALIDASI DATA EKRAF";
+    modules.industry.attention = [
+      [
+        `${formatNumber(e.totalDuplicateCases)} indikasi duplikasi`,
+        "Perlu rekonsiliasi master pada pembaruan berikutnya",
+        Number(e.totalDuplicateCases) ? COLORS.amber : COLORS.green,
+      ],
+      [
+        `${formatNumber(unmapped)} entitas belum dipetakan`,
+        "Lengkapi kecamatan agar analisis wilayah akurat",
+        Number(unmapped) ? COLORS.amber : COLORS.green,
+      ],
+    ];
+    modules.industry.extra = "health";
+    modules.industry.extraTitle = "KESEHATAN SUMBER";
+    markData("industry", "SNAPSHOT SBL EKRAF", COLORS.green, e.syncedAt);
+  }
+  function syncReportModules() {
+    const active = state.reports.filter(
+      (x) =>
+        ![
+          "SELESAI DITINDAKLANJUTI",
+          "DITOLAK / TIDAK SESUAI KEWENANGAN",
+          "CLOSED",
+          "RESOLVED",
+        ].includes(String(x.status || "").toUpperCase()),
+    ).length;
+    modules.overview.statuses[4][1] = `${formatNumber(active)} aduan aktif dalam proses`;
+    modules.overview.statuses[4][2] = active ? "Perhatian" : "Normal";
+    synthesizeExecutivePriorities();
+  }
+  function groupCount(items, field) {
+    const map = new Map();
+    items.forEach((x) => {
+      const key = String(x[field] || "Belum terpetakan").trim();
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }
+  function clock() {
+    const now = new Date(),
+      dateFmt = new Intl.DateTimeFormat("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        timeZone: "Asia/Makassar",
+      }),
+      timeFmt = new Intl.DateTimeFormat("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Makassar",
+      });
+    $("ccLiveDate").textContent = dateFmt.format(now);
+    $("ccLiveTime").innerHTML =
+      timeFmt.format(now).replaceAll(".", ":") + " <small>WITA</small>";
+    $("ccFooterTime").textContent = timeFmt
+      .format(now)
+      .slice(0, 5)
+      .replace(".", ":");
+  }
+  function ticker() {
+    const rejected = Number(state.stats?.rejectedTotal);
+    const rejectedText = Number.isFinite(rejected)
+      ? `${formatNumber(rejected)} pengajuan pedagang ditolak dalam agregat e-SKPT`
+      : "Agregat pengajuan pedagang ditolak sedang disinkronkan dari e-SKPT";
+    const compliance = Number(state.metrics?.uttp_compliance_pct);
+    const lpgVerificationPublished =
+      state.lpg.some((x) => x.verificationStatus != null) ||
+      state.lpgSummary.pendingPangkalanVerification != null;
+    const items = [
+      [
+        "e-SKPT",
+        rejectedText,
+        Number.isFinite(rejected) && rejected > 0 ? COLORS.red : COLORS.blue,
+      ],
+      [
+        "LPG",
+        lpgVerificationPublished
+          ? "Status verifikasi lapangan tersedia untuk evaluasi"
+          : "Status verifikasi lapangan belum diterbitkan; perlu dilengkapi pemilik data",
+        COLORS.amber,
+      ],
+      [
+        "METROLOGI",
+        Number.isFinite(compliance)
+          ? `Kepatuhan UTTP ${compliance.toLocaleString("id-ID")}% pada snapshot resmi`
+          : "Indikator kepatuhan UTTP belum diterbitkan",
+        Number.isFinite(compliance) && compliance < 95
+          ? COLORS.red
+          : COLORS.green,
+      ],
+      [
+        "DATA",
+        `${dataHealth()[0][0]} sumber utama tersedia · ${dataHealth()[1][0]} record master`,
+        COLORS.blue,
+      ],
+    ];
+    const tickerGroup = items
+      .map(
+        (x) =>
+          `<span data-label="${x[0]}" style="--tone:${x[2]}">${x[1]}</span>`,
+      )
+      .join("");
+    $("ccTickerText").innerHTML =
+      `<div class="ticker-track"><div class="ticker-group">${tickerGroup}</div><div class="ticker-group" aria-hidden="true">${tickerGroup}</div></div>`;
+    requestAnimationFrame(() => {
+      const track = $("ccTickerText").querySelector(".ticker-track");
+      const group = track?.querySelector(".ticker-group");
+      if (!track || !group || !group.scrollWidth) return;
+      track.getAnimations().forEach((animation) => animation.cancel());
+      const movement = track.animate(
+        [
+          { transform: "translate3d(0,0,0)" },
+          { transform: `translate3d(-${group.scrollWidth}px,0,0)` },
+        ],
+        {
+          duration: Math.max(18000, group.scrollWidth * 22),
+          iterations: Infinity,
+          easing: "linear",
+        },
+      );
+      $("ccTickerText").onmouseenter = () => movement.pause();
+      $("ccTickerText").onmouseleave = () => movement.play();
     });
   }
-
-  // Master LPG harus diminta setelah Firebase siap. Event hasil sinkron akan
-  // memutakhirkan marker tanpa perlu membuka ulang tab GIS.
-  if (typeof loadCanonicalLpgMasterOnce === 'function') {
-    loadCanonicalLpgMasterOnce().then(() => {
-      if (typeof populateLpgGisFilters === 'function') populateLpgGisFilters(true);
-      if (typeof renderLpgGisMarkers === 'function') renderLpgGisMarkers();
+  function openCommand() {
+    const box = $("ccCommand");
+    box.hidden = false;
+    $("ccCommandInput").value = "";
+    renderCommand("");
+    setTimeout(() => $("ccCommandInput").focus(), 20);
+  }
+  function renderCommand(term) {
+    const q = term.toLowerCase();
+    $("ccCommandResults").innerHTML = Object.entries({
+      ...modules,
+      gis: {
+        title: "Peta GIS Disperindag ESDM",
+        sub: "Data geospasial e-SKPT dan ESDM",
+      },
+    })
+      .filter(([, m]) => (m.title + " " + m.sub).toLowerCase().includes(q))
+      .map(
+        ([key, m]) =>
+          `<button class="command-result" type="button" data-command="${key}"><b>${m.title}</b><br><small>${m.sub}</small></button>`,
+      )
+      .join("");
+    document.querySelectorAll("[data-command]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          show(b.dataset.command);
+          $("ccCommand").hidden = true;
+        }),
+    );
+  }
+  function show(key) {
+    key === "gis" ? renderGis() : renderStandard(key);
+    history.replaceState(null, "", "#" + key);
+    scheduleRotation();
+  }
+  function scheduleRotation() {
+    clearTimeout(state.rotationTimer);
+    if (state.paused) return;
+    state.rotationTimer = setTimeout(
+      () => {
+        const keys = [
+            "overview",
+            "market",
+            "metrology",
+            "esdm",
+            "industry",
+            "fuel",
+            "gis",
+          ],
+          next = keys[(keys.indexOf(state.active) + 1) % keys.length];
+        show(next);
+      },
+      state.active === "gis" ? 30000 : 20000,
+    );
+  }
+  document
+    .querySelectorAll(".cc-tab")
+    .forEach((b) => b.addEventListener("click", () => show(b.dataset.slide)));
+  $("btnFullscreen").onclick = () =>
+    document.fullscreenElement
+      ? document.exitFullscreen()
+      : document.documentElement.requestFullscreen();
+  $("ccSearch").onclick = openCommand;
+  $("btnSettings").onclick = () => {
+    state.paused = !state.paused;
+    $("btnSettings").classList.toggle("is-paused", state.paused);
+    $("btnSettings").title = state.paused
+      ? "Rotasi dijeda — klik untuk melanjutkan"
+      : "Rotasi otomatis aktif — klik untuk menjeda";
+    scheduleRotation();
+  };
+  $("ccCommandInput").oninput = (e) => renderCommand(e.target.value);
+  document.querySelector("[data-close-command]").onclick = () =>
+    ($("ccCommand").hidden = true);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") $("ccCommand").hidden = true;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      openCommand();
+    }
+  });
+  function initializeProductionState() {
+    ["overview", "market", "metrology", "esdm", "industry", "fuel"].forEach(
+      (key) => markData(key, "MENUNGGU DATA", COLORS.amber),
+    );
+    modules.overview.kpis.forEach((k) => {
+      k[1] = "—";
+      k[2] = "data belum diterbitkan";
+      k[3] = "menunggu";
     });
-  }
-  if (typeof subscribeCanonicalLpgMaster === 'function') {
-    window.__ccLpgMasterUnsubscribe = subscribeCanonicalLpgMaster(() => {
-      if (typeof populateLpgGisFilters === 'function') populateLpgGisFilters(true);
-      if (typeof renderLpgGisMarkers === 'function') renderLpgGisMarkers();
-      refreshCommandCenterGisLayers();
+    modules.overview.summary.forEach((x) => (x[0] = "—"));
+    modules.overview.bars = [];
+    modules.overview.statuses = [
+      [
+        "Pasar Rakyat",
+        "Menunggu snapshot e-SKPT",
+        "Menunggu",
+        "store",
+        COLORS.green,
+      ],
+      [
+        "LPG 3 Kg",
+        "Menunggu master pangkalan",
+        "Menunggu",
+        "battery",
+        COLORS.purple,
+      ],
+      ["BBM", "Menunggu master penyalur", "Menunggu", "fuel", COLORS.blue],
+      [
+        "Metrologi & Tera",
+        "Menunggu snapshot indikator resmi",
+        "Menunggu",
+        "scale",
+        COLORS.amber,
+      ],
+      [
+        "Industri & Pengaduan",
+        "Menunggu snapshot indikator resmi",
+        "Menunggu",
+        "factory",
+        COLORS.red,
+      ],
+    ];
+    modules.overview.attention = [
+      [
+        "Menunggu indikator anomali",
+        "Sistem tidak menampilkan peringatan simulasi",
+        COLORS.blue,
+      ],
+      [
+        "Validasi sumber data berjalan",
+        "Status berubah setelah snapshot server diterima",
+        COLORS.amber,
+      ],
+    ];
+    modules.overview.extra = "health";
+    modules.overview.extraTitle = "KESEHATAN DATA";
+    modules.market.kpis.forEach((k) => {
+      k[1] = "—";
+      k[2] = "menunggu e-SKPT";
+      k[3] = "menunggu";
     });
-  }
-
-  // Inisialisasi Auto-Slide
-  showSlide(0);
-
-  console.log("Command Center Disperindag ESDM Pinrang V3.2 Ready.");
-});
-
-// Window Global Function Exports for Inline HTML Onclick Handlers
-window.switchSlide = showSlide;
-window.showSlide = showSlide;
-window.nextSlide = nextSlide;
-window.prevSlide = prevSlide;
-window.toggleAutoSlide = toggleAutoSlide;
-window.toggleFullScreen = toggleFullScreen;
-window.toggleFullscreenMode = toggleFullscreenMode;
-window.toggleThemeMode = toggleThemeMode;
-
-// Peta GIS lintas bidang: peta LPG menjadi basemap operasional, lalu data
-// pasar dan penyalur BBM ditambahkan sebagai layer independen.
-let ccGisSupplementLayers = null;
-let ccGisSupplementControl = null;
-
-function initDisperindagGisMap() {
-  if (typeof initLpgGisMap !== 'function') return;
-  initLpgGisMap('adminLpgGisMapContainer');
-  ccGisSupplementLayers = null;
-  ccGisSupplementControl = null;
-  setTimeout(addCommandCenterGisLayers, 450);
-}
-
-function refreshCommandCenterGisLayers() {
-  if (typeof lpgGisMapInstance === 'undefined' || !lpgGisMapInstance) return;
-  if (ccGisSupplementLayers) {
-    Object.values(ccGisSupplementLayers).forEach(layer => lpgGisMapInstance.removeLayer(layer));
-    ccGisSupplementLayers = null;
-  }
-  if (ccGisSupplementControl) {
-    lpgGisMapInstance.removeControl(ccGisSupplementControl);
-    ccGisSupplementControl = null;
-  }
-  addCommandCenterGisLayers();
-}
-
-window.addEventListener('lpg-master-updated', () => {
-  // Listener di lpg-gis-map memperbarui pangkalan lebih dahulu; layer lintas
-  // bidang dirender sesudahnya agar ringkasan dan semua marker tetap sinkron.
-  setTimeout(refreshCommandCenterGisLayers, 0);
-});
-
-function commandCenterGisIcon(type, symbol) {
-  const color = { market:'#D97706', spbu_reguler:'#DC2626', spbu_kompak:'#0284C7', spbun:'#7C3AED', pertashop:'#16A34A' }[type] || '#0F2C59';
-  return L.divIcon({
-    className:'custom-gis-pkl-icon',
-    html:`<div style="width:31px;height:31px;border-radius:10px 10px 10px 3px;transform:rotate(-45deg);display:grid;place-items:center;background:${color};border:2px solid #fff;box-shadow:0 4px 11px rgba(2,8,23,.45)"><span style="transform:rotate(45deg);font-size:14px">${symbol}</span></div>`,
-    iconSize:[33,33],iconAnchor:[16,32],popupAnchor:[0,-30]
-  });
-}
-
-function addCommandCenterGisLayers() {
-  if (typeof lpgGisMapInstance === 'undefined' || !lpgGisMapInstance || typeof L === 'undefined') return;
-  if (ccGisSupplementLayers) return;
-
-  const marketLayer = L.layerGroup();
-  const bbmLayers = { spbu_reguler:L.layerGroup(), spbu_kompak:L.layerGroup(), spbun:L.layerGroup(), pertashop:L.layerGroup() };
-  const markets = ccCanonicalMarkets.length
-    ? ccCanonicalMarkets
-    : (typeof PINRANG_ALL_MARKETS !== 'undefined' ? PINRANG_ALL_MARKETS : []);
-  const outlets = typeof BbmEngine !== 'undefined' ? BbmEngine.getAll() : [];
-
-  let marketCount = 0;
-  markets.forEach(market => {
-    const lat = Number(market.latitude);
-    const lng = Number(market.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -4.3 || lat > -3.1 || lng < 119.1 || lng > 120.2) return;
-    const marker = L.marker([lat, lng], { pane:'lpgDataPane', icon:commandCenterGisIcon('market','🏬'), zIndexOffset:1100, riseOnHover:true });
-    marker.bindTooltip(`Pasar • ${escapeLpgMapText(market.nama || 'Pasar rakyat')}`, { direction:'top', className:'lpg-map-tooltip' });
-    marker.bindPopup(`<strong>${escapeLpgMapText(market.nama || 'Pasar rakyat')}</strong><br>${escapeLpgMapText(market.desaKelurahan || '-')} • Kec. ${escapeLpgMapText(market.kecamatan || '-')}<br><small>Status: ${escapeLpgMapText(market.statusLabel || market.statusOperasional || '-')}</small>`);
-    marker.addTo(marketLayer);
-    marketCount++;
-  });
-
-  const bbmCounts = typeof BbmEngine !== 'undefined' ? BbmEngine.getCategoryCounts(outlets) : { spbu_reguler:0, spbu_kompak:0, spbun:0, pertashop:0 };
-  outlets.forEach(outlet => {
-    const lat = Number(outlet.lat);
-    const lng = Number(outlet.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -4.3 || lat > -3.1 || lng < 119.1 || lng > 120.2) return;
-    const category = BbmEngine.normalizeCategory(outlet);
-    const meta = BbmEngine.CATEGORY_META[category];
-    const marker = L.marker([lat, lng], { pane:'lpgDataPane', icon:commandCenterGisIcon(category, meta.symbol), zIndexOffset:1100, riseOnHover:true });
-    marker.bindTooltip(`${meta.label} • ${escapeLpgMapText(outlet.nama || outlet.kode || 'Penyalur BBM')}`, { direction:'top', className:'lpg-map-tooltip' });
-    marker.bindPopup(`<strong>${escapeLpgMapText(outlet.nama || 'Penyalur BBM')}</strong><br>${escapeLpgMapText(outlet.kode || '-')} • ${escapeLpgMapText(outlet.jenis_resmi || '')}<br>${escapeLpgMapText(outlet.desa || '-')} • Kec. ${escapeLpgMapText(outlet.kecamatan || '-')}`);
-    marker.addTo(bbmLayers[category]);
-  });
-
-  marketLayer.addTo(lpgGisMapInstance);
-  Object.values(bbmLayers).forEach(layer => layer.addTo(lpgGisMapInstance));
-  ccGisSupplementControl = L.control.layers(null, {
-    [`Pasar rakyat (${marketCount})`]: marketLayer,
-    [`SPBU Reguler (${bbmCounts.spbu_reguler})`]: bbmLayers.spbu_reguler,
-    [`SPBU Compact / APMS (${bbmCounts.spbu_kompak})`]: bbmLayers.spbu_kompak,
-    [`SPBUN (${bbmCounts.spbun})`]: bbmLayers.spbun,
-    [`Pertashop (${bbmCounts.pertashop})`]: bbmLayers.pertashop
-  }, { collapsed:false, position:'bottomright' }).addTo(lpgGisMapInstance);
-  ccGisSupplementLayers = { marketLayer, ...bbmLayers };
-
-  const summary = document.getElementById('gisMapResultSummary');
-  if (summary) summary.textContent = `${marketCount} pasar • ${bbmCounts.spbu_reguler} SPBU Reguler • ${bbmCounts.spbu_kompak} Compact/APMS • ${bbmCounts.spbun} SPBUN • ${bbmCounts.pertashop} Pertashop`;
-  const pointCounts = { market:marketCount, ...bbmCounts };
-  try {
-    const agents = typeof getLpgStore === 'function' ? getLpgStore(LPG_STORAGE_KEYS.AGENTS, []) : [];
-    const bases = typeof getLpgStore === 'function' ? getLpgStore(LPG_STORAGE_KEYS.PANGKALAN, []) : [];
-    pointCounts.agent = agents.filter(x => Number.isFinite(Number(x.latitude)) && Number.isFinite(Number(x.longitude))).length;
-    pointCounts.base = bases.filter(x => Number.isFinite(Number(x.latitude)) && Number.isFinite(Number(x.longitude))).length;
-  } catch (_) { pointCounts.agent = 0; pointCounts.base = 0; }
-  document.querySelectorAll('[data-cc-gis-count]').forEach(node => { node.textContent = pointCounts[node.dataset.ccGisCount] || 0; });
-  lpgGisMapInstance.invalidateSize({ pan:false });
-}
-
-window.initDisperindagGisMap = initDisperindagGisMap;
-
-
-// ==============================================================================
-// SLIDE 5: PENGAWASAN PENYALUR BBM (SPBU, APMS, PERTASHOP, SPBUN)
-// Menggunakan DOM API (createElement + textContent) untuk mencegah XSS.
-// Data dari Firestore tidak pernah diinterpolasi langsung ke innerHTML.
-// ==============================================================================
-function renderCcBbmSlide() {
-  const list = typeof BbmEngine !== 'undefined' ? BbmEngine.getAll() : [];
-  const stats = typeof BbmEngine !== 'undefined' ? BbmEngine.getStats(list) : { spbu_reguler: 0, spbu_kompak: 0, pertashop: 0, spbun: 0 };
-
-  const elSpbu = document.getElementById('cc_s6_stat_spbu');
-  const elApms = document.getElementById('cc_s6_stat_apms');
-  const elPertashop = document.getElementById('cc_s6_stat_pertashop');
-  const elSpbun = document.getElementById('cc_s6_stat_spbun');
-  const tbody = document.getElementById('ccBbmOutletsTableBody');
-
-  if (elSpbu) elSpbu.textContent = stats.spbu_reguler;
-  if (elApms) elApms.textContent = stats.spbu_kompak;
-  if (elPertashop) elPertashop.textContent = stats.pertashop;
-  if (elSpbun) elSpbun.textContent = stats.spbun;
-
-  if (!tbody) return;
-  tbody.replaceChildren();
-
-  if (list.length === 0) {
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    td.colSpan = 5;
-    td.style.cssText = 'text-align:center;padding:20px;color:var(--text-muted)';
-    td.textContent = 'MEMUAT DATA PENYALUR BBM...';
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-    return;
-  }
-
-  list.forEach(item => {
-    const isOp = (item.status_operasi || 'Beroperasi').toLowerCase().includes('operasi');
-
-    const tr = document.createElement('tr');
-
-    // Kolom 1: Kode & Kategori
-    const tdKode = document.createElement('td');
-    const divKode = document.createElement('div');
-    divKode.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--accent-cyan);font-size:0.78rem";
-    divKode.textContent = item.kode || '-';
-    const divKat = document.createElement('div');
-    divKat.style.cssText = 'font-size:0.70rem;color:var(--text-muted)';
-    divKat.textContent = item.kategori_badge || item.jenis_resmi || '-';
-    tdKode.append(divKode, divKat);
-
-    // Kolom 2: Nama & Badan Usaha
-    const tdNama = document.createElement('td');
-    const divNama = document.createElement('div');
-    divNama.style.cssText = 'font-weight:800;color:var(--text-main);font-size:0.86rem';
-    divNama.textContent = item.nama || '-';
-    const divBu = document.createElement('div');
-    divBu.style.cssText = 'font-size:0.74rem;color:var(--text-muted)';
-    divBu.textContent = `🏢 ${item.badan_usaha || 'Penyalur Resmi'}`;
-    tdNama.append(divNama, divBu);
-
-    // Kolom 3: Kecamatan & Desa
-    const tdLokasi = document.createElement('td');
-    const divKec = document.createElement('div');
-    divKec.style.cssText = 'font-weight:700;color:var(--text-main);font-size:0.82rem';
-    divKec.textContent = `Kec. ${item.kecamatan || '-'}`;
-    const divDesa = document.createElement('div');
-    divDesa.style.cssText = 'font-size:0.72rem;color:var(--text-muted)';
-    divDesa.textContent = item.desa || '-';
-    tdLokasi.append(divKec, divDesa);
-
-    // Kolom 4: Produk
-    const tdProduk = document.createElement('td');
-    (item.produk || []).forEach(p => {
-      const span = document.createElement('span');
-      span.style.cssText = 'font-size:0.7rem;background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;margin-right:3px;display:inline-block;margin-bottom:2px';
-      span.textContent = p;
-      tdProduk.appendChild(span);
+    modules.market.summary.forEach((x) => (x[0] = "—"));
+    modules.market.bars = [];
+    modules.market.attention = [
+      [
+        "Validasi kelengkapan master",
+        "Koordinat dan status pasar dibaca dari e-SKPT",
+        COLORS.blue,
+      ],
+      [
+        "Agregat pedagang belum tersedia",
+        "Grafik hanya muncul saat sumber menerbitkan rincian",
+        COLORS.amber,
+      ],
+    ];
+    modules.market.extra = "dataQuality";
+    modules.market.extraTitle = "KUALITAS DATA";
+    modules.metrology.kpis.forEach((k) => {
+      k[1] = "—";
+      k[2] = "data belum diterbitkan";
+      k[3] = "menunggu";
     });
-
-    // Kolom 5: Status
-    const tdStatus = document.createElement('td');
-    tdStatus.style.textAlign = 'center';
-    const spanStatus = document.createElement('span');
-    spanStatus.style.cssText = `font-size:0.72rem;font-weight:800;color:${isOp ? 'var(--accent-emerald)' : 'var(--accent-rose)'};background:${isOp ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)'};padding:3px 8px;border-radius:999px`;
-    spanStatus.textContent = isOp ? '● AKTIF' : '⚠️ RAWAT';
-    tdStatus.appendChild(spanStatus);
-
-    tr.append(tdKode, tdNama, tdLokasi, tdProduk, tdStatus);
-    tbody.appendChild(tr);
+    modules.metrology.summary.forEach((x) => (x[0] = "—"));
+    modules.metrology.bars = [];
+    modules.metrology.statuses = [
+      [
+        "Snapshot Metrologi",
+        "Menunggu publikasi metrik resmi",
+        "Menunggu",
+        "scale",
+        COLORS.blue,
+      ],
+      [
+        "Jadwal Tera",
+        "Belum ada jadwal publik pada sumber Command Center",
+        "Belum tersedia",
+        "calendar",
+        COLORS.amber,
+      ],
+    ];
+    modules.metrology.attention = [
+      [
+        "Tidak ada peringatan simulasi",
+        "Tindak lanjut hanya muncul dari snapshot resmi",
+        COLORS.blue,
+      ],
+    ];
+    modules.esdm.kpis.forEach((k) => {
+      k[1] = "—";
+      k[2] = "data belum diterbitkan";
+      k[3] = "menunggu";
+    });
+    modules.esdm.summary.forEach((x) => (x[0] = "—"));
+    modules.esdm.bars = [];
+    modules.industry.kpis.forEach((k) => {
+      k[1] = "—";
+      k[2] = "data belum diterbitkan";
+      k[3] = "menunggu";
+    });
+    modules.industry.summary.forEach((x) => (x[0] = "—"));
+    modules.industry.bars = [];
+    modules.industry.statuses = [
+      [
+        "Snapshot Industri",
+        "Menunggu publikasi indikator IKM",
+        "Menunggu",
+        "factory",
+        COLORS.blue,
+      ],
+      [
+        "SP4N-LAPOR!",
+        "Membaca jumlah aduan dari laporan terkini",
+        "Terhubung",
+        "triangle-alert",
+        COLORS.green,
+      ],
+    ];
+    modules.industry.attention = [
+      [
+        "Tidak ada angka contoh",
+        "Subsektor ditampilkan setelah dataset resmi tersedia",
+        COLORS.blue,
+      ],
+    ];
+    modules.industry.extra = "dataQuality";
+    modules.industry.extraTitle = "KETERSEDIAAN DATA";
+    modules.fuel.kpis.forEach((k) => {
+      k[1] = "—";
+      k[2] = "data belum diterbitkan";
+      k[3] = "menunggu";
+    });
+    modules.fuel.summary.forEach((x) => (x[0] = "—"));
+    modules.fuel.bars = [];
+  }
+  initializeProductionState();
+  loadStaticLpgMaster();
+  loadStaticLpgDistribution();
+  document
+    .querySelectorAll("[data-close-detail]")
+    .forEach((button) => button.addEventListener("click", closeCardDetail));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("ccDetail").hidden) closeCardDetail();
   });
-}
+  ticker();
+  clock();
+  setInterval(clock, 1000);
+  show(
+    location.hash.slice(1) in modules || location.hash === "#gis"
+      ? location.hash.slice(1)
+      : "overview",
+  );
+  connectData();
+})();

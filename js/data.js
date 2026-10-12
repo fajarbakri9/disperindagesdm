@@ -132,49 +132,28 @@ function deduplicateNewsList(list) {
 }
 window.deduplicateNewsList = deduplicateNewsList;
 
-// Universal Helper Merge Data Berita (Mencegah Duplikasi & Menghormati Penghapusan Berita Admin)
-function mergeNewsWithDefaults(incomingList) {
-  // 1. Ambil daftar ID berita yang pernah dihapus oleh Admin (Tombstone Tracking)
-  let deletedIds = [];
-  try {
-    const rawDeleted = localStorage.getItem('disperindag_deleted_news_ids');
-    if (rawDeleted) deletedIds = JSON.parse(rawDeleted);
-  } catch(e) {}
-  const deletedSet = new Set(Array.isArray(deletedIds) ? deletedIds : []);
+const NEWS_CACHE_META_KEY = 'disperindag_news_cache_meta';
 
-  // 2. Filter base default news
-  const rawBaseList = JSON.parse(JSON.stringify(typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []));
-  const baseList = rawBaseList.filter(item => !deletedSet.has(item.id));
-
-  if (!Array.isArray(incomingList) || incomingList.length === 0) {
-    return deduplicateNewsList(baseList);
-  }
-
-  // 3. Filter incoming list dari ID terhapus
-  const cleanIncoming = incomingList.filter(item => item && item.id && !deletedSet.has(item.id));
-
-  const baseMap = new Map();
-  baseList.forEach(item => baseMap.set(item.id, item));
-
-  // Gantikan item default dengan item editan dari incoming
-  cleanIncoming.forEach(inc => {
-    if (baseMap.has(inc.id)) {
-      baseMap.set(inc.id, { ...baseMap.get(inc.id), ...inc });
-    }
+// Snapshot cloud selalu mengganti cache secara utuh. Jangan menggabungkan seed
+// lokal karena dokumen yang dihapus atau dijadikan draf harus ikut menghilang.
+function setAuthoritativeNewsSnapshot(list, scope = 'published') {
+  const snapshot = deduplicateNewsList(Array.isArray(list) ? list : []);
+  setStorage('disperindag_news', snapshot);
+  setStorage(NEWS_CACHE_META_KEY, {
+    source: 'firestore',
+    scope,
+    syncedAt: new Date().toISOString(),
+    schemaVersion: '2026-09-04-news-cloud-authoritative-v1'
   });
-
-  // Kumpulkan item baru yang tidak ada di default
-  const newCustomItems = cleanIncoming.filter(inc => !baseList.some(b => b.id === inc.id));
-
-  // Gabungkan custom items baru dan baseMap
-  const merged = [...newCustomItems, ...Array.from(baseMap.values())];
-  
-  // Sortir agar artikel dengan updated_at terbaru selalu berada di paling atas
-  merged.sort((a, b) => getNewsTimestamp(b) - getNewsTimestamp(a));
-
-  return deduplicateNewsList(merged);
+  return snapshot;
 }
-window.mergeNewsWithDefaults = mergeNewsWithDefaults;
+window.setAuthoritativeNewsSnapshot = setAuthoritativeNewsSnapshot;
+
+function hasAuthoritativeNewsSnapshot(scope = null) {
+  const meta = getStorage(NEWS_CACHE_META_KEY, null);
+  return Boolean(meta && meta.source === 'firestore' && (!scope || meta.scope === scope));
+}
+window.hasAuthoritativeNewsSnapshot = hasAuthoritativeNewsSnapshot;
 
 // Universal Helper Merge Data Banner Hero Carousel
 function mergeBannersWithDefaults(incomingList) {
@@ -1891,7 +1870,7 @@ function initDataStoreMigration() {
     
     // 2. Auto-Recovery & Deduplikasi Berita: Bersihkan tumpukan duplikat
     const existingNews = getStorage('disperindag_news', null);
-    const resolvedNews = existingNews ? mergeNewsWithDefaults(existingNews) : deduplicateNewsList(DEFAULT_NEWS);
+    const resolvedNews = existingNews ? deduplicateNewsList(existingNews) : deduplicateNewsList(DEFAULT_NEWS);
     localStorage.setItem('disperindag_news', JSON.stringify(resolvedNews));
     
     // 3. Auto-Recovery Banners
@@ -1947,6 +1926,57 @@ window.DEFAULT_REPORTS = DEFAULT_REPORTS;
 window.DEFAULT_COMMAND_CENTER_CONFIG = DEFAULT_COMMAND_CENTER_CONFIG;
 window.DEFAULT_DISTRICTS_STATUS = DEFAULT_DISTRICTS_STATUS;
 window.DEFAULT_COMPLAINT_RECAP_2025 = DEFAULT_COMPLAINT_RECAP_2025;
+
+// Direktori ASN memakai sumber yang sama dengan bagan organisasi pada profil.
+// NIP yang belum tercantum pada dokumen publik tidak direka; tampilkan tanda "-".
+window.MASTER_DATA_PEGAWAI_PINRANG = [
+  { no: 1, name: "Muhammad Yusuf Nur, S.STP", nip: "198003262000031001", rank: "Pembina Tk. I – IV/b", position: "Kepala Dinas", section: "Pimpinan Dinas", section_code: "PIMPINAN" },
+  { no: 2, name: "Hj. Ratnah, ST, M.Si", nip: "197708162009032004", rank: "Pembina – IV/a", position: "Sekretaris Dinas", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 3, name: "Herawati Dini, ST, M.Si", nip: "198010082009042002", rank: "IV/a", position: "Kasubag Program", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 4, name: "Hj. Rusni", nip: "196912312007012009", rank: "II/d", position: "Pengolah Data dan Informasi", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 5, name: "Khadijah, ST", nip: "197610302009032001", rank: "III/d", position: "Kasubag Keuangan", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 6, name: "Bahri", nip: "-", rank: "III/a", position: "Pengolah Data dan Informasi", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 7, name: "Hj. Rosdiana", nip: "-", rank: "II/c", position: "Pengolah Data dan Informasi", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 8, name: "Muhammad Rajab", nip: "-", rank: "II/c*", position: "Pengolah Data dan Informasi", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 9, name: "Chitra, ST", nip: "198202172009032005", rank: "III/d", position: "Kasubag Umum, Kepegawaian dan Hukum", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 10, name: "Hj. Sahariah, SH", nip: "-", rank: "IV/b", position: "Penelaah Kebijakan", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 11, name: "Wahyu", nip: "-", rank: "II/c", position: "Pengolah Data", section: "Sekretariat", section_code: "SEKRETARIAT" },
+  { no: 12, name: "Nasrawianty V. Nasri, S.AP", nip: "197809212002122005", rank: "III/d", position: "Kabid Perindustrian ESDM", section: "Bidang Perindustrian ESDM", section_code: "BID_INDUSTRI_ESDM" },
+  { no: 13, name: "Zul Hajji, SH, M.Si", nip: "-", rank: "III/d", position: "Analis Kebijakan", section: "Bidang Perindustrian ESDM", section_code: "BID_INDUSTRI_ESDM" },
+  { no: 14, name: "Nur Aini, SE", nip: "-", rank: "III/d", position: "Penyuluh Perindag Muda", section: "Bidang Perindustrian ESDM", section_code: "BID_INDUSTRI_ESDM" },
+  { no: 15, name: "H. A. Imran Hafid, SE", nip: "-", rank: "III/d", position: "Penyuluh Perindag Muda", section: "Bidang Perindustrian ESDM", section_code: "BID_INDUSTRI_ESDM" },
+  { no: 16, name: "Lukman, ST, M.Si", nip: "-", rank: "III/d", position: "Penelaah Kebijakan", section: "Bidang Perindustrian ESDM", section_code: "BID_INDUSTRI_ESDM" },
+  { no: 17, name: "Andriany Dwi Octavia", nip: "-", rank: "V", position: "Pengadministrasi Perkantoran", section: "Bidang Perindustrian ESDM", section_code: "BID_INDUSTRI_ESDM" },
+  { no: 18, name: "Rusdi, S.Sos", nip: "198201122002121002", rank: "III/d", position: "Kabid Pengembangan Perdagangan", section: "Bidang Pengembangan Perdagangan", section_code: "BID_PERDAGANGAN" },
+  { no: 19, name: "Abdul Mukti, ST", nip: "-", rank: "III/d", position: "Analis Perdagangan Pertama", section: "Bidang Pengembangan Perdagangan", section_code: "BID_PERDAGANGAN" },
+  { no: 20, name: "Sumiati, SH", nip: "-", rank: "III/d", position: "Penelaah Teknis Kebijakan", section: "Bidang Pengembangan Perdagangan", section_code: "BID_PERDAGANGAN" },
+  { no: 21, name: "Marini A. SM", nip: "-", rank: "III/a", position: "Penelaah Teknis Kebijakan", section: "Bidang Pengembangan Perdagangan", section_code: "BID_PERDAGANGAN" },
+  { no: 22, name: "Andi Bungariana P", nip: "-", rank: "III/a", position: "Pengolah Data dan Informasi", section: "Bidang Pengembangan Perdagangan", section_code: "BID_PERDAGANGAN" },
+  { no: 23, name: "Ahmad", nip: "-", rank: "III/a", position: "Pengolah Data dan Informasi", section: "Bidang Pengembangan Perdagangan", section_code: "BID_PERDAGANGAN" },
+  { no: 24, name: "Andi Fitriani", nip: "-", rank: "II/d", position: "Pengolah Data dan Informasi", section: "Bidang Pengembangan Perdagangan", section_code: "BID_PERDAGANGAN" },
+  { no: 25, name: "Abdul Rauf, S.E", nip: "197006222002121003", rank: "IV/a", position: "Kabid Sarana dan Distribusi", section: "Bidang Sarana dan Pelaku Distribusi", section_code: "BID_SARANA_DISTRIBUSI" },
+  { no: 26, name: "Abdul Mannang, SE", nip: "-", rank: "III/d", position: "Analis Perdagangan Muda", section: "Bidang Sarana dan Pelaku Distribusi", section_code: "BID_SARANA_DISTRIBUSI" },
+  { no: 27, name: "A. Muhammad Yusuf, S.Sos", nip: "-", rank: "III/d", position: "Penelaah Teknis Kebijakan", section: "Bidang Sarana dan Pelaku Distribusi", section_code: "BID_SARANA_DISTRIBUSI" },
+  { no: 28, name: "Junaid", nip: "-", rank: "III/a", position: "Pengolah Data dan Informasi", section: "Bidang Sarana dan Pelaku Distribusi", section_code: "BID_SARANA_DISTRIBUSI" },
+  { no: 29, name: "Andi Abbas Saini", nip: "-", rank: "III/a", position: "Pengolah Data dan Informasi", section: "Bidang Sarana dan Pelaku Distribusi", section_code: "BID_SARANA_DISTRIBUSI" },
+  { no: 30, name: "Muhammad Naim Nasir", nip: "-", rank: "III/a", position: "Pengolah Data dan Informasi", section: "Bidang Sarana dan Pelaku Distribusi", section_code: "BID_SARANA_DISTRIBUSI" },
+  { no: 31, name: "Muhammad Halid", nip: "-", rank: "V", position: "Pengadministrasi Perkantoran", section: "Bidang Sarana dan Pelaku Distribusi", section_code: "BID_SARANA_DISTRIBUSI" },
+  { no: 32, name: "Arhan Razak, S.IP", nip: "197008232002121003", rank: "IV/a", position: "Kabid Kemetrologian", section: "Bidang Kemetrologian", section_code: "BID_KEMETROLOGIAN" },
+  { no: 33, name: "Suparman, S.Sos", nip: "-", rank: "III/d", position: "Penera Ahli Muda", section: "Bidang Kemetrologian", section_code: "BID_KEMETROLOGIAN" },
+  { no: 34, name: "Rusmiati Rafid, ST", nip: "-", rank: "III/d", position: "Penera Ahli Muda", section: "Bidang Kemetrologian", section_code: "BID_KEMETROLOGIAN" },
+  { no: 35, name: "Marlina, ST", nip: "-", rank: "III/d", position: "Pengawas Perdagangan Muda", section: "Bidang Kemetrologian", section_code: "BID_KEMETROLOGIAN" },
+  { no: 36, name: "Amni Rasyidah, S.Si", nip: "-", rank: "III/b", position: "Penera Ahli Pertama", section: "Bidang Kemetrologian", section_code: "BID_KEMETROLOGIAN" },
+  { no: 37, name: "Sudirya, SH", nip: "-", rank: "III/c", position: "Penelaah Teknis Kebijakan", section: "Bidang Kemetrologian", section_code: "BID_KEMETROLOGIAN" },
+  { no: 38, name: "Eka Raharja, SH", nip: "198304142008011011", rank: "III/d", position: "Kepala UPTD Pasar Wilayah I", section: "UPTD Pasar Wilayah I", section_code: "UPTD_PASAR_1" },
+  { no: 39, name: "Syatrianah Syam, S.AP", nip: "-", rank: "III/d", position: "Kasubag Tata Usaha", section: "UPTD Pasar Wilayah I", section_code: "UPTD_PASAR_1" },
+  { no: 40, name: "Muhammad Ali", nip: "-", rank: "III/a", position: "Pengolah Data", section: "UPTD Pasar Wilayah I", section_code: "UPTD_PASAR_1" },
+  { no: 41, name: "Nasrul", nip: "-", rank: "II/c", position: "Pengolah Data", section: "UPTD Pasar Wilayah I", section_code: "UPTD_PASAR_1" },
+  { no: 42, name: "Jimmi Karter", nip: "-", rank: "I", position: "Pengelola Umum Operasional", section: "UPTD Pasar Wilayah I", section_code: "UPTD_PASAR_1" },
+  { no: 43, name: "H. Muh. Aris T, S.E", nip: "198009102007011008", rank: "III/d", position: "Kepala UPTD Pasar Wilayah II", section: "UPTD Pasar Wilayah II", section_code: "UPTD_PASAR_2" },
+  { no: 44, name: "—", nip: "-", rank: "-", position: "Kasubag Tata Usaha (Lowong)", section: "UPTD Pasar Wilayah II", section_code: "UPTD_PASAR_2" },
+  { no: 45, name: "Hamida", nip: "-", rank: "III/a", position: "Pengolah Data", section: "UPTD Pasar Wilayah II", section_code: "UPTD_PASAR_2" },
+  { no: 46, name: "Arfan Nur", nip: "-", rank: "II/c", position: "Pengolah Data", section: "UPTD Pasar Wilayah II", section_code: "UPTD_PASAR_2" }
+];
 
 // ------------------------------------------------------------------------------
 // INISIALISASI AUTO-MIGRASI DATA STORE (LOCALSTORAGE HYBRID)

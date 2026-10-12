@@ -18,6 +18,9 @@ PAGES = {
     "katalog-ikm.html": "directory",
     "kontak.html": "services",
     "layanan.html": "services",
+    "layanan-online.html": "services",
+    "permohonan.html": "services",
+    "dashboard-esdm.html": "directory",
     "maklumat-pelayanan.html": "profile",
     "pasar.html": "directory",
     "penyalur-bbm.html": "directory",
@@ -29,6 +32,14 @@ PAGES = {
 # Clean URL ditangani Firebase dari berkas .html. Salinan direktori tidak
 # diperlukan dan berisiko mengubah basis tautan relatif.
 MIRRORS = {}
+
+# Salinan route-index publik tetap perlu menerima shell kanonik. Tautan di
+# dalam header/drawer akan dinormalisasi menjadi root-relative sehingga aman
+# walaupun halaman berada satu tingkat di bawah root.
+ROUTE_INDEXES = {
+    "direktori-lpg/index.html": "directory",
+    "penyalur-bbm/index.html": "directory",
+}
 
 
 def consolidate_home_transparency() -> None:
@@ -64,74 +75,19 @@ def root_relative(fragment: str) -> str:
 
 
 def desktop_nav(current: str) -> str:
+    item = lambda href, icon, title, desc: f'<a href="{href}" class="dropdown-item"><div class="dropdown-icon">{icon}</div><div class="dropdown-text"><span class="dropdown-title">{title}</span><span class="dropdown-desc">{desc}</span></div></a>'
     return f'''<ul class="nav-menu">
         <li><a href="index.html" class="nav-link{active(current, 'home')}">Beranda</a></li>
-
-        <li class="nav-dropdown">
-          <a href="profil.html" class="nav-link nav-dropdown-toggle{active(current, 'profile')}">
-            Profil <span class="dropdown-arrow">▾</span>
-          </a>
-          <div class="nav-dropdown-menu">
-            <a href="profil.html#berakhlak" class="dropdown-item">
-              <div class="dropdown-icon">🎯</div><div class="dropdown-text"><span class="dropdown-title">Core Values ASN BerAKHLAK</span><span class="dropdown-desc">Tata nilai budaya kerja ASN</span></div>
-            </a>
-            <a href="profil.html" class="dropdown-item">
-              <div class="dropdown-icon">🏛️</div><div class="dropdown-text"><span class="dropdown-title">Profil &amp; Organisasi Resmi</span><span class="dropdown-desc">Visi, misi, struktur &amp; tupoksi Perbup 35/2023</span></div>
-            </a>
-          </div>
-        </li>
-
-        <li class="nav-dropdown">
-          <a href="layanan.html" class="nav-link nav-dropdown-toggle{active(current, 'services')}">
-            Layanan Publik <span class="dropdown-arrow">▾</span>
-          </a>
-          <div class="nav-dropdown-menu">
-            <a href="kontak.html" class="dropdown-item">
-              <div class="dropdown-icon">📞</div><div class="dropdown-text"><span class="dropdown-title">Kontak &amp; Lokasi Kantor</span><span class="dropdown-desc">Alamat, peta &amp; WhatsApp dinas</span></div>
-            </a>
-            <a href="index.html#pengaduan" class="dropdown-item">
-              <div class="dropdown-icon">📨</div><div class="dropdown-text"><span class="dropdown-title">Pengaduan Online</span><span class="dropdown-desc">Kanal resmi dan SP4N-LAPOR!</span></div>
-            </a>
-            <a href="layanan.html" class="dropdown-item">
-              <div class="dropdown-icon">⚡</div><div class="dropdown-text"><span class="dropdown-title">Standar Pelayanan &amp; SOP</span><span class="dropdown-desc">Standar layanan publik resmi</span></div>
-            </a>
-            <a href="ppid.html" class="dropdown-item">
-              <div class="dropdown-icon">📋</div><div class="dropdown-text"><span class="dropdown-title">PPID Pelaksana</span><span class="dropdown-desc">Informasi publik dan dokumen resmi</span></div>
-            </a>
-            <a href="layanan.html#transparansi-pelayanan" class="dropdown-item">
-              <div class="dropdown-icon">📊</div><div class="dropdown-text"><span class="dropdown-title">Transparansi Pelayanan</span><span class="dropdown-desc">SKM, IKM, dan rekapitulasi layanan</span></div>
-            </a>
-          </div>
-        </li>
-
-        <li class="nav-dropdown">
-          <a href="direktori-lpg.html" class="nav-link nav-dropdown-toggle{active(current, 'directory')}">
-            Direktori <span class="dropdown-arrow">▾</span>
-          </a>
-          <div class="nav-dropdown-menu">
-            <a href="direktori-lpg.html" class="dropdown-item">
-              <div class="dropdown-icon">🔥</div><div class="dropdown-text"><span class="dropdown-title">Direktori Pangkalan LPG 3 KG</span><span class="dropdown-desc">Sebaran pangkalan dan agen penyalur resmi</span></div>
-            </a>
-            <a href="pasar.html" class="dropdown-item">
-              <div class="dropdown-icon">🏬</div><div class="dropdown-text"><span class="dropdown-title">Direktori Pasar Daerah</span><span class="dropdown-desc">Sarana pasar dan status operasional</span></div>
-            </a>
-            <a href="penyalur-bbm.html" class="dropdown-item">
-              <div class="dropdown-icon">⛽</div><div class="dropdown-text"><span class="dropdown-title">Direktori Penyalur BBM</span><span class="dropdown-desc">Sebaran SPBU &amp; Pertashop Pinrang</span></div>
-            </a>
-            <a href="peta-gis.html" class="dropdown-item">
-              <div class="dropdown-icon">🗺️</div><div class="dropdown-text"><span class="dropdown-title">Peta GIS Disperindag ESDM</span><span class="dropdown-desc">Peta terpadu pasar, LPG, dan penyalur BBM</span></div>
-            </a>
-            <a href="harga-bahan-pokok.html" class="dropdown-item">
-              <div class="dropdown-icon">🛒</div><div class="dropdown-text"><span class="dropdown-title">Harga Pasar &amp; Bapokting</span><span class="dropdown-desc">Pantauan komoditas harian</span></div>
-            </a>
-            <a href="katalog-ikm.html" class="dropdown-item">
-              <div class="dropdown-icon">🏭</div><div class="dropdown-text"><span class="dropdown-title">Katalog Produk IKM</span><span class="dropdown-desc">Produk unggulan Pinrang</span></div>
-            </a>
-          </div>
-        </li>
-
-        <li><a href="arsip-berita.html" class="nav-link{active(current, 'news')}">Berita</a></li>
-      </ul>'''
+        <li class="nav-dropdown"><a href="profil.html" class="nav-link nav-dropdown-toggle{active(current, 'profile')}">Profil <span class="dropdown-arrow">▾</span></a><div class="nav-dropdown-menu">{item('profil.html#berakhlak','🎯','Core Values ASN BerAKHLAK','Tata nilai budaya kerja ASN')}{item('profil.html','🏛️','Profil &amp; Organisasi Resmi','Visi, misi, struktur &amp; tupoksi')}</div></li>
+        <li class="nav-dropdown"><a href="layanan.html" class="nav-link nav-dropdown-toggle{active(current, 'services')}">Layanan Publik <span class="dropdown-arrow">▾</span></a><div class="nav-dropdown-menu service-mega-menu">
+          <section class="nav-menu-group"><strong>Pelayanan</strong>{item('layanan.html','⚡','Standar Pelayanan &amp; SOP','Standar layanan publik resmi')}{item('maklumat-pelayanan.html','📜','Maklumat Pelayanan','Komitmen pelayanan')}{item('index.html#pengaduan','📨','Pengaduan Online','Kanal resmi dan SP4N-LAPOR!')}{item('kontak.html','📞','Kontak &amp; Lokasi','Alamat dan kanal dinas')}</section>
+          <section class="nav-menu-group"><strong>Layanan Sektoral</strong>{item('harga-bahan-pokok.html','🛒','Harga Bahan Pokok','Pantauan harga terpublikasi')}{item('pasar.html','🏬','Pasar','Direktori pasar daerah')}{item('layanan.html#srv_tera','⚖️','Metrologi Legal','Tera dan tera ulang UTTP')}{item('katalog-ikm.html','🏭','Industri &amp; IKM','Produk dan layanan industri')}{item('dashboard-esdm.html','⚡','ESDM','Dashboard energi Kabupaten Pinrang')}</section>
+          <section class="nav-menu-group"><strong>Layanan Online</strong>{item('permohonan.html','📝','Permohonan <small class="nav-status-badge">Dalam Pengembangan</small>','Informasi kanal permohonan digital')}{item('layanan-online.html','🌐','Informasi Layanan Digital','Katalog dan status layanan online')}{item('tv-layanan.html','📺','TV Layanan Publik','Informasi layar layanan publik')}</section>
+        </div></li>
+        <li class="nav-dropdown"><a href="direktori-lpg.html" class="nav-link nav-dropdown-toggle{active(current, 'directory')}">Data &amp; Peta <span class="dropdown-arrow">▾</span></a><div class="nav-dropdown-menu">{item('direktori-lpg.html','🔥','LPG 3 Kg','Agen dan pangkalan resmi')}{item('penyalur-bbm.html','⛽','Penyalur BBM','SPBU dan Pertashop')}{item('pasar.html','🏬','Pasar Daerah','Sarana perdagangan')}{item('peta-gis.html','🗺️','Peta GIS','Peta data terpadu')}{item('dashboard-esdm.html','⚡','Dashboard ESDM','Informasi energi publik')}</div></li>
+        <li><a href="ppid.html" class="nav-link">Informasi Publik</a></li>
+        <li><a href="arsip-berita.html" class="nav-link{active(current, 'news')}">Berita &amp; Rilis</a></li>
+      </ul>'''.replace('>Layanan Publik <', '>Layanan <').replace('>Informasi Publik</a>', '>Informasi</a>').replace('>Berita &amp; Rilis</a>', '>Berita</a>')
 
 
 def drawer_nav(current: str, filename: str = "") -> str:
@@ -178,12 +134,16 @@ def drawer_nav(current: str, filename: str = "") -> str:
             link("harga-bahan-pokok.html", "🛒", "Harga Bahan Pokok SP2KP"),
             link("katalog-ikm.html", "🏭", "Katalog Produk IKM"),
             link("peta-gis.html", "🗺️", "Peta GIS Disperindag ESDM"),
+            link("dashboard-esdm.html", "⚡", "Dashboard ESDM"),
         ]),
         services="\n".join([
             link("kontak.html", "📞", "Kontak &amp; Lokasi"),
             link("index.html#pengaduan", "📨", "Pengaduan Online"),
             link("ppid.html", "📋", "PPID Pelaksana"),
             link("layanan.html#transparansi-pelayanan", "📊", "Transparansi Pelayanan"),
+            link("permohonan.html", "📝", "Permohonan · Dalam Pengembangan"),
+            link("layanan-online.html", "🌐", "Informasi Layanan Digital"),
+            link("tv-layanan.html", "📺", "TV Layanan Publik"),
         ]),
     )
 
@@ -191,7 +151,7 @@ def drawer_nav(current: str, filename: str = "") -> str:
 def drawer(current: str, filename: str) -> str:
     return f'''<!-- MOBILE DRAWER -->
   <div class="mobile-drawer-overlay" id="mobileDrawerOverlay" aria-hidden="true"></div>
-  <div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+  <div class="mobile-drawer" id="mobileDrawer" role="dialog" aria-modal="true" aria-label="Navigasi utama" aria-hidden="true" tabindex="-1">
     <div class="drawer-header">
       <div class="drawer-brand">
         <img src="assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang">
@@ -207,7 +167,7 @@ def synchronize(path: Path, current: str) -> None:
     text = path.read_text(encoding="utf-8")
     home = (ROOT / "index.html").read_text(encoding="utf-8")
     canonical_match = re.search(
-        r'\s*<!-- 1\. TOP UTILITY BAR.*?(?=\s*<!-- MOBILE DRAWER NAVIGATION)',
+        r'\s*<!-- 1\. TOP UTILITY BAR.*?(?=\s*<!-- MOBILE DRAWER(?: NAVIGATION)? -->)',
         home,
         flags=re.S,
     )
@@ -239,13 +199,27 @@ def synchronize(path: Path, current: str) -> None:
     if header_count != 1:
         raise RuntimeError(f"Public header region not found exactly once: {path.name}")
 
-    updated, drawer_count = re.subn(
-        r'<div class="drawer-nav">.*?</div>\s*</div>\s*(?=<!--|<)',
-        drawer_nav(current, path.name) + "\n  </div>\n\n  ",
+    # Rekonstruksi seluruh blok drawer jika penanda shell tersedia. Ini juga
+    # membersihkan fragmen/penutup tag lama yang pernah tertinggal di luarnya.
+    updated, full_drawer_count = re.subn(
+        r'\s*<!-- MOBILE DRAWER(?: NAVIGATION)? -->.*?'
+        r'(?=\s*(?:<!-- (?:3\.|HERO SECTION)|<header class="market-detail-hero"))',
+        "\n\n  " + root_relative(drawer(current, path.name)) + "\n\n",
         updated,
         count=1,
         flags=re.S,
     )
+
+    if full_drawer_count:
+        drawer_count = 1
+    else:
+        updated, drawer_count = re.subn(
+            r'<div class="drawer-nav">.*?</div>\s*</div>\s*(?=<!--|<)',
+            root_relative(drawer_nav(current, path.name)) + "\n  </div>\n\n  ",
+            updated,
+            count=1,
+            flags=re.S,
+        )
     if drawer_count == 0:
         marker_match = re.search(r'^\s*(?:<!-- (?:3\.|HERO SECTION)|<header class="market-detail-hero")', updated, flags=re.M)
         if not marker_match:
@@ -276,6 +250,14 @@ def synchronize(path: Path, current: str) -> None:
     updated = updated.replace('/dokumen.html', '/ppid.html#dokumen-regulasi')
     updated = updated.replace('dokumen.html', 'ppid.html#dokumen-regulasi')
 
+    route_key = path.relative_to(ROOT).as_posix()
+    if route_key in ROUTE_INDEXES:
+        updated = re.sub(
+            r'\b(href|src)="(?:\.\./)*(assets|css|js)/',
+            r'\1="/\2/',
+            updated,
+        )
+
     path.write_text(updated, encoding="utf-8", newline="\n")
 
 
@@ -284,6 +266,11 @@ def sync_all() -> None:
     for filename, section in PAGES.items():
         synchronize(ROOT / filename, section)
         print(f"synchronized: {filename}")
+    for filename, section in ROUTE_INDEXES.items():
+        route_path = ROOT / filename
+        if route_path.is_file():
+            synchronize(route_path, section)
+            print(f"synchronized: {filename}")
     for article in sorted((ROOT / "berita").rglob("*.html")):
         synchronize(article, "news")
         print(f"synchronized: {article.relative_to(ROOT)}")

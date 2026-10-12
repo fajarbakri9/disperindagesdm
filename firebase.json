@@ -61,16 +61,7 @@
         "type": 302
       }
     ],
-    "rewrites": [
-      {
-        "source": "/berita",
-        "destination": "/berita.html"
-      },
-      {
-        "source": "/berita/**",
-        "destination": "/berita.html"
-      }
-    ],
+    "rewrites": [],
     "headers": [
       {
         "source": "/media-intelligence",

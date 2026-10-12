@@ -84,38 +84,6 @@ function initPortraitCarousels() {
   window.addEventListener('resize', setup, { passive: true });
 }
 
-// REAL-TIME FIRESTORE NEWS, BANNERS & PRICES SYNC
-function initFirestoreLiveSync() {
-  if (typeof db !== 'undefined' && db !== null) {
-    try {
-      // 1. Sync Berita Live dari Cloud Firestore
-      db.collection('news').where('status', '==', 'published').onSnapshot(snapshot => {
-        if (!snapshot.empty) {
-          const cloudNews = [];
-          snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));
-          const merged = mergeNewsWithDefaults(cloudNews);
-          setStorage('disperindag_news', merged);
-          renderHomeNews();
-        }
-      }, err => console.warn("Firestore News listener:", err));
-
-      // 2. Sync Banners Live dari Cloud Firestore
-      db.collection('settings').doc('banners').onSnapshot(doc => {
-        if (doc.exists && doc.data() && Array.isArray(doc.data().list)) {
-          const bannerData = doc.data();
-          if (Array.isArray(bannerData.deleted_ids)) {
-            localStorage.setItem('disperindag_deleted_banner_ids', JSON.stringify(bannerData.deleted_ids));
-          }
-          const cloudBanners = bannerData.list;
-          const mergedBanners = mergeBannersWithDefaults(cloudBanners);
-          setStorage('disperindag_banners', mergedBanners);
-          renderHeroCarousel();
-        }
-      }, err => console.warn("Firestore Banner listener:", err));
-    } catch(e) {}
-  }
-}
-
 // 1. MOBILE DRAWER NAVIGATION CONTROLLER (WCAG 2.1 AA)
 function initMobileDrawer() {
   const toggleBtn = document.getElementById('hamburgerBtn') || document.getElementById('mobileMenuBtn');
@@ -124,6 +92,7 @@ function initMobileDrawer() {
   const closeBtn = document.getElementById('drawerCloseBtn');
 
   if (!toggleBtn || !drawer || !overlay) return;
+  const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
   function openDrawer() {
     drawer.classList.add('open');
@@ -131,7 +100,7 @@ function initMobileDrawer() {
     toggleBtn.setAttribute('aria-expanded', 'true');
     drawer.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    if (closeBtn) closeBtn.focus();
+    if (closeBtn) window.setTimeout(() => closeBtn.focus(), 100);
   }
 
   function closeDrawer() {
@@ -140,6 +109,7 @@ function initMobileDrawer() {
     toggleBtn.setAttribute('aria-expanded', 'false');
     drawer.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    toggleBtn.focus();
   }
 
   toggleBtn.addEventListener('click', openDrawer);
@@ -149,6 +119,22 @@ function initMobileDrawer() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && drawer.classList.contains('open')) {
       closeDrawer();
+    }
+    if (e.key !== 'Tab' || !drawer.classList.contains('open')) return;
+    const focusable = Array.from(drawer.querySelectorAll(focusableSelector)).filter((element) => element.offsetParent !== null);
+    if (!focusable.length) {
+      e.preventDefault();
+      drawer.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
     }
   });
 
@@ -883,14 +869,12 @@ function initFirestoreLiveSync() {
       }, err => console.warn("SP2KP Firestore Sync:", err));
 
       // 2. Sync News Real-Time
-      db.collection('news').onSnapshot(snap => {
-        if (!snap.empty) {
-          const cloudNews = [];
-          snap.forEach(d => cloudNews.push({ id: d.id, ...d.data() }));
-          if (typeof mergeNewsWithDefaults === 'function') {
-            setStorage('disperindag_news', mergeNewsWithDefaults(cloudNews));
-            renderHomeNews();
-          }
+      db.collection('news').where('status', '==', 'published').onSnapshot(snap => {
+        const cloudNews = [];
+        snap.forEach(d => cloudNews.push({ id: d.id, ...d.data() }));
+        if (typeof setAuthoritativeNewsSnapshot === 'function') {
+          setAuthoritativeNewsSnapshot(cloudNews, 'published');
+          renderHomeNews();
         }
       }, err => console.warn("Firestore News Sync:", err));
 

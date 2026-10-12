@@ -17,10 +17,10 @@ let count = 0;
 for (const file of walk(ROOT)) {
   if (excluded.has(path.basename(file))) continue;
   const source = fs.readFileSync(file, "utf8");
-  if (!/<footer\s+class=["'](?:main-footer|footer)["'][^>]*>[\s\S]*?<\/footer>/i.test(source)) continue;
+  if (!/<footer\s+class=["'](?:main-footer|footer|lpgd-footer)["'][^>]*>[\s\S]*?<\/footer>/i.test(source)) continue;
   const updated = source
-    .replace(/<footer\s+class=["'](?:main-footer|footer)["'][^>]*>[\s\S]*?<\/footer>/i, partial)
-    .replace(/css\/style\.css(?:\?[^"']*)?/g, "css/style.css?v=20260902_directory_nav_v1");
+    .replace(/<footer\s+class=["'](?:main-footer|footer|lpgd-footer)["'][^>]*>[\s\S]*?<\/footer>/i, partial)
+    .replace(/css\/style\.css(?:\?[^"']*)?/g, "css/style.css?v=20260903_shared_shell_v2");
   if (updated !== source) { fs.writeFileSync(file, updated.replace(/\r\n/g,"\n")); count++; }
 }
 console.log(`Footer tersinkron: ${count} halaman`);

@@ -633,7 +633,7 @@ function renderHumasModule(container) {
     </div>
   `;
 
-  document.getElementById('formHumasBerita').addEventListener('submit', (e) => {
+  document.getElementById('formHumasBerita').addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = document.getElementById('humasJudul').value;
     const category = document.getElementById('humasKategori').value;
@@ -663,13 +663,21 @@ function renderHumasModule(container) {
       updated_at: new Date().toISOString()
     };
 
+    if (typeof db === 'undefined' || db === null) {
+      CustomModal.alert({ title:'Berita Belum Diterbitkan', message:'Firestore tidak tersedia. Data tidak disimpan sebagai berita lokal.', icon:'⚠️', type:'error' });
+      return;
+    }
+    try {
+      await db.collection('news').doc(newArticle.id).set(newArticle, { merge: true });
+    } catch (error) {
+      console.warn('Firestore Mobile News:', error);
+      CustomModal.alert({ title:'Berita Belum Diterbitkan', message:'Penyimpanan cloud gagal. Silakan periksa koneksi dan coba kembali.', icon:'⚠️', type:'error' });
+      return;
+    }
+
     const newsList = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
     newsList.unshift(newArticle);
-    setStorage('disperindag_news', newsList);
-
-    if (typeof db !== 'undefined' && db !== null) {
-      db.collection('news').doc(newArticle.id).set(newArticle, { merge: true }).catch(() => {});
-    }
+    setStorage('disperindag_news', deduplicateNewsList(newsList));
 
     CustomModal.alert({
       title: "Rilis Berita Diterbitkan",

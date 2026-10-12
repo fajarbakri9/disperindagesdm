@@ -1,13 +1,24 @@
 ﻿(function(){
   'use strict';
-  const state={agents:[],bases:[],view:'cards',page:1,pageSize:25,tablePage:1};
+  const state={agents:[],bases:[],quotaData:null,septemberReport:null,octoberReport:null,distributionByPangkalanId:new Map(),view:'cards',page:1,pageSize:25,tablePage:1};
   let map,layers={};
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const valid=(lat,lng)=>Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&Number(lat)>=-4.35&&Number(lat)<=-3.1&&Number(lng)>=119.05&&Number(lng)<=120.2;
-  const gps=item=>item.location?.verificationStatus==='verified';
+  // Satu pembacaan kanonis untuk skema lama dan baru. Koordinat dari dokumen
+  // tetap dihitung "tersedia", tetapi bukan GPS lapangan tanpa verifikasi eksplisit.
+  const verificationStatus=item=>String(item?.location?.verificationStatus||item?.locationVerification?.status||item?.verificationStatus||'').trim().toLowerCase();
+  const gps=item=>{const fieldStatus=String(item?.location?.verificationStatus||item?.locationVerification?.status||'').trim().toLowerCase();return item?.gpsVerified===true||['verified','terverifikasi_faktual'].includes(fieldStatus);};
+  const pointFor=item=>{const point=typeof getCanonicalLpgPoint==='function'?getCanonicalLpgPoint(item):null;const lat=point?.latitude??item?.latitude??item?.lat,lng=point?.longitude??item?.longitude??item?.lng;return valid(lat,lng)?{lat:Number(lat),lng:Number(lng)}:null;};
+  const documentCoordinate=item=>String(item?.pointType||'').toUpperCase()==='DOCUMENT_COORDINATE'||verificationStatus(item)==='document-sourced';
+  const duplicateDocumentCoordinate=item=>verificationStatus(item)==='duplicate-coordinate-review'||Number(item?.coordinateDuplicateCount)>1;
+  const locationQuality=item=>gps(item)?'GPS':!pointFor(item)?'UNMAPPED':duplicateDocumentCoordinate(item)?'DUPLICATE':documentCoordinate(item)?'DOCUMENT':'ADMIN';
+  const locationBadge=item=>({GPS:['gps','✓ GPS lapangan'],DOCUMENT:['document','▣ Koordinat dokumen'],DUPLICATE:['duplicate','⚠ Koordinat ganda'],ADMIN:['indicative','△ Referensi administratif'],UNMAPPED:['unmapped','— Belum dipetakan']}[locationQuality(item)]);
   const active=item=>!item.isDeleted&&String(item.status||'ACTIVE').toUpperCase()!=='INACTIVE';
   const pointForAgent=agent=>{const point=getCanonicalLpgPoint(agent);if(point)return{lat:point.latitude,lng:point.longitude,indicative:!gps(agent)};return null;};
+  const distributionFor=item=>state.distributionByPangkalanId.get(item.id)||null;
+  const periodLabel=period=>new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric'}).format(new Date(`${period}-01T00:00:00+08:00`));
+  const distributionHtml=item=>{const d=distributionFor(item);if(!d)return'';const allocation=Number.isFinite(Number(d.allocation))?`Alokasi ${Number(d.allocation).toLocaleString('id-ID')} tabung · `:'';return`<hr><b>Penyaluran ${esc(periodLabel(d.period))}</b><br>${Number(d.grandTotal).toLocaleString('id-ID')} tabung <small>(${Number(d.totalNormal).toLocaleString('id-ID')} normal + ${Number(d.totalFacultative).toLocaleString('id-ID')} fakultatif)</small><br><small>${allocation}sumber laporan agen</small>`;};
 
   function icon(type,symbol){return L.divIcon({className:'lpg-dir-icon',html:`<div class="lpg-dir-pin ${type}"><span>${symbol}</span></div>`,iconSize:[33,33],iconAnchor:[16,32],popupAnchor:[0,-30]});}
 
@@ -26,7 +37,7 @@
     const q=$('lpgdSearch').value.trim().toLocaleLowerCase('id'),district=$('lpgdDistrict').value,quality=$('lpgdQuality').value;
     return state.bases.filter(active).filter(item=>{
       const hay=[item.id,item.name,item.address,item.desaKelurahan,item.kecamatan,item.agentName,item.agentId].join(' ').toLocaleLowerCase('id');
-      return(!q||hay.includes(q))&&(!district||item.kecamatan===district)&&(!quality||(quality==='GPS'?gps(item):!gps(item)));
+      return(!q||hay.includes(q))&&(!district||item.kecamatan===district)&&(!quality||locationQuality(item)===quality);
     });
   }
   function filteredAgents(){
@@ -40,17 +51,83 @@
 
   function renderStats(){
     const bases=state.bases.filter(active);
+    const coordinateCount=bases.filter(pointFor).length;
+    const verifiedCount=bases.filter(gps).length;
+    const duplicateCount=bases.filter(item=>pointFor(item)&&duplicateDocumentCoordinate(item)).length;
+    const documentCount=bases.filter(item=>pointFor(item)&&!gps(item)&&documentCoordinate(item)&&!duplicateDocumentCoordinate(item)).length;
+    const referenceCount=Math.max(0,coordinateCount-documentCount-duplicateCount-verifiedCount);
+    const missingCount=bases.length-coordinateCount;
     $('lpgdAgentCount').textContent=state.agents.filter(active).length.toLocaleString('id-ID');
     $('lpgdBaseCount').textContent=bases.length.toLocaleString('id-ID');
-    $('lpgdGpsCount').textContent=bases.filter(gps).length.toLocaleString('id-ID');
-    $('lpgdFallbackCount').textContent=bases.filter(x=>!gps(x)).length.toLocaleString('id-ID');
+    $('lpgdCoordinateCount').textContent=coordinateCount.toLocaleString('id-ID');
+    $('lpgdGpsVerifiedCount').textContent=verifiedCount.toLocaleString('id-ID');
+    $('lpgdCoordinateDetail').textContent=[documentCount?`${documentCount.toLocaleString('id-ID')} dokumen belum dinilai`:'',duplicateCount?`${duplicateCount.toLocaleString('id-ID')} koordinat ganda`:'',referenceCount?`${referenceCount.toLocaleString('id-ID')} referensi administratif`:'',missingCount?`${missingCount.toLocaleString('id-ID')} belum dipetakan`:''].filter(Boolean).join(' · ')||'Seluruh koordinat tersedia telah terverifikasi';
+    $('lpgdGpsPendingDetail').textContent=`${(bases.length-verifiedCount).toLocaleString('id-ID')} menunggu verifikasi lapangan`;
+  }
+
+  function formatNumber(value,maximumFractionDigits=0){return Number(value).toLocaleString('id-ID',{maximumFractionDigits});}
+
+  function renderQuota(){
+    const host=$('lpgQuotaContent'),period=$('lpgQuotaPeriod');if(!host)return;
+    const data=state.quotaData;
+    if(!data){host.className='lpgd-quota-loading';host.textContent='Ringkasan kuota belum tersedia.';if(period)period.textContent='Data tidak tersedia';return;}
+    const quota=data.annualQuota||{},distribution=data.distribution||{},derived=data.derived||{};
+    const months=Object.entries(distribution.correctedMonthlyTotals||{});
+    const agents=[...(distribution.agents||[])].sort((a,b)=>b.total-a.total);
+    const maxMonth=Math.max(...months.map(([,value])=>Number(value)),1);
+    const pct=Math.max(0,Math.min(100,Number(derived.quotaRealizationPct)||0));
+    if(period)period.textContent='Periode data: Januari–Juli 2026';
+    host.className='lpgd-quota-content';
+    host.innerHTML=`
+      <div class="lpgd-quota-kpis">
+        <article><span>Kuota tahunan</span><strong>${formatNumber(quota.value)} <small>MT</small></strong><em>Lampiran Ditjen Migas 2026</em></article>
+        <article><span>Telah disalurkan</span><strong>${formatNumber(distribution.correctedGrandTotal)} <small>tabung</small></strong><em>9 agen · Januari–Juli</em></article>
+        <article><span>Realisasi kuota</span><strong>${formatNumber(pct,2)}<small>%</small></strong><em>${formatNumber(derived.distributedMT,2)} MT tersalurkan</em></article>
+        <article><span>Sisa kuota</span><strong>${formatNumber(derived.remainingQuotaMT,2)} <small>MT</small></strong><em>Per 31 Juli 2026</em></article>
+      </div>
+      <div class="lpgd-quota-progress" aria-label="Realisasi kuota ${formatNumber(pct,2)} persen">
+        <div><strong>Realisasi terhadap kuota tahunan</strong><span>${formatNumber(pct,2)}%</span></div>
+        <div class="lpgd-quota-track"><i style="width:${pct.toFixed(2)}%"></i></div>
+        <small>Kuota ${formatNumber(quota.value)} MT · Realisasi ${formatNumber(derived.distributedMT,2)} MT · Sisa ${formatNumber(derived.remainingQuotaMT,2)} MT</small>
+      </div>
+      <div class="lpgd-quota-grid">
+        <div class="lpgd-quota-panel"><header><div><span>TREN BULANAN</span><h3>Penyaluran Januari–Juli</h3></div><small>Satuan tabung</small></header><div class="lpgd-month-chart">${months.map(([month,value])=>`<div><b>${formatNumber(value)}</b><span class="lpgd-month-bar"><i style="height:${Math.max(5,value/maxMonth*100).toFixed(1)}%"></i></span><small>${new Intl.DateTimeFormat('id-ID',{month:'short'}).format(new Date(month+'-01T00:00:00+08:00'))}</small></div>`).join('')}</div></div>
+        <div class="lpgd-quota-panel"><header><div><span>KONTRIBUSI AGEN</span><h3>Realisasi kumulatif</h3></div><small>9 agen</small></header><div class="lpgd-agent-ranking">${agents.map((agent,index)=>`<div><span><b>${index+1}</b>${esc(agent.agentName)}</span><strong>${formatNumber(agent.total)}</strong></div>`).join('')}</div></div>
+      </div>
+      ${renderSeptemberReport()}
+      ${renderOctoberReport()}
+      <aside class="lpgd-data-note"><strong>Status data kabupaten:</strong> lengkap untuk sembilan agen sampai 31 Juli 2026. Total Juni dan Juli dihitung ulang dari rincian agen karena total cetak belum memasukkan PT Kiano Energi Utama. Data Agustus yang hanya tersedia untuk tiga agen tidak digabungkan; data September dan Oktober juga memiliki cakupan agen parsial sehingga ketiganya tidak dimasukkan ke realisasi kabupaten.<br><strong>Sumber:</strong> Lampiran 2 Nomor B-113/MG.05/DJM/2026 tanggal 6 Januari 2026, rekap penyaluran 2026, dan laporan sistem Pertamina dari agen.</aside>`;
+  }
+
+  function renderSeptemberReport(){
+    const report=state.septemberReport;if(!report)return'';
+    const totals=report.totals||{},coverage=report.coverage||{},quality=report.dataQuality||{};
+    const summaries=report.summaries||[];
+    return `<section class="lpgd-period-report" aria-labelledby="lpgdSeptemberTitle">
+      <header><div><span>LAPORAN AGEN · CAKUPAN PARSIAL</span><h3 id="lpgdSeptemberTitle">Realisasi September 2026</h3><p>${formatNumber(coverage.reportedAgentCount)} dari ${formatNumber(coverage.officialAgentCount)} agen telah tersedia; angka ini bukan total Kabupaten Pinrang.</p></div><strong>${formatNumber(totals.grandTotal)} <small>tabung</small></strong></header>
+      <div class="lpgd-period-kpis"><article><span>Normal</span><b>${formatNumber(totals.totalNormal)}</b><small>tabung</small></article><article><span>Fakultatif</span><b>${formatNumber(totals.totalFacultative)}</b><small>tabung</small></article><article><span>Setara volume</span><b>${formatNumber(totals.metricTons,2)}</b><small>MT</small></article><article><span>ID tervalidasi</span><b>${formatNumber(quality.registrationMatchedRecordCount)}</b><small>dari ${formatNumber(report.recordCount)} baris</small></article></div>
+      <div class="lpgd-period-agents">${summaries.map(item=>`<article><div><strong>${esc(item.agentName)}</strong><small>${formatNumber(item.pangkalanCount)} pangkalan · Sold To ${esc(item.soldTo)}</small></div><b>${formatNumber(item.grandTotal)}<small> tabung</small></b><span>${formatNumber(item.totalNormal)} normal + ${formatNumber(item.totalFacultative)} fakultatif</span></article>`).join('')}</div>
+      <footer><span>✓ Seluruh ${formatNumber(report.recordCount)} baris lolos validasi aritmetika dan pencocokan ID registrasi.</span><span>Koordinat tersedia ${formatNumber(quality.coordinateAvailableCount)}, tetapi GPS lapangan terverifikasi ${formatNumber(quality.gpsFieldVerifiedCount)}.</span></footer>
+    </section>`;
+  }
+
+  function renderOctoberReport(){
+    const report=state.octoberReport;if(!report)return'';
+    const totals=report.totals||{},coverage=report.coverage||{},quality=report.dataQuality||{};
+    const summaries=report.summaries||[];
+    return `<section class="lpgd-period-report" aria-labelledby="lpgdOctoberTitle">
+      <header><div><span>LAPORAN AGEN · CAKUPAN PARSIAL</span><h3 id="lpgdOctoberTitle">Realisasi 1–10 Oktober 2026</h3><p>${formatNumber(coverage.reportedAgentCount)} dari ${formatNumber(coverage.officialAgentCount)} agen telah tersedia; periode Agen 3444 hanya sampai 8 Oktober dan angka ini bukan total Kabupaten Pinrang.</p></div><strong>${formatNumber(totals.grandTotal)} <small>tabung</small></strong></header>
+      <div class="lpgd-period-kpis"><article><span>Normal</span><b>${formatNumber(totals.totalNormal)}</b><small>tabung</small></article><article><span>Fakultatif</span><b>${formatNumber(totals.totalFacultative)}</b><small>tabung</small></article><article><span>Setara volume</span><b>${formatNumber(totals.metricTons,2)}</b><small>MT</small></article><article><span>ID terhubung</span><b>${formatNumber(quality.masterMatchedRecordCount)}</b><small>dari ${formatNumber(report.recordCount)} baris</small></article></div>
+      <div class="lpgd-period-agents">${summaries.map(item=>`<article><div><strong>${esc(item.agentName)}</strong><small>${formatNumber(item.pangkalanCount)} pangkalan · Sold To ${esc(item.soldTo)}</small></div><b>${formatNumber(item.grandTotal)}<small> tabung</small></b><span>${formatNumber(item.totalNormal??item.grandTotal)} normal + ${formatNumber(item.totalFacultative??0)} fakultatif</span></article>`).join('')}</div>
+      <footer><span>✓ ${formatNumber(quality.arithmeticValidatedRecordCount)} baris lolos validasi aritmetika; ${formatNumber(quality.unmatchedIdentityCount)} identitas belum terhubung.</span><span>Cakupan dokumen: 1–8 Oktober untuk Agen 3444; 1–10 Oktober untuk dua agen lainnya.</span></footer>
+    </section>`;
   }
 
   function renderMap(){
     Object.values(layers).forEach(l=>l.clearLayers());const bounds=[];
     filteredAgents().forEach(agent=>{const p=pointForAgent(agent);if(!p)return;const count=state.bases.filter(x=>x.agentId===agent.id&&active(x)).length;const note=p.indicative?'Koordinat kandidat; perlu verifikasi.':'Koordinat terverifikasi.';L.marker([p.lat,p.lng],{pane:'lpgdData',icon:icon('agent','🚚'),zIndexOffset:1100,riseOnHover:true}).bindPopup(`<strong>${esc(agent.name)}</strong><br><small>${esc(agent.id)} · ${count} pangkalan</small><br>${esc(agent.address||'-')}<br><em>${note}</em><br><a href="${esc(agent.googleMapsUrl||`https://www.google.com/maps?q=${p.lat},${p.lng}`)}" target="_blank" rel="noopener">Buka Google Maps ↗</a>`).addTo(layers.agents);bounds.push([p.lat,p.lng]);});
-    const groups=new Map();filteredBases().forEach(item=>{const point=getCanonicalLpgPoint(item);if(!point)return;const lat=point.latitude,lng=point.longitude;if(gps(item)){L.marker([lat,lng],{pane:'lpgdData',icon:icon('gps','🔥'),zIndexOffset:1000,riseOnHover:true}).bindPopup(`<strong>${esc(item.name)}</strong><br>${esc(item.desaKelurahan||'-')} · Kec. ${esc(item.kecamatan||'-')}<br><small>${esc(item.agentName||item.agentId||'-')}</small><br><b>GPS terverifikasi</b>`).addTo(layers.gps);bounds.push([lat,lng]);return;}const key=`${lat.toFixed(6)},${lng.toFixed(6)}`;if(!groups.has(key))groups.set(key,{lat,lng,items:[]});groups.get(key).items.push(item);});
-    groups.forEach(g=>{const s=g.items[0];L.marker([g.lat,g.lng],{pane:'lpgdData',icon:icon('indicative','🔥'),zIndexOffset:900,riseOnHover:true}).bindPopup(`<strong>${esc(s.desaKelurahan||s.kecamatan||'Referensi wilayah')}</strong><br>${g.items.length} pangkalan pada titik referensi<br><small>Bukan koordinat bangunan; verifikasi GPS diperlukan.</small>`).addTo(layers.indicative);bounds.push([g.lat,g.lng]);});
+    const groups=new Map();filteredBases().forEach(item=>{const point=getCanonicalLpgPoint(item);if(!point)return;const lat=point.latitude,lng=point.longitude;if(gps(item)){L.marker([lat,lng],{pane:'lpgdData',icon:icon('gps','🔥'),zIndexOffset:1000,riseOnHover:true}).bindPopup(`<strong>${esc(item.name)}</strong><br>${esc(item.desaKelurahan||'-')} · Kec. ${esc(item.kecamatan||'-')}<br><small>${esc(item.agentName||item.agentId||'-')}</small><br><b>GPS terverifikasi</b>${distributionHtml(item)}`).addTo(layers.gps);bounds.push([lat,lng]);return;}const key=`${lat.toFixed(6)},${lng.toFixed(6)}`;if(!groups.has(key))groups.set(key,{lat,lng,items:[]});groups.get(key).items.push(item);});
+    groups.forEach(g=>{const s=g.items[0],isDocument=g.items.some(x=>x.verificationStatus==='document-sourced'),isConflict=isDocument&&g.items.length>1;const names=g.items.slice(0,8).map(x=>`${esc(x.name)} <small>(${esc(x.agentName||x.agentId||'-')})</small>`).join('<br>');L.marker([g.lat,g.lng],{pane:'lpgdData',icon:icon('indicative','🔥'),zIndexOffset:900,riseOnHover:true}).bindPopup(`<strong>${esc(s.desaKelurahan||s.kecamatan||'Referensi wilayah')}</strong><br><b style="color:${isConflict?'#B91C1C':'#B45309'}">${isConflict?'PERLU EVALUASI: KOORDINAT SAMA':isDocument?'KOORDINAT DOKUMEN AGEN':'TITIK REFERENSI'}</b><br>${g.items.length} pangkalan pada titik ini<hr>${names}<br><small>${isDocument?'Ditampilkan sesuai dokumen; belum GPS lapangan terverifikasi.':'Bukan koordinat bangunan; verifikasi GPS diperlukan.'}</small>`).addTo(layers.indicative);bounds.push([g.lat,g.lng]);});
     $('lpgdMapSummary').textContent=`${filteredBases().length} pangkalan · ${filteredAgents().length} agen · ${groups.size} titik indikatif`;
     if(bounds.length)map.fitBounds(bounds,{padding:[25,25],maxZoom:11});
   }
@@ -70,21 +147,22 @@
     const tbody=$('lpgdBaseRows');
     if(!tbody)return;
 
-    if(rows.length===0){tbody.innerHTML=`<tr><td colspan="6" class="dir-table-empty">🔍 Tidak ada pangkalan sesuai filter yang diterapkan.</td></tr>`;
+    if(rows.length===0){tbody.innerHTML=`<tr><td colspan="8" class="dir-table-empty">🔍 Tidak ada pangkalan sesuai filter yang diterapkan.</td></tr>`;
     }else{
       tbody.innerHTML=rows.map((item,idx)=>{
-        const qBadge=gps(item)
-          ?'<span class="dir-badge dir-badge-gps">✓ GPS</span>'
-          :'<span class="dir-badge dir-badge-indicative">⚠ Indikatif</span>';
+        const [qualityClass,qualityLabel]=locationBadge(item);
+        const qBadge=`<span class="dir-badge dir-badge-${qualityClass}">${qualityLabel}</span>`;
         const point=getCanonicalLpgPoint(item);
         const coordStr=point?`${Number(point.latitude).toFixed(5)}, ${Number(point.longitude).toFixed(5)}`:'—';
         const mapsUrl=point?`https://www.google.com/maps?q=${point.latitude},${point.longitude}`:'#';
+        const dist=distributionFor(item);
         return`<tr>
           <td style="font-size:.67rem;color:#94A3B8;font-weight:800">${start+idx+1}</td>
           <td><strong>${esc(item.name)}</strong><small>${esc(item.id)}</small></td>
           <td>${esc(item.agentName||item.agentId||'—')}</td>
           <td><strong style="font-size:.74rem">${esc(item.kecamatan||'—')}</strong><small>${esc(item.desaKelurahan||'—')}</small></td>
           <td style="max-width:160px;font-size:.68rem;color:#475569">${esc(item.address||'—')}</td>
+          <td>${dist?`<strong>${Number(dist.grandTotal).toLocaleString('id-ID')} tabung</strong><small>${esc(periodLabel(dist.period))}${Number.isFinite(Number(dist.allocation))?` · Alokasi ${Number(dist.allocation).toLocaleString('id-ID')}`:''} · Fakultatif ${Number(dist.totalFacultative).toLocaleString('id-ID')}</small>`:'<small>Belum ada laporan</small>'}</td>
           <td>${qBadge}</td>
           <td><a href="${mapsUrl}" target="_blank" rel="noopener" title="Buka di Google Maps">🗺️ Maps</a></td>
         </tr>`;
@@ -104,7 +182,10 @@
     const bases=state.bases.filter(active);
     const agents=state.agents.filter(active);
     const gpsCount=bases.filter(gps).length;
-    const indCount=bases.filter(x=>!gps(x)).length;
+    const documentCount=bases.filter(x=>locationQuality(x)==='DOCUMENT').length;
+    const duplicateCount=bases.filter(x=>locationQuality(x)==='DUPLICATE').length;
+    const adminCount=bases.filter(x=>locationQuality(x)==='ADMIN').length;
+    const unmappedCount=bases.filter(x=>locationQuality(x)==='UNMAPPED').length;
 
     // KPI
     const kpiEl=$('lpgdKpiGrid');
@@ -113,7 +194,8 @@
         {label:'Total Agen Aktif',value:agents.length,icon:'🚚',accent:'#2563EB',bg:'#EFF6FF',sub:'Master penyalur Ditjen Migas'},
         {label:'Total Pangkalan',value:bases.length,icon:'🔥',accent:'#059669',bg:'#ECFDF5',sub:'Subpenyalur LPG 3 kg'},
         {label:'GPS Terverifikasi',value:gpsCount,icon:'📍',accent:'#0891B2',bg:'#E0F9FF',sub:'Titik lapangan aktual'},
-        {label:'Perlu Verifikasi GPS',value:indCount,icon:'⚠️',accent:'#D97706',bg:'#FFFBEB',sub:'Titik referensi wilayah'},
+        {label:'Koordinat Ganda',value:duplicateCount,icon:'⚠',accent:'#DC2626',bg:'#FEF2F2',sub:'Memerlukan verifikasi ulang'},
+        {label:'Referensi Administratif',value:adminCount,icon:'△',accent:'#D97706',bg:'#FFFBEB',sub:`${unmappedCount} belum dipetakan`},
         {label:'Kecamatan Terlayani',value:new Set(bases.map(x=>x.kecamatan).filter(Boolean)).size,icon:'🗺️',accent:'#7C3AED',bg:'#F5F3FF',sub:'Dari 12 kecamatan Pinrang'},
       ];
       kpiEl.innerHTML=kpis.map(k=>`
@@ -173,7 +255,8 @@
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:.62rem;font-weight:700">
           <span style="color:#059669">✓ GPS: ${gpsCount}</span>
-          <span style="color:#B45309">⚠ Indikatif: ${indCount}</span>
+          <span style="color:#DC2626">⚠ Ganda: ${duplicateCount}</span>
+          <span style="color:#B45309">△ Administratif: ${adminCount}</span>
         </div>`;
     }
 
@@ -190,12 +273,12 @@
   function renderBases(){
     const list=filteredBases(),pages=Math.max(1,Math.ceil(list.length/state.pageSize));state.page=Math.min(state.page,pages);const start=(state.page-1)*state.pageSize,rows=list.slice(start,start+state.pageSize);
     const oldBody=$('lpgdBaseRowsLegacy');if(!oldBody)return;
-    oldBody.innerHTML=rows.map(item=>`<tr><td><strong>${esc(item.name)}</strong><small>${esc(item.id)}</small></td><td>${esc(item.agentName||item.agentId||'-')}</td><td>${esc(item.desaKelurahan||'-')}<br><small>Kec. ${esc(item.kecamatan||'-')}</small></td><td>${esc(item.address||'-')}</td><td><span class="quality ${gps(item)?'gps':'indicative'}">${gps(item)?'GPS TERVERIFIKASI':'PERLU VERIFIKASI'}</span></td></tr>`).join('')||'<tr><td colspan="5">Data pangkalan tidak ditemukan sesuai filter.</td></tr>';
+    oldBody.innerHTML=rows.map(item=>{const [qualityClass,qualityLabel]=locationBadge(item);return`<tr><td><strong>${esc(item.name)}</strong><small>${esc(item.id)}</small></td><td>${esc(item.agentName||item.agentId||'-')}</td><td>${esc(item.desaKelurahan||'-')}<br><small>Kec. ${esc(item.kecamatan||'-')}</small></td><td>${esc(item.address||'-')}</td><td><span class="quality ${qualityClass}">${qualityLabel}</span></td></tr>`;}).join('')||'<tr><td colspan="5">Data pangkalan tidak ditemukan sesuai filter.</td></tr>';
     $('lpgdResultInfo').textContent=`${list.length?start+1:0}–${Math.min(start+state.pageSize,list.length)} dari ${list.length} · Hal. ${state.page}/${pages}`;
     $('lpgdPrev').disabled=state.page<=1;$('lpgdNext').disabled=state.page>=pages;
   }
 
-  function render(){renderStats();renderAgents();renderBases();renderBasesTable();renderLpgInfograms();renderMap();}
+  function render(){renderStats();renderQuota();renderAgents();renderBases();renderBasesTable();renderLpgInfograms();renderMap();}
 
   function populateDistricts(){
     const current=$('lpgdDistrict').value;$('lpgdDistrict').length=1;
@@ -230,6 +313,14 @@
 
   async function init(){
     initMap();events();
+    try{const response=await fetch('assets/data/lpg-quota-distribution-2026.json',{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);state.quotaData=await response.json();}catch(error){console.warn('[Direktori LPG] Kuota dan rekap:',error.message);}
+    try{
+      const responses=await Promise.all(['2026-08','2026-09','2026-10'].map(period=>fetch(`assets/data/lpg-distribution-${period}.json`,{cache:'no-store'})));
+      const reports=await Promise.all(responses.map(response=>response.ok?response.json():null));
+      state.septemberReport=reports[1];
+      state.octoberReport=reports[2];
+      reports.filter(Boolean).forEach(report=>(report.records||[]).filter(x=>x.pangkalanId).forEach(row=>state.distributionByPangkalanId.set(row.pangkalanId,row)));
+    }catch(error){console.warn('[Direktori LPG] Laporan penyaluran:',error.message);}
     if(window.initLpgDatabase)initLpgDatabase();
     state.agents=getLpgStore(LPG_STORAGE_KEYS.AGENTS,[]);
     state.bases=getLpgStore(LPG_STORAGE_KEYS.PANGKALAN,[]);

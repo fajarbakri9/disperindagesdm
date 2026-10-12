@@ -6,8 +6,8 @@
     "normalizedName": "PTKIANOENERGIUTAMA",
     "address": "Jl. Poros Pinrang–Polman, Kelurahan Leppangang, Kecamatan Patampanua, Kabupaten Pinrang",
     "status": "ACTIVE",
-    "linkedPangkalanCount": 0,
-    "relationshipStatus": "Belum muncul pada relasi pangkalan snapshot Maret 2026",
+    "linkedPangkalanCount": 26,
+    "relationshipStatus": "Terhubung ke 26 pangkalan pada dokumen koordinat agen",
     "sourceType": "DITJEN_MIGAS_OFFICIAL",
     "sourcePeriod": "Juli 2026",
     "sourceUrl": "https://migas.esdm.go.id/cms/uploads/informasi-publik/Sub%20Penyalur%20LPG%203%20KG/Penyalur_Juli_2026/Daftar_penyalur_LPG_3_kg_status_Juli_2027.pdf",
@@ -28,7 +28,12 @@
       "status": "CANDIDATE_REQUIRES_FIELD_VERIFICATION",
       "verifiedAt": null,
       "verifiedBy": null
-    }
+    },
+    "soldTo": "1094864",
+    "coordinateDocumentPangkalanCount": 26,
+    "distributionDataUnit": "tabung",
+    "pangkalanDataSource": "DAFTAR PANGKALAN DAN TITIK KOORDINAT PT. KIANO ENERGI UTAMA.pdf",
+    "pangkalanDataSourceDate": "2026-10-06"
   },
   {
     "id": "AG-005",
@@ -37,8 +42,8 @@
     "normalizedName": "PTWAHYUDWIKENCANAMANDIRI",
     "address": "Jl. Poros Pinrang–Pare, Lingkungan Ulutedong, Kelurahan Macorawalie, Kecamatan Watang Sawitto, Kabupaten Pinrang",
     "status": "ACTIVE",
-    "linkedPangkalanCount": 39,
-    "relationshipStatus": "Terhubung pada snapshot pangkalan Maret 2026",
+    "linkedPangkalanCount": 51,
+    "relationshipStatus": "Terhubung ke master pangkalan dan laporan penyaluran September 2026",
     "sourceType": "DITJEN_MIGAS_OFFICIAL",
     "sourcePeriod": "Juli 2026",
     "sourceUrl": "https://migas.esdm.go.id/cms/uploads/informasi-publik/Sub%20Penyalur%20LPG%203%20KG/Penyalur_Juli_2026/Daftar_penyalur_LPG_3_kg_status_Juli_2027.pdf",
@@ -59,7 +64,15 @@
       "status": "CANDIDATE_REQUIRES_FIELD_VERIFICATION",
       "verifiedAt": null,
       "verifiedBy": null
-    }
+    },
+    "soldTo": "1070992",
+    "distributionReportEmail": "wahyudwikencana.mandiri@gmail.com",
+    "latestDistributionPeriod": "2026-09",
+    "distributionDataUnit": "tabung",
+    "distributionDataSource": "Laporan Simol3k Sept 2026.pdf",
+    "latestDistributionTotal": 13440,
+    "latestDistributionNormal": 11760,
+    "latestDistributionFacultative": 1680
   },
   {
     "id": "AG-001",
@@ -99,8 +112,8 @@
     "normalizedName": "PTHABDRAHMANHASYIM",
     "address": "Jl. Pramuka, Watang Suppa, Kecamatan Suppa, Kabupaten Pinrang",
     "status": "ACTIVE",
-    "linkedPangkalanCount": 126,
-    "relationshipStatus": "Terhubung pada snapshot pangkalan Maret 2026",
+    "linkedPangkalanCount": 128,
+    "relationshipStatus": "Seluruh 127 baris laporan Oktober cocok berdasarkan ID registrasi.",
     "sourceType": "DITJEN_MIGAS_OFFICIAL",
     "sourcePeriod": "Juli 2026",
     "sourceUrl": "https://migas.esdm.go.id/cms/uploads/informasi-publik/Sub%20Penyalur%20LPG%203%20KG/Penyalur_Juli_2026/Daftar_penyalur_LPG_3_kg_status_Juli_2027.pdf",
@@ -121,7 +134,16 @@
       "status": "CANDIDATE_REQUIRES_FIELD_VERIFICATION",
       "verifiedAt": null,
       "verifiedBy": null
-    }
+    },
+    "soldTo": "817111",
+    "reportedPangkalanCount": 127,
+    "latestDistributionPeriod": "2026-10-01/2026-10-10",
+    "latestDistributionTotal": 27440,
+    "latestDistributionNormal": 77840,
+    "latestDistributionFacultative": 2800,
+    "distributionDataUnit": "tabung",
+    "distributionDataSource": "Penyaluran perminggu PT.H.Abd.Rahman Hasyim TGL  01-10-10-10-2026.pdf",
+    "matchedReportedPangkalanCount": 127
   },
   {
     "id": "AG-007",
@@ -131,7 +153,7 @@
     "address": "Jl. Monginsidi No.145, Kelurahan Pacongang, Kecamatan Paleteang, Kabupaten Pinrang",
     "status": "ACTIVE",
     "linkedPangkalanCount": 96,
-    "relationshipStatus": "Terhubung pada snapshot pangkalan Maret 2026",
+    "relationshipStatus": "96 dari 97 baris laporan Oktober terhubung; ISMAIL menunggu alamat untuk pencocokan.",
     "sourceType": "DITJEN_MIGAS_OFFICIAL",
     "sourcePeriod": "Juli 2026",
     "sourceUrl": "https://migas.esdm.go.id/cms/uploads/informasi-publik/Sub%20Penyalur%20LPG%203%20KG/Penyalur_Juli_2026/Daftar_penyalur_LPG_3_kg_status_Juli_2027.pdf",
@@ -152,7 +174,15 @@
       "status": "CANDIDATE_REQUIRES_FIELD_VERIFICATION",
       "verifiedAt": null,
       "verifiedBy": null
-    }
+    },
+    "soldTo": "818238",
+    "agentReportCode": "3444",
+    "reportedPangkalanCount": 97,
+    "matchedReportedPangkalanCount": 96,
+    "latestDistributionPeriod": "2026-10-01/2026-10-08",
+    "latestDistributionTotal": 10640,
+    "distributionDataUnit": "tabung",
+    "distributionDataSource": "Penyaluran Agen 3444 01-10-08-10-2026.xlsx"
   },
   {
     "id": "AG-002",
@@ -161,8 +191,8 @@
     "normalizedName": "PTHAMISASUKRAHMULYA",
     "address": "6JFV+RQ8, Jl. Nangka, Kelurahan Pacongang, Kecamatan Paleteang, Kabupaten Pinrang, Sulawesi Selatan 91215",
     "status": "ACTIVE",
-    "linkedPangkalanCount": 64,
-    "relationshipStatus": "Terhubung pada snapshot pangkalan Maret 2026",
+    "linkedPangkalanCount": 65,
+    "relationshipStatus": "Seluruh 64 baris laporan Oktober cocok berdasarkan ID registrasi.",
     "sourceType": "DITJEN_MIGAS_OFFICIAL",
     "sourcePeriod": "Juli 2026",
     "sourceUrl": "https://migas.esdm.go.id/cms/uploads/informasi-publik/Sub%20Penyalur%20LPG%203%20KG/Penyalur_Juli_2026/Daftar_penyalur_LPG_3_kg_status_Juli_2027.pdf",
@@ -183,7 +213,17 @@
       "status": "CANDIDATE_REQUIRES_FIELD_VERIFICATION",
       "verifiedAt": null,
       "verifiedBy": null
-    }
+    },
+    "soldTo": "818234",
+    "distributionReportEmail": "pthamisasukrahmulya@yahoo.co.id",
+    "latestDistributionPeriod": "2026-10-01/2026-10-10",
+    "distributionDataUnit": "tabung",
+    "distributionDataSource": "Penyaluran Agen 01-10-10-10-2026_organized.pdf",
+    "latestDistributionTotal": 14370,
+    "latestDistributionNormal": 44240,
+    "latestDistributionFacultative": 2240,
+    "reportedPangkalanCount": 64,
+    "matchedReportedPangkalanCount": 64
   },
   {
     "id": "AG-008",
@@ -192,8 +232,8 @@
     "normalizedName": "PTKAKAMIGASUTAMA",
     "address": "Jl. Poros Maccirinna–Sipatuo, Kecamatan Patampanua, Kabupaten Pinrang",
     "status": "ACTIVE",
-    "linkedPangkalanCount": 45,
-    "relationshipStatus": "Terhubung pada snapshot pangkalan Maret 2026",
+    "linkedPangkalanCount": 46,
+    "relationshipStatus": "Terhubung ke master pangkalan dan laporan penyaluran Agustus 2026",
     "sourceType": "DITJEN_MIGAS_OFFICIAL",
     "sourcePeriod": "Juli 2026",
     "sourceUrl": "https://migas.esdm.go.id/cms/uploads/informasi-publik/Sub%20Penyalur%20LPG%203%20KG/Penyalur_Juli_2026/Daftar_penyalur_LPG_3_kg_status_Juli_2027.pdf",
@@ -214,7 +254,12 @@
       "status": "CANDIDATE_REQUIRES_FIELD_VERIFICATION",
       "verifiedAt": null,
       "verifiedBy": null
-    }
+    },
+    "soldTo": "1015166",
+    "distributionReportEmail": null,
+    "latestDistributionPeriod": "2026-08",
+    "distributionDataUnit": "tabung",
+    "distributionDataSource": "Penyaluran Agustus 2026.xlsx"
   },
   {
     "id": "AG-006",
@@ -255,7 +300,7 @@
     "address": "Jl. Manggis, Pacongang, Kecamatan Paleteang, Kabupaten Pinrang",
     "status": "ACTIVE",
     "linkedPangkalanCount": 109,
-    "relationshipStatus": "Terhubung pada snapshot pangkalan Maret 2026",
+    "relationshipStatus": "Terhubung ke master pangkalan dan laporan penyaluran September 2026",
     "sourceType": "DITJEN_MIGAS_OFFICIAL",
     "sourcePeriod": "Juli 2026",
     "sourceUrl": "https://migas.esdm.go.id/cms/uploads/informasi-publik/Sub%20Penyalur%20LPG%203%20KG/Penyalur_Juli_2026/Daftar_penyalur_LPG_3_kg_status_Juli_2027.pdf",
@@ -276,6 +321,13 @@
       "status": "CANDIDATE_REQUIRES_FIELD_VERIFICATION",
       "verifiedAt": null,
       "verifiedBy": null
-    }
+    },
+    "soldTo": "800914",
+    "latestDistributionPeriod": "2026-09",
+    "latestDistributionTotal": 52640,
+    "latestDistributionNormal": 50400,
+    "latestDistributionFacultative": 2240,
+    "distributionDataUnit": "tabung",
+    "distributionDataSource": "Penyaluran Harian KABUPATEN PINRANG 2026-09 (1).pdf"
   }
 ]

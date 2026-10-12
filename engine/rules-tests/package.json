@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "mocha --timeout 10000 test/**/*.test.js"
+    "test": "node scripts/run-rules-suites.js",
+    "test:project-a": "mocha --timeout 10000 test/market-prices.rules.test.js test/media-intelligence.rules.test.js",
+    "test:services": "mocha --timeout 10000 test/services-project.rules.test.js"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",
     "firebase": "^11.10.0",
-    "mocha": "^11.7.0"
+    "mocha": "12.0.0"
   }
 }

@@ -13,16 +13,29 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Firestore menjadi master kanonis; perubahan lokasi dari CMS langsung
   // memperbarui daftar dan marker tanpa memuat ulang halaman.
-  if (typeof BbmEngine !== 'undefined') BbmEngine.initRealtimeSync(items => {
+  if (typeof BbmEngine !== 'undefined') BbmEngine.initRealtimeSync((items, sourceState) => {
     currentBbmList = items;
     renderBbmDirectory();
+    renderBbmSourceStatus(sourceState);
   });
 });
+
+function renderBbmSourceStatus(sourceState) {
+  const element = document.getElementById('bbmDataSourceStatus');
+  if (!element) return;
+  const state = sourceState || (typeof BbmEngine !== 'undefined' ? BbmEngine.getSourceState() : null);
+  element.textContent = state?.message || 'Status sumber data belum tersedia.';
+  const isLive = state?.source === 'firestore';
+  element.style.background = isLive ? '#ECFDF5' : '#FFFBEB';
+  element.style.borderColor = isLive ? '#A7F3D0' : '#FDE68A';
+  element.style.color = isLive ? '#047857' : '#92400E';
+}
 
 function initBbmDirectory() {
   currentBbmList = BbmEngine.getAll();
   initBbmMap();
   renderBbmDirectory();
+  renderBbmSourceStatus();
 }
 
 function initBbmEventListeners() {

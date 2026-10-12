@@ -1,0 +1,215 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informasi Layanan Online | Disperindag ESDM Kabupaten Pinrang</title><meta name="description" content="Informasi pengembangan layanan digital Disperindag ESDM Kabupaten Pinrang."><meta name="robots" content="index, follow"><link rel="canonical" href="https://disperindagesdm-pinrang.web.app/layanan-online"><meta property="og:type" content="website"><meta property="og:title" content="Informasi Layanan Online | Disperindag ESDM Kabupaten Pinrang"><meta property="og:description" content="Katalog dan status resmi pengembangan layanan digital Disperindag ESDM Kabupaten Pinrang."><meta property="og:url" content="https://disperindagesdm-pinrang.web.app/layanan-online"><meta property="og:image" content="https://disperindagesdm-pinrang.web.app/assets/brand/cover_layanan.png"><link rel="icon" href="assets/brand/logo_pinrang_opt.png"><link rel="stylesheet" href="css/style.css?v=20260903_directory_release_v2"><link rel="stylesheet" href="css/online-services.css"></head><body class="online-page">
+
+  <!-- 1. TOP UTILITY BAR (JAM WITA & CUACA LIVE) -->
+  <div class="top-bar">
+    <div class="container top-bar-container">
+      <div class="top-bar-left">
+        <span class="live-clock" id="liveClockWita">
+          📅 Memuat Waktu WITA...
+        </span>
+        <span class="top-bar-divider">•</span>
+        <span class="live-weather" id="liveWeatherPinrang">
+          🌤️  Memuat Cuaca...
+        </span>
+      </div>
+      <div class="top-bar-right">
+        <div class="header-actions top-bar-actions" aria-label="Pencarian dan akses sistem">
+          <button class="search-toggle-btn" id="searchToggleBtn" type="button" aria-label="Buka pencarian informasi" onclick="typeof openSearchModal === 'function' ? openSearchModal() : window.location.href='/search.html'">
+            <span aria-hidden="true">🔍</span><span class="action-label">Cari Informasi</span>
+          </button>
+
+          <div class="login-gateway-wrapper">
+            <button class="btn-topbar-login" type="button" title="Pintu Masuk Sistem Pegawai &amp; Administrator" aria-haspopup="true">
+              <span aria-hidden="true">🔐</span><span class="action-label">Login Sistem</span><span class="caret-down" aria-hidden="true">▾</span>
+            </button>
+            <div class="login-dropdown-menu">
+              <div class="login-menu-intro"><strong>Pilih akses sesuai akun</strong><small>ASN dinas dan agen menggunakan portal berbeda</small></div>
+              <div class="login-menu-group-label asn"><span>🏛️</span><div><strong>ASN DISPERINDAG ESDM</strong><small>Akses internal pegawai dan administrator</small></div></div>
+              <a href="/login.html" class="login-drop-item">
+                <div class="drop-item-icon" style="background: #FEF3C7; color: #B45309;">🔐</div>
+                <div><strong>Masuk Akun ASN</strong><small>Login atau ganti akun pegawai dinas</small></div>
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="/petugas.html" class="login-drop-item">
+                <div class="drop-item-icon mobile-badge">📱</div>
+                <div><strong>Aplikasi Petugas Lapangan</strong><small>Khusus ASN: harga pasar, sidak dan tera</small></div>
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="/admin.html" class="login-drop-item">
+                <div class="drop-item-icon desktop-badge">💻</div>
+                <div><strong>CMS Administrator</strong><small>Khusus ASN berwenang mengelola portal</small></div>
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="/profil-petugas.html" class="login-drop-item">
+                <div class="drop-item-icon" style="background: #F1F5F9; color: #475569;">👤</div>
+                <div><strong>Profil &amp; Password ASN</strong><small>Kelola profil dan keamanan akun pegawai</small></div>
+              </a>
+              <div class="login-menu-group-label agent"><span>🔥</span><div><strong>AGEN LPG 3 KG</strong><small>Akses operasional agen penyalur resmi</small></div></div>
+              <a href="/lpg-agen.html" class="login-drop-item login-drop-agent">
+                <div class="drop-item-icon agent-badge">🚚</div>
+                <div><strong>Portal Agen LPG 3 Kg</strong><small>Stok, distribusi dan pangkalan binaan</small></div>
+                <span class="login-access-tag">AGEN</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MAIN HEADER & NAVBAR -->
+  <header class="main-header">
+    <div class="container navbar-container">
+
+      <!-- Brand Logo & Title -->
+      <a href="/index.html" class="brand-logo" aria-label="Beranda Dinas Perindag ESDM Pinrang">
+        <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" class="logo-img">
+        <div class="brand-text">
+          <span class="brand-title">DISPERINDAG ESDM</span>
+          <span class="brand-subtitle">KABUPATEN PINRANG</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <ul class="nav-menu">
+        <li><a href="/index.html" class="nav-link">Beranda</a></li>
+        <li class="nav-dropdown"><a href="/profil.html" class="nav-link nav-dropdown-toggle">Profil <span class="dropdown-arrow">▾</span></a><div class="nav-dropdown-menu"><a href="/profil.html#berakhlak" class="dropdown-item"><div class="dropdown-icon">🎯</div><div class="dropdown-text"><span class="dropdown-title">Core Values ASN BerAKHLAK</span><span class="dropdown-desc">Tata nilai budaya kerja ASN</span></div></a><a href="/profil.html" class="dropdown-item"><div class="dropdown-icon">🏛️</div><div class="dropdown-text"><span class="dropdown-title">Profil &amp; Organisasi Resmi</span><span class="dropdown-desc">Visi, misi, struktur &amp; tupoksi</span></div></a></div></li>
+        <li class="nav-dropdown"><a href="/layanan.html" class="nav-link nav-dropdown-toggle active">Layanan <span class="dropdown-arrow">▾</span></a><div class="nav-dropdown-menu service-mega-menu">
+          <section class="nav-menu-group"><strong>Pelayanan</strong><a href="/layanan.html" class="dropdown-item"><div class="dropdown-icon">⚡</div><div class="dropdown-text"><span class="dropdown-title">Standar Pelayanan &amp; SOP</span><span class="dropdown-desc">Standar layanan publik resmi</span></div></a><a href="/maklumat-pelayanan.html" class="dropdown-item"><div class="dropdown-icon">📜</div><div class="dropdown-text"><span class="dropdown-title">Maklumat Pelayanan</span><span class="dropdown-desc">Komitmen pelayanan</span></div></a><a href="/index.html#pengaduan" class="dropdown-item"><div class="dropdown-icon">📨</div><div class="dropdown-text"><span class="dropdown-title">Pengaduan Online</span><span class="dropdown-desc">Kanal resmi dan SP4N-LAPOR!</span></div></a><a href="/kontak.html" class="dropdown-item"><div class="dropdown-icon">📞</div><div class="dropdown-text"><span class="dropdown-title">Kontak &amp; Lokasi</span><span class="dropdown-desc">Alamat dan kanal dinas</span></div></a></section>
+          <section class="nav-menu-group"><strong>Layanan Sektoral</strong><a href="/harga-bahan-pokok.html" class="dropdown-item"><div class="dropdown-icon">🛒</div><div class="dropdown-text"><span class="dropdown-title">Harga Bahan Pokok</span><span class="dropdown-desc">Pantauan harga terpublikasi</span></div></a><a href="/pasar.html" class="dropdown-item"><div class="dropdown-icon">🏬</div><div class="dropdown-text"><span class="dropdown-title">Pasar</span><span class="dropdown-desc">Direktori pasar daerah</span></div></a><a href="/layanan.html#srv_tera" class="dropdown-item"><div class="dropdown-icon">⚖️</div><div class="dropdown-text"><span class="dropdown-title">Metrologi Legal</span><span class="dropdown-desc">Tera dan tera ulang UTTP</span></div></a><a href="/katalog-ikm.html" class="dropdown-item"><div class="dropdown-icon">🏭</div><div class="dropdown-text"><span class="dropdown-title">Industri &amp; IKM</span><span class="dropdown-desc">Produk dan layanan industri</span></div></a><a href="/dashboard-esdm.html" class="dropdown-item"><div class="dropdown-icon">⚡</div><div class="dropdown-text"><span class="dropdown-title">ESDM</span><span class="dropdown-desc">Dashboard energi Kabupaten Pinrang</span></div></a></section>
+          <section class="nav-menu-group"><strong>Layanan Online</strong><a href="/permohonan.html" class="dropdown-item"><div class="dropdown-icon">📝</div><div class="dropdown-text"><span class="dropdown-title">Permohonan <small class="nav-status-badge">Dalam Pengembangan</small></span><span class="dropdown-desc">Informasi kanal permohonan digital</span></div></a><a href="/layanan-online.html" class="dropdown-item"><div class="dropdown-icon">🌐</div><div class="dropdown-text"><span class="dropdown-title">Informasi Layanan Digital</span><span class="dropdown-desc">Katalog dan status layanan online</span></div></a><a href="/tv-layanan.html" class="dropdown-item"><div class="dropdown-icon">📺</div><div class="dropdown-text"><span class="dropdown-title">TV Layanan Publik</span><span class="dropdown-desc">Informasi layar layanan publik</span></div></a></section>
+        </div></li>
+        <li class="nav-dropdown"><a href="/direktori-lpg.html" class="nav-link nav-dropdown-toggle">Data &amp; Peta <span class="dropdown-arrow">▾</span></a><div class="nav-dropdown-menu"><a href="/direktori-lpg.html" class="dropdown-item"><div class="dropdown-icon">🔥</div><div class="dropdown-text"><span class="dropdown-title">LPG 3 Kg</span><span class="dropdown-desc">Agen dan pangkalan resmi</span></div></a><a href="/penyalur-bbm.html" class="dropdown-item"><div class="dropdown-icon">⛽</div><div class="dropdown-text"><span class="dropdown-title">Penyalur BBM</span><span class="dropdown-desc">SPBU dan Pertashop</span></div></a><a href="/pasar.html" class="dropdown-item"><div class="dropdown-icon">🏬</div><div class="dropdown-text"><span class="dropdown-title">Pasar Daerah</span><span class="dropdown-desc">Sarana perdagangan</span></div></a><a href="/peta-gis.html" class="dropdown-item"><div class="dropdown-icon">🗺️</div><div class="dropdown-text"><span class="dropdown-title">Peta GIS</span><span class="dropdown-desc">Peta data terpadu</span></div></a><a href="/dashboard-esdm.html" class="dropdown-item"><div class="dropdown-icon">⚡</div><div class="dropdown-text"><span class="dropdown-title">Dashboard ESDM</span><span class="dropdown-desc">Informasi energi publik</span></div></a></div></li>
+        <li><a href="/ppid.html" class="nav-link">Informasi</a></li>
+        <li><a href="/arsip-berita.html" class="nav-link">Berita</a></li>
+      </ul>
+
+      <!-- Hamburger Button (Mobile) -->
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Buka Menu Navigasi" aria-controls="mobileDrawer" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- MOBILE DRAWER -->
+  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay" aria-hidden="true"></div>
+  <div class="mobile-drawer" id="mobileDrawer" role="dialog" aria-modal="true" aria-label="Navigasi utama" aria-hidden="true" tabindex="-1">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang">
+        <div class="drawer-brand-text"><h4>DISPERINDAG ESDM</h4><p>KABUPATEN PINRANG</p></div>
+      </div>
+      <button class="drawer-close-btn" id="drawerCloseBtn" type="button" aria-label="Tutup menu">✕</button>
+    </div>
+    <div class="drawer-nav">
+      <div class="mobile-nav-group-title">MENU UTAMA</div>
+      <a href="/index.html" class="drawer-link"><span>🏠</span> Beranda</a>
+      <a href="/arsip-berita.html" class="drawer-link"><span>📰</span> Berita &amp; Publikasi</a>
+      <a href="/layanan.html" class="drawer-link active"><span>⚡</span> Layanan Publik</a>
+      <a href="/profil.html" class="drawer-link"><span>🏛️</span> Profil &amp; Tupoksi</a>
+      <div class="mobile-nav-group-title">LAYANAN PUBLIK</div>
+      <a href="/kontak.html" class="drawer-link"><span>📞</span> Kontak &amp; Lokasi</a>
+      <a href="/index.html#pengaduan" class="drawer-link"><span>📨</span> Pengaduan Online</a>
+      <a href="/ppid.html" class="drawer-link"><span>📋</span> PPID Pelaksana</a>
+      <a href="/layanan.html#transparansi-pelayanan" class="drawer-link"><span>📊</span> Transparansi Pelayanan</a>
+      <a href="/permohonan.html" class="drawer-link"><span>📝</span> Permohonan · Dalam Pengembangan</a>
+      <a href="/layanan-online.html" class="drawer-link"><span>🌐</span> Informasi Layanan Digital</a>
+      <a href="/tv-layanan.html" class="drawer-link"><span>📺</span> TV Layanan Publik</a>
+      <div class="mobile-nav-group-title">DIREKTORI</div>
+      <a href="/direktori-lpg.html" class="drawer-link"><span>🔥</span> Direktori Pangkalan LPG 3 KG</a>
+      <a href="/penyalur-bbm.html" class="drawer-link"><span>⛽</span> Direktori Penyalur BBM</a>
+      <a href="/pasar.html" class="drawer-link"><span>🏬</span> Direktori Pasar</a>
+      <a href="/harga-bahan-pokok.html" class="drawer-link"><span>🛒</span> Harga Bahan Pokok SP2KP</a>
+      <a href="/katalog-ikm.html" class="drawer-link"><span>🏭</span> Katalog Produk IKM</a>
+      <a href="/peta-gis.html" class="drawer-link"><span>🗺️</span> Peta GIS Disperindag ESDM</a>
+      <a href="/dashboard-esdm.html" class="drawer-link"><span>⚡</span> Dashboard ESDM</a>
+      <div class="drawer-divider"></div>
+      <a href="/login.html" class="drawer-link drawer-portal-btn"><span>🔐</span> Login Pegawai ASN</a>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <!-- 3. PAGE HERO -->
+<section class="online-hero"><div class="container"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Beranda</a> / <a href="layanan.html">Layanan Publik</a> / Layanan Online</nav><span class="online-eyebrow">LAYANAN ONLINE</span><h1>Informasi Layanan Digital</h1><p>Kanal resmi untuk melihat jenis layanan digital dan status ketersediaannya. Layanan transaksi hanya akan dibuka setelah sistem, keamanan, SOP, dan petugas dinyatakan siap.</p></div></section>
+<main class="container online-main"><p class="online-lead">Saat ini layanan permohonan dokumen masih bersifat informasional. Halaman ini tidak meminta, menerima, atau menyimpan data pribadi masyarakat.</p><div class="service-grid"><article class="service-card"><span class="service-status">DALAM TAHAP PENGEMBANGAN</span><h2>Permohonan Dokumen Online</h2><p>Layanan awal yang sedang disiapkan adalah Surat Izin Pemakaian Kios (SIPK), termasuk verifikasi, persetujuan, penerbitan dokumen, dan pelacakan status secara elektronik.</p><div class="online-actions"><a href="permohonan.html">Lihat Informasi</a></div></article><article class="service-card"><span class="service-status" style="background:#e9f5ff;color:#164f7b">TERSEDIA · INFORMASI PUBLIK</span><h2>TV Layanan Publik</h2><p>Tampilan informasi publik mengenai layanan, harga, energi, pasar, berita, edukasi, dan pengumuman terpublikasi.</p><div class="online-actions"><a href="tv-layanan.html">Buka TV Layanan</a></div></article></div><aside class="notice-card safe-notice"><h2>Keamanan data pribadi</h2><p>Jangan mengirimkan KTP, NIK, dokumen pribadi, atau berkas persyaratan melalui formulir, pesan, maupun kanal yang belum dinyatakan resmi untuk layanan ini.</p></aside></main>
+<footer class="main-footer" id="siteFooter" aria-label="Footer portal resmi">
+  <div class="container">
+    <div class="footer-grid">
+      <section class="footer-col footer-brand-col" aria-label="Identitas instansi">
+        <div class="footer-brand-lockup">
+          <img src="/assets/brand/logo_pinrang_opt.png" alt="Logo Kabupaten Pinrang" class="footer-brand-logo">
+          <div>
+            <h3>DISPERINDAG ESDM</h3>
+            <p>Kabupaten Pinrang</p>
+          </div>
+        </div>
+        <p class="footer-summary">Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang berkomitmen memberikan pelayanan publik yang transparan, tertib, dan profesional.</p>
+        <div class="footer-motto">
+          <span class="footer-motto-icon">🎯</span>
+          <span><small>Motto Pelayanan</small><strong>MANTAP</strong><em>Melayani Anda dengan Transparan, Adil &amp; Profesional</em></span>
+        </div>
+      </section>
+
+      <nav class="footer-col" aria-label="Layanan utama">
+        <h4>Layanan Utama</h4>
+        <ul class="footer-links">
+          <li><a href="/layanan.html">Standar &amp; SOP Pelayanan</a></li>
+          <li><a href="/layanan.html#srv_oss_industri">Perizinan OSS Industri</a></li>
+          <li><a href="/layanan.html#srv_oss_perdagangan">Perizinan OSS Perdagangan</a></li>
+          <li><a href="/layanan.html#srv_pupuk_subsidi">Distributor Pupuk</a></li>
+          <li><a href="/layanan.html#srv_tera">Tera &amp; Tera Ulang</a></li>
+          <li><a href="/#pengaduan">Pengaduan Online</a></li>
+          <li><a href="/layanan-online.html">Layanan Digital</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer-col" aria-label="Data dan informasi">
+        <h4>Data &amp; Informasi</h4>
+        <ul class="footer-links">
+          <li><a href="/harga-bahan-pokok.html">Harga Bahan Pokok</a></li>
+          <li><a href="/direktori-lpg.html">Pangkalan LPG 3 Kg</a></li>
+          <li><a href="/pasar.html">Pasar Daerah</a></li>
+          <li><a href="/penyalur-bbm.html">Penyalur BBM</a></li>
+          <li><a href="/peta-gis.html">Peta GIS</a></li>
+          <li><a href="/katalog-ikm.html">Produk IKM Binaan</a></li>
+          <li><a href="/dashboard-esdm.html">Dashboard ESDM</a></li>
+        </ul>
+      </nav>
+
+      <section class="footer-col footer-contact-col" aria-label="Kontak dan jam layanan">
+        <h4>Kontak &amp; Jam Layanan</h4>
+        <address class="footer-contact-list">
+          <a href="https://maps.google.com/?q=Jalan+Bintang+No.+1+Pinrang+Sulawesi+Selatan" target="_blank" rel="noopener noreferrer"><span>📍</span><span>Jalan Bintang No. 1, Kabupaten Pinrang, Sulawesi Selatan</span></a>
+          <a href="https://wa.me/6282316002226" target="_blank" rel="noopener noreferrer"><span>🟢</span><strong>0823 1600 2226</strong></a>
+          <a href="mailto:dinasperindagem.pinrang@gmail.com"><span>✉️</span><span>dinasperindagem.pinrang@gmail.com</span></a>
+        </address>
+        <div class="footer-hours"><span>◷</span><div><strong>Jam Pelayanan Tatap Muka</strong><p>Senin–Kamis: 08.00–16.00 WITA<br>Jumat: 08.00–16.30 WITA</p></div></div>
+      </section>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Dinas Perindustrian, Perdagangan, Energi dan Sumber Daya Mineral Kabupaten Pinrang — <a href="https://www.instagram.com/maroaproject/" target="_blank" rel="noopener noreferrer">MAROA Project</a></p>
+      <strong>#BanggaMelayaniBangsa</strong>
+    </div>
+  </div>
+</footer><script src="js/pinrang-live.js"></script><script src="js/app.js"></script></body></html>

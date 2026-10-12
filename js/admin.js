@@ -40,13 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof db !== 'undefined' && db !== null) {
     try {
       db.collection('news').onSnapshot(snapshot => {
-        if (!snapshot.empty) {
-          const cloudNews = [];
-          snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));
-          const merged = mergeNewsWithDefaults(cloudNews);
-          setStorage('disperindag_news', merged);
-          renderAdminNews();
-        }
+        const cloudNews = [];
+        snapshot.forEach(doc => cloudNews.push({ id: doc.id, ...doc.data() }));
+        if (typeof setAuthoritativeNewsSnapshot === 'function') setAuthoritativeNewsSnapshot(cloudNews, 'all');
+        else setStorage('disperindag_news', deduplicateNewsList(cloudNews));
+        renderAdminNews();
       }, err => console.warn("Firestore Admin News Sync:", err));
 
       db.collection('settings').doc('banners').onSnapshot(doc => {
@@ -763,7 +761,7 @@ function renderAdminNews(filterSearch = '', filterCat = '') {
   if (!tbody) return;
 
   const rawNews = getStorage('disperindag_news', typeof DEFAULT_NEWS !== 'undefined' ? DEFAULT_NEWS : []);
-  const allNews = typeof mergeNewsWithDefaults === 'function' ? mergeNewsWithDefaults(rawNews) : rawNews;
+  const allNews = typeof deduplicateNewsList === 'function' ? deduplicateNewsList(rawNews) : rawNews;
   
   // Update Statistik
   const totalCount = allNews.length;
@@ -889,24 +887,29 @@ window.toggleNewsStatus = async function(id) {
 
   const currentStatus = allNews[idx].status || 'published';
   const newStatus = currentStatus === 'published' ? 'draft' : 'published';
-  allNews[idx].status = newStatus;
-  allNews[idx].updated_at = new Date().toISOString();
-  if (newStatus === 'published' && !allNews[idx].published_at) {
-    allNews[idx].published_at = allNews[idx].updated_at;
+  const updatedArticle = { ...allNews[idx], status: newStatus, updated_at: new Date().toISOString() };
+  if (newStatus === 'published' && !updatedArticle.published_at) {
+    updatedArticle.published_at = updatedArticle.updated_at;
   }
 
+  if (typeof db === 'undefined' || db === null) {
+    CustomModal.toast('Status belum diubah karena Firestore tidak tersedia.', 'error');
+    return;
+  }
+  try {
+    await db.collection('news').doc(id).set(updatedArticle, { merge: true });
+  } catch (error) {
+    console.warn('Firestore News Status:', error);
+    CustomModal.toast('Status belum diubah karena penyimpanan cloud gagal.', 'error');
+    return;
+  }
+
+  allNews[idx] = updatedArticle;
   setStorage('disperindag_news', allNews);
   renderAdminNews();
 
-  // Sinkronisasi ke Firestore
-  if (typeof db !== 'undefined' && db !== null) {
-    try {
-      db.collection('news').doc(id).set(allNews[idx], { merge: true }).catch(() => {});
-    } catch(e) {}
-  }
-
   const label = newStatus === 'published' ? 'diterbitkan secara publik (Live)' : 'dialihkan ke status Draf (arsip internal)';
-  CustomModal.toast(`Status berita "${allNews[idx].title?.slice(0, 30)}..." berhasil ${label}.`, "success");
+  CustomModal.toast(`Status berita "${updatedArticle.title?.slice(0, 30)}..." berhasil ${label}.`, "success");
 };
 
 // DELETE ADMIN NEWS (HAPUS BERITA PERMANEN)
@@ -928,46 +931,34 @@ window.deleteAdminNews = async function(id) {
 
   if (!confirmed) return;
 
-  // 1. Simpan ke daftar ID Terhapus (Tombstone Tracking)
-  let deletedIds = [];
-  try {
-    const rawDeleted = localStorage.getItem('disperindag_deleted_news_ids');
-    if (rawDeleted) deletedIds = JSON.parse(rawDeleted);
-  } catch(e) {}
-  if (!deletedIds.includes(id)) {
-    deletedIds.push(id);
-    localStorage.setItem('disperindag_deleted_news_ids', JSON.stringify(deletedIds));
+  if (typeof db === 'undefined' || db === null) {
+    CustomModal.toast('Berita belum dihapus karena Firestore tidak tersedia.', 'error');
+    return;
   }
-  // 2. Hapus dari LocalStorage Berita
-  const updatedList = allNews.filter(n => n.id !== id);
-  setStorage('disperindag_news', updatedList);
 
-  // 3. Hapus dari Banner jika artikel ini adalah headline
+  const updatedList = allNews.filter(n => n.id !== id);
+
+  // Hapus juga dari banner headline dalam commit cloud yang sama.
   let banners = getStorage('disperindag_banners', typeof DEFAULT_BANNERS !== 'undefined' ? DEFAULT_BANNERS : []);
   const bannerIdx = banners.findIndex(b => b.target_news_id === id || b.title === targetNews.title);
   if (bannerIdx !== -1) {
     banners.splice(bannerIdx, 1);
-    setStorage('disperindag_banners', banners);
-    if (typeof renderAdminBanners === 'function') renderAdminBanners();
-    if (typeof db !== 'undefined' && db !== null) {
-      try {
-        db.collection('settings').doc('banners').set({ list: banners }, { merge: true }).catch(() => {});
-      } catch(e) {}
-    }
   }
 
-  // 4. Hapus Dokumen dan Sinkronkan Deleted Ids ke Cloud Firestore
-  if (typeof db !== 'undefined' && db !== null) {
-    try {
-      db.collection('news').doc(id).delete()
-        .then(() => console.log("Firestore News Deleted:", id))
-        .catch(err => console.warn("Firestore Delete Warning:", err));
-      
-      db.collection('settings').doc('deleted_news').set({ list: deletedIds }, { merge: true }).catch(() => {});
-    } catch(e) {}
+  try {
+    const batch = db.batch();
+    batch.delete(db.collection('news').doc(id));
+    if (bannerIdx !== -1) batch.set(db.collection('settings').doc('banners'), { list: banners }, { merge: true });
+    await batch.commit();
+  } catch (error) {
+    console.warn('Firestore News Delete:', error);
+    CustomModal.toast('Berita belum dihapus karena commit cloud gagal.', 'error');
+    return;
   }
 
-  // 5. Log Aktivitas & Render Ulang
+  setStorage('disperindag_news', updatedList);
+  if (bannerIdx !== -1) setStorage('disperindag_banners', banners);
+  if (typeof renderAdminBanners === 'function') renderAdminBanners();
   logAdminActivity('Berita Kedinasan', `Menghapus rilis berita: ${targetNews.title}`);
   renderAdminNews();
   CustomModal.toast(`Berita "${targetNews.title.slice(0, 35)}..." berhasil dihapus secara permanen.`, "success");
@@ -1841,12 +1832,14 @@ window.handleSaveNews = async function(overrideStatus = null) {
       console.error("[-] Gagal menyimpan ke Cloud Firestore:", err);
       cloudErrorMsg = err.message || err.toString();
     }
+  } else {
+    cloudErrorMsg = 'Firestore tidak tersedia pada sesi ini';
   }
 
 
   // Firestore adalah sumber utama pada deployment produksi. Jangan tampilkan
   // berita sebagai tersimpan bila penulisan cloud gagal.
-  if (typeof db !== 'undefined' && db !== null && !cloudSaveSuccess) {
+  if (!cloudSaveSuccess) {
     submitBtns.forEach(btn => { if (btn) btn.disabled = false; });
     CustomModal.alert({
       title: "Berita Belum Tersimpan",
@@ -3641,7 +3634,8 @@ window.importDataJSON = function(event) {
         isDanger: true,
         onSubmit: () => {
           if (data.disperindag_prices) setStorage('disperindag_prices', data.disperindag_prices);
-          if (data.disperindag_news) setStorage('disperindag_news', data.disperindag_news);
+          // Berita tidak dipulihkan hanya ke browser. Import berita wajib
+          // melalui proses cloud terautentikasi agar tidak menimpa snapshot CMS.
           if (data.disperindag_banners) setStorage('disperindag_banners', data.disperindag_banners);
           if (data.disperindag_documents) setStorage('disperindag_documents', data.disperindag_documents);
           if (data.disperindag_products_ikm) setStorage('disperindag_products_ikm', data.disperindag_products_ikm);

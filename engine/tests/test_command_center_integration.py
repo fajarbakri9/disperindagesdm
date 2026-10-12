@@ -27,4 +27,4 @@ def test_command_center_maps_same_snapshot_kpis_without_fallback_numbers():
     assert "kpis.active_critical_issues" in script
     assert "snapshot?.last_run_at || snapshot?.last_full_success_at" in script
     assert "snapshot?.system_status" in script
-    assert "safeKpi" in script and ": '—'" in script
+    assert "safeKpi" in script and ': "—"' in script
