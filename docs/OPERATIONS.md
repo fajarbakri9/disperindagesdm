@@ -67,6 +67,12 @@ mempunyai import path yang sama dengan kebutuhan `collector.mi_firestore_writer`
 Sebelum menyentuh Firestore, workflow menjalankan import smoke-check sehingga
 regresi import gagal lebih awal dan lebih mudah didiagnosis.
 
+Catatan integritas: `cleanup_firestore.py` saat ini menghapus item utama lebih dulu,
+lalu memperbaiki metadata cluster/issue pada langkah berikutnya. Karena itu masih
+ada failure window kecil apabila proses berhenti tepat setelah batch delete utama
+berhasil. Jangan menaikkan batas delete atau mengubah retention policy sebelum
+mekanisme rekonsiliasi/atomic cleanup direview dan diuji di Emulator.
+
 ## Backup dan restore
 
 Backup mingguan memuat `mi_sources`, `mi_items`, `mi_story_clusters`, `mi_issues`,
