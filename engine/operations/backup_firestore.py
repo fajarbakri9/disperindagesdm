@@ -1,4 +1,8 @@
-"""Export bounded Media Intelligence metadata to a private JSON.GZ artifact."""
+"""Create a bounded Media Intelligence JSON.GZ backup payload.
+
+The workflow is responsible for encrypting the resulting backup and manifest
+before they are uploaded as an Actions artifact.
+"""
 from __future__ import annotations
 
 import argparse
@@ -29,23 +33,49 @@ def json_value(value):
 def create_backup(db, destination: Path, *, max_docs_per_collection: int = 10000) -> dict:
     if max_docs_per_collection < 1 or max_docs_per_collection > 20000:
         raise ValueError("Batas dokumen backup harus 1..20000.")
-    payload = {"schema_version": 1, "generated_at": datetime.now(timezone.utc).isoformat(),
-               "collections": {}}
+
+    payload = {
+        "schema_version": 1,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "collections": {},
+    }
+
     for collection_name in BACKUP_COLLECTIONS:
-        records = []
-        for doc in db.collection(collection_name).limit(max_docs_per_collection).stream():
-            records.append({"id": doc.id, "data": json_value(doc.to_dict())})
-        payload["collections"][collection_name] = records
+        # Read one extra snapshot so the backup fails closed instead of silently
+        # presenting a truncated collection as a complete backup.
+        snapshots = list(
+            db.collection(collection_name)
+            .limit(max_docs_per_collection + 1)
+            .stream()
+        )
+        if len(snapshots) > max_docs_per_collection:
+            raise RuntimeError(
+                f"Backup dibatalkan: collection {collection_name} melebihi batas "
+                f"{max_docs_per_collection} dokumen. Naikkan batas hanya setelah audit quota "
+                "atau implementasikan backup terpaginasikan."
+            )
+
+        payload["collections"][collection_name] = [
+            {"id": doc.id, "data": json_value(doc.to_dict())}
+            for doc in snapshots
+        ]
+
     destination.parent.mkdir(parents=True, exist_ok=True)
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     with gzip.open(destination, "wb", compresslevel=9) as handle:
         handle.write(encoded)
+
     digest = hashlib.sha256(destination.read_bytes()).hexdigest()
-    manifest = {"file": destination.name, "sha256": digest,
-                "bytes": destination.stat().st_size,
-                "counts": {key: len(value) for key, value in payload["collections"].items()}}
+    manifest = {
+        "file": destination.name,
+        "sha256": digest,
+        "bytes": destination.stat().st_size,
+        "complete": True,
+        "counts": {key: len(value) for key, value in payload["collections"].items()},
+    }
     destination.with_suffix(destination.suffix + ".manifest.json").write_text(
-        json.dumps(manifest, indent=2), encoding="utf-8")
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
     return manifest
 
 
