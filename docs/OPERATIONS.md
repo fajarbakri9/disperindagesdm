@@ -73,12 +73,20 @@ yang terjadwal ketika crawl masih berjalan akan menunggu, bukan menulis collecti
 `mi_*` secara bersamaan. Writer produksi di luar workflow GitHub tetap dilarang
 karena akan melewati write lock ini.
 
-`apply_cleanup()` mengelompokkan item berdasarkan `story_cluster_id`. Untuk setiap
-cluster, penghapusan item dan perbaikan/penghapusan `mi_story_clusters` serta
-`mi_issues` dikomit dalam satu Firestore WriteBatch. Jika proses berhenti di antara
-dua cluster, cluster yang sudah commit tetap konsisten dan cluster berikutnya belum
+`apply_cleanup()` melakukan preflight seluruh cluster sebelum write pertama. Jika
+item masih menunjuk cluster yang tidak ada, atau rebuild metadata akan melampaui
+read budget, cleanup dibatalkan tanpa menghapus data. Default
+`max_rebuild_reads=1000` membatasi reads tambahan untuk membangun ulang ringkasan
+cluster/issue dan dapat dinaikkan paling tinggi 2.000 hanya setelah audit quota.
+
+Untuk setiap cluster yang lolos preflight, item lama dihapus dan ringkasan
+`mi_story_clusters` serta `mi_issues` dibangun ulang dari item yang masih ada:
+`item_ids`, `source_ids`, `item_count`, `source_count`, `max_relevance_score`,
+`first_item_at`, `last_item_at`, serta severity issue. Seluruh perubahan untuk satu
+cluster dikomit dalam satu Firestore WriteBatch. Jika proses berhenti di antara dua
+cluster, cluster yang sudah commit tetap konsisten dan cluster berikutnya belum
 disentuh. Dengan policy `max_deletes <= 400`, batch per cluster tetap di bawah
-batas 500 operasi walaupun membutuhkan update/delete metadata tambahan.
+batas 500 operasi walaupun membutuhkan dua write metadata tambahan.
 
 Planner retention masih melakukan scan terbatas (`mi_items` 5.000 dokumen,
 `mi_sync_runs` dan `mi_review_tasks` masing-masing 2.000). Batas ini disengaja untuk
