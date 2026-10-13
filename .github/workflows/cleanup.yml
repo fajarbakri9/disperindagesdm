@@ -26,7 +26,10 @@ jobs:
     timeout-minutes: 15
     env:
       GOOGLE_CLOUD_PROJECT: ${{ vars.GCP_PROJECT_ID }}
-      PYTHONPATH: engine
+      # Operations import collector.* while collector modules still contain
+      # script-style sibling imports. Keep both roots explicit until the engine
+      # is fully packaged.
+      PYTHONPATH: engine:engine/collector
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +48,12 @@ jobs:
 
       - name: Install pinned dependencies
         run: pip install -r engine/collector/requirements.txt
+
+      - name: Validate operational imports
+        run: >-
+          python -c "from collector.mi_firestore_writer import create_client;
+          from operations.cleanup_firestore import CleanupPolicy, plan_cleanup;
+          print('Media Intelligence cleanup imports OK')"
 
       - name: Dry-run retention plan
         if: github.event_name == 'workflow_dispatch' && inputs.dry_run
