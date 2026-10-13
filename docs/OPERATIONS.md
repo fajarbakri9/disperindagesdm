@@ -67,11 +67,25 @@ mempunyai import path yang sama dengan kebutuhan `collector.mi_firestore_writer`
 Sebelum menyentuh Firestore, workflow menjalankan import smoke-check sehingga
 regresi import gagal lebih awal dan lebih mudah didiagnosis.
 
-Catatan integritas: `cleanup_firestore.py` saat ini menghapus item utama lebih dulu,
-lalu memperbaiki metadata cluster/issue pada langkah berikutnya. Karena itu masih
-ada failure window kecil apabila proses berhenti tepat setelah batch delete utama
-berhasil. Jangan menaikkan batas delete atau mengubah retention policy sebelum
-mekanisme rekonsiliasi/atomic cleanup direview dan diuji di Emulator.
+`crawl.yml` dan `cleanup.yml` memakai concurrency group bersama
+`media-intelligence-write-production` dengan `cancel-in-progress=false`. Cleanup
+yang terjadwal ketika crawl masih berjalan akan menunggu, bukan menulis collection
+`mi_*` secara bersamaan. Writer produksi di luar workflow GitHub tetap dilarang
+karena akan melewati write lock ini.
+
+`apply_cleanup()` mengelompokkan item berdasarkan `story_cluster_id`. Untuk setiap
+cluster, penghapusan item dan perbaikan/penghapusan `mi_story_clusters` serta
+`mi_issues` dikomit dalam satu Firestore WriteBatch. Jika proses berhenti di antara
+dua cluster, cluster yang sudah commit tetap konsisten dan cluster berikutnya belum
+disentuh. Dengan policy `max_deletes <= 400`, batch per cluster tetap di bawah
+batas 500 operasi walaupun membutuhkan update/delete metadata tambahan.
+
+Planner retention masih melakukan scan terbatas (`mi_items` 5.000 dokumen,
+`mi_sync_runs` dan `mi_review_tasks` masing-masing 2.000). Batas ini disengaja untuk
+menjaga penggunaan reads pada Firebase Spark, tetapi bukan jaminan pagination untuk
+collection yang kelak jauh lebih besar. Sebelum volume mendekati batas tersebut,
+implementasikan query berbasis waktu + cursor/pagination dan uji di Emulator;
+jangan sekadar menaikkan limit.
 
 ## Backup dan restore
 
