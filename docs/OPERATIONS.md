@@ -46,6 +46,15 @@ Writer produksi hanya dari workflow WIF. Untuk cleanup, jalankan manual dengan
 bedakan auth/source/parser/quota/write; perbaiki penyebab dan re-run. Jangan buat
 JSON key, jangan backfill dari scheduled run, dan jangan menghapus data valid lama.
 
+### Diagnosis kegagalan sebelum runner
+
+Jika GitHub Actions selesai gagal hanya dalam 2–3 detik dan metadata job menunjukkan
+`runner_id=0`, `runner_name` kosong, serta `steps=[]`, anggap kegagalan terjadi
+sebelum workflow memperoleh GitHub-hosted runner. Jangan mengubah crawler, Python,
+WIF, Firebase, atau dependency untuk gejala ini. Periksa terlebih dahulu status
+Actions/billing/entitlement akun atau repository. Job yang belum pernah memperoleh
+runner juga dapat tidak mempunyai blob log sama sekali.
+
 ## Retensi
 
 - Item terverifikasi: 730 hari (rentang kebijakan 12–24 bulan).
@@ -53,15 +62,47 @@ JSON key, jangan backfill dari scheduled run, dan jangan menghapus data valid la
 - Maksimum 400 delete/run; default script adalah dry-run.
 - Cluster dan issue tanpa item tersisa ikut dirapikan.
 
+Workflow cleanup memakai `PYTHONPATH=engine:engine/collector` agar proses operasi
+mempunyai import path yang sama dengan kebutuhan `collector.mi_firestore_writer`.
+Sebelum menyentuh Firestore, workflow menjalankan import smoke-check sehingga
+regresi import gagal lebih awal dan lebih mudah didiagnosis.
+
 ## Backup dan restore
 
 Backup mingguan memuat `mi_sources`, `mi_items`, `mi_story_clusters`, `mi_issues`,
-dan `mi_daily_metrics` sebagai JSON.GZ plus manifest SHA-256. Artifact GitHub
-bersifat privat dengan retensi 30 hari. Unduh hanya ke perangkat admin tepercaya.
+dan `mi_daily_metrics` sebagai JSON.GZ plus manifest SHA-256. Repository ini
+bersifat publik, sehingga artifact GitHub tidak boleh dianggap sebagai penyimpanan
+privat untuk backup plaintext.
 
+Sebelum artifact diunggah, workflow `backup.yml` wajib mengenkripsi file backup dan
+manifest menggunakan AES-256-CBC + PBKDF2. Plaintext kemudian dihapus dari workspace
+runner dan hanya file `*.enc` yang boleh diunggah dengan retensi 30 hari.
+
+Konfigurasikan Actions secret `MI_BACKUP_PASSPHRASE` dengan nilai acak yang kuat,
+minimal 20 karakter dan disarankan 32 karakter atau lebih. Jangan pernah menaruh
+passphrase di repository, commit, issue, log, atau file konfigurasi publik. Jika
+secret belum tersedia atau terlalu pendek, workflow harus gagal tertutup dan tidak
+mengunggah backup plaintext.
+
+Contoh dekripsi lokal untuk file backup terenkripsi:
+
+```bash
+export MI_BACKUP_PASSPHRASE='isi-secret-di-perangkat-admin'
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 \
+  -in mi-RUN-ATTEMPT.json.gz.enc \
+  -out mi-RUN-ATTEMPT.json.gz \
+  -pass env:MI_BACKUP_PASSPHRASE
+```
+
+Hapus environment variable dan file plaintext setelah verifikasi/restore selesai.
 Restore tidak otomatis: verifikasi checksum dan `schema_version`, restore ke
 Emulator dahulu, lalu gunakan script idempoten yang direview dua orang. Buat
 backup baru sebelum write produksi.
+
+Catatan jadwal: GitHub cron menggunakan UTC. `40 18 * * 0` berarti sekitar Senin
+02:40 WITA, sedangkan `25 18 1 * *` berarti sekitar tanggal 2 pukul 02:25 WITA.
+Jika kebijakan operasional menghendaki hari/tanggal lokal lain, ubah cron dengan
+menghitung offset WITA (UTC+8), jangan menganggap field cron memakai WITA.
 
 ## Memeriksa quota
 
