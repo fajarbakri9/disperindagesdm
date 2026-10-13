@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
@@ -56,39 +57,80 @@ def plan_cleanup(db, policy: CleanupPolicy, *, now: datetime | None = None) -> d
 
 
 def apply_cleanup(db, plan: dict[str, list], policy: CleanupPolicy) -> dict[str, int]:
-    total = sum(len(docs) for docs in plan.values())
+    """Apply a bounded cleanup while keeping each affected story internally consistent.
+
+    Item deletions that belong to a story cluster are committed in the same batch
+    as that cluster's metadata repair (and issue deletion when the cluster becomes
+    empty). This means a process/network failure can stop later clusters from being
+    cleaned, but it cannot leave a successfully committed cluster pointing at the
+    items deleted by that same commit.
+    """
+    counts = {key: len(value) for key, value in plan.items()}
+    total = sum(counts.values())
     if total > policy.max_deletes:
         raise RuntimeError(f"Cleanup menolak {total} delete; batas per run {policy.max_deletes}.")
 
-    deleted_item_ids = {doc.id for doc in plan["mi_items"]}
-    affected_clusters = set()
-    for doc in plan["mi_items"]:
+    item_docs = list(plan.get("mi_items", []))
+    deleted_item_ids = {doc.id for doc in item_docs}
+    clustered_items: dict[str, list] = defaultdict(list)
+    unclustered_items = []
+
+    for doc in item_docs:
         cluster_id = (doc.to_dict() or {}).get("story_cluster_id")
         if cluster_id:
-            affected_clusters.add(cluster_id)
+            clustered_items[cluster_id].append(doc)
+        else:
+            unclustered_items.append(doc)
 
-    batch = db.batch()
-    for docs in plan.values():
+    # One atomic batch per affected cluster. With max_deletes <= 400 this remains
+    # below Firestore's 500-write batch ceiling even when cluster + issue metadata
+    # also need to be updated/deleted.
+    for cluster_id, docs in clustered_items.items():
+        cluster_ref = db.collection("mi_story_clusters").document(cluster_id)
+        cluster_snapshot = cluster_ref.get()
+        batch = db.batch()
+
         for doc in docs:
             batch.delete(doc.reference)
-    batch.commit()
 
-    # Keep story/issue metadata consistent when old verified items expire.
-    for cluster_id in affected_clusters:
-        ref = db.collection("mi_story_clusters").document(cluster_id)
-        snapshot = ref.get()
-        if not snapshot.exists:
-            continue
-        remaining = [value for value in (snapshot.to_dict().get("item_ids") or [])
-                     if value not in deleted_item_ids]
-        if remaining:
-            ref.set({"item_ids": remaining, "item_count": len(remaining),
-                     "updated_at": utcnow()}, merge=True)
-        else:
-            ref.delete()
-            db.collection("mi_issues").document(
-                f"issue-{cluster_id.removeprefix('story-')}").delete()
-    return {key: len(value) for key, value in plan.items()}
+        if cluster_snapshot.exists:
+            cluster = cluster_snapshot.to_dict() or {}
+            remaining = [
+                value for value in (cluster.get("item_ids") or [])
+                if value not in deleted_item_ids
+            ]
+            if remaining:
+                batch.set(
+                    cluster_ref,
+                    {
+                        "item_ids": remaining,
+                        "item_count": len(remaining),
+                        "updated_at": utcnow(),
+                    },
+                    merge=True,
+                )
+            else:
+                batch.delete(cluster_ref)
+                issue_id = f"issue-{cluster_id.removeprefix('story-')}"
+                batch.delete(db.collection("mi_issues").document(issue_id))
+
+        batch.commit()
+
+    # Documents without story metadata plus operational/history documents have no
+    # cross-document metadata dependency. Commit them together after clustered
+    # item cleanup. Since the total plan is bounded at <= 400, this batch is safe.
+    independent_docs = [
+        *unclustered_items,
+        *plan.get("mi_sync_runs", []),
+        *plan.get("mi_review_tasks", []),
+    ]
+    if independent_docs:
+        batch = db.batch()
+        for doc in independent_docs:
+            batch.delete(doc.reference)
+        batch.commit()
+
+    return counts
 
 
 def main() -> int:
