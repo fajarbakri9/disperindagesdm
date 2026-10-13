@@ -1,0 +1,24 @@
+name: Runner Diagnostic Smoke Test
+
+on:
+  push:
+    branches:
+      - diagnostics/actions-runner-20261014
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Confirm GitHub-hosted runner allocation
+        shell: bash
+        run: |
+          echo "RUNNER_DIAGNOSTIC_OK"
+          echo "Runner name: $RUNNER_NAME"
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner arch: $RUNNER_ARCH"
+          uname -a
