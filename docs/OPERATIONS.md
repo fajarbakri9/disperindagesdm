@@ -74,6 +74,12 @@ dan `mi_daily_metrics` sebagai JSON.GZ plus manifest SHA-256. Repository ini
 bersifat publik, sehingga artifact GitHub tidak boleh dianggap sebagai penyimpanan
 privat untuk backup plaintext.
 
+Backup bersifat fail-closed terhadap batas ukuran. Script membaca paling banyak
+`max_docs + 1` snapshot per collection. Jika jumlah dokumen melebihi batas
+(default 10.000/collection), proses dibatalkan dan tidak membuat backup yang tampak
+lengkap tetapi sebenarnya terpotong. Naikkan batas hanya setelah audit quota atau
+implementasikan backup terpaginasikan yang eksplisit.
+
 Sebelum artifact diunggah, workflow `backup.yml` wajib mengenkripsi file backup dan
 manifest menggunakan AES-256-CBC + PBKDF2. Plaintext kemudian dihapus dari workspace
 runner dan hanya file `*.enc` yang boleh diunggah dengan retensi 30 hari.
@@ -107,7 +113,8 @@ menghitung offset WITA (UTC+8), jangan menganggap field cron memakai WITA.
 ## Memeriksa quota
 
 Periksa Firebase Console > Firestore > Usage: reads, writes, deletes, storage, dan
-bandwidth. Backup dibatasi 10.000 dokumen/collection; naikkan hanya setelah audit.
+bandwidth. Backup dibatasi 10.000 dokumen/collection; proses akan berhenti jika
+batas tersebut terlampaui, bukan menghasilkan backup parsial tanpa peringatan.
 Command Center tetap membaca satu dokumen `mi_public/current`.
 
 ## Gerbang cutover 30 artikel
