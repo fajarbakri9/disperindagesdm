@@ -6,8 +6,10 @@ on:
     - cron: "17 2,6,10,14,18,22 * * *"
   workflow_dispatch:
 
+# Crawl dan cleanup sama-sama menulis collection mi_*; gunakan satu write lock
+# lintas-workflow agar maintenance tidak bertabrakan dengan collector.
 concurrency:
-  group: media-intelligence-crawl-production
+  group: media-intelligence-write-production
   cancel-in-progress: false
 
 permissions:
