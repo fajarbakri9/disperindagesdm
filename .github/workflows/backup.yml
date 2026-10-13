@@ -20,7 +20,10 @@ jobs:
     timeout-minutes: 20
     env:
       GOOGLE_CLOUD_PROJECT: ${{ vars.GCP_PROJECT_ID }}
-      PYTHONPATH: engine
+      # Operations import collector.* while collector modules still contain
+      # script-style sibling imports. Keep both roots explicit until the engine
+      # is fully packaged.
+      PYTHONPATH: engine:engine/collector
     steps:
       - uses: actions/checkout@v4
 
@@ -40,15 +43,51 @@ jobs:
       - name: Install pinned dependencies
         run: pip install -r engine/collector/requirements.txt
 
+      - name: Validate operational imports
+        run: >-
+          python -c "from collector.mi_firestore_writer import create_client;
+          from operations.backup_firestore import create_backup;
+          print('Media Intelligence backup imports OK')"
+
       - name: Create compressed JSON backup
         run: python engine/operations/backup_firestore.py --output "backup/mi-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json.gz"
 
-      - name: Upload private short-retention artifact
+      - name: Encrypt backup before artifact upload
+        env:
+          MI_BACKUP_PASSPHRASE: ${{ secrets.MI_BACKUP_PASSPHRASE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${MI_BACKUP_PASSPHRASE:-}" ]; then
+            echo "::error::MI_BACKUP_PASSPHRASE belum dikonfigurasi. Backup plaintext tidak akan diunggah dari repository publik."
+            exit 1
+          fi
+          if [ "${#MI_BACKUP_PASSPHRASE}" -lt 20 ]; then
+            echo "::error::MI_BACKUP_PASSPHRASE terlalu pendek; gunakan secret acak minimal 20 karakter."
+            exit 1
+          fi
+
+          shopt -s nullglob
+          files=(backup/*.json.gz backup/*.manifest.json)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::Tidak ada file backup untuk dienkripsi."
+            exit 1
+          fi
+
+          for file in "${files[@]}"; do
+            openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -md sha256 \
+              -in "$file" \
+              -out "$file.enc" \
+              -pass env:MI_BACKUP_PASSPHRASE
+            rm -f "$file"
+          done
+
+          echo "Backup terenkripsi; plaintext telah dihapus dari workspace runner."
+
+      - name: Upload encrypted short-retention artifact
         uses: actions/upload-artifact@v4
         with:
-          name: media-intelligence-backup-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            backup/*.json.gz
-            backup/*.manifest.json
+          name: media-intelligence-backup-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: backup/*.enc
           if-no-files-found: error
           retention-days: 30
