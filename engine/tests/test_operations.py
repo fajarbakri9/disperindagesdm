@@ -41,36 +41,71 @@ def test_cleanup_dry_run_and_apply_are_bounded():
     assert not db.collection("mi_issues").document(issue_id).get().exists
 
 
-def test_cleanup_repairs_cluster_in_same_logical_apply():
+def test_cleanup_rebuilds_cluster_and_issue_summaries():
     db = create_client("demo-media-intelligence")
     suffix = uuid.uuid4().hex
     old = datetime.now(timezone.utc) - timedelta(days=800)
     recent = datetime.now(timezone.utc) - timedelta(days=5)
     old_item, recent_item = f"old-shared-{suffix}", f"recent-shared-{suffix}"
-    cluster_id = f"story-shared-{suffix}"
+    cluster_id, issue_id = f"story-shared-{suffix}", f"issue-shared-{suffix}"
 
     db.collection("mi_items").document(old_item).set({
         "verification_status": "VERIFIED_DIRECT",
         "published_at": old,
         "story_cluster_id": cluster_id,
+        "source_id": f"old-source-{suffix}",
+        "relevance_score": 95,
     })
     db.collection("mi_items").document(recent_item).set({
         "verification_status": "VERIFIED_DIRECT",
         "published_at": recent,
         "story_cluster_id": cluster_id,
+        "source_id": f"recent-source-{suffix}",
+        "relevance_score": 70,
     })
     db.collection("mi_story_clusters").document(cluster_id).set({
         "item_ids": [old_item, recent_item],
+        "source_ids": [f"old-source-{suffix}", f"recent-source-{suffix}"],
         "item_count": 2,
+        "source_count": 2,
+        "max_relevance_score": 95,
+        "representative_title": "Fixture shared story",
+        "topic_ids": ["perdagangan"],
+        "district_ids": ["pinrang"],
+        "first_item_at": old,
+        "last_item_at": recent,
+    })
+    db.collection("mi_issues").document(issue_id).set({
+        "story_cluster_id": cluster_id,
+        "verification_status": "VERIFIED",
+        "status": "MONITORING",
+        "severity": "CRITICAL",
+        "item_count": 2,
+        "source_count": 2,
     })
 
-    policy = CleanupPolicy(max_deletes=10)
+    policy = CleanupPolicy(max_deletes=10, max_rebuild_reads=10)
     plan = plan_cleanup(db, policy)
     apply_cleanup(db, plan, policy)
 
     cluster = db.collection("mi_story_clusters").document(cluster_id).get().to_dict()
     assert cluster["item_ids"] == [recent_item]
     assert cluster["item_count"] == 1
+    assert cluster["source_ids"] == [f"recent-source-{suffix}"]
+    assert cluster["source_count"] == 1
+    assert cluster["max_relevance_score"] == 70
+    assert cluster["first_item_at"] == recent
+    assert cluster["last_item_at"] == recent
+
+    issue = db.collection("mi_issues").document(issue_id).get().to_dict()
+    assert issue["verification_status"] == "VERIFIED"
+    assert issue["status"] == "MONITORING"
+    assert issue["severity"] == "MEDIUM"
+    assert issue["item_count"] == 1
+    assert issue["source_count"] == 1
+    assert issue["opened_at"] == recent
+    assert issue["last_item_at"] == recent
+
     assert not db.collection("mi_items").document(old_item).get().exists
     assert db.collection("mi_items").document(recent_item).get().exists
 
