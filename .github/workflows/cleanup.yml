@@ -11,8 +11,10 @@ on:
         default: true
         type: boolean
 
+# Cleanup menulis collection mi_* yang juga ditulis crawler. Satu concurrency
+# group lintas-workflow mencegah retention maintenance bertabrakan dengan crawl.
 concurrency:
-  group: media-intelligence-cleanup-production
+  group: media-intelligence-write-production
   cancel-in-progress: false
 
 permissions:
